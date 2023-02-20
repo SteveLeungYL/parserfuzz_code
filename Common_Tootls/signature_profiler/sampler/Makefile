@@ -8,7 +8,7 @@ AFL_FLAGS   += -w \
 				-DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 				-DBIN_PATH=\"$(BIN_PATH)\"
 
-SRCS = sample_func_opr_data_types.cpp
+SRCS = sample_postgresql.cpp sample_mysql.cpp
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -17,7 +17,7 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 all: $(SRCS:%.cpp=%.o)
 
 clean:
-	rm -rf *.o
+	rm -rf *.o ./.deps
 
 %.o : %.cpp $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $< $(AFL_FLAGS)

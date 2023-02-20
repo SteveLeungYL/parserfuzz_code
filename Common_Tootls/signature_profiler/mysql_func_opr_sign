@@ -1,0 +1,993 @@
+*************************** 1. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): asymmetric_decrypt(algorithm, crypt_str, key_str)
+*************************** 2. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): asymmetric_derive(pub_key_str, priv_key_str)
+*************************** 3. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): asymmetric_encrypt(algorithm, str, key_str)
+*************************** 4. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): asymmetric_sign(algorithm, digest_str, priv_key_str, digest_type)
+*************************** 5. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): asymmetric_verify(algorithm, digest_str, sig_str, pub_key_str, digest_type)
+*************************** 6. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): create_asymmetric_priv_key(algorithm, {key_len|dh_secret})
+*************************** 7. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): create_asymmetric_pub_key(algorithm, priv_key_str)
+*************************** 8. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): create_dh_parameters(key_len)
+*************************** 9. row ***************************
+                       TYPE: Enterprise Encryption Functions
+grab_signature(description): create_digest(digest_type, str)
+*************************** 10. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): =
+*************************** 11. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): <=>
+*************************** 12. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): <>, !=
+*************************** 13. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): <=
+*************************** 14. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): <
+*************************** 15. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): >=
+*************************** 16. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): >
+*************************** 17. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): expr BETWEEN min AND max
+*************************** 18. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): expr NOT BETWEEN min AND max
+*************************** 19. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): COALESCE(value,...)
+*************************** 20. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): GREATEST(value1,value2,...)
+*************************** 21. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): expr IN (value,...)
+*************************** 22. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): expr NOT IN (value,...)
+*************************** 23. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): INTERVAL(N,N1,N2,N3,...)
+*************************** 24. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): IS boolean_value
+*************************** 25. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): IS NOT boolean_value
+*************************** 26. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): IS NULL
+*************************** 27. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): IS NOT NULL
+*************************** 28. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): ISNULL(expr)
+*************************** 29. row ***************************
+                       TYPE: Comparison Operators
+grab_signature(description): LEAST(value1,value2,...)
+*************************** 30. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): NOT, !
+*************************** 31. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): AND, &&
+*************************** 32. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): OR, ||
+*************************** 33. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): XOR
+*************************** 34. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): :=
+*************************** 35. row ***************************
+                       TYPE: Logical Operators
+grab_signature(description): =
+*************************** 36. row ***************************
+                       TYPE: Flow Control Functions
+grab_signature(description): CASE value WHEN compare_value THEN result [WHEN compare_value THEN result ...] [ELSE result] END, CASE WHEN condition THEN result [WHEN condition THEN result ...] [ELSE result] END
+*************************** 37. row ***************************
+                       TYPE: Flow Control Functions
+grab_signature(description): IF(expr1,expr2,expr3)
+*************************** 38. row ***************************
+                       TYPE: Flow Control Functions
+grab_signature(description): IFNULL(expr1,expr2)
+*************************** 39. row ***************************
+                       TYPE: Flow Control Functions
+grab_signature(description): NULLIF(expr1,expr2)
+*************************** 40. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): +
+*************************** 41. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): -
+*************************** 42. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): -
+*************************** 43. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): *
+*************************** 44. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): /
+*************************** 45. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): DIV
+*************************** 46. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): %, MOD
+*************************** 47. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ABS(X)
+*************************** 48. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ACOS(X)
+*************************** 49. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ASIN(X)
+*************************** 50. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ATAN(X)
+*************************** 51. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ATAN(Y,X), ATAN2(Y,X)
+*************************** 52. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): CEIL(X)
+*************************** 53. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): CEILING(X)
+*************************** 54. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): CONV(N,from_base,to_base)
+*************************** 55. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): COS(X)
+*************************** 56. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): COT(X)
+*************************** 57. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): CRC32(expr)
+*************************** 58. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): DEGREES(X)
+*************************** 59. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): EXP(X)
+*************************** 60. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): FLOOR(X)
+*************************** 61. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): LN(X)
+*************************** 62. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): LOG(X), LOG(B,X)
+*************************** 63. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): LOG2(X)
+*************************** 64. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): LOG10(X)
+*************************** 65. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): MOD(X,Y)
+*************************** 66. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): PI()
+*************************** 67. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): POW(X,Y)
+*************************** 68. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): POWER(X,Y)
+*************************** 69. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): RADIANS(X)
+*************************** 70. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): RAND([N])
+*************************** 71. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): ROUND(X), ROUND(X,D)
+*************************** 72. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): SIGN(X)
+*************************** 73. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): SIN(X)
+*************************** 74. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): SQRT(X)
+*************************** 75. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): TAN(X)
+*************************** 76. row ***************************
+                       TYPE: Numeric Functions
+grab_signature(description): TRUNCATE(X,D)
+*************************** 77. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): ADDDATE(date,INTERVAL expr unit), ADDDATE(date,days)
+*************************** 78. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): ADDTIME(expr1,expr2)
+*************************** 79. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CONVERT_TZ(dt,from_tz,to_tz)
+*************************** 80. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CURDATE()
+*************************** 81. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CURRENT_DATE, CURRENT_DATE()
+*************************** 82. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CURRENT_TIME, CURRENT_TIME([fsp])
+*************************** 83. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CURRENT_TIMESTAMP, CURRENT_TIMESTAMP([fsp])
+*************************** 84. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): CURTIME([fsp])
+*************************** 85. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DATE(expr)
+*************************** 86. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DATEDIFF(expr1,expr2)
+*************************** 87. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DATE_ADD(date,INTERVAL expr unit), DATE_SUB(date,INTERVAL expr unit)
+*************************** 88. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DATE_FORMAT(date,format)
+*************************** 89. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DATE_SUB(date,INTERVAL expr unit)
+*************************** 90. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DAY(date)
+*************************** 91. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DAYNAME(date)
+*************************** 92. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DAYOFMONTH(date)
+*************************** 93. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DAYOFWEEK(date)
+*************************** 94. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): DAYOFYEAR(date)
+*************************** 95. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): EXTRACT(unit FROM date)
+*************************** 96. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): FROM_DAYS(N)
+*************************** 97. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): FROM_UNIXTIME(unix_timestamp[,format])
+*************************** 98. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): GET_FORMAT({DATE|TIME|DATETIME}, {'EUR'|'USA'|'JIS'|'ISO'|'INTERNAL'})
+*************************** 99. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): HOUR(time)
+*************************** 100. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): LAST_DAY(date)
+*************************** 101. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): LOCALTIME, LOCALTIME([fsp])
+*************************** 102. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): LOCALTIMESTAMP, LOCALTIMESTAMP([fsp])
+*************************** 103. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MAKEDATE(year,dayofyear)
+*************************** 104. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MAKETIME(hour,minute,second)
+*************************** 105. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MICROSECOND(expr)
+*************************** 106. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MINUTE(time)
+*************************** 107. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MONTH(date)
+*************************** 108. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): MONTHNAME(date)
+*************************** 109. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): NOW([fsp])
+*************************** 110. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): PERIOD_ADD(P,N)
+*************************** 111. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): PERIOD_DIFF(P1,P2)
+*************************** 112. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): QUARTER(date)
+*************************** 113. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): SECOND(time)
+*************************** 114. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): SEC_TO_TIME(seconds)
+*************************** 115. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): STR_TO_DATE(str,format)
+*************************** 116. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): SUBDATE(date,INTERVAL expr unit), SUBDATE(expr,days)
+*************************** 117. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): SUBTIME(expr1,expr2)
+*************************** 118. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): SYSDATE([fsp])
+*************************** 119. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIME(expr)
+*************************** 120. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIMEDIFF(expr1,expr2)
+*************************** 121. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIMESTAMP(expr), TIMESTAMP(expr1,expr2)
+*************************** 122. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIMESTAMPADD(unit,interval,datetime_expr)
+*************************** 123. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIMESTAMPDIFF(unit,datetime_expr1,datetime_expr2)
+*************************** 124. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIME_FORMAT(time,format)
+*************************** 125. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TIME_TO_SEC(time)
+*************************** 126. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TO_DAYS(date)
+*************************** 127. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): TO_SECONDS(expr)
+*************************** 128. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): UNIX_TIMESTAMP([date])
+*************************** 129. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): UTC_DATE, UTC_DATE()
+*************************** 130. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): UTC_TIME, UTC_TIME([fsp])
+*************************** 131. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): UTC_TIMESTAMP, UTC_TIMESTAMP([fsp])
+*************************** 132. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): WEEK(date[,mode])
+*************************** 133. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): WEEKDAY(date)
+*************************** 134. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): WEEKOFYEAR(date)
+*************************** 135. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): YEAR(date)
+*************************** 136. row ***************************
+                       TYPE: Date and Time Functions
+grab_signature(description): YEARWEEK(date), YEARWEEK(date,mode)
+*************************** 137. row ***************************
+                       TYPE: String Functions
+grab_signature(description): ASCII(str)
+*************************** 138. row ***************************
+                       TYPE: String Functions
+grab_signature(description): BIN(N)
+*************************** 139. row ***************************
+                       TYPE: String Functions
+grab_signature(description): BIT_LENGTH(str)
+*************************** 140. row ***************************
+                       TYPE: String Functions
+grab_signature(description): CHAR(N,... [USING charset_name])
+*************************** 141. row ***************************
+                       TYPE: String Functions
+grab_signature(description): CHAR_LENGTH(str)
+*************************** 142. row ***************************
+                       TYPE: String Functions
+grab_signature(description): CHARACTER_LENGTH(str)
+*************************** 143. row ***************************
+                       TYPE: String Functions
+grab_signature(description): CONCAT(str1,str2,...)
+*************************** 144. row ***************************
+                       TYPE: String Functions
+grab_signature(description): CONCAT_WS(separator,str1,str2,...)
+*************************** 145. row ***************************
+                       TYPE: String Functions
+grab_signature(description): ELT(N,str1,str2,str3,...)
+*************************** 146. row ***************************
+                       TYPE: String Functions
+grab_signature(description): EXPORT_SET(bits,on,off[,separator[,number_of_bits]])
+*************************** 147. row ***************************
+                       TYPE: String Functions
+grab_signature(description): FIELD(str,str1,str2,str3,...)
+*************************** 148. row ***************************
+                       TYPE: String Functions
+grab_signature(description): FIND_IN_SET(str,strlist)
+*************************** 149. row ***************************
+                       TYPE: String Functions
+grab_signature(description): FORMAT(X,D[,locale])
+*************************** 150. row ***************************
+                       TYPE: String Functions
+grab_signature(description): FROM_BASE64(str)
+*************************** 151. row ***************************
+                       TYPE: String Functions
+grab_signature(description): HEX(str), HEX(N)
+*************************** 152. row ***************************
+                       TYPE: String Functions
+grab_signature(description): INSERT(str,pos,len,newstr)
+*************************** 153. row ***************************
+                       TYPE: String Functions
+grab_signature(description): INSTR(str,substr)
+*************************** 154. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LCASE(str)
+*************************** 155. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LEFT(str,len)
+*************************** 156. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LENGTH(str)
+*************************** 157. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LOAD_FILE(file_name)
+*************************** 158. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LOCATE(substr,str), LOCATE(substr,str,pos)
+*************************** 159. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LOWER(str)
+*************************** 160. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LPAD(str,len,padstr)
+*************************** 161. row ***************************
+                       TYPE: String Functions
+grab_signature(description): LTRIM(str)
+*************************** 162. row ***************************
+                       TYPE: String Functions
+grab_signature(description): MAKE_SET(bits,str1,str2,...)
+*************************** 163. row ***************************
+                       TYPE: String Functions
+grab_signature(description): MID(str,pos,len)
+*************************** 164. row ***************************
+                       TYPE: String Functions
+grab_signature(description): OCT(N)
+*************************** 165. row ***************************
+                       TYPE: String Functions
+grab_signature(description): OCTET_LENGTH(str)
+*************************** 166. row ***************************
+                       TYPE: String Functions
+grab_signature(description): ORD(str)
+*************************** 167. row ***************************
+                       TYPE: String Functions
+grab_signature(description): POSITION(substr IN str)
+*************************** 168. row ***************************
+                       TYPE: String Functions
+grab_signature(description): QUOTE(str)
+*************************** 169. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REPEAT(str,count)
+*************************** 170. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REPLACE(str,from_str,to_str)
+*************************** 171. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REVERSE(str)
+*************************** 172. row ***************************
+                       TYPE: String Functions
+grab_signature(description): RIGHT(str,len)
+*************************** 173. row ***************************
+                       TYPE: String Functions
+grab_signature(description): RPAD(str,len,padstr)
+*************************** 174. row ***************************
+                       TYPE: String Functions
+grab_signature(description): RTRIM(str)
+*************************** 175. row ***************************
+                       TYPE: String Functions
+grab_signature(description): SOUNDEX(str)
+*************************** 176. row ***************************
+                       TYPE: String Functions
+grab_signature(description): expr1 SOUNDS LIKE expr2
+*************************** 177. row ***************************
+                       TYPE: String Functions
+grab_signature(description): SPACE(N)
+*************************** 178. row ***************************
+                       TYPE: String Functions
+grab_signature(description): SUBSTR(str,pos), SUBSTR(str FROM pos), SUBSTR(str,pos,len), SUBSTR(str FROM pos FOR len)
+*************************** 179. row ***************************
+                       TYPE: String Functions
+grab_signature(description): SUBSTRING(str,pos), SUBSTRING(str FROM pos), SUBSTRING(str,pos,len), SUBSTRING(str FROM pos FOR len)
+*************************** 180. row ***************************
+                       TYPE: String Functions
+grab_signature(description): SUBSTRING_INDEX(str,delim,count)
+*************************** 181. row ***************************
+                       TYPE: String Functions
+grab_signature(description): TO_BASE64(str)
+*************************** 182. row ***************************
+                       TYPE: String Functions
+grab_signature(description): TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr FROM] str)
+*************************** 183. row ***************************
+                       TYPE: String Functions
+grab_signature(description): UCASE(str)
+*************************** 184. row ***************************
+                       TYPE: String Functions
+grab_signature(description): UNHEX(str)
+*************************** 185. row ***************************
+                       TYPE: String Functions
+grab_signature(description): UPPER(str)
+*************************** 186. row ***************************
+                       TYPE: String Functions
+grab_signature(description): WEIGHT_STRING(str [AS {CHAR|BINARY}(N)] [flags])
+*************************** 187. row ***************************
+                       TYPE: String Functions
+grab_signature(description): expr LIKE pat [ESCAPE 'escape_char']
+*************************** 188. row ***************************
+                       TYPE: String Functions
+grab_signature(description): expr NOT LIKE pat [ESCAPE 'escape_char']
+*************************** 189. row ***************************
+                       TYPE: String Functions
+grab_signature(description): STRCMP(expr1,expr2)
+*************************** 190. row ***************************
+                       TYPE: String Functions
+grab_signature(description): expr NOT REGEXP pat, expr NOT RLIKE pat
+*************************** 191. row ***************************
+                       TYPE: String Functions
+grab_signature(description): expr REGEXP pat, expr RLIKE pat
+*************************** 192. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REGEXP_INSTR(expr, pat[, pos[, occurrence[, return_option[, match_type]]]])
+*************************** 193. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REGEXP_LIKE(expr, pat[, match_type])
+*************************** 194. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REGEXP_REPLACE(expr, pat, repl[, pos[, occurrence[, match_type]]])
+*************************** 195. row ***************************
+                       TYPE: String Functions
+grab_signature(description): REGEXP_SUBSTR(expr, pat[, pos[, occurrence[, match_type]]])
+*************************** 196. row ***************************
+                       TYPE: String Functions
+grab_signature(description): MATCH (col1,col2,...) AGAINST (expr [search_modifier])
+*************************** 197. row ***************************
+                       TYPE: Cast Functions and Operators
+grab_signature(description): BINARY expr
+*************************** 198. row ***************************
+                       TYPE: Cast Functions and Operators
+grab_signature(description): CAST(expr AS type [ARRAY])
+*************************** 199. row ***************************
+                       TYPE: Cast Functions and Operators
+grab_signature(description): CONVERT(expr USING transcoding_name)
+*************************** 200. row ***************************
+                       TYPE: XML
+grab_signature(description): ExtractValue(xml_frag, xpath_expr)
+*************************** 201. row ***************************
+                       TYPE: XML
+grab_signature(description): UpdateXML(xml_target, xpath_expr, new_xml)
+*************************** 202. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): |
+*************************** 203. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): &
+*************************** 204. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): ^
+*************************** 205. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): <<
+*************************** 206. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): >>
+*************************** 207. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): ~
+*************************** 208. row ***************************
+                       TYPE: Bit Functions
+grab_signature(description): BIT_COUNT(N)
+*************************** 209. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): AES_DECRYPT(crypt_str,key_str[,init_vector])
+*************************** 210. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): AES_ENCRYPT(str,key_str[,init_vector])
+*************************** 211. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): COMPRESS(string_to_compress)
+*************************** 212. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): MD5(str)
+*************************** 213. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): RANDOM_BYTES(len)
+*************************** 214. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): SHA1(str), SHA(str)
+*************************** 215. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): SHA2(str, hash_length)
+*************************** 216. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): STATEMENT_DIGEST(statement)
+*************************** 217. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): STATEMENT_DIGEST_TEXT(statement)
+*************************** 218. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): UNCOMPRESS(string_to_uncompress)
+*************************** 219. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): UNCOMPRESSED_LENGTH(compressed_string)
+*************************** 220. row ***************************
+                       TYPE: Encryption Functions
+grab_signature(description): VALIDATE_PASSWORD_STRENGTH(str)
+*************************** 221. row ***************************
+                       TYPE: Locking Functions
+grab_signature(description): GET_LOCK(str,timeout)
+*************************** 222. row ***************************
+                       TYPE: Locking Functions
+grab_signature(description): IS_FREE_LOCK(str)
+*************************** 223. row ***************************
+                       TYPE: Locking Functions
+grab_signature(description): IS_USED_LOCK(str)
+*************************** 224. row ***************************
+                       TYPE: Locking Functions
+grab_signature(description): RELEASE_ALL_LOCKS()
+*************************** 225. row ***************************
+                       TYPE: Locking Functions
+grab_signature(description): RELEASE_LOCK(str)
+*************************** 226. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): BENCHMARK(count,expr)
+*************************** 227. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): CHARSET(str)
+*************************** 228. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): COERCIBILITY(str)
+*************************** 229. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): COLLATION(str)
+*************************** 230. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): CONNECTION_ID()
+*************************** 231. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): CURRENT_ROLE()
+*************************** 232. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): CURRENT_USER, CURRENT_USER()
+*************************** 233. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): DATABASE()
+*************************** 234. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): FOUND_ROWS()
+*************************** 235. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): ICU_VERSION()
+*************************** 236. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): LAST_INSERT_ID(), LAST_INSERT_ID(expr)
+*************************** 237. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): ROLES_GRAPHML()
+*************************** 238. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): ROW_COUNT()
+*************************** 239. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): SCHEMA()
+*************************** 240. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): SESSION_USER()
+*************************** 241. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): SYSTEM_USER()
+*************************** 242. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): USER()
+*************************** 243. row ***************************
+                       TYPE: Information Functions
+grab_signature(description): VERSION()
+*************************** 244. row ***************************
+                       TYPE: GTID
+grab_signature(description): GTID_SUBSET(set1,set2)
+*************************** 245. row ***************************
+                       TYPE: GTID
+grab_signature(description): GTID_SUBTRACT(set1,set2)
+*************************** 246. row ***************************
+                       TYPE: GTID
+grab_signature(description): WAIT_FOR_EXECUTED_GTID_SET(gtid_set[, timeout])
+*************************** 247. row ***************************
+                       TYPE: GTID
+grab_signature(description): WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS(gtid_set[, timeout][,channel])
+*************************** 248. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): AVG([DISTINCT] expr) [over_clause]
+*************************** 249. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): BIT_AND(expr) [over_clause]
+*************************** 250. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): BIT_OR(expr) [over_clause]
+*************************** 251. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): BIT_XOR(expr) [over_clause]
+*************************** 252. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): COUNT(expr) [over_clause]
+*************************** 253. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): COUNT(DISTINCT expr,[expr...])
+*************************** 254. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): GROUP_CONCAT(expr)
+*************************** 255. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): JSON_ARRAYAGG(col_or_expr) [over_clause]
+*************************** 256. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): JSON_OBJECTAGG(key, value) [over_clause]
+*************************** 257. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): MAX([DISTINCT] expr) [over_clause]
+*************************** 258. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): MIN([DISTINCT] expr) [over_clause]
+*************************** 259. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): STD(expr) [over_clause]
+*************************** 260. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): STDDEV(expr) [over_clause]
+*************************** 261. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): STDDEV_POP(expr) [over_clause]
+*************************** 262. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): STDDEV_SAMP(expr) [over_clause]
+*************************** 263. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): SUM([DISTINCT] expr) [over_clause]
+*************************** 264. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): VAR_POP(expr) [over_clause]
+*************************** 265. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): VAR_SAMP(expr) [over_clause]
+*************************** 266. row ***************************
+                       TYPE: Aggregate Functions and Modifiers
+grab_signature(description): VARIANCE(expr) [over_clause]
+*************************** 267. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): CUME_DIST() over_clause
+*************************** 268. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): DENSE_RANK() over_clause
+*************************** 269. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): FIRST_VALUE(expr) [null_treatment] over_clause
+*************************** 270. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): LAG(expr [, N[, default]]) [null_treatment] over_clause
+*************************** 271. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): LAST_VALUE(expr) [null_treatment] over_clause
+*************************** 272. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): LEAD(expr [, N[, default]]) [null_treatment] over_clause
+*************************** 273. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): NTH_VALUE(expr, N) [from_first_last] [null_treatment] over_clause
+*************************** 274. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): NTILE(N) over_clause
+*************************** 275. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): PERCENT_RANK() over_clause
+*************************** 276. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): RANK() over_clause
+*************************** 277. row ***************************
+                       TYPE: Window Functions
+grab_signature(description): ROW_NUMBER() over_clause
+*************************** 278. row ***************************
+                       TYPE: Performance Schema Functions
+grab_signature(description): FORMAT_BYTES(count)
+*************************** 279. row ***************************
+                       TYPE: Performance Schema Functions
+grab_signature(description): FORMAT_PICO_TIME(time_val)
+*************************** 280. row ***************************
+                       TYPE: Performance Schema Functions
+grab_signature(description): PS_CURRENT_THREAD_ID()
+*************************** 281. row ***************************
+                       TYPE: Performance Schema Functions
+grab_signature(description): PS_THREAD_ID(connection_id)
+*************************** 282. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): CAN_ACCESS_COLUMN(ARGS)
+*************************** 283. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): CAN_ACCESS_DATABASE(ARGS)
+*************************** 284. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): CAN_ACCESS_TABLE(ARGS)
+*************************** 285. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): CAN_ACCESS_USER(ARGS)
+*************************** 286. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): CAN_ACCESS_VIEW(ARGS)
+*************************** 287. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): GET_DD_COLUMN_PRIVILEGES(ARGS)
+*************************** 288. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): GET_DD_CREATE_OPTIONS(ARGS)
+*************************** 289. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): GET_DD_INDEX_SUB_PART_LENGTH(ARGS)
+*************************** 290. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_AUTO_INCREMENT(ARGS)
+*************************** 291. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_AVG_ROW_LENGTH(ARGS)
+*************************** 292. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_CHECK_TIME(ARGS)
+*************************** 293. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_CHECKSUM(ARGS)
+*************************** 294. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_DATA_FREE(ARGS)
+*************************** 295. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_DATA_LENGTH(ARGS)
+*************************** 296. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_DD_CHAR_LENGTH(ARGS)
+*************************** 297. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_GET_COMMENT_OR_ERROR(ARGS)
+*************************** 298. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_GET_ENABLED_ROLE_JSON(ARGS)
+*************************** 299. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_GET_HOSTNAME(ARGS)
+*************************** 300. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_GET_USERNAME(ARGS)
+*************************** 301. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_GET_VIEW_WARNING_OR_ERROR(ARGS)
+*************************** 302. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_INDEX_COLUMN_CARDINALITY(ARGS)
+*************************** 303. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_INDEX_LENGTH(ARGS)
+*************************** 304. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_IS_ENABLED_ROLE(ARGS)
+*************************** 305. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_IS_MANDATORY_ROLE(ARGS)
+*************************** 306. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_KEYS_DISABLED(ARGS)
+*************************** 307. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_MAX_DATA_LENGTH(ARGS)
+*************************** 308. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_TABLE_ROWS(ARGS)
+*************************** 309. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): INTERNAL_UPDATE_TIME(ARGS)
+*************************** 310. row ***************************
+                       TYPE: Internal Functions
+grab_signature(description): IS_VISIBLE_DD_OBJECT(ARGS)
+*************************** 311. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): ANY_VALUE(arg)
+*************************** 312. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): BIN_TO_UUID(binary_uuid), BIN_TO_UUID(binary_uuid, swap_flag)
+*************************** 313. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): DEFAULT(col_name)
+*************************** 314. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): GROUPING(expr [, expr] ...)
+*************************** 315. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): INET_ATON(expr)
+*************************** 316. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): INET_NTOA(expr)
+*************************** 317. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): INET6_ATON(expr)
+*************************** 318. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): INET6_NTOA(expr)
+*************************** 319. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): IS_IPV4(expr)
+*************************** 320. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): IS_IPV4_COMPAT(expr)
+*************************** 321. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): IS_IPV4_MAPPED(expr)
+*************************** 322. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): IS_IPV6(expr)
+*************************** 323. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): IS_UUID(string_uuid)
+*************************** 324. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): MASTER_POS_WAIT(log_name,log_pos[,timeout][,channel])
+*************************** 325. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): NAME_CONST(name,value)
+*************************** 326. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): SLEEP(duration)
+*************************** 327. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): SOURCE_POS_WAIT(log_name,log_pos[,timeout][,channel])
+*************************** 328. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): UUID()
+*************************** 329. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): UUID_SHORT()
+*************************** 330. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): UUID_TO_BIN(string_uuid), UUID_TO_BIN(string_uuid, swap_flag)
+*************************** 331. row ***************************
+                       TYPE: Miscellaneous Functions
+grab_signature(description): VALUES(col_name)

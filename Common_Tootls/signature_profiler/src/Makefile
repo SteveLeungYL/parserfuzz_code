@@ -7,7 +7,7 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ../pars
 all: $(SRCS:%.cpp=%.o)
 
 clean:
-	rm -rf *.o
+	rm -rf *.o ./.deps
 
 %.o : %.cpp $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
