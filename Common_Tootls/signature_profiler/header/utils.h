@@ -17,6 +17,11 @@ static std::random_device rd; // random device engine, usually based on
 // initialize Mersennes' twister using rd to generate the seed
 static std::mt19937 rng{rd()};
 
+#define vector_rand_ele_safe(a)                                                \
+  (a.size() != 0 ? a[get_rand_int(a.size())] : gen_id_name())
+
+#define vector_rand_ele(a) (a[get_rand_int(a.size())])
+
 // #define get_rand_int(range) rand() % (range)
 inline int get_rand_int(int range) {
   if (range != 0) {

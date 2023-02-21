@@ -214,6 +214,7 @@ public:
   string mutate_type_timestamp();
   string mutate_type_timestamptz() {return mutate_type_timestamp();}
   string mutate_type_uuid();
+  string mutate_type_enum();
 };
 
 #endif // SIGNATURE_PROFILER_DATA_TYPES_H

@@ -21,6 +21,55 @@ PostgresClient g_psql_client;
 char FUNC_OPER_TYPE_LIB_PATH[] = "./mysql_func_opr_sign";
 
 inline DataType parse_arg_type(string& cur_arg_str) {
+
+  // We ignore the optional symbol of [], if the function provide optional 
+  // arguments, always use them. 
+  
+  // Handle the ENUM type first. 
+  if (findStringIn(cur_arg_str, "{")) {
+    string tmp;
+    vector<string> v_tmp = string_splitter(cur_arg_str, "{");
+    tmp = v_tmp[1];
+    v_tmp = string_splitter(tmp, "}");
+    if (v_tmp.size() < 2) {
+      cerr << "\n\n\nError: cannot find the matching right } that is matching the left {. Logic Error. \n\n\n";
+      assert(false);
+      return DataType(kTYPEUNDEFINE);
+    }
+
+    // Assuming there is only one enum in the single argument string.
+    tmp = v_tmp[0];
+
+    vector<string> v_enum_str = string_splitter(tmp, "|");
+
+    DataType res(kTYPEENUM);
+    res.set_v_enum_str(v_enum_str);
+
+    return res;
+  }
+
+
+  if (cur_arg_str == "algorithm") {
+    return DataType(kTYPETEXT);
+  }  else if (cur_arg_str == "pos") {
+    return DataType(kTYPESMALLINT);
+  } else if (cur_arg_str == "N") {
+    return DataType(kTYPESMALLINT);
+  } else if (findStringIn(cur_arg_str, "str")) {
+    return DataType(kTYPETEXT);
+  } else if (findStringIn(cur_arg_str, "_len")){
+    return DataType(kTYPESMALLINT);
+  } else if (findStringIn(cur_arg_str, "value")) {
+    return DataType(kTYPEANY);
+  } else if (findStringIn(cur_arg_str, "expr")) {
+    return DataType(kTYPEANY);
+  } else if (findStringIn(cur_arg_str, "X") ||
+        findStringIn(cur_arg_str, "Y")
+        ) {
+    return DataType(kTYPEANY);
+  } 
+
+
   return DataType(kTYPEUNDEFINE);
 }
 
@@ -49,6 +98,7 @@ vector<FuncSig> init_func_sig(string& cur_type_line, const string& cur_func_cate
 
     string arg_list = v_func.back();
     vector<string> v_arg_str = string_splitter(arg_list, ", ");
+
     for (auto& cur_arg_str: v_arg_str) {
       v_arg_type.push_back(parse_arg_type(cur_arg_str));
     }

@@ -768,6 +768,11 @@ string DataType::mutate_type_money() {
   return "'" + to_string(value) + "'::money";
 }
 
+string DataType::mutate_type_enum() {
+  string res = vector_rand_ele(this->v_enum_str);
+  return res;
+}
+
 string DataType::mutate_type_real() {
   double value = get_rand_double(1e-37, 1e37);
   return to_string(value);
@@ -1035,6 +1040,8 @@ string DataType::mutate_type_entry_helper() {
     return mutate_type_uuid();
   case kTYPEOID:
     return mutate_type_oid();
+  case kTYPEENUM:
+    return mutate_type_enum();
   default:
     cerr << "\n\n\nERROR: For type: " << get_str_from_data_type()
          << ", cannot find"
