@@ -9,6 +9,7 @@ using std::string;
 
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
+  V(TYPEUNDEFINE)                                                              \
   V(TYPEANY)                                                                   \
   V(TYPENONE)                                                                  \
   V(TYPEIDENT)                                                                 \
@@ -64,7 +65,7 @@ using std::string;
   V(TYPEPOINT)                                                                 \
   V(TYPEPOLYGON)
 
-#define ALLFUNCTIONTYPESMYSQL(V)                                                    \
+#define ALLFUNCTIONTYPESMYSQL(V)                                               \
   V(FUNCUNKNOWN)                                                               \
   V(FUNCAGGR)                                                                  \
   V(FUNCORDERAGGR)                                                             \

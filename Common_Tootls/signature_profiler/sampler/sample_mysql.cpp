@@ -18,14 +18,20 @@
 
 PostgresClient g_psql_client;
 
-char *FUNC_OPER_TYPE_LIB_PATH = "./mysql_func_opr_sign";
+char FUNC_OPER_TYPE_LIB_PATH[] = "./mysql_func_opr_sign";
 
-vector<FuncSig> init_func_sig(string& cur_type_line) {
+inline DataType parse_arg_type(string& cur_arg_str) {
+  return DataType(kTYPEUNDEFINE);
+}
+
+vector<FuncSig> init_func_sig(string& cur_type_line, const string& cur_func_category) {
 
   // For the cur_type_line, first of all, separate the same line different
   // function signature
 
+  vector<FuncSig> v_res_sig;
   vector<string> v_diff_sign = string_splitter(cur_type_line, "), ");
+
 
   for (int i = 0; i < v_diff_sign.size(); i++) {
     if (i == v_diff_sign.size() - 1) {
@@ -33,17 +39,40 @@ vector<FuncSig> init_func_sig(string& cur_type_line) {
       v_diff_sign[i] = v_diff_sign[i].substr(0, v_diff_sign[i].size()-1);
     }
 
+    vector<DataType> v_arg_type;
+    string cur_func_name;
+
     string cur_func_str = v_diff_sign[i];
     // Separate the function name and the arguments.
     vector<string> v_func = string_splitter(cur_func_str, "(");
-    string cur_func_name = v_func.front();
+    cur_func_name = v_func.front();
 
+    string arg_list = v_func.back();
+    vector<string> v_arg_str = string_splitter(arg_list, ", ");
+    for (auto& cur_arg_str: v_arg_str) {
+      v_arg_type.push_back(parse_arg_type(cur_arg_str));
+    }
+
+    DataType ret_type(kTYPEUNDEFINE);
+
+    FuncCategory cur_func_cate = Normal;
+    if (cur_func_category == "Window Functions") {
+      cur_func_cate = Window;
+    } else if (cur_func_category == "Aggregate Functions and Modifiers") {
+      cur_func_cate = Aggregate;
+    }
+
+    FuncSig new_func_sig(cur_func_name, v_arg_type, ret_type, cur_func_cate);
+#ifdef DEBUG
+    cerr << "\n\n\nDEBUG: getting function signature: " << new_func_sig.get_func_signature() << "\n\n\n";
+#endif
+    v_res_sig.push_back(new_func_sig);
   }
 
-  return {FuncSig()};
+  return v_res_sig;
 }
 
-vector<OprSig> init_opr_sig(string& cur_type_line) {
+vector<OprSig> init_opr_sig(string& cur_type_line, const string& cur_opr_category) {
 
   vector<string> line_split = string_splitter(cur_type_line, ", ");
   vector<OprSig> v_res;
@@ -71,9 +100,17 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
   int func_parsing_succeed = 0, func_parsing_failure = 0, opr_parsing_succeed = 0,
       opr_parsing_failure = 0;
 
+  string cur_type_category = "";
   for (int i = 0; i < func_type_split.size(); i++) {
     // Only scan for lines that contains grab_signature(description):
     string& cur_type_line = func_type_split[i];
+
+    if (findStringIn(cur_type_line, "TYPE: ")) {
+      // This line contains the function type string.
+      cur_type_category = cur_type_line.substr(29, cur_type_line.size() - 29);
+      continue;
+    }
+
     if (!findStringIn(cur_type_line, "grab_signature(description)")) {
       // This line does not contain function or operator signatures.
       continue;
@@ -88,7 +125,7 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 
     if (findStringIn(cur_type_line, "(") || findStringIn(cur_type_line, ")")) {
       // If the line contains "(", ")" synbols, assume this is the FUNCTION type.
-      vector<FuncSig> v_func_sig = init_func_sig(cur_type_line);
+      vector<FuncSig> v_func_sig = init_func_sig(cur_type_line, cur_type_category);
       for (auto cur_func_sig: v_func_sig) {
         if (cur_func_sig.is_contain_unsupported()) {
           func_parsing_failure++;
@@ -102,7 +139,7 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
         }
       }
     } else {
-      vector<OprSig> v_opr_sig = init_opr_sig(cur_type_line);
+      vector<OprSig> v_opr_sig = init_opr_sig(cur_type_line, cur_type_category);
       for (auto cur_opr_sig : v_opr_sig) {
         if (cur_opr_sig.is_contain_unsupported()) {
 #ifdef DEBUG

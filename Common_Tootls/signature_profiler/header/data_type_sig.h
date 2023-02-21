@@ -12,7 +12,7 @@
 
 using std::cerr;
 
-enum FuncCatalog {
+enum FuncCategory {
   Normal = 0,
   Aggregate,
   AggregateOrder,
@@ -43,7 +43,7 @@ public:
   vector<DataType> get_arg_types() const { return arg_types; }
   DataType get_ret_type() const { return ret_type; }
   string get_func_name() const { return func_name; }
-  FuncCatalog get_func_catalog() const { return func_catalog; }
+  FuncCategory get_func_catalog() const { return func_catalog; }
 
   string get_mutated_func_str();
 
@@ -55,7 +55,7 @@ public:
     this->arg_types.push_back(arg_type);
   }
   void set_ret_type(const DataType ret_type) { this->ret_type = ret_type; }
-  void set_func_catalog(FuncCatalog in) { this->func_catalog = in; }
+  void set_func_catalog(FuncCategory in) { this->func_catalog = in; }
   void set_func_catalog(const string &in, const string &agg_in) {
     if (in == "f") {
       this->func_catalog = Normal;
@@ -97,7 +97,7 @@ public:
   FuncSig() : execute_success(0), execute_error(0) {}
   FuncSig(const string &func_name_in, const vector<DataType> &arg_types_in,
           const DataType &ret_type_in,
-          const FuncCatalog func_catalog_in = Normal)
+          const FuncCategory func_catalog_in = Normal)
       : func_name(func_name_in), arg_types(arg_types_in), ret_type(ret_type_in),
         execute_success(0), execute_error(0), func_catalog(func_catalog_in) {
     setup_mutation_hints();
@@ -112,15 +112,15 @@ public:
     set_func_catalog(catalog_in, agg_catalog_in);
   }
 
+  // Setup function hints for better instantiation results.
+  void setup_mutation_hints();
+
 private:
   string func_name;
   vector<DataType> arg_types;
   DataType ret_type;
   int execute_success, execute_error;
-  FuncCatalog func_catalog;
-
-  // Setup function hints for better instantiation results.
-  void setup_mutation_hints();
+  FuncCategory func_catalog;
 
   // Private helper function.
   inline bool find_types(DATATYPE data_type_in) {
