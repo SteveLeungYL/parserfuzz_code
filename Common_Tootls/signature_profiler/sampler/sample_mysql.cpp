@@ -20,12 +20,43 @@ PostgresClient g_psql_client;
 
 char *FUNC_OPER_TYPE_LIB_PATH = "./mysql_func_opr_sign";
 
-FuncSig init_func_sig(string& cur_type_line) {
-  return FuncSig();
+vector<FuncSig> init_func_sig(string& cur_type_line) {
+
+  // For the cur_type_line, first of all, separate the same line different
+  // function signature
+
+  vector<string> v_diff_sign = string_splitter(cur_type_line, "), ");
+
+  for (int i = 0; i < v_diff_sign.size(); i++) {
+    if (i == v_diff_sign.size() - 1) {
+      // remove the extra ')' from the last function signature
+      v_diff_sign[i] = v_diff_sign[i].substr(0, v_diff_sign[i].size()-1);
+    }
+
+    string cur_func_str = v_diff_sign[i];
+    // Separate the function name and the arguments.
+    vector<string> v_func = string_splitter(cur_func_str, "(");
+    string cur_func_name = v_func.front();
+
+  }
+
+  return {FuncSig()};
 }
 
-OprSig init_opr_sig(string& cur_type_line) {
-  return OprSig();
+vector<OprSig> init_opr_sig(string& cur_type_line) {
+
+  vector<string> line_split = string_splitter(cur_type_line, ", ");
+  vector<OprSig> v_res;
+
+  for (string& cur_type: line_split) {
+    OprSig cur_opr_sig(cur_type);
+    v_res.push_back(cur_opr_sig);
+#ifdef DEBUG
+    cerr << "\n\n\nDEBUG:: Getting new operator type: " << cur_opr_sig.get_opr_signature() << "\n\n\n";
+#endif
+  }
+
+  return v_res;
 }
 
 void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
@@ -57,26 +88,32 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 
     if (findStringIn(cur_type_line, "(") || findStringIn(cur_type_line, ")")) {
       // If the line contains "(", ")" synbols, assume this is the FUNCTION type.
-      FuncSig cur_func_sig = init_func_sig(cur_type_line);
-      if (cur_func_sig.is_contain_unsupported()) {
-        func_parsing_failure++;
+      vector<FuncSig> v_func_sig = init_func_sig(cur_type_line);
+      for (auto cur_func_sig: v_func_sig) {
+        if (cur_func_sig.is_contain_unsupported()) {
+          func_parsing_failure++;
 #ifdef DEBUG
-        cerr << "\nDEBUG: for cur_func_sig: " << cur_type_line << ", parsing failure\n\n\n";
+          cerr << "\nDEBUG: for cur_func_sig: " << cur_type_line
+               << ", parsing failure\n\n\n";
 #endif
-      } else {
-        func_parsing_succeed++;
-        v_func_sig.push_back(cur_func_sig);
+        } else {
+          func_parsing_succeed++;
+          v_func_sig.push_back(cur_func_sig);
+        }
       }
     } else {
-      OprSig cur_opr_sig = init_opr_sig(cur_type_line);
-      if (cur_opr_sig.is_contain_unsupported()) {
+      vector<OprSig> v_opr_sig = init_opr_sig(cur_type_line);
+      for (auto cur_opr_sig : v_opr_sig) {
+        if (cur_opr_sig.is_contain_unsupported()) {
 #ifdef DEBUG
-        cerr << "\nDEBUG: for cur_opr_sig: " << cur_type_line << ", parsing failure\n\n\n";
+          cerr << "\nDEBUG: for cur_opr_sig: " << cur_type_line
+               << ", parsing failure\n\n\n";
 #endif
-        opr_parsing_failure++;
-      } else {
-        opr_parsing_succeed++;
-        v_opr_sig.push_back(cur_opr_sig);
+          opr_parsing_failure++;
+        } else {
+          opr_parsing_succeed++;
+          v_opr_sig.push_back(cur_opr_sig);
+        }
       }
     }
   }

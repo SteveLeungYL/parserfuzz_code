@@ -240,13 +240,13 @@ grab_signature(description): CONVERT_TZ(dt,from_tz,to_tz)
 grab_signature(description): CURDATE()
 *************************** 81. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): CURRENT_DATE, CURRENT_DATE()
+grab_signature(description): CURRENT_DATE()
 *************************** 82. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): CURRENT_TIME, CURRENT_TIME([fsp])
+grab_signature(description): CURRENT_TIME([fsp])
 *************************** 83. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): CURRENT_TIMESTAMP, CURRENT_TIMESTAMP([fsp])
+grab_signature(description): CURRENT_TIMESTAMP([fsp])
 *************************** 84. row ***************************
                        TYPE: Date and Time Functions
 grab_signature(description): CURTIME([fsp])
@@ -384,13 +384,13 @@ grab_signature(description): TO_SECONDS(expr)
 grab_signature(description): UNIX_TIMESTAMP([date])
 *************************** 129. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): UTC_DATE, UTC_DATE()
+grab_signature(description): UTC_DATE()
 *************************** 130. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): UTC_TIME, UTC_TIME([fsp])
+grab_signature(description): UTC_TIME([fsp])
 *************************** 131. row ***************************
                        TYPE: Date and Time Functions
-grab_signature(description): UTC_TIMESTAMP, UTC_TIMESTAMP([fsp])
+grab_signature(description): UTC_TIMESTAMP([fsp])
 *************************** 132. row ***************************
                        TYPE: Date and Time Functions
 grab_signature(description): WEEK(date[,mode])
@@ -693,7 +693,7 @@ grab_signature(description): CONNECTION_ID()
 grab_signature(description): CURRENT_ROLE()
 *************************** 232. row ***************************
                        TYPE: Information Functions
-grab_signature(description): CURRENT_USER, CURRENT_USER()
+grab_signature(description): CURRENT_USER()
 *************************** 233. row ***************************
                        TYPE: Information Functions
 grab_signature(description): DATABASE()

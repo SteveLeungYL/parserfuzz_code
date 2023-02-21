@@ -44,4 +44,32 @@ TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr FROM] str)
 REGEXP_INSTR(expr, pat[, pos[, occurrence[, return_option[,
 ->
 REGEXP_INSTR(expr, pat[, pos[, occurrence[, return_option[, match_type]]]])
+
+CURRENT_DATE, CURRENT_DATE()
+->
+CURRENT_DATE()
+
+CURRENT_TIME, CURRENT_TIME([fsp])
+->
+CURRENT_TIME([fsp])
+
+CURRENT_TIMESTAMP, CURRENT_TIMESTAMP([fsp])
+->
+CURRENT_TIMESTAMP([fsp])
+
+UTC_DATE, UTC_DATE()
+->
+UTC_DATE()
+
+UTC_TIME, UTC_TIME([fsp])
+->
+UTC_TIME([fsp])
+
+UTC_TIMESTAMP, UTC_TIMESTAMP([fsp])
+->
+UTC_TIMESTAMP([fsp])
+
+CURRENT_USER, CURRENT_USER()
+->
+CURRENT_USER()
 ```

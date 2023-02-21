@@ -183,11 +183,14 @@ public:
 
   OprSig() : left_type(kTYPEUNKNOWN), right_type(kTYPEUNKNOWN), ret_type(kTYPEUNKNOWN),
              execute_success(0), execute_error(0) {}
+  OprSig(const string& name_in):
+                                  operator_name(name_in), left_type(kTYPEANY), right_type(kTYPEANY), ret_type(kTYPEANY),
+                                  execute_success(0), execute_error(0) {}
   OprSig(const string& name_in,
          const DataType& left_type_in,
          const DataType& right_type_in,
          const DataType& ret_type_in
-         ): left_type(left_type_in), right_type(right_type_in), ret_type(ret_type_in),
+         ): operator_name(name_in), left_type(left_type_in), right_type(right_type_in), ret_type(ret_type_in),
              execute_success(0), execute_error(0) {}
 
 private:
