@@ -20,6 +20,14 @@ PostgresClient g_psql_client;
 
 char *FUNC_OPER_TYPE_LIB_PATH = "./mysql_func_opr_sign";
 
+FuncSig init_func_sig(string& cur_type_line) {
+  return FuncSig();
+}
+
+OprSig init_opr_sig(string& cur_type_line) {
+  return OprSig();
+}
+
 void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 
   std::ifstream t(FUNC_OPER_TYPE_LIB_PATH);
@@ -28,6 +36,9 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
   string all_type_str = buffer.str();
 
   vector<string> func_type_split = string_splitter(all_type_str, "\n");
+
+  int func_parsing_succeed = 0, func_parsing_failure = 0, opr_parsing_succeed = 0,
+      opr_parsing_failure = 0;
 
   for (int i = 0; i < func_type_split.size(); i++) {
     // Only scan for lines that contains grab_signature(description):
@@ -43,11 +54,34 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
     }
 
     cur_type_line = cur_type_line.substr(29, cur_type_line.size() - 29);
-    cerr << "cur_type_line: " << cur_type_line << "\n\n\n";
 
-
+    if (findStringIn(cur_type_line, "(") || findStringIn(cur_type_line, ")")) {
+      // If the line contains "(", ")" synbols, assume this is the FUNCTION type.
+      FuncSig cur_func_sig = init_func_sig(cur_type_line);
+      if (cur_func_sig.is_contain_unsupported()) {
+        func_parsing_failure++;
+#ifdef DEBUG
+        cerr << "\nDEBUG: for cur_func_sig: " << cur_type_line << ", parsing failure\n\n\n";
+#endif
+      } else {
+        func_parsing_succeed++;
+        v_func_sig.push_back(cur_func_sig);
+      }
+    } else {
+      OprSig cur_opr_sig = init_opr_sig(cur_type_line);
+      if (cur_opr_sig.is_contain_unsupported()) {
+#ifdef DEBUG
+        cerr << "\nDEBUG: for cur_opr_sig: " << cur_type_line << ", parsing failure\n\n\n";
+#endif
+        opr_parsing_failure++;
+      } else {
+        opr_parsing_succeed++;
+        v_opr_sig.push_back(cur_opr_sig);
+      }
+    }
   }
 }
+
 
 void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
   // For every saved functions, sample the function from running them in the

@@ -160,6 +160,8 @@ public:
     return (this->left_type.get_data_type_enum() == kTYPENONE);
   }
 
+  bool is_contain_unsupported() const;
+
   void set_opr_name(const string opr_name) { this->operator_name = opr_name; }
   void set_left_type(const DataType arg_type) { this->left_type = arg_type; }
   void set_right_type(const DataType arg_type) { this->right_type = arg_type; }
@@ -179,7 +181,14 @@ public:
     return res_signature;
   }
 
-  OprSig() : execute_success(0), execute_error(0) {}
+  OprSig() : left_type(kTYPEUNKNOWN), right_type(kTYPEUNKNOWN), ret_type(kTYPEUNKNOWN),
+             execute_success(0), execute_error(0) {}
+  OprSig(const string& name_in,
+         const DataType& left_type_in,
+         const DataType& right_type_in,
+         const DataType& ret_type_in
+         ): left_type(left_type_in), right_type(right_type_in), ret_type(ret_type_in),
+             execute_success(0), execute_error(0) {}
 
 private:
   string operator_name;

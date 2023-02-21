@@ -179,3 +179,15 @@ string OprSig::get_mutated_opr_str() {
   return res_str;
 
 }
+
+bool OprSig::is_contain_unsupported() const {
+  if (
+        this->get_arg_left_type().is_contain_unsupported() ||
+        this->get_arg_right_type().is_contain_unsupported() ||
+        this->get_ret_type().is_contain_unsupported()
+      ) {
+    return true;
+  } else {
+    return false;
+  }
+}
