@@ -6,7 +6,7 @@ COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 DEPEN_PATH  = ../src/*.cpp
 
 SAMPLE_POSTGRESQL_OBJS:= sampler/sample_postgresql.o $(COMM_OBJS)
-SAMPLE_MYSQL_OBJS:= sampler/sample_postgresql.o $(COMM_OBJS)
+SAMPLE_MYSQL_OBJS:= sampler/sample_mysql.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -45,4 +45,4 @@ asan:
 clean:
 	@make clean -C src
 	@make clean -C sampler
-	rm -rf sample_postgresql
+	rm -rf sample_postgresql sample_mysql

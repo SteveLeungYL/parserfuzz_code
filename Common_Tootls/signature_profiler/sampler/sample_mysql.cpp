@@ -20,126 +20,33 @@ PostgresClient g_psql_client;
 
 char *FUNC_OPER_TYPE_LIB_PATH = "./mysql_func_opr_sign";
 
-void init_all_sig(vector<FuncSig> &v_func_sig) {
-
-  int parse_succeed = 0, parse_failed = 0;
+void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 
   std::ifstream t(FUNC_OPER_TYPE_LIB_PATH);
   std::stringstream buffer;
   buffer << t.rdbuf();
+  string all_type_str = buffer.str();
 
-  string func_type_str = buffer.str();
+  vector<string> func_type_split = string_splitter(all_type_str, "\n");
 
-  vector<string> func_type_split = string_splitter(func_type_str, "\n");
-
-  for (int i = 2; i < func_type_split.size() - 1; i++) {
-    // Skip the first 2 lines and the last line.
-    // The first two lines are name and separators, the last line is the row
-    // number
-
-    bool is_skip = false;
-
-    vector<string> line_split = string_splitter(func_type_split[i], "|");
-    if (line_split.size() != 4) {
-      cerr << "\n\n\nERROR: For line break for line: " << func_type_split[i]
-           << ", cannot split to four parts. \n\n\n";
-      assert(false);
-    }
-    string func_sig_str = line_split[0];
-    trim_string(func_sig_str);
-    string ret_type_str = line_split[1];
-    trim_string(ret_type_str);
-    string func_category_flag = line_split[2];
-    trim_string(func_category_flag);
-    string func_aggregate_type = line_split[3];
-    trim_string(func_aggregate_type);
-
-    vector<string> tmp_line_break;
-    string tmp_str;
-    // Handle the func_sig_str
-    tmp_line_break = string_splitter(func_sig_str, "(");
-    if (tmp_line_break.size() != 2) {
-      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at "
-              "size 2. Str: "
-           << func_sig_str << " \n\n\n";
-      assert(false);
-    }
-    string cur_func_name = tmp_line_break.front();
-
-    vector<DataType> v_arg_type;
-    // Handle the function argument list.
-    // remove right bracket ")".
-    tmp_str = tmp_line_break[1];
-    tmp_line_break = string_splitter(tmp_str, ")");
-    if (tmp_line_break.size() != 2) {
-      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at "
-              "size 2. Str: "
-           << tmp_str << " \n\n\n";
-      assert(false);
-    }
-    tmp_str = tmp_line_break.front();
-
-    // separate the function arguments.
-    tmp_line_break = string_splitter(tmp_str, ",");
-    for (const string &cur_arg_str : tmp_line_break) {
-      if (cur_arg_str.empty()) {
-        continue;
-      }
-      DataType cur_arg_type(cur_arg_str);
-      if (cur_arg_type.get_data_type_enum() == kTYPEUNKNOWN) {
-        is_skip = true;
-#ifdef DEBUG
-        cerr << "\n\n\nSkip function signature: \n"
-             << func_type_split[i]
-             << "\n because arguments parsing failed. \n\n\n";
-#endif
-        parse_failed++;
-        break;
-      }
-      v_arg_type.push_back(cur_arg_type);
-    }
-
-    if (is_skip) {
+  for (int i = 0; i < func_type_split.size(); i++) {
+    // Only scan for lines that contains grab_signature(description):
+    string& cur_type_line = func_type_split[i];
+    if (!findStringIn(cur_type_line, "grab_signature(description)")) {
+      // This line does not contain function or operator signatures.
       continue;
     }
-
-    // And then, parse the return type string.
-    DataType ret_type(ret_type_str);
-    if (ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
-#ifdef DEBUG
-      cerr << "\n\n\nSkip function signature: \n"
-           << func_type_split[i]
-           << "\n because arguments parsing failed. \n\n\n";
-#endif
-      parse_failed++;
-      continue;
+    if (cur_type_line.size() <= 29) {
+      cerr << "\n\n\nERROR: Cannot find the 'grab_signature(description): ' in the string. "
+              "Code logical error\n\n\n";
+      assert(false);
     }
 
-    FuncSig cur_func_sig(cur_func_name, v_arg_type, ret_type,
-                         func_category_flag, func_aggregate_type);
+    cur_type_line = cur_type_line.substr(29, cur_type_line.size() - 29);
+    cerr << "cur_type_line: " << cur_type_line << "\n\n\n";
 
-#ifdef DEBUG
-    cerr << "Parsing with signature: " << cur_func_sig.get_func_signature() << "\n";
-#endif
-    if (!cur_func_sig.is_contain_unsupported()) {
-      // No unsupported arguments or ret type.
-      v_func_sig.push_back(cur_func_sig);
-      parse_succeed++;
-#ifdef DEBUG
-      cerr << "Parsing succeed\n\n\n";
-#endif
-    } else {
-      parse_failed++;
-#ifdef DEBUG
-      cerr << "Parsing failed\n\n\n";
-#endif
-    }
+
   }
-
-#ifdef LOGGING
-  cerr << "\n\n\nLog: Successfully parse function: " << parse_succeed
-       << ", failed: " << parse_failed << "\n\n\n";
-#endif
 }
 
 void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
@@ -227,10 +134,10 @@ int main() {
 
   vector<FuncSig> v_func_sig;
   vector<OprSig> v_opr_sig;
-  init_all_func_sig(v_func_sig);
+  init_all_sig(v_func_sig, v_opr_sig);
 
-  do_func_sample_testing(v_func_sig);
-  print_func_sample_testing(v_func_sig);
+//  do_func_sample_testing(v_func_sig);
+//  print_func_sample_testing(v_func_sig);
 
   return 0;
 }
