@@ -124,6 +124,15 @@ vector<FuncSig> init_func_sig(string& cur_type_line, const string& cur_func_cate
 
 vector<OprSig> init_opr_sig(string& cur_type_line, const string& cur_opr_category) {
 
+  if (
+      cur_type_line.size() > 10 ||
+      findStringIn(cur_type_line, "expr") ||
+      findStringIn(cur_type_line, "pat")
+      ) {
+    cerr << "\n\n\nDEBUG: Ignoring operator string: " << cur_type_line << "\n\n\n";
+    return {};
+  }
+
   vector<string> line_split = string_splitter(cur_type_line, ", ");
   vector<OprSig> v_res;
 
