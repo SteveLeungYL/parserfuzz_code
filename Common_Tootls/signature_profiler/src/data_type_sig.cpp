@@ -4,52 +4,57 @@ string FuncSig::get_mutated_func_str() {
   string res_str;
   DATATYPE rand_any_type = kTYPEUNKNOWN;
 
+  // Copy the argument list and ret type out. 
+  // Do not change its original form.
+  vector<DataType> all_arg_types = this->get_arg_types();
+  DataType ret_type = this->get_ret_type();
+
   // If the arg_types is specified as TYPEANY, randomly generate one type
   // and then assigned to it.
   // Additionally, keep all the ANY types in one function consistent.
-  for (int i = 0; i < this->arg_types.size(); i++) {
-    if (this->arg_types[i].get_data_type_enum() == kTYPEANY ||
-        this->arg_types[i].get_data_type_enum() == kTYPEUNDEFINE
+  for (int i = 0; i < all_arg_types.size(); i++) {
+    if (all_arg_types[i].get_data_type_enum() == kTYPEANY ||
+        all_arg_types[i].get_data_type_enum() == kTYPEUNDEFINE
         ) {
       if (rand_any_type == kTYPEUNKNOWN) {
-        rand_any_type = this->arg_types[i].gen_rand_any_type();
-        this->arg_types[i].set_data_type(rand_any_type);
+        rand_any_type = all_arg_types[i].gen_rand_any_type();
+        all_arg_types[i].set_data_type(rand_any_type);
       } else {
-        this->arg_types[i].set_data_type(rand_any_type);
+        all_arg_types[i].set_data_type(rand_any_type);
       }
     }
   }
-  if (this->ret_type.get_data_type_enum() == kTYPEANY ||
-      this->ret_type.get_data_type_enum() == kTYPEUNDEFINE 
+  if (ret_type.get_data_type_enum() == kTYPEANY ||
+      ret_type.get_data_type_enum() == kTYPEUNDEFINE 
       ) {
     if (rand_any_type == kTYPEUNKNOWN) {
-      rand_any_type = this->ret_type.gen_rand_any_type();
-      this->ret_type.set_data_type(rand_any_type);
+      rand_any_type = ret_type.gen_rand_any_type();
+      ret_type.set_data_type(rand_any_type);
     } else {
-      this->ret_type.set_data_type(rand_any_type);
+      ret_type.set_data_type(rand_any_type);
     }
   }
 
   res_str += get_func_name() + "(";
 
-  int end_idx = this->arg_types.size();
+  int end_idx = all_arg_types.size();
   if (this->get_func_catalog() == AggregateOrder) {
     end_idx--;
   }
 
   for (int i = 0; i < end_idx; i++) {
-    if (this->arg_types[i].get_data_type_enum() == kTYPEANY) {
+    if (all_arg_types[i].get_data_type_enum() == kTYPEANY) {
       // If the arg_types is specified as TYPEANY, randomly generate one type
       // and then assigned to it.
       // Additionally, keep all the ANY types in one function consistent.
       if (rand_any_type == kTYPEUNKNOWN) {
-        rand_any_type = this->arg_types[i].gen_rand_any_type();
-        this->arg_types[i].set_data_type(rand_any_type);
+        rand_any_type = all_arg_types[i].gen_rand_any_type();
+        all_arg_types[i].set_data_type(rand_any_type);
       } else {
-        this->arg_types[i].set_data_type(rand_any_type);
+        all_arg_types[i].set_data_type(rand_any_type);
       }
     }
-    res_str += (this->arg_types[i]).mutate_type_entry();
+    res_str += (all_arg_types[i]).mutate_type_entry();
     if (i != (end_idx - 1)) {
       res_str += ", ";
     }
@@ -58,14 +63,14 @@ string FuncSig::get_mutated_func_str() {
   res_str += ")";
 
   if (this->get_func_catalog() == AggregateOrder) {
-    if (this->arg_types.size() == 0) {
+    if (all_arg_types.size() == 0) {
       cerr << "\n\n\nERROR: Cannot get the WITHIN GROUP data type from the "
               "aggregate order function: " << this->func_name << "\n\n\n";
       assert(false);
     }
 
     // Use the helper function. Should not use ARRAY, Tuple and Vector here.
-    string order_by_str = arg_types.back().mutate_type_entry_helper();
+    string order_by_str = all_arg_types.back().mutate_type_entry_helper();
     res_str += " WITHIN GROUP (ORDER BY" + order_by_str + ")";
   }
 

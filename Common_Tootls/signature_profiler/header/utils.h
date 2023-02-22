@@ -216,5 +216,14 @@ inline uint64_t get_str_hash(const void *key, int len) {
   return h;
 }
 
+inline bool is_str_empty(const string& input_str) {
+  for (int i = 0; i < input_str.size(); i++) {
+    char c = input_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0')
+      return false; // Not empty.
+  }
+  return true; // Empty
+}
+
 
 #endif // SIGNATURE_PROFILER_UTILS_H

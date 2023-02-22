@@ -12,6 +12,8 @@
 #include <thread>
 #include <unistd.h>
 
+#include "./utils.h"
+
 using namespace std;
 
 string socket_path = "/tmp/mysql_0.sock";
@@ -39,7 +41,7 @@ enum SQLSTATUS
 class MysqlClient
 {
 public:
-  MysqlClient(const char *host, char *user_name, char *passwd) : host_(host), user_name_(user_name), passwd_(passwd), counter_(0) {}
+  MysqlClient(const char *host, char *user_name, char *passwd) : host_(host), user_name_(user_name), passwd_(passwd) {}
 
   bool connect()
   {
@@ -56,7 +58,6 @@ public:
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
-      counter_++;
       return false;
     }
     
@@ -287,47 +288,38 @@ public:
     // cerr << "\n\n\nQuery terminated!!!!\n\n\n";
   }
 
-  SQLSTATUS execute(const char *cmd, string& res_str)
+  SQLSTATUS execute(const char *cmd, string& res_str, bool is_reset_database = true)
   {
-    // fix_database();
-
     auto conn = connect();
 
     if(!conn){
       string previous_inputs = "";
       for(auto i: g_previous_input) previous_inputs += string(i) + "\n\n";
       previous_inputs += "-------------\n\n";
-      //write(crash_fd, previous_inputs.c_str(), previous_inputs.size());  
     }
     
     int retry_time = 0;
     while(!conn){
-      //cout << "reconnecting..." << endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(30));
       conn = connect();
       if(!conn)
         fix_database();
     }
-    //cout << "connect succeed!" << endl;
 
     res_str = "";
 
-    if( !reset_database() ) { // Return true for no error, false for errors. 
-      res_str += "Reset database ERROR!!!\n\n\n";
+    if(is_reset_database) {
+      if (!reset_database() ) {
+        res_str += "Reset database ERROR!!!\n\n\n";
+      }
     }
 
     string cmd_str = cmd;
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
-    /* For debug purpose */
-    // cmd_str = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_str;
-
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
 
-    // v_cmd_str = {"BEGIN; ", "create table v0(v1 text)", "COMMIT;"};
-
     SQLSTATUS correctness;
-    int server_response;
 
     timeout_mutex.lock();
     is_timeout = false;
@@ -335,13 +327,19 @@ public:
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
 
-    bool is_mutate_error = false;
-
-    bool is_oracle_select = false;
+    vector<int> v_server_res;
 
     for (string cur_cmd_str : v_cmd_str) {
 
-      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      if (is_str_empty(cur_cmd_str)) {
+        continue;
+      }
+
+      int server_response;
+
+      server_response = mysql_query(m_, cur_cmd_str.c_str());
+      v_server_res.push_back(mysql_errno(m_));
+
       res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
@@ -352,13 +350,20 @@ public:
 
     }
 
-    if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
-      disconnect();
-      return kServerCrash;
-    }
-
     auto res = kNormal;
-    // res = correctness;  
+    for (const int& server_response: v_server_res ) {
+      if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
+        disconnect();
+        return kServerCrash;
+      }
+
+      if (server_response == 0) {
+        res = kNormal;
+      } else {
+        res = kSemanticError;
+        break;
+      }
+    }
 
     auto check_res = check_server_alive();
     if(check_res == false){
@@ -375,11 +380,6 @@ public:
     is_timeout = false;
     timeout_mutex.unlock();
 
-    if (is_mutate_error) {
-      res = kSyntaxError;
-    }
-
-    counter_++;
     disconnect();
     return res;
 
@@ -427,21 +427,12 @@ public:
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
       }
-      // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       retrieve_query_results(m_, "");
       clean_up_connection(&tmp_m);
     }
 
     mysql_close(&tmp_m);
     return !is_error;
-  }
-
-  char *get_next_database_name()
-  {
-    if (counter_ % 2 == 0)
-      return "test2";
-
-    return "test";
   }
 
 private:
@@ -452,7 +443,5 @@ private:
   char *user_name_;
   char *passwd_;
   bool is_first_time;
-  unsigned counter_; //odd for "test", even for "test2"
-
 };
 

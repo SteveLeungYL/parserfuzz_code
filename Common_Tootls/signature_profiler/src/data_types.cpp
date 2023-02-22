@@ -894,7 +894,7 @@ string DataType::mutate_array_type_helper(int depth) {
 DATATYPE DataType::gen_rand_any_type() {
   DATATYPE start_type = kTYPEBIGINT;
   DATATYPE end_type = kTYPEOID;
-  return DATATYPE(start_type + (end_type - start_type));
+  return DATATYPE(start_type + get_rand_int((end_type - start_type)));
 }
 
 string DataType::mutate_type_entry(DATATYPE default_type) {
@@ -984,6 +984,8 @@ string DataType::mutate_type_entry_helper() {
     return mutate_type_int();
   case kTYPEBIGINT:
     return mutate_type_bigint();
+  case kTYPESERIAL:
+    return mutate_type_serial();
   case kTYPEBIGSERIAL:
     return mutate_type_bigserial();
   case kTYPEBIT:
@@ -1042,6 +1044,7 @@ string DataType::mutate_type_entry_helper() {
     return mutate_type_oid();
   case kTYPEENUM:
     return mutate_type_enum();
+
   default:
     cerr << "\n\n\nERROR: For type: " << get_str_from_data_type()
          << ", cannot find"

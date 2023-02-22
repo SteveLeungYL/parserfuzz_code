@@ -240,17 +240,17 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 
     g_mysqlclient.fix_database();
     string tmp_res;
-    g_mysqlclient.execute("use test; create table v0 (v1 int); ", tmp_res);
+    g_mysqlclient.execute("use test; create table v0 (v1 int); ", tmp_res, true);
 
     for (int trial = 0; trial < 100; trial++) {
 
       res_str.clear();
       string func_str = cur_func.get_mutated_func_str();
-      cmd_str = "use test; SELECT " + func_str + " FROM v0;\n";
+      cmd_str = "use test; SELECT " + func_str + ";\n";
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
 #endif
-      auto result = g_mysqlclient.execute(cmd_str.c_str(), res_str);
+      auto result = g_mysqlclient.execute(cmd_str.c_str(), res_str, false);
 
 #ifdef DEBUG
       cerr << "Get res string: " << res_str << "\n";
