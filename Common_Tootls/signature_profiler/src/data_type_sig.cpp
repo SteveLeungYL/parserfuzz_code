@@ -8,7 +8,9 @@ string FuncSig::get_mutated_func_str() {
   // and then assigned to it.
   // Additionally, keep all the ANY types in one function consistent.
   for (int i = 0; i < this->arg_types.size(); i++) {
-    if (this->arg_types[i].get_data_type_enum() == kTYPEANY) {
+    if (this->arg_types[i].get_data_type_enum() == kTYPEANY ||
+        this->arg_types[i].get_data_type_enum() == kTYPEUNDEFINE
+        ) {
       if (rand_any_type == kTYPEUNKNOWN) {
         rand_any_type = this->arg_types[i].gen_rand_any_type();
         this->arg_types[i].set_data_type(rand_any_type);
@@ -17,7 +19,9 @@ string FuncSig::get_mutated_func_str() {
       }
     }
   }
-  if (this->ret_type.get_data_type_enum() == kTYPEANY) {
+  if (this->ret_type.get_data_type_enum() == kTYPEANY ||
+      this->ret_type.get_data_type_enum() == kTYPEUNDEFINE 
+      ) {
     if (rand_any_type == kTYPEUNKNOWN) {
       rand_any_type = this->ret_type.gen_rand_any_type();
       this->ret_type.set_data_type(rand_any_type);

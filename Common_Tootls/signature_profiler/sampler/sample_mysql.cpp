@@ -3,7 +3,7 @@
 // postgresql_opr_type_lib, test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-#define DEBUG
+//#define DEBUG
 #define LOGGING
 
 #include <fstream>
@@ -240,25 +240,31 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 
     g_mysqlclient.fix_database();
     string tmp_res;
-    g_mysqlclient.execute("use database test; create table v0 (v1 int); ", tmp_res);
+    g_mysqlclient.execute("use test; create table v0 (v1 int); ", tmp_res);
 
     for (int trial = 0; trial < 100; trial++) {
 
       res_str.clear();
       string func_str = cur_func.get_mutated_func_str();
-      cmd_str = "use database test; SELECT " + func_str + " FROM v0;\n";
+      cmd_str = "use test; SELECT " + func_str + " FROM v0;\n";
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
 #endif
       auto result = g_mysqlclient.execute(cmd_str.c_str(), res_str);
 
 #ifdef DEBUG
-      cerr << "Get res string: " << res_str << "\n\n\n";
+      cerr << "Get res string: " << res_str << "\n";
 #endif
 
-      if (findStringIn(res_str, "ERROR")) {
+      if (findStringIn(res_str, "ERROR") || result != kNormal) {
+#ifdef DEBUG
+        cerr << "Get ERROR from result. \n";
+#endif
         cur_func.increment_execute_error();
       } else {
+#ifdef DEBUG
+        cerr << "Get SUCCESS from result. \n";
+#endif
         cur_func.increment_execute_success();
       }
     }
@@ -306,7 +312,7 @@ int main() {
   vector<OprSig> v_opr_sig;
   init_all_sig(v_func_sig, v_opr_sig);
 
-  //do_func_sample_testing(v_func_sig);
+  do_func_sample_testing(v_func_sig);
 //  print_func_sample_testing(v_func_sig);
 
   return 0;
