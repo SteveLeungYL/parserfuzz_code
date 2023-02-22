@@ -11,11 +11,15 @@ SAMPLE_MYSQL_OBJS:= sampler/sample_mysql.o $(COMM_OBJS)
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
 
+MYSQL_INCLUDE_PATH = /usr/local/mysql
+MYSQL_LIB_PATH =  /usr/local/mysql/lib
+
 export CC = g++
 export DEBUG =
 export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lpq
+POSTGRES_LDFLAGS = -ldl -lpq
+MYSQL_LDFLAGS = -ldl -lmysqlclient -lpthread
 
 
 all: sample_postgresql sample_mysql
@@ -24,10 +28,10 @@ $(SUB_DIRS):
 	@$(MAKE) -C $@
 
 sample_postgresql: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(SAMPLE_POSTGRESQL_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(SAMPLE_POSTGRESQL_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(POSTGRES_LDFLAGS)
 
 sample_mysql: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(SAMPLE_MYSQL_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(SAMPLE_MYSQL_OBJS) -I$(MYSQL_INCLUDE_PATH) -L$(MYSQL_LIB_PATH) -o $@ $(MYSQL_LDFLAGS)
 
 debug: DEBUG = -g
 debug: OPT = -O0

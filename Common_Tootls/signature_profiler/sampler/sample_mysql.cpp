@@ -3,7 +3,7 @@
 // postgresql_opr_type_lib, test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-//#define DEBUG
+#define DEBUG
 #define LOGGING
 
 #include <fstream>
@@ -14,9 +14,9 @@
 
 #include "../header/data_type_sig.h"
 #include "../header/utils.h"
-#include "../header/postgres_connector.h"
+#include "../header/mysql_connector.h"
 
-PostgresClient g_psql_client;
+MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"root", NULL);
 
 char FUNC_OPER_TYPE_LIB_PATH[] = "./mysql_func_opr_sign";
 
@@ -24,6 +24,8 @@ inline DataType parse_arg_type(string& cur_arg_str) {
 
   // We ignore the optional symbol of [], if the function provide optional 
   // arguments, always use them. 
+  
+  trim_string(cur_arg_str);
   
   // Handle the ENUM type first. 
   if (findStringIn(cur_arg_str, "{")) {
@@ -97,7 +99,7 @@ vector<FuncSig> init_func_sig(string& cur_type_line, const string& cur_func_cate
     cur_func_name = v_func.front();
 
     string arg_list = v_func.back();
-    vector<string> v_arg_str = string_splitter(arg_list, ", ");
+    vector<string> v_arg_str = string_splitter(arg_list, ",");
 
     for (auto& cur_arg_str: v_arg_str) {
       v_arg_type.push_back(parse_arg_type(cur_arg_str));
@@ -129,7 +131,9 @@ vector<OprSig> init_opr_sig(string& cur_type_line, const string& cur_opr_categor
       findStringIn(cur_type_line, "expr") ||
       findStringIn(cur_type_line, "pat")
       ) {
+#ifdef DEBUG
     cerr << "\n\n\nDEBUG: Ignoring operator string: " << cur_type_line << "\n\n\n";
+#endif
     return {};
   }
 
@@ -147,7 +151,7 @@ vector<OprSig> init_opr_sig(string& cur_type_line, const string& cur_opr_categor
   return v_res;
 }
 
-void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
+void init_all_sig(vector<FuncSig> &v_res_func_sig, vector<OprSig>& v_res_opr_sig) {
 
   std::ifstream t(FUNC_OPER_TYPE_LIB_PATH);
   std::stringstream buffer;
@@ -184,8 +188,8 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 
     if (findStringIn(cur_type_line, "(") || findStringIn(cur_type_line, ")")) {
       // If the line contains "(", ")" synbols, assume this is the FUNCTION type.
-      vector<FuncSig> v_func_sig = init_func_sig(cur_type_line, cur_type_category);
-      for (auto cur_func_sig: v_func_sig) {
+      vector<FuncSig> v_parsed_func_sig = init_func_sig(cur_type_line, cur_type_category);
+      for (const FuncSig& cur_func_sig: v_parsed_func_sig) {
         if (cur_func_sig.is_contain_unsupported()) {
           func_parsing_failure++;
 #ifdef DEBUG
@@ -194,12 +198,15 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
 #endif
         } else {
           func_parsing_succeed++;
-          v_func_sig.push_back(cur_func_sig);
+#ifdef DEBUG
+          cerr << "saving func: " << cur_func_sig.get_func_signature() << "\n\n\n";
+#endif
+          v_res_func_sig.push_back(cur_func_sig);
         }
       }
     } else {
-      vector<OprSig> v_opr_sig = init_opr_sig(cur_type_line, cur_type_category);
-      for (auto cur_opr_sig : v_opr_sig) {
+      vector<OprSig> v_parsed_opr_sig = init_opr_sig(cur_type_line, cur_type_category);
+      for (auto cur_opr_sig : v_parsed_opr_sig) {
         if (cur_opr_sig.is_contain_unsupported()) {
 #ifdef DEBUG
           cerr << "\nDEBUG: for cur_opr_sig: " << cur_type_line
@@ -208,7 +215,7 @@ void init_all_sig(vector<FuncSig> &v_func_sig, vector<OprSig>& v_opr_sig) {
           opr_parsing_failure++;
         } else {
           opr_parsing_succeed++;
-          v_opr_sig.push_back(cur_opr_sig);
+          v_res_opr_sig.push_back(cur_opr_sig);
         }
       }
     }
@@ -228,26 +235,22 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
   for (FuncSig &cur_func : v_func_sig) {
 
     // Refresh the Database for every function only.
-    string cmd_str =
-        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 "
-        "varbit[5], "
-        "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
-        "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
-        "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
-        "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
-        "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
-        //             "c33 txidsnapshot, " // Not existed.
-        "c34 xml, c35 box, c36 circle, c37 line, "
-        "c38 point, c39 polygon, c40 oid); \n";
-    g_psql_client.execute(cmd_str, true).outputs;
+    string cmd_str = "";
+    string res_str = "";
+
+    g_mysqlclient.fix_database();
+    string tmp_res;
+    g_mysqlclient.execute("use database test; create table v0 (v1 int); ", tmp_res);
+
     for (int trial = 0; trial < 100; trial++) {
 
+      res_str.clear();
       string func_str = cur_func.get_mutated_func_str();
-      cmd_str = "SELECT " + func_str + " FROM v0;\n";
+      cmd_str = "use database test; SELECT " + func_str + " FROM v0;\n";
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
 #endif
-      string res_str = g_psql_client.execute(cmd_str, false).outputs;
+      auto result = g_mysqlclient.execute(cmd_str.c_str(), res_str);
 
 #ifdef DEBUG
       cerr << "Get res string: " << res_str << "\n\n\n";
@@ -303,7 +306,7 @@ int main() {
   vector<OprSig> v_opr_sig;
   init_all_sig(v_func_sig, v_opr_sig);
 
-//  do_func_sample_testing(v_func_sig);
+  //do_func_sample_testing(v_func_sig);
 //  print_func_sample_testing(v_func_sig);
 
   return 0;

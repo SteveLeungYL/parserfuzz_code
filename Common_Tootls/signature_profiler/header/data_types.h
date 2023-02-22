@@ -128,7 +128,7 @@ public:
   int get_varying_size() const { return this->varying_size; }
   vector<int> get_v_array_size() const { return this->v_array_size; }
 
-  bool is_contain_unsupported(DATATYPE in = kTYPEUNKNOWN) {
+  bool is_contain_unsupported(DATATYPE in = kTYPEUNKNOWN) const {
     if (in == kTYPEUNKNOWN) {
       in = this->get_data_type_enum();
     }

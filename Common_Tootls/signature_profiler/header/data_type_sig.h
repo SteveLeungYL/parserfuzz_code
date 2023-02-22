@@ -23,12 +23,12 @@ enum FuncCategory {
 class FuncSig {
   // store the function signature information
 public:
-  bool is_contain_unsupported() {
+  bool is_contain_unsupported() const {
     bool res = false;
-    for (DataType& cur_arg_type : this->get_arg_types()) {
+    for (DataType cur_arg_type : this->get_arg_types()) {
       res = res || cur_arg_type.is_contain_unsupported();
     }
-    res = res || ret_type.is_contain_unsupported();
+    res = res || get_ret_type().is_contain_unsupported();
 
     return res;
   }
@@ -112,6 +112,11 @@ public:
     set_func_catalog(catalog_in, agg_catalog_in);
   }
 
+  FuncSig(const FuncSig& in):
+    func_name(in.get_func_name()), arg_types(in.get_arg_types()), ret_type(in.get_ret_type()),
+    execute_success(in.get_execute_success()), execute_error (in.get_execute_error()), 
+    func_catalog(in.get_func_catalog()) {}
+
   // Setup function hints for better instantiation results.
   void setup_mutation_hints();
 
@@ -192,6 +197,10 @@ public:
          const DataType& ret_type_in
          ): operator_name(name_in), left_type(left_type_in), right_type(right_type_in), ret_type(ret_type_in),
              execute_success(0), execute_error(0) {}
+
+  OprSig(const OprSig& in):
+    operator_name(in.get_opr_name()), left_type(in.get_arg_left_type()), right_type(in.get_arg_right_type()),
+    ret_type(in.get_ret_type()), execute_success(in.get_execute_success()), execute_error(in.get_execute_error()) {}
 
 private:
   string operator_name;
