@@ -16,9 +16,9 @@
 #include "../header/utils.h"
 #include "../header/sqlite_connector.h"
 
-char FUNC_OPER_TYPE_LIB_PATH[] = "./sqlite.csv";
+char FUNC_OPER_TYPE_LIB_PATH[] = "./sqlite_func_sig.csv";
 
-void init_all_sig(vector<FuncSig> &v_res_func_sig, vector<OprSig>& v_res_opr_sig) {
+void init_func_sig(vector<FuncSig> &v_res_func_sig) {
 
   std::ifstream t(FUNC_OPER_TYPE_LIB_PATH);
   std::stringstream buffer;
@@ -30,13 +30,31 @@ void init_all_sig(vector<FuncSig> &v_res_func_sig, vector<OprSig>& v_res_opr_sig
   int func_parsing_succeed = 0, func_parsing_failure = 0, opr_parsing_succeed = 0,
       opr_parsing_failure = 0;
 
+  for ( int i = 0; i < func_type_split.size(); i++ ) {
+    // Only scan for lines that contains grab_signature(description):
+    string& cur_type_line = func_type_split[i];
+
+    if (is_str_empty(cur_type_line)) {
+      continue;
+    }
+
+    vector<string>tmp_line_split = string_splitter(cur_type_line, ",");
+
+    if (tmp_line_split.size() != 6) {
+      cerr << "\n\n\nERROR: SQLite line split is not size 6. \n";
+      cerr << "line: " << cur_type_line << "\n\n\n";
+      assert (false);
+      return;
+    }
+  }
+
 }
 
 int main() {
 
   vector<FuncSig> v_func_sig; 
   vector<OprSig> v_opr_sig;
-  init_all_sig(v_func_sig, v_opr_sig);
+  init_func_sig(v_func_sig);
 
   return 0;
 }

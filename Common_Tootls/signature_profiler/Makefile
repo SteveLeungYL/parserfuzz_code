@@ -53,4 +53,4 @@ asan:
 clean:
 	@make clean -C src
 	@make clean -C sampler
-	rm -rf sample_postgresql sample_mysql
+	rm -rf sample_postgresql sample_mysql sample_sqlite
