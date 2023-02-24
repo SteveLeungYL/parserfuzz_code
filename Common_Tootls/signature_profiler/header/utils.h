@@ -225,5 +225,4 @@ inline bool is_str_empty(const string& input_str) {
   return true; // Empty
 }
 
-
 #endif // SIGNATURE_PROFILER_UTILS_H

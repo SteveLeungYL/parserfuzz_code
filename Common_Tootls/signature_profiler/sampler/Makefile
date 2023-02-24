@@ -8,7 +8,7 @@ AFL_FLAGS   += -w \
 				-DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 				-DBIN_PATH=\"$(BIN_PATH)\"
 
-SRCS = sample_postgresql.cpp sample_mysql.cpp
+SRCS = sample_postgresql.cpp sample_mysql.cpp sample_sqlite.cpp
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d

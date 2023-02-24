@@ -1,6 +1,6 @@
 // This file is used to run and sample function/operator signatures from the
-// DBMS. Read all the function signatures from the postgresql_func_type_lib and
-// postgresql_opr_type_lib, test them in the DBMS, and retrieve the testing information
+// DBMS. Read all the function signatures from the mysql_func_opr_sign , 
+// test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
 //#define DEBUG

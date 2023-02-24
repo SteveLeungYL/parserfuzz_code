@@ -7,6 +7,7 @@ DEPEN_PATH  = ../src/*.cpp
 
 SAMPLE_POSTGRESQL_OBJS:= sampler/sample_postgresql.o $(COMM_OBJS)
 SAMPLE_MYSQL_OBJS:= sampler/sample_mysql.o $(COMM_OBJS)
+SAMPLE_SQLITE_OBJS:= sampler/sample_sqlite.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -22,10 +23,13 @@ POSTGRES_LDFLAGS = -ldl -lpq
 MYSQL_LDFLAGS = -ldl -lmysqlclient -lpthread
 
 
-all: sample_postgresql sample_mysql
+all: sample_postgresql sample_mysql sample_sqlite
 
 $(SUB_DIRS):
 	@$(MAKE) -C $@
+
+sample_sqlite: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(SAMPLE_SQLITE_OBJS) -o $@ 
 
 sample_postgresql: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(SAMPLE_POSTGRESQL_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(POSTGRES_LDFLAGS)
