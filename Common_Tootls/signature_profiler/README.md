@@ -73,3 +73,20 @@ CURRENT_USER, CURRENT_USER()
 ->
 CURRENT_USER()
 ```
+
+## SQLite3
+
+The function signatures are gathered from SQL command:
+
+```sql
+.mode csv
+.out sqlite_func_sig.csv
+select * from pragma_function_list;
+```
+
+And then, remove the two strange operator like functions. 
+
+```
+->
+->>
+```
