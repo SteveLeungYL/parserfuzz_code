@@ -70,7 +70,7 @@ string FuncSig::get_mutated_func_str() {
     }
 
     // Use the helper function. Should not use ARRAY, Tuple and Vector here.
-    string order_by_str = all_arg_types.back().mutate_type_entry_helper();
+    string order_by_str = all_arg_types.back().mutate_type_entry();
     res_str += " WITHIN GROUP (ORDER BY" + order_by_str + ")";
   }
 
