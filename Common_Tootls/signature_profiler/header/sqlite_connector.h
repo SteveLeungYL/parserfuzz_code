@@ -33,17 +33,17 @@ private:
   string fn_in, fn_out, target_path;
 
   void write_to_testcase(const string& cmd_str) {
+    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_EXCL, 0640);
     lseek(in_fd, 0, SEEK_SET);
     write(in_fd, cmd_str.c_str(), cmd_str.size() + 1);
-    lseek(in_fd, 0, SEEK_SET);
+    close(in_fd);
   }
 
   void setup_stdio_file(void) {
 
-    pid_t pid = getpid();
-    fn_in = "./.cur_input_" + to_string(pid);
+    fn_in = "./.cur_input";
 
-    in_fd = shm_open(fn_in.c_str(), O_RDWR | O_CREAT | O_EXCL, 0640);
+    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_EXCL, 0640);
 
     fn_out = "./.cur_output";
 
@@ -59,10 +59,13 @@ private:
       assert(false);
       return;
     }
+
+    close(in_fd);
+    close(out_fd);
   }
 
 public:
-  SQLSTATUS run_target(string cmd_str, int timeout, string& res_str) {
+  SQLSTATUS execute(string cmd_str, int timeout, string& res_str) {
 
     write_to_testcase(cmd_str);
 

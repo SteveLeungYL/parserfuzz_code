@@ -29,7 +29,7 @@ $(SUB_DIRS):
 	@$(MAKE) -C $@
 
 sample_sqlite: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(SAMPLE_SQLITE_OBJS) -o $@ 
+	$(CC) $(CFLAGS) $(SAMPLE_SQLITE_OBJS) -o $@ -lrt
 
 sample_postgresql: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(SAMPLE_POSTGRESQL_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(POSTGRES_LDFLAGS)
