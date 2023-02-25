@@ -154,7 +154,6 @@ sqlar_uncompress,0,s,utf8,2,2097152
 base64,0,s,utf8,1,2623488
 offsets,0,s,utf8,1,0
 fts5_source_id,0,s,utf8,0,2099200
-usleep,0,s,utf8,1,0
 sqlar_compress,0,s,utf8,1,2097152
 snippet,0,s,utf8,-1,0
 decimal,0,s,utf8,1,2099200
