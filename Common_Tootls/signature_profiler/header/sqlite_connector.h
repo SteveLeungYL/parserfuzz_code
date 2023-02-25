@@ -33,9 +33,9 @@ private:
   string fn_in, fn_out, target_path;
 
   void write_to_testcase(const string& cmd_str) {
-    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_EXCL, 0640);
+    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0640);
     lseek(in_fd, 0, SEEK_SET);
-    write(in_fd, cmd_str.c_str(), cmd_str.size() + 1);
+    write(in_fd, cmd_str.c_str(), cmd_str.size());
     close(in_fd);
   }
 
@@ -43,25 +43,17 @@ private:
 
     fn_in = "./.cur_input";
 
-    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_EXCL, 0640);
+    in_fd = open(fn_in.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0640);
 
     fn_out = "./.cur_output";
-
-    out_fd = open(fn_out.c_str(), O_RDWR | O_CREAT | O_EXCL | O_TRUNC, 0640);
 
     if (in_fd < 0) {
       cerr << "\n\n\nERROR: Unable to create " << fn_in << "\n\n\n";
       assert(false);
       return;
     }
-    if (out_fd < 0) {
-      cerr << "\n\n\nERROR: Unable to create " << fn_out << "\n\n\n";
-      assert(false);
-      return;
-    }
 
     close(in_fd);
-    close(out_fd);
   }
 
 public:
@@ -80,6 +72,10 @@ public:
     if (!child_pid) {
       // Child SQLite process.
       setsid();
+
+      in_fd = open(fn_in.c_str(), O_RDWR, 0640);
+      out_fd = open(fn_out.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0640);
+
       dup2(out_fd, 1);
       dup2(out_fd, 2);
       dup2(in_fd, 0);
@@ -87,7 +83,7 @@ public:
       close(out_fd);
       close(in_fd);
 
-      char * argv[] = {(char*)"./sqlite3"};
+      char * argv[] = {(char*)"sqlite3", NULL};
       execv(target_path.c_str(), argv);
 
       exit(0);
