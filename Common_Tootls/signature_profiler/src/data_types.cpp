@@ -891,10 +891,15 @@ string DataType::mutate_array_type_helper(int depth) {
   return ret_str;
 }
 
-DATATYPE DataType::gen_rand_any_type() {
-  DATATYPE start_type = kTYPEBIGINT;
-  DATATYPE end_type = kTYPEOID;
-  return DATATYPE(start_type + get_rand_int((end_type - start_type)));
+DATATYPE DataType::gen_rand_any_type(const vector<DATATYPE> all_support_types) {
+
+  if (all_support_types.size() == 0) {
+    DATATYPE start_type = kTYPEBIGINT;
+    DATATYPE end_type = kTYPEOID;
+    return DATATYPE(start_type + get_rand_int((end_type - start_type)));
+  } else {
+    return this->gen_rand_type_from(all_support_types);
+  }
 }
 
 DATATYPE DataType::gen_rand_type_from(const vector<DATATYPE>& in) {

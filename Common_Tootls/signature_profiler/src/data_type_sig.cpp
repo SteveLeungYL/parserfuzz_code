@@ -17,43 +17,32 @@ string FuncSig::get_mutated_func_str() {
         this->tmp_infer_arg_types[i].get_data_type_enum() == kTYPEUNDEFINE
         ) {
       if (rand_any_type == kTYPEUNKNOWN) {
-        rand_any_type = this->tmp_infer_arg_types[i].gen_rand_any_type();
+        rand_any_type = this->tmp_infer_arg_types[i].gen_rand_any_type(this->get_supported_types());
         this->tmp_infer_arg_types[i].set_data_type(rand_any_type);
       } else {
         this->tmp_infer_arg_types[i].set_data_type(rand_any_type);
       }
     }
   }
-  if (ret_type.get_data_type_enum() == kTYPEANY ||
-      ret_type.get_data_type_enum() == kTYPEUNDEFINE 
+  if (tmp_infer_ret_type.get_data_type_enum() == kTYPEANY ||
+      tmp_infer_ret_type.get_data_type_enum() == kTYPEUNDEFINE 
       ) {
     if (rand_any_type == kTYPEUNKNOWN) {
-      rand_any_type = ret_type.gen_rand_any_type();
-      ret_type.set_data_type(rand_any_type);
+      rand_any_type = ret_type.gen_rand_any_type(this->get_supported_types());
+      tmp_infer_ret_type.set_data_type(rand_any_type);
     } else {
-      ret_type.set_data_type(rand_any_type);
+      tmp_infer_ret_type.set_data_type(rand_any_type);
     }
   }
 
   res_str += get_func_name() + "(";
 
+  // Actual argument instantiation.
   int end_idx = this->tmp_infer_arg_types.size();
   if (this->get_func_catalog() == AggregateOrder) {
     end_idx--;
   }
-
   for (int i = 0; i < end_idx; i++) {
-    if (this->tmp_infer_arg_types[i].get_data_type_enum() == kTYPEANY) {
-      // If the arg_types is specified as TYPEANY, randomly generate one type
-      // and then assigned to it.
-      // Additionally, keep all the ANY types in one function consistent.
-      if (rand_any_type == kTYPEUNKNOWN) {
-        rand_any_type = this->tmp_infer_arg_types[i].gen_rand_any_type();
-        this->tmp_infer_arg_types[i].set_data_type(rand_any_type);
-      } else {
-        this->tmp_infer_arg_types[i].set_data_type(rand_any_type);
-      }
-    }
     res_str += (this->tmp_infer_arg_types[i]).mutate_type_entry();
     if (i != (end_idx - 1)) {
       res_str += ", ";
@@ -153,6 +142,35 @@ void FuncSig::setup_cstring_hint() {
       this->ret_type.set_is_text_bounded(true);
     }
   }
+}
+
+void FuncSig::increment_execute_success() {
+  // Do the increment logging variable first.
+  this->execute_success++;
+
+  // Save all the successfully executed types.
+  if (this->tmp_infer_arg_types.size() != 0) {
+    this->saved_infer_arg_types.push_back(this->tmp_infer_arg_types);
+  }
+
+  if (!this->tmp_infer_ret_type.is_contain_unsupported()) {
+    this->saved_infer_ret_type.push_back(tmp_infer_ret_type);
+  }
+
+}
+
+vector<json> FuncSig::dump_saved_types(const string& path) {
+
+  // dump all the successfully executed types to one JSON file.
+  vector<json> v_success_func_sig;
+
+  if (this->saved_infer_arg_types.size() != this->saved_infer_ret_type.size()) {
+    cerr << "\n\n\nERROR: saved_infer_arg_types.size != saved_infer_ret_type.size. \n\n\n";
+    assert (false);
+    return v_success_func_sig;
+  }
+
+  return v_success_func_sig;
 }
 
 

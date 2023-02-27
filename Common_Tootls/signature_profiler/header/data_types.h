@@ -177,7 +177,8 @@ public:
   bool is_number_related_type();
   bool is_text_related_type();
 
-  DATATYPE gen_rand_any_type();
+  DATATYPE gen_rand_any_type(const vector<DATATYPE> = {});
+  DATATYPE gen_rand_type_from(const vector<DATATYPE>&);
   // Mutation method entry.
   string mutate_type_entry(DATATYPE default_type = kTYPEUNKNOWN);
   string mutate_type_entry_helper();

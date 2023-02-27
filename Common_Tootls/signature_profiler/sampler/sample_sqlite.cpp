@@ -20,6 +20,13 @@ using namespace std;
 
 char FUNC_OPER_TYPE_LIB_PATH[] = "./sqlite_func_sig.csv";
 
+static vector<DATATYPE> all_supported_types  = {
+  kTYPEINT,
+  kTYPEREAL,
+  kTYPETEXT,
+  kTYPEJSON
+};
+
 SQLiteClient sqlite_client;
 
 void init_func_sig(vector<FuncSig> &v_res_func_sig) {
@@ -71,7 +78,7 @@ void init_func_sig(vector<FuncSig> &v_res_func_sig) {
       func_category = Window;
     }
 
-    FuncSig cur_func_sig(func_name, v_arg_types, ret_type, func_category);
+    FuncSig cur_func_sig(func_name, v_arg_types, ret_type, func_category, all_supported_types);
 
     if (cur_func_sig.is_contain_unsupported()) {
       func_parsing_failure++;

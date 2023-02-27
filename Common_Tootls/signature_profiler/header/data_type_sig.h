@@ -6,11 +6,14 @@
 #define SIGNATURE_PROFILER_DATA_TYPE_SIG_H
 
 #include "data_types.h"
+#include "json.hpp"
+
 #include <cassert>
 #include <iostream>
 #include <utility>
 
 using std::cerr;
+using nlohmann::json;
 
 enum FuncCategory {
   Normal = 0,
@@ -77,7 +80,7 @@ public:
     return;
   }
 
-  void increment_execute_success() { execute_success++; }
+  void increment_execute_success();
   void increment_execute_error() { execute_error++; }
 
   string get_func_signature() const {
@@ -94,20 +97,49 @@ public:
     return res_signature;
   }
 
+  void set_supported_types(vector<DATATYPE> in) {
+    this->v_supported_types = in;
+    return;
+  }
+
+  vector<DATATYPE> get_supported_types() const {
+    return this->v_supported_types;
+  }
+
+  vector<DataType> get_tmp_infer_arg_types() const {
+    return this->tmp_infer_arg_types;
+  }
+
+  DataType get_tmp_infer_ret_type() const {
+    return this->tmp_infer_ret_type;
+  }
+
+  vector<vector<DataType>> get_saved_infer_arg_types() const {
+    return this->saved_infer_arg_types;
+  }
+
+  vector<DataType> get_saved_infer_ret_type() const {
+    return this->saved_infer_ret_type;
+  }
+
   FuncSig() : execute_success(0), execute_error(0) {}
   FuncSig(const string &func_name_in, const vector<DataType> &arg_types_in,
           const DataType &ret_type_in,
-          const FuncCategory func_catalog_in = Normal)
+          const FuncCategory func_catalog_in = Normal,
+          const vector<DATATYPE>& sup_type_in = {})
       : func_name(func_name_in), arg_types(arg_types_in), ret_type(ret_type_in),
-        execute_success(0), execute_error(0), func_catalog(func_catalog_in) {
+        execute_success(0), execute_error(0), func_catalog(func_catalog_in),
+        v_supported_types(sup_type_in){
     setup_mutation_hints();
   }
   FuncSig(const string &func_name_in, const vector<DataType> &arg_types_in,
           const DataType &ret_type_in,
           const string& catalog_in,
-          const string& agg_catalog_in)
+          const string& agg_catalog_in,
+          const vector<DATATYPE>& sup_type_in = {})
       : func_name(func_name_in), arg_types(arg_types_in), ret_type(ret_type_in),
-        execute_success(0), execute_error(0), func_catalog(Normal) {
+        execute_success(0), execute_error(0), func_catalog(Normal),
+        v_supported_types(sup_type_in) {
     setup_mutation_hints();
     set_func_catalog(catalog_in, agg_catalog_in);
   }
@@ -115,10 +147,19 @@ public:
   FuncSig(const FuncSig& in):
     func_name(in.get_func_name()), arg_types(in.get_arg_types()), ret_type(in.get_ret_type()),
     execute_success(in.get_execute_success()), execute_error (in.get_execute_error()), 
-    func_catalog(in.get_func_catalog()) {}
+    func_catalog(in.get_func_catalog()),
+    tmp_infer_arg_types(in.get_tmp_infer_arg_types()),
+    tmp_infer_ret_type(in.get_tmp_infer_ret_type()),
+    saved_infer_arg_types(in.get_saved_infer_arg_types()),
+    saved_infer_ret_type(in.get_saved_infer_ret_type()),
+    v_supported_types(in.get_supported_types())
+  {}
 
   // Setup function hints for better instantiation results.
   void setup_mutation_hints();
+
+  // Dump all the successfully instantiated types to a JSON file.
+  vector<json> dump_saved_types(const string& path);
 
 private:
   string func_name;
@@ -151,6 +192,9 @@ private:
   // if the Function Signature contains kUNDEFINE.
   vector<vector<DataType> > saved_infer_arg_types;
   vector<DataType> saved_infer_ret_type;
+
+  // If the DBMS only support limited number of the data types, list them here.
+  vector<DATATYPE> v_supported_types;
 
 };
 
