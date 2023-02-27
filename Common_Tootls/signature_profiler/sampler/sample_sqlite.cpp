@@ -3,7 +3,7 @@
 // test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-//#define DEBUG
+#define DEBUG
 #define LOGGING
 
 #include <fstream>
@@ -110,14 +110,14 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 
     for (int trial = 0; trial < 100; trial++) {
 
-      string cmd_str = "create table v0 (v1 int); ";
+      string cmd_str = "create table v0 (c1 int); ";
       // Refresh the Database for every function only.
       string res_str = "";
       res_str.clear();
 
 
       string func_str = cur_func.get_mutated_func_str();
-      cmd_str += "SELECT " + func_str + ";\n";
+      cmd_str += "SELECT " + func_str + " FROM v0;\n";
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
 #endif
@@ -132,11 +132,15 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
         cerr << "Get ERROR from result. \n";
 #endif
         cur_func.increment_execute_error();
-      } else {
+      } else if (!is_str_empty(res_str)) {
 #ifdef DEBUG
         cerr << "Get SUCCESS from result. \n";
 #endif
         cur_func.increment_execute_success();
+      } else {
+#ifdef DEBUG
+        cerr << "Getting empty output. Maybe the semantic is not correct. \n";
+#endif
       }
     }
 

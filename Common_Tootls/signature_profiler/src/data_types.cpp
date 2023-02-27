@@ -897,6 +897,16 @@ DATATYPE DataType::gen_rand_any_type() {
   return DATATYPE(start_type + get_rand_int((end_type - start_type)));
 }
 
+DATATYPE DataType::gen_rand_type_from(const vector<DATATYPE>& in) {
+  if (in.size() != 0) {
+    return vector_rand_ele(in);
+  } else {
+    cerr << "ERROR: Getting empty in from DataType::gen_rand_type_from. \n\n\n";
+    assert(false);
+    return kTYPEUNKNOWN;
+  }
+}
+
 string DataType::mutate_type_entry(DATATYPE default_type) {
   // Main mutate type entry. Also handles the ARRAY, TUPLE and VECTOR types.
 
