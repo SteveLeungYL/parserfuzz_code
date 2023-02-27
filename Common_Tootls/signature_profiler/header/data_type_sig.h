@@ -142,6 +142,16 @@ private:
 
   void setup_cstring_hint();
 
+  // Used to save the current instantiated types, if the Function Signature
+  // contains kUNDEFINE.
+  vector<DataType> tmp_infer_arg_types;
+  DataType tmp_infer_ret_type;
+
+  // Used to save all the successful instantiated types, 
+  // if the Function Signature contains kUNDEFINE.
+  vector<vector<DataType> > saved_infer_arg_types;
+  vector<DataType> saved_infer_ret_type;
+
 };
 
 class OprSig {
