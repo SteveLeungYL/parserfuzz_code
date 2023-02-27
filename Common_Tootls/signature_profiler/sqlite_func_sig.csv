@@ -186,4 +186,3 @@ ieee754_to_blob,0,s,utf8,1,2097152
 rtreecheck,0,s,utf8,-1,0
 shell_add_schema,0,s,utf8,3,0
 ieee754_from_blob,0,s,utf8,1,2097152
-writefile,0,s,utf8,-1,524288
