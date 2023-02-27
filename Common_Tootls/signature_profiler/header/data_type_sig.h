@@ -159,7 +159,7 @@ public:
   void setup_mutation_hints();
 
   // Dump all the successfully instantiated types to a JSON file.
-  vector<json> dump_saved_types(const string& path);
+  vector<json> dump_success_types(const string& path);
 
 private:
   string func_name;

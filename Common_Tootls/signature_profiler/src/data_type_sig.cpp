@@ -159,16 +159,21 @@ void FuncSig::increment_execute_success() {
 
 }
 
-vector<json> FuncSig::dump_saved_types(const string& path) {
+vector<json> FuncSig::dump_success_types(const string& path) {
 
   // dump all the successfully executed types to one JSON file.
   vector<json> v_success_func_sig;
 
-  if (this->saved_infer_arg_types.size() != this->saved_infer_ret_type.size()) {
+  if (
+      this->saved_infer_arg_types.size() != 0 &&
+      this->saved_infer_arg_types.size() != this->saved_infer_ret_type.size()
+      ) {
     cerr << "\n\n\nERROR: saved_infer_arg_types.size != saved_infer_ret_type.size. \n\n\n";
     assert (false);
     return v_success_func_sig;
   }
+
+  cerr << "\n\n\nSuccess: saved_infer_arg_types.size != saved_infer_ret_type.size. \n\n\n";
 
   return v_success_func_sig;
 }

@@ -3,7 +3,7 @@
 // test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-#define DEBUG
+//#define DEBUG
 #define LOGGING
 
 #include <fstream>
@@ -124,7 +124,11 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 
 
       string func_str = cur_func.get_mutated_func_str();
-      cmd_str += "SELECT " + func_str + " FROM v0;\n";
+      if (cur_func.get_func_catalog() == Normal) {
+        cmd_str += "SELECT " + func_str + ";\n";
+      } else {
+        cmd_str += "SELECT " + func_str + " FROM v0;\n";
+      }
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
 #endif
@@ -150,6 +154,8 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 #endif
       }
     }
+
+    cur_func.dump_success_types("");
 
 #ifdef LOGGING
     cerr << "For func: " << cur_func.get_func_signature()
