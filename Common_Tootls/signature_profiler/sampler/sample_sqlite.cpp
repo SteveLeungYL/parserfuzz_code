@@ -103,7 +103,7 @@ void init_func_sig(vector<FuncSig> &v_res_func_sig) {
 
 }
 
-void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
+void do_func_sample_testing(vector<FuncSig> &v_func_sig, json& array_func_json) {
   // For every saved functions, sample the function from running them in the
   // PostgreSQL DBMS. Log the validity rate.
   // Ad-hoc implementation. Please make it mature before moving it to the main
@@ -156,7 +156,10 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
       }
     }
 
-    cur_func.dump_success_types("");
+    vector<json> v_func_json = cur_func.dump_success_types("");
+    for (const json& cur_new_func_json : v_func_json) {
+      array_func_json.push_back(cur_new_func_json);
+    }
 
 #ifdef LOGGING
     cerr << "For func: " << cur_func.get_func_signature()
@@ -181,7 +184,15 @@ int main() {
   vector<OprSig> v_opr_sig;
   init_func_sig(v_func_sig);
 
-  do_func_sample_testing(v_func_sig);
+  json j_func_json = json::array();
+
+  do_func_sample_testing(v_func_sig, j_func_json);
+
+  string j_func_str = j_func_json.dump();
+
+  fstream json_out_file;
+  json_out_file.open("./sqlite_func_json.json", ios::out | ios::trunc);
+  json_out_file.write(j_func_str.c_str(), j_func_str.size());
 
   return 0;
 }

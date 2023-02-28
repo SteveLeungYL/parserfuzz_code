@@ -235,6 +235,8 @@ vector<json> FuncSig::dump_success_types(const string& path) {
     cerr << cur_func_json.dump() << "\n\n\n";
 #endif
 
+    v_success_func_sig.push_back(cur_func_json); 
+
   }
 
   return v_success_func_sig;
