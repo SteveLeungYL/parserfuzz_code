@@ -45,7 +45,6 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
 
     if (ir_tree.size() == 0)
       {
-        // cerr << "Error: In function SQL_ORACLE::get_random_mutated_valid_stmt(), saved ori_valid_select string parsing failed. \n\n\n";
         total_oracle_rand_valid_failed++;
         continue;
       }
@@ -162,7 +161,6 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
           g_mutator->parse_query_str_get_ir_set(new_valid_select_str);
       if (new_ir_verified.size() <= 0)
         {
-          // cerr << "Error: In function SQL_ORACLE::get_random_mutated_valid_stmt(), mutated string is not reparsing: \n" << new_valid_select_str << " \n\n\n";
           total_oracle_rand_valid_failed++;
           continue;
         }
@@ -185,8 +183,6 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
       else {
         new_ir_verified.back()->deep_drop();
         total_oracle_rand_valid_failed++;
-        // cerr << "Error:  In function SQL_ORACLE::get_random_mutated_valid_stmt(), the mutated string has the same structure as ori. "
-            //  << new_valid_select_struct << "\n\n\n";
       }
 
       continue; // Retry mutating the current norec stmt and its IR tree.

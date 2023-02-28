@@ -47,26 +47,21 @@ string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);
 
-enum ORA_COMP_RES { Pass = 1, Fail = 0, Error = -1, ALL_Error = -1, IGNORE = -2 };
-
-struct COMP_RES {
-  string res_str_0 = "EMPTY", res_str_1 = "EMPTY", res_str_2 = "EMPTY",
-         res_str_3 = "EMPTY";
-  vector<string> v_res_str;
-  int res_int_0 = -1, res_int_1 = -1, res_int_2 = -1, res_int_3 = -1;
-  vector<int> v_res_int;
-
-  ORA_COMP_RES comp_res;
-  vector<int> explain_diff_id; // Is EXPLAIN QUERY PLAN provides different
-                               // execution plans between different validation.
+/* Execution status fault codes */
+enum EXEC_RESULT_CODE {
+  FAULT_NONE = 0,
+  FAULT_TMOUT = 1,
+  FAULT_CRASH = 2,
+  FAULT_ERROR = 3,
+  FAULT_RESULT_ALL_ERROR = 3,
+  FAULT_NOINST = 4,
+  FAULT_NOBITS = 5
 };
 
 struct ALL_COMP_RES {
-  vector<COMP_RES> v_res;
-  ORA_COMP_RES final_res = ORA_COMP_RES::Fail;
-  string cmd_str;
+  vector<EXEC_RESULT_CODE> v_res;
+  EXEC_RESULT_CODE final_res = FAULT_NONE;
   vector<string> v_cmd_str;
-  string res_str;
   vector<string> v_res_str;
 };
 
