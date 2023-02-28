@@ -168,6 +168,42 @@ public:
     v_supported_types(in.get_supported_types())
   {}
 
+  FuncSig(const json& in, const vector<DATATYPE>& sup_type_in = {}):
+    execute_success(0), execute_error(0), v_supported_types(sup_type_in) {
+    
+     this->func_name = in["func_name"]; 
+     this->is_consist_type = in["is_consist_type"];
+
+     vector<DataType> v_tmp_arg_types;
+     for (auto& cur_arg_type: in["arg_types"]) {
+       DataType cur_arg_type_enum = DataType(string(cur_arg_type));
+       v_tmp_arg_types.push_back(cur_arg_type_enum);
+     }
+     this->set_arg_types(v_tmp_arg_types);
+
+     DataType tmp_ret_type = DataType(string(in["ret_type"]));
+     this->set_ret_type(tmp_ret_type);
+
+     string func_cata_str = in["func_catalog"];
+     if (in[func_cata_str] == "Normal") {
+       this->set_func_catalog(Normal);
+     } else if (func_cata_str == "Aggregate") {
+       this->set_func_catalog(Aggregate);
+     } else if (func_cata_str == "AggregateOrder") {
+       this->set_func_catalog(AggregateOrder);
+     } else if (func_cata_str == "AggregateHypothetical") {
+       this->set_func_catalog(Aggregatehypothetical);
+     } else if (func_cata_str == "Window") {
+       this->set_func_catalog(Window);
+     } else {
+       cerr << "Logic Error: cannot find func_catalog type in dump_success_types function. \n\n\n";
+       assert (false);
+       exit(1);
+     }
+
+  }
+
+
   // Setup function hints for better instantiation results.
   void setup_mutation_hints();
 

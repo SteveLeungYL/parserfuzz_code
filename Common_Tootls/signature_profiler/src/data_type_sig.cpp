@@ -231,6 +231,8 @@ vector<json> FuncSig::dump_success_types(const string& path) {
       exit(1);
     }
 
+    cur_func_json["is_consist_type"] = this->get_is_consist_type();
+
 #ifdef DEBUG
     cerr << cur_func_json.dump() << "\n\n\n";
 #endif

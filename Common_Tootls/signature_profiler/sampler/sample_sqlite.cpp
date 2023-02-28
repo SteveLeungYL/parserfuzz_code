@@ -117,7 +117,7 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig, json& array_func_json) 
 
     for (int trial = 0; trial < 100; trial++) {
 
-      string cmd_str = "create table v0 (c1 int); ";
+      string cmd_str = "create table v0 (c1 int); insert into v0 values (1); ";
       // Refresh the Database for every function only.
       string res_str = "";
       res_str.clear();
@@ -193,6 +193,16 @@ int main() {
   fstream json_out_file;
   json_out_file.open("./sqlite_func_json.json", ios::out | ios::trunc);
   json_out_file.write(j_func_str.c_str(), j_func_str.size());
+
+  // After dumping the JSON file, continue to evaluate their validity.
+  v_func_sig.clear();
+  for (const json& cur_func_json : j_func_json) {
+     FuncSig cur_func_sig = FuncSig(cur_func_json, all_supported_types); 
+     v_func_sig.push_back(cur_func_sig);
+  }
+
+  j_func_json.clear();
+  do_func_sample_testing(v_func_sig, j_func_json);
 
   return 0;
 }
