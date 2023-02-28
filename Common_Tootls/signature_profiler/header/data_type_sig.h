@@ -185,7 +185,7 @@ public:
      this->set_ret_type(tmp_ret_type);
 
      string func_cata_str = in["func_catalog"];
-     if (in[func_cata_str] == "Normal") {
+     if (func_cata_str == "Normal") {
        this->set_func_catalog(Normal);
      } else if (func_cata_str == "Aggregate") {
        this->set_func_catalog(Aggregate);
