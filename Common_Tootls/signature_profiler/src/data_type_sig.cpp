@@ -157,15 +157,35 @@ void FuncSig::increment_execute_success() {
   // Do the increment logging variable first.
   this->execute_success++;
 
+  bool is_save = true;
   // Save all the successfully executed types.
   if (this->tmp_infer_arg_types.size() != 0) {
-    this->saved_infer_arg_types.push_back(this->tmp_infer_arg_types);
-  }
+    for (vector<DataType>& single_saved_arg : this->saved_infer_arg_types) {
+      if (tmp_infer_arg_types.size() != single_saved_arg.size()) {
+        continue;
+      }
+      bool marker = false;
+      for (int j = 0; j < tmp_infer_arg_types.size(); j++) {
+        // Loop through one saved signature.
+        if (
+            tmp_infer_arg_types[j].get_data_type_enum() != single_saved_arg[j].get_data_type_enum()
+            ) {
+          marker = true;
+          break;
+        }
+      }
+      if (marker == false) {
+        // Find the same matching type vector. 
+        is_save = false;
+        break;
+      }
+    }
 
-  if (!this->tmp_infer_ret_type.is_contain_unsupported()) {
-    this->saved_infer_ret_type.push_back(tmp_infer_ret_type);
+    if (is_save) {
+      this->saved_infer_arg_types.push_back(this->tmp_infer_arg_types);
+      this->saved_infer_ret_type.push_back(this->tmp_infer_ret_type);
+    }
   }
-
 }
 
 vector<json> FuncSig::dump_success_types(const string& path) {
@@ -184,7 +204,38 @@ vector<json> FuncSig::dump_success_types(const string& path) {
     return v_success_func_sig;
   }
 
-  cerr << "\n\n\nSuccess: saved_infer_arg_types.size = saved_infer_ret_type.size. \n\n\n";
+  for (int i = 0; i < this->get_saved_infer_arg_types().size(); i++) {
+    json cur_func_json;
+    cur_func_json["func_name"] = this->get_func_name();
+
+    cur_func_json["arg_types"] = json::array();
+    vector<DataType> cur_v_saved_arg_types = this->get_saved_infer_arg_types()[i];
+    for (const DataType& cur_saved_arg_type : cur_v_saved_arg_types) {
+      cur_func_json["arg_types"].push_back(cur_saved_arg_type.get_str_from_data_type());
+    }
+
+    cur_func_json["ret_type"] = this->get_ret_type().get_str_from_data_type();
+    if (this->get_func_catalog() == Normal) {
+      cur_func_json["func_catalog"] = "Normal";
+    } else if (this->get_func_catalog() == Aggregate) {
+      cur_func_json["func_catalog"] = "Aggregate";
+    } else if (this->get_func_catalog() == AggregateOrder) {
+      cur_func_json["func_catalog"] = "AggregateOrder";
+    } else if (this->get_func_catalog() == Aggregatehypothetical) {
+      cur_func_json["func_catalog"] = "AggregateHypothetical";
+    } else if (this->get_func_catalog() == Window) {
+      cur_func_json["func_catalog"] = "Window";
+    } else {
+      cerr << "Logic Error: cannot find func_catalog type in dump_success_types function. \n\n\n";
+      assert (false);
+      exit(1);
+    }
+
+#ifdef DEBUG
+    cerr << cur_func_json.dump() << "\n\n\n";
+#endif
+
+  }
 
   return v_success_func_sig;
 }
