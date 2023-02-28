@@ -50,8 +50,8 @@ bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);
 /* Execution status fault codes */
 enum EXEC_RESULT_CODE {
   FAULT_NONE = 0,
-  FAULT_TMOUT = 1,
-  FAULT_CRASH = 2,
+  FAULT_CRASH = 1,
+  FAULT_TMOUT = 2,
   FAULT_ERROR = 3,
   FAULT_RESULT_ALL_ERROR = 3,
   FAULT_NOINST = 4,

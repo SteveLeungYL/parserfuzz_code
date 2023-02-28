@@ -6,12 +6,7 @@
 #include "../parser/bison_parser.h"
 #include "../parser/flex_lexer.h"
 
-#include "../oracle/sqlite_tlp.h"
-#include "../oracle/sqlite_index.h"
-#include "../oracle/sqlite_likely.h"
-#include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
-#include "../oracle/sqlite_rowid.h"
 #include "../AFL/debug.h"
 
 #include <sys/resource.h>
@@ -1323,10 +1318,10 @@ static bool isEmpty(string &str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id,
+void Mutator::add_all_to_library(IR *ir,
                                  const ALL_COMP_RES &all_comp_res) {
 
-  add_all_to_library(ir->to_string(), explain_diff_id, all_comp_res);
+  add_all_to_library(ir->to_string(), all_comp_res);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -1344,7 +1339,6 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id,
  */
 
 void Mutator::add_all_to_library(string whole_query_str,
-                                 const vector<int> &explain_diff_id,
                                  const ALL_COMP_RES &all_comp_res) {
 
   if (isEmpty(whole_query_str))
@@ -1378,14 +1372,7 @@ void Mutator::add_all_to_library(string whole_query_str,
       //   }
       // }
 
-      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
-          explain_diff_id.end()) {
-        // cerr << "Saving with statement: " << i << current_query << endl;
-        add_to_valid_lib(root, current_query, true);
-      } else {
-        // cerr << "Saving with statement: " << i << current_query << endl;
-        add_to_valid_lib(root, current_query, false);
-      }
+      add_to_valid_lib(root, current_query);
       ++i; // For counting oracle valid stmt IDs.
     } else {
       add_to_library(root, current_query);
@@ -1395,8 +1382,7 @@ void Mutator::add_all_to_library(string whole_query_str,
   }
 }
 
-void Mutator::add_to_valid_lib(IR *ir, string &select,
-                               const bool is_explain_diff) {
+void Mutator::add_to_valid_lib(IR *ir, string &select) {
 
   unsigned long p_hash = hash(select);
 
@@ -1410,7 +1396,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
 
-  if (is_explain_diff && use_cri_val)
+  if (use_cri_val)
     all_cri_valid_pstr_vec.push_back(new_select);
 
   // if (this->dump_library) {
@@ -1442,7 +1428,6 @@ void Mutator::add_to_library(IR *ir, string &query) {
 
   string *p_query_str = new string(query);
   all_query_pstr_set.insert(p_query_str);
-  // all_valid_pstr_vec.push_back(p_query_str);
 
   // if (this->dump_library) {
   //   std::ofstream f;

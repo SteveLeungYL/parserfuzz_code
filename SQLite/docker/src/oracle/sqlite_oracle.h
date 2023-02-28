@@ -77,10 +77,6 @@ public:
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
 
-  /* Compare the results from the res_out. 
-  */
-  virtual void compare_results(ALL_COMP_RES &res_out) = 0;
-
   virtual IR* get_random_mutated_valid_stmt();
 
   virtual string get_temp_valid_stmts() = 0;

@@ -69,17 +69,15 @@ public:
 
   vector<IR *> parse_query_str_get_ir_set(const string &query_str);
 
-  void add_all_to_library(IR *, const vector<int> &, const ALL_COMP_RES&);
+  void add_all_to_library(IR *, const ALL_COMP_RES&);
   void add_all_to_library(IR *ir) {
-    vector<int> dummy_vec;
     ALL_COMP_RES dummy_all_comp_res;
-    add_all_to_library(ir, dummy_vec, dummy_all_comp_res);
+    add_all_to_library(ir, dummy_all_comp_res);
   }
-  void add_all_to_library(string, const vector<int> &, const ALL_COMP_RES&);
+  void add_all_to_library(string, const ALL_COMP_RES&);
   void add_all_to_library(string whole_query_str) {
-    vector<int> dummy_vec;
     ALL_COMP_RES dummy_all_comp_res;
-    add_all_to_library(whole_query_str, dummy_vec, dummy_all_comp_res);
+    add_all_to_library(whole_query_str, dummy_all_comp_res);
   }
   IR *get_from_libary_with_type(IRTYPE);
   IR *get_from_libary_with_left_type(IRTYPE);
@@ -143,7 +141,7 @@ public:
   void resolve_alter_statement(IR*, bool is_debug_info = false);
 
 private:
-  void add_to_valid_lib(IR *, string &, const bool);
+  void add_to_valid_lib(IR *, string &);
   void add_to_library(IR *, string &);
   void add_to_library_core(IR *, string *);
 

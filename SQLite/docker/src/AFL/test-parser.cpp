@@ -3,7 +3,7 @@
 #include "../include/mutator.h"
 #include "../include/utils.h"
 #include "../oracle/sqlite_oracle.h"
-#include "../oracle/sqlite_norec.h"
+#include "../oracle/sqlite_opt.h"
 
 #include <fstream>
 #include <iostream>
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   ifstream input_test(input);
   string line;
 
-  p_oracle = new SQL_NOREC();
+  p_oracle = new SQL_OPT();
 
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);

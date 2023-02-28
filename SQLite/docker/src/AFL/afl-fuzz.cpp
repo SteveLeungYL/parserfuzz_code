@@ -83,12 +83,7 @@
 #include <utility>
 #include <filesystem>
 
-#include "../oracle/sqlite_index.h"
-#include "../oracle/sqlite_likely.h"
-#include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
-#include "../oracle/sqlite_rowid.h"
-#include "../oracle/sqlite_tlp.h"
 #include "../oracle/sqlite_opt.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -2775,60 +2770,27 @@ void extract_query_result(const string &res, vector<string> &res_vec_out,
 }
 
 void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
-  if (p_oracle->get_mul_run_num() <= 1) {
-    out << "Query: \n";
-    out << all_comp_res.cmd_str << "\n";
+
+  for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++) {
+    out << "Query: " << i << ": \n";
+    out << all_comp_res.v_cmd_str[i] << "\n";
     out << "Result string: \n";
-    out << all_comp_res.res_str << "\n";
-    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
-    out << "Detailed result: "
-        << "\n";
-    int iter = 0;
-    for (const COMP_RES &res : all_comp_res.v_res) {
-      out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res
-          << "\n";
-      out << "First stmt res is (str): " << res.res_str_0 << "\n"
-          << "First stmt res is (int): " << res.res_int_0 << "\n";
-      out << "Second stmt res is (str): " << res.res_str_1 << "\n"
-          << "Second stmt is (int): " << res.res_int_1 << "\n";
-      out << "Third stmt res is (str): " << res.res_str_2 << "\n"
-          << "Third stmt is (int): " << res.res_int_2 << "\n";
-      out << "Fourth stmt res is (str): " << res.res_str_3 << "\n"
-          << "Fourth stmt is (int): " << res.res_int_3 << "\n";
-    }
-
-    out << "Compare_result_int: \n" << all_comp_res.final_res;
-    out << "\n\n\n\n";
-
-  } else { // multiple execute SQLite.
-    out << "Multiple execution of SQLite: \n";
-
-    for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++) {
-      out << "Query: " << i << ": \n";
-      out << all_comp_res.v_cmd_str[i] << "\n";
-      out << "Result string: \n";
-      out << all_comp_res.v_res_str[i] << "\n";
-    }
-    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
-    out << "Detailed result: "
-        << "\n";
-    int iter = 0;
-    for (const COMP_RES &res : all_comp_res.v_res) {
-      out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res
-          << "\n";
-      for (int j = 0; j < max(res.v_res_str.size(), res.v_res_int.size());
-           j++) {
-        if (j < res.v_res_str.size())
-          out << "Str: " << res.v_res_str[j] << " \n";
-        if (j < res.v_res_int.size())
-          out << "INT: " << res.v_res_int[j] << " \n";
-      }
-      iter++;
-    }
-
-    out << "Compare_result_int: \n" << all_comp_res.final_res;
-    out << "\n\n\n\n";
+    out << all_comp_res.v_res_str[i] << "\n";
   }
+  out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+  out << "Detailed result: "
+      << "\n";
+  int iter = 0;
+  for (int j = 0; j < all_comp_res.v_res.size(); j++) {
+    EXEC_RESULT_CODE res = all_comp_res.v_res[j];
+    out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res
+        << "\n";
+    out << "Str: " << all_comp_res.v_res_str[j] << " \n";
+    iter++;
+  }
+
+  out << "Compare_result_int: \n" << all_comp_res.final_res;
+  out << "\n\n\n\n";
 }
 
 u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res,
@@ -2838,7 +2800,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
   all_comp_res.final_res = FAULT_NONE;
 
   for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
-    u8 fault;
+    EXEC_RESULT_CODE fault;
     string res_str = "";
 
     string cmd_string = cmd_string_vec[idx];
@@ -2878,7 +2840,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
       all_comp_res.final_res = FAULT_CRASH;
     } else if (
         fault != FAULT_NONE &&
-        all_comp_res.final_res != FAULT_CRASH;
+        all_comp_res.final_res != FAULT_CRASH
     ) {
       all_comp_res.final_res = fault;
     }
@@ -2983,11 +2945,10 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     for (int output_index = 0; output_index < q->len; output_index++) {
       program_input_str += use_mem[output_index];
     }
-    // cerr << program_input_str << endl;
-    vector<int> dummy_vec;
+
     ALL_COMP_RES dummy_all_comp_res;
     vector<string> program_input_str_vec {program_input_str};
-    fault = execute_cmd_string(program_input_str_vec, dummy_vec, dummy_all_comp_res, argv, use_tmout);
+    fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3594,17 +3555,11 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
   u8 keeping = 0, res;
   vector<IR *> ir_set;
 
-  if (is_str_empty(query_str)){
-    // cerr << "query_str empty" << endl;
-    return keeping; // return 0; Empty string. Not added.
-  }
+  trim_string(query_str);
+  string stripped_query_string = query_str;
 
-  /* Do not strip the string when saving to queue. Strip it when loading. */
-  string stripped_query_string =
-      p_oracle->remove_oracle_select_stmts_from_str(query_str);
-  if (is_str_empty(stripped_query_string)){
-    // cerr << "stripped query_str empty" << endl;
-    return keeping;
+  if (is_str_empty(query_str)){
+    return keeping; // return 0; Empty string. Not added.
   }
 
   if (fault == crash_mode) {
@@ -3648,6 +3603,8 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
           g_mutator.extract_struct(ir_tree.back()),
           all_comp_res
           );
+      p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
+      stripped_query_string = ir_tree.back()->to_string();
       ir_tree.back()->deep_drop();
     } else {
       // cerr << "query_str parse failed: " << query_str << endl;
@@ -3678,7 +3635,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     ** before adding them to the query.
     */
 
-    add_to_queue(fn, query_str.size(), 0);
+    add_to_queue(fn, stripped_query_string.size(), 0);
 
     total_add_to_queue++;
 
@@ -3692,16 +3649,10 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    // res = calibrate_case(argv, queue_top, query_str.c_str(),
-                        //  queue_cycle - 1, 0);
-
-    // if (res == FAULT_ERROR)
-    //   FATAL("Unable to execute target application");
-
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
-    ck_write(fd, query_str.c_str(), query_str.size(),
+    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(),
              fn);
     close(fd);
 
@@ -3746,7 +3697,6 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
       write_to_testcase(query_str.c_str(),
                         query_str.size());
       new_fault = run_target(argv, hang_tmout);
-
       read_sqlite_output_and_reset_output_file();
 
       /* A corner case that one user reported bumping into: increasing the
@@ -5232,13 +5182,13 @@ static u32 next_p2(u32 val) {
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str) {
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
 
   u8 fault;
 
   ALL_COMP_RES all_res;
 
-  fault = execute_cmd_string(query_str, all_res, argv, exec_tmout);
+  fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR){
@@ -5246,7 +5196,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str) {
   }
   
   queued_discovered +=
-    save_if_interesting(argv, query_str, all_comp_res, fault);
+    save_if_interesting(argv, v_query_str.front(), all_res, fault);
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -5710,7 +5660,6 @@ static u8 fuzz_one(char **argv) {
 
       if (res == FAULT_ERROR)
         goto abandon_entry;
-      //   FATAL("Unable to execute target application");
     }
 
     if (stop_soon || res != crash_mode) {
@@ -5814,7 +5763,7 @@ static u8 fuzz_one(char **argv) {
         continue;
       }
 
-      query_str += cur_stmt.to_string();
+      query_str += cur_stmt->to_string();
     }
 
 
@@ -5841,7 +5790,7 @@ static u8 fuzz_one(char **argv) {
       show_stats();
       stage_name = "fuzz";
       num_common_fuzz++;
-      if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec)) {
+      if (common_fuzz_stuff(argv, query_str_vec)) {
         continue;
       }
       stage_cur++;
@@ -7320,17 +7269,7 @@ int main(int argc, char **argv) {
     {
       /* Default NOREC */
       string arg = string(optarg);
-      if (arg == "NOREC")
-        p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "LIKELY")
-        p_oracle = new SQL_LIKELY();
-      else if (arg == "ROWID")
-        p_oracle = new SQL_ROWID();
-      else if (arg == "INDEX")
-        p_oracle = new SQL_INDEX();
-      else if (arg == "OPT")
+      if (arg == "OPT")
         p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");

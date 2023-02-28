@@ -13,7 +13,6 @@ using namespace std;
 class SQL_OPT : public SQL_ORACLE {
 public:
   bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
-  void compare_results(ALL_COMP_RES &res_out) override;
 
     unsigned get_mul_run_num() override { return 3; }
 

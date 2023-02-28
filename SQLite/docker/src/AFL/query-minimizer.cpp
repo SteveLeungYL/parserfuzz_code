@@ -38,12 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "../oracle/sqlite_index.h"
-#include "../oracle/sqlite_likely.h"
-#include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
-#include "../oracle/sqlite_rowid.h"
-#include "../oracle/sqlite_tlp.h"
+#include "../oracle/sqlite_opt.h"
 
 /* Display usage hints. */
 
@@ -82,16 +78,8 @@ int main(int argc, char **argv) {
     case 'O': {
       /* Oracle, default is NOREC */
       string arg = string(optarg);
-      if (arg == "NOREC")
-        p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "LIKELY")
-        p_oracle = new SQL_LIKELY();
-      else if (arg == "ROWID")
-        p_oracle = new SQL_ROWID();
-      else if (arg == "INDEX")
-        p_oracle = new SQL_INDEX();
+      if (arg == "OPT")
+        p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");
     } break;
@@ -109,7 +97,7 @@ int main(int argc, char **argv) {
 
   /* Finish setup g_mutator and p_oracle; */
   if (p_oracle == nullptr)
-    p_oracle = new SQL_NOREC();
+    p_oracle = new SQL_OPT();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 
