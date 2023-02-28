@@ -1,4 +1,5 @@
 #include "../header/data_type_sig.h"
+#include "../header/utils.h"
 
 string FuncSig::get_mutated_func_str() {
   string res_str;
@@ -16,7 +17,11 @@ string FuncSig::get_mutated_func_str() {
     if (this->tmp_infer_arg_types[i].get_data_type_enum() == kTYPEANY ||
         this->tmp_infer_arg_types[i].get_data_type_enum() == kTYPEUNDEFINE
         ) {
-      if (rand_any_type == kTYPEUNKNOWN) {
+      if (
+          rand_any_type == kTYPEUNKNOWN ||
+          !(this->get_is_consist_type()) ||
+          !(get_rand_int(10))
+          ) {
         rand_any_type = this->tmp_infer_arg_types[i].gen_rand_any_type(this->get_supported_types());
         this->tmp_infer_arg_types[i].set_data_type(rand_any_type);
       } else {
@@ -27,7 +32,11 @@ string FuncSig::get_mutated_func_str() {
   if (tmp_infer_ret_type.get_data_type_enum() == kTYPEANY ||
       tmp_infer_ret_type.get_data_type_enum() == kTYPEUNDEFINE 
       ) {
-    if (rand_any_type == kTYPEUNKNOWN) {
+      if (
+          rand_any_type == kTYPEUNKNOWN ||
+          !(this->get_is_consist_type()) ||
+          !(get_rand_int(10))
+          ) {
       rand_any_type = ret_type.gen_rand_any_type(this->get_supported_types());
       tmp_infer_ret_type.set_data_type(rand_any_type);
     } else {
@@ -169,11 +178,13 @@ vector<json> FuncSig::dump_success_types(const string& path) {
       this->saved_infer_arg_types.size() != this->saved_infer_ret_type.size()
       ) {
     cerr << "\n\n\nERROR: saved_infer_arg_types.size != saved_infer_ret_type.size. \n\n\n";
+    cerr << "sig: " << this->get_func_signature() << "\n\n\n";
+    cerr << "arg size: " << this->saved_infer_arg_types.size() << " " << this->saved_infer_ret_type.size() << "\n\n\n";
     assert (false);
     return v_success_func_sig;
   }
 
-  cerr << "\n\n\nSuccess: saved_infer_arg_types.size != saved_infer_ret_type.size. \n\n\n";
+  cerr << "\n\n\nSuccess: saved_infer_arg_types.size = saved_infer_ret_type.size. \n\n\n";
 
   return v_success_func_sig;
 }

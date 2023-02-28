@@ -122,13 +122,23 @@ public:
     return this->saved_infer_ret_type;
   }
 
+  void set_is_consist_type(bool in) {
+    this->is_consist_type = in;
+  }
+
+  bool get_is_consist_type() const {
+    return this->is_consist_type;
+  }
+
   FuncSig() : execute_success(0), execute_error(0) {}
   FuncSig(const string &func_name_in, const vector<DataType> &arg_types_in,
           const DataType &ret_type_in,
           const FuncCategory func_catalog_in = Normal,
+          const bool& is_consist_in = true,
           const vector<DATATYPE>& sup_type_in = {})
       : func_name(func_name_in), arg_types(arg_types_in), ret_type(ret_type_in),
         execute_success(0), execute_error(0), func_catalog(func_catalog_in),
+        is_consist_type(is_consist_in),
         v_supported_types(sup_type_in){
     setup_mutation_hints();
   }
@@ -136,9 +146,11 @@ public:
           const DataType &ret_type_in,
           const string& catalog_in,
           const string& agg_catalog_in,
+          const bool& is_consist_in = true,
           const vector<DATATYPE>& sup_type_in = {})
       : func_name(func_name_in), arg_types(arg_types_in), ret_type(ret_type_in),
         execute_success(0), execute_error(0), func_catalog(Normal),
+        is_consist_type(is_consist_in),
         v_supported_types(sup_type_in) {
     setup_mutation_hints();
     set_func_catalog(catalog_in, agg_catalog_in);
@@ -152,6 +164,7 @@ public:
     tmp_infer_ret_type(in.get_tmp_infer_ret_type()),
     saved_infer_arg_types(in.get_saved_infer_arg_types()),
     saved_infer_ret_type(in.get_saved_infer_ret_type()),
+    is_consist_type(in.get_is_consist_type()),
     v_supported_types(in.get_supported_types())
   {}
 
@@ -192,6 +205,9 @@ private:
   // if the Function Signature contains kUNDEFINE.
   vector<vector<DataType> > saved_infer_arg_types;
   vector<DataType> saved_infer_ret_type;
+
+
+  bool is_consist_type;
 
   // If the DBMS only support limited number of the data types, list them here.
   vector<DATATYPE> v_supported_types;

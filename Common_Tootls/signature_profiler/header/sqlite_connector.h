@@ -61,6 +61,13 @@ public:
 
     write_to_testcase(cmd_str);
 
+    std::ifstream infile("sqlite3");
+    if(!infile.good()) {
+      cerr << "\n\n\nERROR: sqlite3 binary not existed. \n\n\n";
+      assert(false);
+      exit(1);
+    }
+
     int child_pid = fork();
 
     if (child_pid < 0) {

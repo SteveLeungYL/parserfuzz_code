@@ -78,7 +78,7 @@ void init_func_sig(vector<FuncSig> &v_res_func_sig) {
       func_category = Window;
     }
 
-    FuncSig cur_func_sig(func_name, v_arg_types, ret_type, func_category, all_supported_types);
+    FuncSig cur_func_sig(func_name, v_arg_types, ret_type, func_category, true, all_supported_types);
 
     if (cur_func_sig.is_contain_unsupported()) {
       func_parsing_failure++;
@@ -152,6 +152,7 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
 #ifdef DEBUG
         cerr << "Getting empty output. Maybe the semantic is not correct. \n";
 #endif
+        cur_func.increment_execute_error();
       }
     }
 
