@@ -5769,6 +5769,11 @@ static u8 fuzz_one(char **argv) {
 
     for (IR* cur_stmt: v_stmt) {
       /* Fill in concret values to the SQL. Instantiation step. */
+      if (cur_stmt->type_ == kPragmaStatement) {
+        // TODO::
+        // Ignore PRAGMA statement for now. 
+        continue;
+      }
       if(!g_mutator.validate(cur_stmt, false)) {
         continue;
       }
