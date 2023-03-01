@@ -2796,7 +2796,6 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
 u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res,
                       char **argv, u32 tmout = exec_tmout) {
 
-
   all_comp_res.final_res = FAULT_NONE;
 
   for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
@@ -2816,6 +2815,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
       cur_skipped_paths++;
       return fault;
     }
+    
     res_str = read_sqlite_output_and_reset_output_file();
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
@@ -3547,7 +3547,7 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES& all_comp_res, u8 fault) {
+static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES& all_comp_res, u8 fault) {
 
   u8 *fn = "";
   u8 hnb;
@@ -3555,7 +3555,17 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
   u8 keeping = 0, res;
   vector<IR *> ir_set;
 
+  // remove the .testctrl stmt from the query.
+  if (findStringIn(query_str, ".testctrl")) {
+    vector<string> v_tmp_split = string_splitter(query_str, ";");
+    query_str.clear();
+    for (int i = 1; i < v_tmp_split.size(); i++) {
+      query_str += v_tmp_split[i] + ";";
+    }
+  }
+
   trim_string(query_str);
+
   string stripped_query_string = query_str;
 
   if (is_str_empty(query_str)){

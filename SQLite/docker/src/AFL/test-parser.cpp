@@ -106,7 +106,7 @@ bool try_validate(IR* cur_root) {
     cur_root->deep_drop();
     return false;
   }
-  vector<string> validity_vec = string_splitter(validity, ';');
+  vector<string> validity_vec = string_splitter(validity, ";");
   cout << "\n\n\nValidate string: \n";
   for (string& cur_validity : validity_vec) {
     cout << cur_validity << "\n";

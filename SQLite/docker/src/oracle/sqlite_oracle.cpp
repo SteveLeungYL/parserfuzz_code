@@ -272,7 +272,7 @@ bool SQL_ORACLE::is_oracle_select_stmt_str(const string &query) {
 
 string SQL_ORACLE::remove_oracle_select_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ';');
+  vector<string> queries_vector = string_splitter(query, ";");
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))

@@ -1346,7 +1346,7 @@ void Mutator::add_all_to_library(string whole_query_str,
 
   int i = 0; // For counting oracle valid stmt IDs.
 
-  vector<string> queries_vector = string_splitter(whole_query_str, ';');
+  vector<string> queries_vector = string_splitter(whole_query_str, ";");
   for (auto current_query : queries_vector) {
 
     trim_string(current_query);
@@ -2352,7 +2352,7 @@ bool Mutator::fix_dependency(IR *root,
         for (IR* cur_men_column_ir : all_mentioned_column_vec) {
           string cur_men_column_str = cur_men_column_ir->str_val_;
           if (findStringIn(cur_men_column_str, ".")) {
-            cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
+            cur_men_column_str = string_splitter(cur_men_column_str, ".")[1];
           }
           m_tables[ir->str_val_].push_back(cur_men_column_str);
           if (is_debug_info) {
