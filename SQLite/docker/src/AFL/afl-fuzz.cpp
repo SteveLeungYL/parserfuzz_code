@@ -5763,7 +5763,7 @@ static u8 fuzz_one(char **argv) {
         continue;
       }
 
-      query_str += cur_stmt->to_string();
+      query_str += cur_stmt->to_string() + "; \n";
     }
 
 
@@ -5784,8 +5784,8 @@ static u8 fuzz_one(char **argv) {
       skip_count++;
       continue;
     } else {
-      query_str_vec.push_back(".testctrl optimization 0xffffffff; " + query_str);
-      query_str_vec.push_back(".testctrl optimization 0x00000000; " + query_str);
+      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str);
+      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str);
 
       show_stats();
       stage_name = "fuzz";
