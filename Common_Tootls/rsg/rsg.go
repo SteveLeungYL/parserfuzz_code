@@ -32,6 +32,7 @@ type RSG struct {
 func NewRSG(seed int64, y string, allowDuplicates bool) (*RSG, error) {
 	tree, err := yacc.Parse("sql", y)
 	if err != nil {
+		fmt.Printf("\nGetting error: %v\n\n", err)
 		return nil, err
 	}
 	rsg := RSG{
@@ -77,37 +78,10 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 	ret := make([]string, 0)
 	prods := r.prods[root]
 	if len(prods) == 0 {
-		return []string{root}
+		return []string{r.formatTokenValue(root)}
 	}
 
-	var prod *yacc.ExpressionNode = nil
-	for idx := 0; idx < 10; idx++ {
-		// Check whether the chosen prod contains unimplemented or error related
-		// rule. If yes, do not choose this path.
-
-		tmpProd := prods[r.Intn(len(prods))]
-
-		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
-			continue
-		}
-		if strings.Contains(tmpProd.Command, "SKIP DOC") {
-			continue
-		}
-
-		isError := false
-		for _, item := range tmpProd.Items {
-			if item.Value == "error" {
-				isError = true
-				break
-			}
-		}
-		if !isError {
-			prod = tmpProd
-			break
-		}
-
-		continue
-	}
+	prod := prods[r.Intn(len(prods))]
 
 	if prod == nil {
 		return nil
@@ -140,21 +114,7 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 					depth > (rootDepth-3) {
 					v = r.generate(item.Value, depth-1, rootDepth)
 				} else if depth > 0 {
-					v = r.generate("d_expr", depth-1, rootDepth)
-				} else {
-					v = []string{`'string'`}
-				}
-
-				if v == nil {
-					v = []string{`'string'`}
-				}
-
-			// If the recursion reaches specific depth, do not expand on `d_expr`,
-			// directly use string literals.
-			case "d_expr":
-				if (rootDepth-5) > 0 &&
-					depth > (rootDepth-5) {
-					v = r.generate(item.Value, depth-1, rootDepth)
+					v = r.generate("SCONST", depth-1, rootDepth)
 				} else {
 					v = []string{`'string'`}
 				}
@@ -171,14 +131,8 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 				v = []string{fmt.Sprint(r.Float64())}
 			case "BCONST":
 				v = []string{`b'bytes'`}
-			case "BITCONST":
+			case "XCONST":
 				v = []string{`B'10010'`}
-			case "substr_from":
-				v = []string{"FROM", `'string'`}
-			case "substr_for":
-				v = []string{"FOR", `'string'`}
-			case "overlay_placing":
-				v = []string{"PLACING", `'string'`}
 			default:
 				if depth == 0 {
 					return nil
@@ -194,6 +148,16 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 		}
 	}
 	return ret
+}
+
+func (r *RSG) formatTokenValue(in string) string {
+
+	if strings.HasSuffix(in, "_P") {
+		in = in[:len(in)-2]
+	}
+
+	return in
+
 }
 
 // Intn returns a random int.

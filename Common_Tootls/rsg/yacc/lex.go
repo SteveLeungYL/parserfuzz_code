@@ -60,6 +60,7 @@ const (
 	itemExpr
 	itemPipe
 	itemNL
+	itemSemicolon
 )
 
 const eof = -1
@@ -175,6 +176,8 @@ Loop:
 			l.ignore()
 		case isIdent(r):
 			return lexIdent
+		case r == ';':
+			l.emit(itemSemicolon)
 		case r == '\'':
 			return lexLiteral
 		case r == eof:

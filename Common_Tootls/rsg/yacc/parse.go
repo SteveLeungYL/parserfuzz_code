@@ -46,11 +46,13 @@ func Parse(name, text string) (t *Tree, err error) {
 
 // next returns the next token.
 func (t *Tree) next() item {
+	//fmt.Printf("Inside next() \n\n\n")
 	if t.peekCount > 0 {
 		t.peekCount--
 	} else {
 		t.token[0] = t.lex.nextItem()
 	}
+	//fmt.Printf("Getting %s \n\n\n", t.token[t.peekCount].String())
 	return t.token[t.peekCount]
 }
 
@@ -81,7 +83,8 @@ func New(name string) *Tree {
 // errorf formats the error and terminates processing.
 func (t *Tree) errorf(format string, args ...interface{}) {
 	err := fmt.Errorf(format, args...)
-	errStr := fmt.Sprintf(err.Error()+" parse: %s:%d", t.Name, t.lex.lineNumber())
+	errStr := err.Error() + ", error parse: %s:%d"
+	errStr = fmt.Sprintf(errStr, t.Name, t.lex.lineNumber())
 	panic(errStr)
 }
 
@@ -137,13 +140,19 @@ func (t *Tree) Parse(text string) (err error) {
 // It runs to EOF.
 func (t *Tree) parse() {
 	for {
+		//fmt.Printf("Inside the parse for loop. \n")
 		switch token := t.next(); token.typ {
 		case itemIdent:
+			//fmt.Printf("Getting Ident token: %s\n\n\n", token.val)
 			p := newProduction(token.pos, token.val)
 			t.parseProduction(p)
 			t.Productions = append(t.Productions, p)
+			//fmt.Printf("Getting token: %s", p.Expressions[len(p.Expressions)-1].Command)
 		case itemEOF:
+			//fmt.Printf("Getting itemEOF: %s\n\n\n", token.val)
 			return
+			//default:
+			//	fmt.Printf("Getting default token: %s\n\n\n", token.val)
 		}
 	}
 }
@@ -182,9 +191,11 @@ func (t *Tree) parseExpression(e *ExpressionNode) {
 	const context = "expression"
 	for {
 		switch token := t.next(); token.typ {
+		case itemSemicolon:
+			return
 		case itemNL:
 			peek := t.peek().typ
-			if peek == itemPipe || peek == itemNL {
+			if peek == itemPipe || peek == itemNL || peek == itemSemicolon {
 				return
 			}
 		case itemIdent:
