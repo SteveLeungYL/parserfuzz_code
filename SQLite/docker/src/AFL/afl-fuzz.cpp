@@ -3806,6 +3806,23 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
 
   ck_free(fn);
 
+  if (fault == FAULT_CRASH) {
+    ofstream outputfile;
+    bug_output_id++;
+    if ( !filesystem::exists("../Bug_Analysis/")) {
+      filesystem::create_directory("../Bug_Analysis/");
+    }
+    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    }
+
+    string bug_output_dir =
+        "../Bug_Analysis/bug_samples/bug_" + to_string(bug_output_id) + "_src_" + to_string(current_entry) + "_core_" + std::to_string(bind_to_core_id) + ".txt";
+    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+    stream_output_res(all_comp_res, outputfile);
+    outputfile.close();
+  }
+
   return keeping;
 }
 
