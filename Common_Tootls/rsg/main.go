@@ -39,6 +39,15 @@ func generateNormal(tc TestCase, dbmsName string) string {
 	return r.Generate(tc.root, dbmsName, tc.depth)
 }
 
+func generatePostgresSelect() string {
+	targets := r.Generate("target_list", "cockroachdb", 30)
+	where := r.Generate("where_clause", "cockroachdb", 30)
+	from := r.Generate("from_clause", "cockroachdb", 30)
+
+	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
+	return s
+}
+
 func generateCockroachDBSelect() string {
 	targets := r.Generate("target_list", "cockroachdb", 30)
 	where := r.Generate("where_clause", "cockroachdb", 30)
@@ -49,9 +58,9 @@ func generateCockroachDBSelect() string {
 }
 
 //export RSGInitialize
-func RSGInitialize(dbmsName string) {
+func RSGInitialize(fileName string, dbmsName string) {
 
-	yaccExample, err := os.ReadFile("./sql.y")
+	yaccExample, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Printf("error reading grammar: %v", err)
 		os.Exit(1)
@@ -74,6 +83,8 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 	var s = ""
 	if strings.Contains(tc.root, "select_stmt") && dbmsName == "cockroachdb" {
 		s = generateCockroachDBSelect()
+	} else if strings.Contains(tc.root, "select_stmt") && dbmsName == "postgres" {
+		s = generatePostgresSelect()
 	} else {
 		s = generateNormal(tc, dbmsName)
 	}

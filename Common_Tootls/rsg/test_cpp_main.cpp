@@ -4,16 +4,32 @@
 
 using namespace std;
 
-int main() {
-    // Randomly generated statement type. 
-    string genType= "select";
-    string dbmsNameStr = "sqlite";
+int main(int argc, char*argv[]) {
+
+    string dbmsNameStr;
+    string fileNameStr;
+    string genType;
+
+    if (argc == 4) {
+        cout << "Using DBMS format: " << argv[1] << ", file: " << argv[2]
+        << ", target type: " << argv[3]
+        << "\n\n\n";
+        dbmsNameStr = argv[1];
+        fileNameStr = argv[2];
+        genType= argv[3];
+    } else {
+        cout << "Arg num: " << argc << ", using SQLite format, default sql.y file. \n\n\n";
+        dbmsNameStr = "sqlite";
+        fileNameStr = "sql.y";
+        genType= "select";
+    }
 
     // Convert the test string to GoString format.
     GoString genTypeInput = {genType.c_str(), long(genType.size())};
     GoString dbmsName = {dbmsNameStr.c_str(), long(dbmsNameStr.size())};
+    GoString fileName = {fileNameStr.c_str(), long(fileNameStr.size())};
 
-    RSGInitialize(dbmsName);
+    RSGInitialize(fileName, dbmsName);
 
     for (int i = 0; i < 10; i++) {
 
