@@ -298,6 +298,7 @@ func (t *Tree) parseExpressionLemon(e *ExpressionNode) {
 		case itemTerm:
 			// If encounter the termination period, ignore all other text until end of line.
 			for nextToken := t.next(); nextToken.typ != itemNL && nextToken.typ != itemEOF; {
+				nextToken = t.next()
 			}
 			// Backup the last New Line or EOF token.
 			t.backup()
