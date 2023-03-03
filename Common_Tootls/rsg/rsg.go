@@ -44,8 +44,14 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, 
 		rsg.seen = make(map[string]bool)
 	}
 	for _, prod := range tree.Productions {
-		//fmt.Printf("For name: %s, getting expressions: %s\n\n\n", prod.Name, prod.Expressions)
-		rsg.prods[prod.Name] = prod.Expressions
+		_, ok := rsg.prods[prod.Name]
+		if ok {
+			for _, curExpr := range prod.Expressions {
+				rsg.prods[prod.Name] = append(rsg.prods[prod.Name], curExpr)
+			}
+		} else {
+			rsg.prods[prod.Name] = prod.Expressions
+		}
 	}
 	return &rsg, nil
 }
@@ -109,9 +115,8 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 				}
 
 				if isFirstUpperCase {
-					v = []string{fmt.Sprint(r.Intn(1000) - 500)}
-					ret = append(ret, v...)
-					return ret
+					ret = append(ret, item.Value)
+					continue
 				}
 			}
 
