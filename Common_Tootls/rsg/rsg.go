@@ -80,7 +80,7 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	panic("couldn't find unique string")
 }
 
-func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
+func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
@@ -106,20 +106,6 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 			var v []string
 
-			if dbmsName == "sqlite" {
-				isFirstUpperCase := false
-				// The only way to get a rune from the string seems to be retrieved from for
-				for _, c := range item.Value {
-					isFirstUpperCase = unicode.IsUpper(c)
-					break
-				}
-
-				if isFirstUpperCase {
-					ret = append(ret, item.Value)
-					continue
-				}
-			}
-
 			switch item.Value {
 			case "IDENT":
 				v = []string{"ident"}
@@ -137,9 +123,9 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 			case "c_expr":
 				if (rootDepth-3) > 0 &&
 					depth > (rootDepth-3) {
-					v = r.generate(item.Value, dbmsName, depth-1, rootDepth)
+					v = r.generatePostgres(item.Value, depth-1, rootDepth)
 				} else if depth > 0 {
-					v = r.generate("SCONST", dbmsName, depth-1, rootDepth)
+					v = r.generatePostgres("SCONST", depth-1, rootDepth)
 				} else {
 					v = []string{`'string'`}
 				}
@@ -162,7 +148,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 				if depth == 0 {
 					return nil
 				}
-				v = r.generate(item.Value, dbmsName, depth-1, rootDepth)
+				v = r.generatePostgres(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
 				return nil
@@ -173,6 +159,236 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		}
 	}
 	return ret
+}
+
+func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := prods[r.Intn(len(prods))]
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+
+			var v []string
+
+			isFirstUpperCase := false
+			// The only way to get a rune from the string seems to be retrieved from for
+			for _, c := range item.Value {
+				isFirstUpperCase = unicode.IsUpper(c)
+				break
+			}
+
+			if isFirstUpperCase {
+				ret = append(ret, item.Value)
+				continue
+			}
+
+			switch item.Value {
+			case "IDENT":
+				v = []string{"ident"}
+
+				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
+				// to d_expr would cause a lot of syntax errors.
+				/*
+				   //case "a_expr":
+				       //fallthrough
+				   //case "b_expr":
+				       //fallthrough
+				*/
+				// If the recursion reaches specific depth, do not expand on `c_expr`,
+				// directly refer to `d_expr`.
+			case "c_expr":
+				if (rootDepth-3) > 0 &&
+					depth > (rootDepth-3) {
+					v = r.generateSqlite(item.Value, depth-1, rootDepth)
+				} else if depth > 0 {
+					v = r.generateSqlite("SCONST", depth-1, rootDepth)
+				} else {
+					v = []string{`'string'`}
+				}
+
+				if v == nil {
+					v = []string{`'string'`}
+				}
+
+			case "SCONST":
+				v = []string{`'string'`}
+			case "ICONST":
+				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
+			case "FCONST":
+				v = []string{fmt.Sprint(r.Float64())}
+			case "BCONST":
+				v = []string{`b'bytes'`}
+			case "XCONST":
+				v = []string{`B'10010'`}
+			default:
+				if depth == 0 {
+					return nil
+				}
+				v = r.generateSqlite(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{root}
+	}
+
+	var prod *yacc.ExpressionNode = nil
+	for idx := 0; idx < 10; idx++ {
+		// Check whether the chosen prod contains unimplemented or error related
+		// rule. If yes, do not choose this path.
+
+		tmpProd := prods[r.Intn(len(prods))]
+
+		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
+			continue
+		}
+		if strings.Contains(tmpProd.Command, "SKIP DOC") {
+			continue
+		}
+
+		isError := false
+		for _, item := range tmpProd.Items {
+			if item.Value == "error" {
+				isError = true
+				break
+			}
+		}
+		if !isError {
+			prod = tmpProd
+			break
+		}
+
+		continue
+	}
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+			var v []string
+			switch item.Value {
+			case "IDENT":
+				v = []string{"ident"}
+
+				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
+				// to d_expr would cause a lot of syntax errors.
+				/*
+				   //case "a_expr":
+				       //fallthrough
+				   //case "b_expr":
+				       //fallthrough
+				*/
+				// If the recursion reaches specific depth, do not expand on `c_expr`,
+				// directly refer to `d_expr`.
+			case "c_expr":
+				if (rootDepth-3) > 0 &&
+					depth > (rootDepth-3) {
+					v = r.generateCockroach(item.Value, depth-1, rootDepth)
+				} else if depth > 0 {
+					v = r.generateCockroach("d_expr", depth-1, rootDepth)
+				} else {
+					v = []string{`'string'`}
+				}
+
+				if v == nil {
+					v = []string{`'string'`}
+				}
+
+			// If the recursion reaches specific depth, do not expand on `d_expr`,
+			// directly use string literals.
+			case "d_expr":
+				if (rootDepth-5) > 0 &&
+					depth > (rootDepth-5) {
+					v = r.generateCockroach(item.Value, depth-1, rootDepth)
+				} else {
+					v = []string{`'string'`}
+				}
+
+				if v == nil {
+					v = []string{`'string'`}
+				}
+
+			case "SCONST":
+				v = []string{`'string'`}
+			case "ICONST":
+				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
+			case "FCONST":
+				v = []string{fmt.Sprint(r.Float64())}
+			case "BCONST":
+				v = []string{`b'bytes'`}
+			case "BITCONST":
+				v = []string{`B'10010'`}
+			case "substr_from":
+				v = []string{"FROM", `'string'`}
+			case "substr_for":
+				v = []string{"FOR", `'string'`}
+			case "overlay_placing":
+				v = []string{"PLACING", `'string'`}
+			default:
+				if depth == 0 {
+					return nil
+				}
+				v = r.generateCockroach(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
+	if dbmsName == "sqlite" {
+		return r.generateSqlite(root, depth, rootDepth)
+	} else if dbmsName == "postgres" {
+		return r.generatePostgres(root, depth, rootDepth)
+	} else if dbmsName == "cockroachdb" {
+		return r.generateCockroach(root, depth, rootDepth)
+	} else {
+		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
+	}
 }
 
 func (r *RSG) formatTokenValue(in string) string {
