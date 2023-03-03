@@ -187,57 +187,104 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 
 			var v []string
 
-			isFirstUpperCase := false
-			// The only way to get a rune from the string seems to be retrieved from for
-			for _, c := range item.Value {
-				isFirstUpperCase = unicode.IsUpper(c)
-				break
-			}
-
-			if isFirstUpperCase {
-				ret = append(ret, item.Value)
-				continue
-			}
-
 			switch item.Value {
-			case "IDENT":
-				v = []string{"ident"}
 
-				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
-				// to d_expr would cause a lot of syntax errors.
-				/*
-				   //case "a_expr":
-				       //fallthrough
-				   //case "b_expr":
-				       //fallthrough
-				*/
-				// If the recursion reaches specific depth, do not expand on `c_expr`,
-				// directly refer to `d_expr`.
-			case "c_expr":
-				if (rootDepth-3) > 0 &&
-					depth > (rootDepth-3) {
-					v = r.generateSqlite(item.Value, depth-1, rootDepth)
-				} else if depth > 0 {
-					v = r.generateSqlite("SCONST", depth-1, rootDepth)
-				} else {
-					v = []string{`'string'`}
-				}
+			case "SEMI":
+				ret = append(ret, ";")
+				continue
+			case "LP":
+				ret = append(ret, "(")
+				continue
+			case "RP":
+				ret = append(ret, ")")
+				continue
+			case "COMMA":
+				ret = append(ret, ",")
+				continue
+			case "LIKE_KW":
+				ret = append(ret, " LIKE ")
+				continue
+			case "NE":
+				ret = append(ret, "!=")
+				continue
+			case "EQ":
+				ret = append(ret, "=")
+				continue
+			case "GT":
+				ret = append(ret, ">")
+				continue
+			case "LE":
+				ret = append(ret, "<=")
+				continue
+			case "LT":
+				ret = append(ret, "<")
+				continue
+			case "GE":
+				ret = append(ret, ">=")
+				continue
+			case "COLUMNKW":
+				ret = append(ret, " COLUMN ")
+				continue
+			case "CTIME_KW":
+				// Not sure.
+				ret = append(ret, " CTIME ")
+				continue
+			case "BITAND":
+				ret = append(ret, " & ")
+				continue
+			case "BITOR":
+				ret = append(ret, " | ")
+				continue
+			case "LSHIFT":
+				ret = append(ret, "<<")
+				continue
+			case "RSHIFT":
+				ret = append(ret, ">>")
+				continue
+			case "PLUS":
+				ret = append(ret, "+")
+				continue
+			case "MINUS":
+				ret = append(ret, "-")
+				continue
+			case "STAR":
+				ret = append(ret, "*")
+				continue
+			case "SLASH":
+				ret = append(ret, "/")
+				continue
+			case "BITNOT":
+				ret = append(ret, "~")
+				continue
+			case "JOIN_KW":
+				ret = append(ret, " JOIN ")
+				continue
+			case "DOT":
+				ret = append(ret, ".")
+				continue
+			case "TRUEFALSE":
+				ret = append(ret, "TRUE")
+				continue
+			case "UMINUS":
+				ret = append(ret, "-")
+				continue
+			case "UPLUS":
+				ret = append(ret, "+")
+				continue
 
-				if v == nil {
-					v = []string{`'string'`}
-				}
-
-			case "SCONST":
-				v = []string{`'string'`}
-			case "ICONST":
-				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
-			case "FCONST":
-				v = []string{fmt.Sprint(r.Float64())}
-			case "BCONST":
-				v = []string{`b'bytes'`}
-			case "XCONST":
-				v = []string{`B'10010'`}
 			default:
+				isFirstUpperCase := false
+				// The only way to get a rune from the string seems to be retrieved from for
+				for _, c := range item.Value {
+					isFirstUpperCase = unicode.IsUpper(c)
+					break
+				}
+
+				if isFirstUpperCase {
+					ret = append(ret, item.Value)
+					continue
+				}
+
 				if depth == 0 {
 					return nil
 				}
