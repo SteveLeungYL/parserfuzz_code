@@ -26,9 +26,9 @@ type TestCase struct {
 	repetitions int
 }
 
-func getRSG(yaccExample []byte) *RSG {
+func getRSG(yaccExample []byte, dbmsName string) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
-	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), false)
+	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, false)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -49,7 +49,7 @@ func generateSelect(tc TestCase) string {
 }
 
 //export RSGInitialize
-func RSGInitialize() {
+func RSGInitialize(dbmsName string) {
 
 	yaccExample, err := os.ReadFile("./sql.y")
 	if err != nil {
@@ -57,7 +57,7 @@ func RSGInitialize() {
 		os.Exit(1)
 	}
 
-	r = getRSG(yaccExample)
+	r = getRSG(yaccExample, dbmsName)
 
 	return
 

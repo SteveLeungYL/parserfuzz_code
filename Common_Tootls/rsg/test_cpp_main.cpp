@@ -7,11 +7,13 @@ using namespace std;
 int main() {
     // Randomly generated statement type. 
     string genType= "select_stmt";
+    string dbmsNameStr = "sqlite";
 
     // Convert the test string to GoString format.
     GoString genTypeInput = {genType.c_str(), long(genType.size())};
+    GoString dbmsName = {dbmsNameStr.c_str(), long(dbmsNameStr.size())};
 
-    RSGInitialize();
+    RSGInitialize(dbmsName);
 
     for (int i = 0; i < 10; i++) {
 

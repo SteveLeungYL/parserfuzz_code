@@ -61,6 +61,8 @@ const (
 	itemPipe
 	itemNL
 	itemSemicolon
+	itemAssign
+	itemTerm
 )
 
 const eof = -1
@@ -149,8 +151,14 @@ func lex(name, input string) *lexer {
 
 // run runs the state machine for the lexer.
 func (l *lexer) run() {
-	for l.state = lexStart; l.state != nil; {
-		l.state = l.state(l)
+	if l.name == "sqlite" {
+		for l.state = lexStartLemon; l.state != nil; {
+			l.state = l.state(l)
+		}
+	} else {
+		for l.state = lexStart; l.state != nil; {
+			l.state = l.state(l)
+		}
 	}
 }
 
@@ -195,7 +203,11 @@ func lexLiteral(l *lexer) stateFn {
 		switch l.next() {
 		case '\'':
 			l.emit(itemLiteral)
-			return lexStart
+			if l.name == "sqlite" {
+				return lexStartLemon
+			} else {
+				return lexStart
+			}
 		}
 	}
 }
@@ -210,7 +222,11 @@ func lexExpr(l *lexer) stateFn {
 			ct--
 			if ct == 0 {
 				l.emit(itemExpr)
-				return lexStart
+				if l.name == "sqlite" {
+					return lexStartLemon
+				} else {
+					return lexStart
+				}
 			}
 		}
 	}
@@ -224,7 +240,11 @@ func lexComment(l *lexer) stateFn {
 			case '\n':
 				l.backup()
 				l.emit(itemComment)
-				return lexStart
+				if l.name == "sqlite" {
+					return lexStartLemon
+				} else {
+					return lexStart
+				}
 			}
 		}
 	case '*':
@@ -234,7 +254,11 @@ func lexComment(l *lexer) stateFn {
 				if l.peek() == '/' {
 					l.next()
 					l.emit(itemComment)
-					return lexStart
+					if l.name == "sqlite" {
+						return lexStartLemon
+					} else {
+						return lexStart
+					}
 				}
 			}
 		}
@@ -305,9 +329,58 @@ func lexIdent(l *lexer) stateFn {
 		default:
 			l.backup()
 			l.emit(itemIdent)
-			return lexStart
+			if l.name == "sqlite" {
+				return lexStartLemon
+			} else {
+				return lexStart
+			}
 		}
 	}
+}
+
+func lexStartLemon(l *lexer) stateFn {
+
+	assignCount := 0
+Loop:
+	for {
+		switch r := l.next(); {
+		case r == '/':
+			return lexComment
+		case r == '\n':
+			l.emit(itemNL)
+		case r == ':':
+			if assignCount < 2 && assignCount >= 0 {
+				assignCount++
+			} else {
+				return l.errorf("invalid character: %v", string(r))
+			}
+		case r == '=':
+			if assignCount == 2 {
+				assignCount = 0
+				l.emit(itemAssign)
+			} else {
+				return l.errorf("invalid character: %v", string(r))
+			}
+		case r == '|':
+			l.emit(itemPipe)
+		case r == '.':
+			l.emit(itemTerm)
+		case isSpace(r):
+			l.ignore()
+		case isIdent(r):
+			return lexIdent
+		case r == '\'':
+			return lexLiteral
+		case r == eof:
+			l.emit(itemEOF)
+			break Loop
+		case r == '[' || r == ']':
+			l.ignore()
+		default:
+			return l.errorf("invalid character: %v", string(r))
+		}
+	}
+	return nil
 }
 
 func isSpace(r rune) bool {

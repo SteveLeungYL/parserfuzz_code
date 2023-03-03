@@ -37,10 +37,10 @@ type Tree struct {
 }
 
 // Parse parses the yacc file text with optional name.
-func Parse(name, text string) (t *Tree, err error) {
+func Parse(name, text string, dbmsName string) (t *Tree, err error) {
 	t = New(name)
 	t.text = text
-	err = t.Parse(text)
+	err = t.Parse(text, dbmsName)
 	return
 }
 
@@ -127,11 +127,15 @@ func (t *Tree) stopParse() {
 
 // Parse parses the yacc string to construct a representation of
 // the file for analysis.
-func (t *Tree) Parse(text string) (err error) {
+func (t *Tree) Parse(text string, dbmsName string) (err error) {
 	defer t.recover(&err)
-	t.startParse(lex(t.Name, text))
+	t.startParse(lex(dbmsName, text))
 	t.text = text
-	t.parse()
+	if dbmsName == "sqlite" {
+		t.parseLemon()
+	} else {
+		t.parse()
+	}
 	t.stopParse()
 	return nil
 }
@@ -153,6 +157,29 @@ func (t *Tree) parse() {
 			return
 			//default:
 			//	fmt.Printf("Getting default token: %s\n\n\n", token.val)
+		}
+	}
+}
+
+// parse is the top-level parser for a file.
+// It runs to EOF.
+func (t *Tree) parseLemon() {
+	isComment := false
+	for {
+		switch token := t.next(); token.typ {
+		case itemNL:
+			isComment = false
+		case itemComment:
+			isComment = true
+		case itemIdent:
+			if isComment {
+				continue
+			}
+			p := newProduction(token.pos, token.val)
+			t.parseProductionLemon(p)
+			t.Productions = append(t.Productions, p)
+		case itemEOF:
+			return
 		}
 	}
 }
@@ -210,6 +237,75 @@ func (t *Tree) parseExpression(e *ExpressionNode) {
 			return
 		case itemPct, itemComment:
 			// ignore
+		default:
+			t.unexpected(token, context)
+		}
+	}
+}
+
+func (t *Tree) parseProductionLemon(p *ProductionNode) {
+	const context = "production"
+	t.expect(itemAssign, context)
+	if t.peek().typ == itemNL {
+		t.next()
+	}
+	expectExpr := true
+	for {
+		token := t.next()
+		fmt.Printf("Getting token: %s\n", token.val)
+		switch token.typ {
+		case itemComment, itemNL:
+			// For the lemon rules, every grammar rule is in one line.
+			// No comments are in the way.
+			return
+		case itemPipe:
+			if expectExpr {
+				t.unexpected(token, context)
+			}
+			expectExpr = true
+		default:
+			t.backup()
+			if !expectExpr {
+				return
+			}
+			e := newExpression(token.pos)
+			t.parseExpressionLemon(e)
+			p.Expressions = append(p.Expressions, e)
+			expectExpr = false
+		}
+	}
+}
+
+func (t *Tree) parseExpressionLemon(e *ExpressionNode) {
+	const context = "expression"
+	for {
+		switch token := t.next(); token.typ {
+		case itemNL:
+			// All expression are in one line.
+			return
+		case itemIdent:
+			e.Items = append(e.Items, Item{token.val, TypToken})
+		case itemLiteral:
+			e.Items = append(e.Items, Item{token.val, TypLiteral})
+		case itemExpr:
+			e.Command = token.val
+			if t.peek().typ == itemNL {
+				t.next()
+			}
+			return
+		case itemComment:
+		// ignore
+		case itemTerm:
+			// If encounter the termination period, ignore all other text until end of line.
+			for nextToken := t.next(); nextToken.typ != itemNL && nextToken.typ != itemEOF; {
+			}
+			// Backup the last New Line or EOF token.
+			t.backup()
+			return
+		case itemPipe:
+			// Encounter pipe. Back it up to the parseProductionLemon.
+			t.backup()
+			return
 		default:
 			t.unexpected(token, context)
 		}

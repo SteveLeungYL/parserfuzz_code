@@ -29,8 +29,8 @@ type RSG struct {
 
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
-func NewRSG(seed int64, y string, allowDuplicates bool) (*RSG, error) {
-	tree, err := yacc.Parse("sql", y)
+func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, error) {
+	tree, err := yacc.Parse("sql", y, dbmsName)
 	if err != nil {
 		fmt.Printf("\nGetting error: %v\n\n", err)
 		return nil, err
@@ -43,6 +43,7 @@ func NewRSG(seed int64, y string, allowDuplicates bool) (*RSG, error) {
 		rsg.seen = make(map[string]bool)
 	}
 	for _, prod := range tree.Productions {
+		fmt.Printf("For name: %s, getting expressions: %s", prod.Name, prod.Expressions)
 		rsg.prods[prod.Name] = prod.Expressions
 	}
 	return &rsg, nil
