@@ -252,7 +252,6 @@ func (t *Tree) parseProductionLemon(p *ProductionNode) {
 	expectExpr := true
 	for {
 		token := t.next()
-		fmt.Printf("Getting token: %s\n", token.val)
 		switch token.typ {
 		case itemComment, itemNL:
 			// For the lemon rules, every grammar rule is in one line.

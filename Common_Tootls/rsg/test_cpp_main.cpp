@@ -6,7 +6,7 @@ using namespace std;
 
 int main() {
     // Randomly generated statement type. 
-    string genType= "select_stmt";
+    string genType= "select";
     string dbmsNameStr = "sqlite";
 
     // Convert the test string to GoString format.
@@ -17,7 +17,7 @@ int main() {
 
     for (int i = 0; i < 10; i++) {
 
-      auto gores = RSGQueryGenerate(genTypeInput);
+      auto gores = RSGQueryGenerate(genTypeInput, dbmsName);
 
       if (gores.r0 == NULL || gores.r1 == 0) {
         cerr <<  "RSG Generate function returns NULL. RSG generation failed. \n";

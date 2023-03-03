@@ -35,14 +35,14 @@ func getRSG(yaccExample []byte, dbmsName string) *RSG {
 	return r
 }
 
-func generateNormal(tc TestCase) string {
-	return r.Generate(tc.root, tc.depth)
+func generateNormal(tc TestCase, dbmsName string) string {
+	return r.Generate(tc.root, dbmsName, tc.depth)
 }
 
-func generateSelect(tc TestCase) string {
-	targets := r.Generate("target_list", 30)
-	where := r.Generate("where_clause", 30)
-	from := r.Generate("from_clause", 30)
+func generateCockroachDBSelect() string {
+	targets := r.Generate("target_list", "cockroachdb", 30)
+	where := r.Generate("where_clause", "cockroachdb", 30)
+	from := r.Generate("from_clause", "cockroachdb", 30)
 
 	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
 	return s
@@ -64,7 +64,7 @@ func RSGInitialize(dbmsName string) {
 }
 
 //export RSGQueryGenerate
-func RSGQueryGenerate(genType string) (*C.char, int) {
+func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 	tc := TestCase{
 		root:        genType,
 		depth:       30, // Increase from default 20 to 30.
@@ -72,10 +72,10 @@ func RSGQueryGenerate(genType string) (*C.char, int) {
 	}
 
 	var s = ""
-	if !strings.Contains(tc.root, "select_stmt") {
-		s = generateNormal(tc)
+	if strings.Contains(tc.root, "select_stmt") && dbmsName == "cockroachdb" {
+		s = generateCockroachDBSelect()
 	} else {
-		s = generateSelect(tc)
+		s = generateNormal(tc, dbmsName)
 	}
 
 	if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {

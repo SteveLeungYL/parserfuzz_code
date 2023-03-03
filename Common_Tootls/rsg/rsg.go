@@ -15,6 +15,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"unicode"
 
 	"github.com/rsg/yacc"
 )
@@ -43,7 +44,7 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, 
 		rsg.seen = make(map[string]bool)
 	}
 	for _, prod := range tree.Productions {
-		fmt.Printf("For name: %s, getting expressions: %s", prod.Name, prod.Expressions)
+		//fmt.Printf("For name: %s, getting expressions: %s\n\n\n", prod.Name, prod.Expressions)
 		rsg.prods[prod.Name] = prod.Expressions
 	}
 	return &rsg, nil
@@ -54,9 +55,9 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, 
 // error or if depth is exceeded. Generate is safe to call from multiple
 // goroutines. If Generate is called more times than it can generate unique
 // output, it will block forever.
-func (r *RSG) Generate(root string, depth int) string {
+func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	for i := 0; i < 100000; i++ {
-		s := strings.Join(r.generate(root, depth, depth), " ")
+		s := strings.Join(r.generate(root, dbmsName, depth, depth), " ")
 		if r.seen != nil {
 			if !r.seen[s] {
 				r.seen[s] = true
@@ -73,7 +74,7 @@ func (r *RSG) Generate(root string, depth int) string {
 	panic("couldn't find unique string")
 }
 
-func (r *RSG) generate(root string, depth int, rootDepth int) []string {
+func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
@@ -95,7 +96,25 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			ret = append(ret, v)
 			continue
 		case yacc.TypToken:
+			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+
 			var v []string
+
+			if dbmsName == "sqlite" {
+				isFirstUpperCase := false
+				// The only way to get a rune from the string seems to be retrieved from for
+				for _, c := range item.Value {
+					isFirstUpperCase = unicode.IsUpper(c)
+					break
+				}
+
+				if isFirstUpperCase {
+					v = []string{fmt.Sprint(r.Intn(1000) - 500)}
+					ret = append(ret, v...)
+					return ret
+				}
+			}
+
 			switch item.Value {
 			case "IDENT":
 				v = []string{"ident"}
@@ -113,9 +132,9 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			case "c_expr":
 				if (rootDepth-3) > 0 &&
 					depth > (rootDepth-3) {
-					v = r.generate(item.Value, depth-1, rootDepth)
+					v = r.generate(item.Value, dbmsName, depth-1, rootDepth)
 				} else if depth > 0 {
-					v = r.generate("SCONST", depth-1, rootDepth)
+					v = r.generate("SCONST", dbmsName, depth-1, rootDepth)
 				} else {
 					v = []string{`'string'`}
 				}
@@ -138,7 +157,7 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 				if depth == 0 {
 					return nil
 				}
-				v = r.generate(item.Value, depth-1, rootDepth)
+				v = r.generate(item.Value, dbmsName, depth-1, rootDepth)
 			}
 			if v == nil {
 				return nil
