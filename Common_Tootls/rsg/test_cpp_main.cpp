@@ -29,7 +29,7 @@ int main(int argc, char*argv[]) {
     GoString dbmsName = {dbmsNameStr.c_str(), long(dbmsNameStr.size())};
     GoString fileName = {fileNameStr.c_str(), long(fileNameStr.size())};
 
-    RSGInitialize(fileName, dbmsName);
+    RSGInitialize(fileName, dbmsName, 0.3);
 
     for (int i = 0; i < 10; i++) {
 
@@ -47,6 +47,9 @@ int main(int argc, char*argv[]) {
       }
 
       free(gores.r0);
+
+      RSGExecSucceed();
+//      RSGExecFailed();
 
       cout << "In c++ code: generated idx: " << i << ": \n" << res_str << "\n\n\n";
 

@@ -26,9 +26,9 @@ type TestCase struct {
 	repetitions int
 }
 
-func getRSG(yaccExample []byte, dbmsName string) *RSG {
+func getRSG(yaccExample []byte, dbmsName string, epsilon float64) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
-	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, false)
+	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, false, epsilon)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -58,7 +58,7 @@ func generateCockroachDBSelect() string {
 }
 
 //export RSGInitialize
-func RSGInitialize(fileName string, dbmsName string) {
+func RSGInitialize(fileName string, dbmsName string, epsilon float64) {
 
 	yaccExample, err := os.ReadFile(fileName)
 	if err != nil {
@@ -66,8 +66,24 @@ func RSGInitialize(fileName string, dbmsName string) {
 		os.Exit(1)
 	}
 
-	r = getRSG(yaccExample, dbmsName)
+	r = getRSG(yaccExample, dbmsName, epsilon)
 
+	return
+
+}
+
+//export RSGExecSucceed
+func RSGExecSucceed() {
+
+	r.IncrementSucceed()
+	return
+
+}
+
+//export RSGExecFailed
+func RSGExecFailed() {
+
+	r.IncrementFailed()
 	return
 
 }

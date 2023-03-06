@@ -11,12 +11,8 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/rsg/yacc"
-	"github.com/stitchfix/mab"
-	"github.com/stitchfix/mab/numint"
-	"log"
 	"math"
 	"math/rand"
 	"strings"
@@ -30,20 +26,28 @@ type RSG struct {
 	seen  map[string]bool
 	prods map[string][]*yacc.ExpressionNode
 
-	curChosenExpr []*yacc.ExpressionNode
+	curChosenExpr map[*yacc.ExpressionNode]bool
+	epsilon       float64
 }
 
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
-func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, error) {
+func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool, epsilon float64) (*RSG, error) {
+
+	// Default epsilon = 5.0
+	if epsilon == 0.0 {
+		epsilon = 5.0
+	}
+
 	tree, err := yacc.Parse("sql", y, dbmsName)
 	if err != nil {
 		fmt.Printf("\nGetting error: %v\n\n", err)
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:   rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods: make(map[string][]*yacc.ExpressionNode),
+		Rnd:     rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:   make(map[string][]*yacc.ExpressionNode),
+		epsilon: epsilon,
 	}
 	if !allowDuplicates {
 		rsg.seen = make(map[string]bool)
@@ -62,17 +66,23 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, 
 }
 
 func (r *RSG) IncrementSucceed() {
-	for _, prod := range r.curChosenExpr {
-		prod.HitSucceed++
-		prod.RecurCount = 0
+	for prod := range r.curChosenExpr {
+		prod.RewardScore =
+			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
+		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
+	// clear the map
+	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
 }
 
 func (r *RSG) IncrementFailed() {
-	for _, prod := range r.curChosenExpr {
-		prod.HitFailed++
-		prod.RecurCount = 0
+	for prod := range r.curChosenExpr {
+		prod.RewardScore =
+			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
+		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
+	// clear the map
+	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
 }
 
 func (r *RSG) argMax(rewards []float64) int {
@@ -81,7 +91,7 @@ func (r *RSG) argMax(rewards []float64) int {
 	var maxReward float64 = 0.0
 
 	for idx, reward := range rewards {
-		if reward >= maxReward {
+		if reward > maxReward {
 			maxReward = reward
 			maxIdx = idx
 		} else {
@@ -95,34 +105,28 @@ func (r *RSG) argMax(rewards []float64) int {
 
 func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
 
-	var rewards = make(map[string][]mab.Dist)
-
-	for _, prod := range prods {
-		rewards["curNode"] =
-			append(rewards["curNode"],
-				mab.Beta(float64(prod.HitSucceed+1), float64(prod.HitFailed+prod.RecurCount+1)))
+	resIdx := 0
+	if r.Rnd.Float64() > r.epsilon {
+		var rewards []float64
+		for _, prod := range prods {
+			rewards = append(rewards, prod.RewardScore)
+		}
+		resIdx = r.argMax(rewards)
+	} else {
+		// Random choice.
+		resIdx = r.Rnd.Intn(len(prods))
 	}
 
-	bandit := mab.Bandit{
-		RewardSource: &mab.ContextualRewardStub{rewards},
-		Strategy:     mab.NewThompson(numint.NewQuadrature()),
-		Sampler:      mab.NewSha1Sampler(),
+	resProd := prods[resIdx]
+	resProd.HitCount++
+
+	// Save to curChosenExpr if not seen before.
+	_, ok := r.curChosenExpr[resProd]
+	if !ok {
+		r.curChosenExpr[resProd] = true
 	}
 
-	result, err := bandit.SelectArm(context.Background(), "MABExpression", "curNode")
-	if err != nil || len(result.Rewards) == 0 {
-		log.Fatal(err)
-	}
-
-	resArm := r.argMax(result.Probs)
-
-	resProd := prods[resArm]
-	resProd.RecurCount++
-
-	//fmt.Printf("From expressionNode: %d, %d, %d, choosing arm: %d\n", resProd.HitSucceed, resProd.HitFailed, resProd.RecurCount, resArm)
-	//fmt.Printf("Rewards: %q\n\n\n\n\n\n\n", result)
-
-	return resProd
+	return prods[resIdx]
 }
 
 // Generate generates a unique random syntax from the root node. At most depth
@@ -163,8 +167,6 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 	if prod == nil {
 		return nil
 	}
-
-	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -247,10 +249,6 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	if prod == nil {
 		return nil
 	}
-
-	fmt.Printf("Test\n")
-
-	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -394,18 +392,15 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		tmpProd := r.MABChooseArm(prods)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
-			tmpProd.HitFailed++
 			continue
 		}
 		if strings.Contains(tmpProd.Command, "SKIP DOC") {
-			tmpProd.HitFailed++
 			continue
 		}
 
 		isError := false
 		for _, item := range tmpProd.Items {
 			if item.Value == "error" {
-				tmpProd.HitFailed++
 				isError = true
 				break
 			}
@@ -421,8 +416,6 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 	if prod == nil {
 		return nil
 	}
-
-	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -509,7 +502,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
-	r.curChosenExpr = nil
+	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
 
 	if dbmsName == "sqlite" {
 		return r.generateSqlite(root, depth, rootDepth)

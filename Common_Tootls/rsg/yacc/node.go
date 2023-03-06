@@ -41,15 +41,14 @@ func newProduction(pos Pos, name string) *ProductionNode {
 // ExpressionNode hold a single expression.
 type ExpressionNode struct {
 	Pos
-	Items      []Item
-	Command    string
-	HitSucceed int // Chosen with new coverage feedback hit count.
-	HitFailed  int // Chosen without new coverage feedback hit count.
-	RecurCount int // In one single RSG, how many times does the code hit the branch.
+	Items       []Item
+	Command     string
+	HitCount    int // In one single RSG, how many times does the code hit the branch.
+	RewardScore float64
 }
 
 func newExpression(pos Pos) *ExpressionNode {
-	return &ExpressionNode{Pos: pos, HitSucceed: 0, HitFailed: 0, RecurCount: 0}
+	return &ExpressionNode{Pos: pos, HitCount: 0, RewardScore: 0.0}
 }
 
 // Item hold an item.
