@@ -7398,7 +7398,9 @@ int main(int argc, char **argv) {
     load_extras(extras_dir);
 
   if (!timeout_given) {
-    find_timeout();
+    exec_tmout = 2000;
+    timeout_given = 1;
+    //find_timeout();
   }
 
   detect_file_args(argv + optind + 1);
