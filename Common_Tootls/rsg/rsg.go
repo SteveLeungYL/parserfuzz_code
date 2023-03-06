@@ -11,13 +11,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/rsg/yacc"
+	"github.com/stitchfix/mab"
+	"github.com/stitchfix/mab/numint"
+	"log"
 	"math"
 	"math/rand"
 	"strings"
 	"unicode"
-
-	"github.com/rsg/yacc"
 )
 
 // RSG is a random syntax generator.
@@ -26,6 +29,8 @@ type RSG struct {
 
 	seen  map[string]bool
 	prods map[string][]*yacc.ExpressionNode
+
+	curChosenExpr []*yacc.ExpressionNode
 }
 
 // NewRSG creates a random syntax generator from the given random seed and
@@ -54,6 +59,70 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool) (*RSG, 
 		}
 	}
 	return &rsg, nil
+}
+
+func (r *RSG) IncrementSucceed() {
+	for _, prod := range r.curChosenExpr {
+		prod.HitSucceed++
+		prod.RecurCount = 0
+	}
+}
+
+func (r *RSG) IncrementFailed() {
+	for _, prod := range r.curChosenExpr {
+		prod.HitFailed++
+		prod.RecurCount = 0
+	}
+}
+
+func (r *RSG) argMax(rewards []float64) int {
+
+	var maxIdx int = 0
+	var maxReward float64 = 0.0
+
+	for idx, reward := range rewards {
+		if reward >= maxReward {
+			maxReward = reward
+			maxIdx = idx
+		} else {
+			continue
+		}
+	}
+
+	return maxIdx
+
+}
+
+func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
+
+	var rewards = make(map[string][]mab.Dist)
+
+	for _, prod := range prods {
+		rewards["curNode"] =
+			append(rewards["curNode"],
+				mab.Beta(float64(prod.HitSucceed+1), float64(prod.HitFailed+prod.RecurCount+1)))
+	}
+
+	bandit := mab.Bandit{
+		RewardSource: &mab.ContextualRewardStub{rewards},
+		Strategy:     mab.NewThompson(numint.NewQuadrature()),
+		Sampler:      mab.NewSha1Sampler(),
+	}
+
+	result, err := bandit.SelectArm(context.Background(), "MABExpression", "curNode")
+	if err != nil || len(result.Rewards) == 0 {
+		log.Fatal(err)
+	}
+
+	resArm := r.argMax(result.Probs)
+
+	resProd := prods[resArm]
+	resProd.RecurCount++
+
+	//fmt.Printf("From expressionNode: %d, %d, %d, choosing arm: %d\n", resProd.HitSucceed, resProd.HitFailed, resProd.RecurCount, resArm)
+	//fmt.Printf("Rewards: %q\n\n\n\n\n\n\n", result)
+
+	return resProd
 }
 
 // Generate generates a unique random syntax from the root node. At most depth
@@ -89,11 +158,13 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := prods[r.Intn(len(prods))]
+	prod := r.MABChooseArm(prods)
 
 	if prod == nil {
 		return nil
 	}
+
+	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -170,11 +241,16 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := prods[r.Intn(len(prods))]
+	prod := r.MABChooseArm(prods)
+	//prod := prods[r.Rnd.Intn(len(prods))]
 
 	if prod == nil {
 		return nil
 	}
+
+	fmt.Printf("Test\n")
+
+	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -315,18 +391,21 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		// Check whether the chosen prod contains unimplemented or error related
 		// rule. If yes, do not choose this path.
 
-		tmpProd := prods[r.Intn(len(prods))]
+		tmpProd := r.MABChooseArm(prods)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
+			tmpProd.HitFailed++
 			continue
 		}
 		if strings.Contains(tmpProd.Command, "SKIP DOC") {
+			tmpProd.HitFailed++
 			continue
 		}
 
 		isError := false
 		for _, item := range tmpProd.Items {
 			if item.Value == "error" {
+				tmpProd.HitFailed++
 				isError = true
 				break
 			}
@@ -342,6 +421,8 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 	if prod == nil {
 		return nil
 	}
+
+	r.curChosenExpr = append(r.curChosenExpr, prod)
 
 	for _, item := range prod.Items {
 		switch item.Typ {
@@ -427,6 +508,9 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 }
 
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
+
+	r.curChosenExpr = nil
+
 	if dbmsName == "sqlite" {
 		return r.generateSqlite(root, depth, rootDepth)
 	} else if dbmsName == "postgres" {
