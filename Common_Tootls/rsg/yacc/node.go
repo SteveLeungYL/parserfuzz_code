@@ -41,12 +41,15 @@ func newProduction(pos Pos, name string) *ProductionNode {
 // ExpressionNode hold a single expression.
 type ExpressionNode struct {
 	Pos
-	Items   []Item
-	Command string
+	Items       []Item
+	Command     string
+	Probability float32
+	HitCount    int
+	Score       float32
 }
 
 func newExpression(pos Pos) *ExpressionNode {
-	return &ExpressionNode{Pos: pos}
+	return &ExpressionNode{Pos: pos, Probability: 0.0, HitCount: 0}
 }
 
 // Item hold an item.

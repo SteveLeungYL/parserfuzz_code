@@ -18,9 +18,9 @@ int main(int argc, char*argv[]) {
         fileNameStr = argv[2];
         genType= argv[3];
     } else {
-        cout << "Arg num: " << argc << ", using SQLite format, default sql.y file. \n\n\n";
+        cout << "Arg num: " << argc << ", using SQLite format, default sqlite_parse_rule_only.y file. \n\n\n";
         dbmsNameStr = "sqlite";
-        fileNameStr = "sql.y";
+        fileNameStr = "sqlite_parse_rule_only.y";
         genType= "select";
     }
 
