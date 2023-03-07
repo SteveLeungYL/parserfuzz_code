@@ -399,6 +399,9 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 			case "UPLUS":
 				ret = append(ret, "+")
 				continue
+			case "ID":
+				ret = append(ret, "v0")
+				continue
 
 			default:
 				isFirstUpperCase := false

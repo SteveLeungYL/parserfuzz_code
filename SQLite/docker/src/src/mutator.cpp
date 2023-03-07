@@ -2943,7 +2943,7 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
     } else {
       /* get on randomly generated query from the RSG module. */
       if (!disable_rsg_generator) {
-        select_str = this->rsg_generate_valid(kSelectStatement);
+        select_str = this->rsg_generate_valid(kSelectStatement) + "; ";
       }
 
       if (select_str.empty()) {
