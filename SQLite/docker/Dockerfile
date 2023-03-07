@@ -125,7 +125,9 @@ RUN mkdir -p fuzzing
 USER root
 WORKDIR /home/sqlite/fuzzing
 COPY fuzz_root /home/sqlite/fuzzing/fuzz_root
+WORKDIR /home/sqlite/fuzzing/fuzz_root
 RUN cp /home/sqlite/src/sqlite_parse_rule_only.y /home/sqlite/fuzzing/fuzz_root/
+RUN mkdir -p rsg && cp /home/sqlite/rsg/rsg_helper.so ./rsg
 RUN chown -R sqlite:sqlite /home/sqlite/fuzzing/
 
 USER sqlite
