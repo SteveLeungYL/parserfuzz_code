@@ -38,7 +38,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
   while (!is_success) {
 
     string ori_valid_select = "";
-    use_temp = g_mutator->get_valid_str_from_lib(ori_valid_select);
+    use_temp = g_mutator->get_select_str_from_lib(ori_valid_select);
 
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);

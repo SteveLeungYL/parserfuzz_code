@@ -4,7 +4,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
-#include "../rsg/rsg/h"
+#include "../rsg/rsg.h"
 #include "../AFL/types.h"
 
 #include <vector>
