@@ -153,6 +153,60 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	panic("couldn't find unique string")
 }
 
+func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := r.MABChooseArm(prods)
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+
+			var v []string
+
+			switch item.Value {
+			case "ident":
+				v = []string{"ident"}
+
+			case "expr":
+				if depth == 0 {
+					v = []string{"TRUE"}
+				} else {
+					v = r.generateMySQL(item.Value, depth-1, rootDepth)
+				}
+
+			default:
+				if depth == 0 {
+					return nil
+				}
+				v = r.generateMySQL(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				continue
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
 func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
@@ -510,6 +564,8 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		return r.generatePostgres(root, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {
 		return r.generateCockroach(root, depth, rootDepth)
+	} else if dbmsName == "mysql" {
+		return r.generateMySQL(root, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
 	}
