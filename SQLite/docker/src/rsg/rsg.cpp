@@ -21,6 +21,13 @@ void rsg_initialize() {
   return;
 }
 
+void rsg_exec_succeed() {
+  RSGExecSucceed();
+}
+void rsg_exec_failed() {
+  RSGExecFailed();
+}
+
 /*
  * From the RSG, generate one random query statement.
  */

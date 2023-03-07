@@ -151,6 +151,9 @@ void set_disable_rsg_generator(bool in) {
   void resolve_drop_statement(IR*, bool is_debug_info = false);
   void resolve_alter_statement(IR*, bool is_debug_info = false);
 
+  void rsg_exec_succeed_helper() { rsg_exec_succeed(); }
+  void rsg_exec_failed_helper() { rsg_exec_failed(); }
+
 private:
   void add_to_valid_lib(IR *, string &);
   void add_to_library(IR *, string &);

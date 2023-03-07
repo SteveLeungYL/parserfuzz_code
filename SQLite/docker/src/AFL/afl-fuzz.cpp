@@ -3574,6 +3574,7 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
   string stripped_query_string = query_str;
 
   if (is_str_empty(query_str)){
+    g_mutator.rsg_exec_failed_helper();
     return keeping; // return 0; Empty string. Not added.
   }
 
@@ -3586,13 +3587,13 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
     if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
-      // cerr << "No new bits. " << endl;
-      // Drop query. 
+      g_mutator.rsg_exec_failed_helper();
       return 0;
     }
 
     if (disable_coverage_feedback == 1)
     { // Disable feedbacks. Drop all queries.
+      g_mutator.rsg_exec_failed_helper();
       return keeping;
     }
 
@@ -3602,6 +3603,7 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
     **/
     if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
       // Drop query. 
+      g_mutator.rsg_exec_failed_helper();
       return keeping;
     }
 
@@ -3621,8 +3623,10 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
       p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
       stripped_query_string = ir_tree.back()->to_string();
       ir_tree.back()->deep_drop();
+      g_mutator.rsg_exec_succeed_helper();
     } else {
       // cerr << "query_str parse failed: " << query_str << endl;
+      g_mutator.rsg_exec_failed_helper();
       return keeping; // keep = 0, meaning nothing added to the queue.
     }
 
@@ -3630,8 +3634,10 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
     stage_name = tmp_name;
     //[modify] end
 
-    if (g_mutator.is_stripped_str_in_lib(stripped_query_string))
+    if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) {
+      g_mutator.rsg_exec_failed_helper();
       return keeping;
+    }
 
 #ifndef SIMPLE_FILES
 
@@ -5224,6 +5230,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR){
+    g_mutator.rsg_exec_failed_helper();
     return 0;
   }
   
