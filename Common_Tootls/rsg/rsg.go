@@ -87,8 +87,8 @@ func (r *RSG) IncrementFailed() {
 
 func (r *RSG) argMax(rewards []float64) int {
 
-	var maxIdx int = 0
-	var maxReward float64 = 0.0
+	var maxIdx = 0
+	var maxReward = 0.0
 
 	for idx, reward := range rewards {
 		if reward > maxReward {

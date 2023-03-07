@@ -2339,7 +2339,6 @@ alter_index_visible:
 // a reduce/reduce conflict with the ALTER RANGE ... RELOCATE variants
 // below.
 //
-// TODO(knz): Would it make sense to extend the semantics to enable
 // zone configurations on arbitrary range IDs?
 alter_zone_range_stmt:
   ALTER RANGE a_expr set_zone_config
@@ -6550,7 +6549,6 @@ close_cursor_stmt:
 // %Text: DECLARE <name> [ options ] CURSOR p [ WITH | WITHOUT HOLD ] FOR <query>
 // %SeeAlso: CLOSE, FETCH
 declare_cursor_stmt:
-  // TODO(jordan): the options here should be supported in any order, not just
   // the fixed one here.
 	DECLARE cursor_name opt_binary opt_sensitivity opt_scroll CURSOR opt_hold FOR select_stmt
 	{
@@ -8043,7 +8041,6 @@ opt_on_targets_roles:
 //   more nuance.)
 //
 // Tada!
-// TODO(knz): This should learn how to parse more complex expressions
 // and placeholders.
 grant_targets:
   IDENT
@@ -8155,7 +8152,6 @@ backup_targets:
   {
     $$.val = tree.BackupTargetList{Tables: tree.TableAttrs{SequenceOnly: false, TablePatterns: $2.tablePatterns()}}
   }
-// TODO(knz): This should learn how to parse more complex expressions
 // and placeholders.
 | TENANT iconst64
   {
@@ -11306,7 +11302,6 @@ set_clause_list:
     $$.val = append($1.updateExprs(), $3.updateExpr())
   }
 
-// TODO(knz): The LHS in these can be extended to support
 // a path to a field member when compound types are supported.
 // Keep it simple for now.
 set_clause:
@@ -12673,7 +12668,6 @@ cast_target:
   }
 
 opt_array_bounds:
-  // TODO(justin): reintroduce multiple array bounds
   // opt_array_bounds '[' ']' { $$.val = append($1.int32s(), -1) }
   '[' ']' { $$.val = []int32{-1} }
 | '[' ']' '[' error { return unimplementedWithIssue(sqllex, 32552) }
@@ -13847,7 +13841,6 @@ c_expr:
 //
 // Currently we support array indexing (see c_expr above).
 //
-// TODO(knz/jordan): this is the rule that can be extended to support
 // composite types (#27792) with e.g.:
 //
 //     | '(' a_expr ')' field_access_ops
@@ -13936,7 +13929,6 @@ d_expr:
     sqllex.(*lexer).UpdateNumPlaceholders(p)
     $$.val = p
   }
-// TODO(knz/jordan): extend this for compound types. See explanation above.
 | '(' a_expr ')' '.' '*'
   {
     $$.val = &tree.TupleStar{Expr: $2.expr()}
@@ -13997,7 +13989,6 @@ func_application:
   {
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Type: tree.AllFuncType, Exprs: $4.exprs(), OrderBy: $5.orderBy(), AggType: tree.GeneralAgg}
   }
-// TODO(ridwanmsharif): Once DISTINCT is supported by window aggregates,
 // allow ordering to be specified below.
 | func_name '(' DISTINCT expr_list ')'
   {
@@ -14785,7 +14776,6 @@ extract_list:
     $$.val = $1.exprs()
   }
 
-// TODO(vivek): Narrow down to just IDENT once the other
 // terms are not keywords.
 extract_arg:
   IDENT
