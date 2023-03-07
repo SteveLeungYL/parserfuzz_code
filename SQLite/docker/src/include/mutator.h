@@ -41,7 +41,7 @@ void set_disable_rsg_generator(bool in) {
   this->disable_rsg_generator = in;
 }
 
-  Mutator() { srand(time(nullptr)); }
+  Mutator() { srand(time(nullptr)); rsg_initialize(); }
 
   typedef map<IR *, pair<int, IR *>> TmpRecord;
 
