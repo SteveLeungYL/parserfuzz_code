@@ -2915,7 +2915,7 @@ Program *Mutator::parser(const char *query) {
 }
 
 // Return use_temp or not.
-bool Mutator::get_valid_str_from_lib(string &ori_oracle_select) {
+bool Mutator::get_select_str_from_lib(string &select_str) {
   /* For 1/2 chance, grab one query from the oracle library, and return.
    * For 1/2 chance, take the template from the p_oracle and return.
    */
@@ -2924,31 +2924,55 @@ bool Mutator::get_valid_str_from_lib(string &ori_oracle_select) {
   while (!is_succeed) { // Potential dead loop. Only escape through return.
     bool use_temp = false;
     int query_method = get_rand_int(2);
-    if (all_valid_pstr_vec.size() > 0 && query_method < 1) {
+    if (all_valid_pstr_vec.size() > 0 && query_method == 0) {
       /* Pick the query from the lib, pass to the mutator. */
       if (use_cri_val && all_cri_valid_pstr_vec.size() > 0 &&
           get_rand_int(3) < 2) {
-        ori_oracle_select = *(all_cri_valid_pstr_vec[get_rand_int(
+        select_str = *(all_cri_valid_pstr_vec[get_rand_int(
             all_cri_valid_pstr_vec.size())]);
+
+
       } else {
-        ori_oracle_select =
+        select_str =
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
-      if (ori_oracle_select == "" ||
-          !p_oracle->is_oracle_select_stmt_str(ori_oracle_select))
+      if (select_str.empty())
         {continue;}
       use_temp = false;
+
     } else {
-      /* Pick the query from the template, pass to the mutator. */
-      ori_oracle_select = p_oracle->get_temp_valid_stmts();
-      use_temp = true;
+      /* get on randomly generated query from the RSG module. */
+      if (!disable_rsg_generator) {
+        select_str = this->rsg_generate_valid(kSelectStatement);
+      }
+
+      if (select_str.empty()) {
+        /* Pick the query from the template, pass to the mutator. */
+        select_str = p_oracle->get_temp_select_stmts();
+        use_temp = true;
+      }
     }
 
-    trim_string(ori_oracle_select);
+    trim_string(select_str);
     return use_temp;
   }
   fprintf(stderr, "*** FATAL ERROR: Unexpected code execution in the "
                   "Mutator::get_valid_str_from_lib function. \n");
   fflush(stderr);
   abort();
+}
+
+string Mutator::rsg_generate_valid(const IRTYPE type) {
+
+  for (int i = 0; i < 100; i++) {
+    string tmp_query_str = rsg_generate(type);
+    vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
+    if (ir_vec.size() == 0) {
+      continue;
+    }
+    ir_vec.back()->deep_drop();
+    return tmp_query_str;
+  }
+
+  return "";
 }

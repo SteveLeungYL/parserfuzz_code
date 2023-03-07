@@ -112,7 +112,7 @@
 #define INIT_LIB_PATH "./init_lib"
 double min_stab_radio;
 char *save_file_name = NULL;
-char *g_library_path = INIT_LIB_PATH;
+char *g_library_path = (char*)INIT_LIB_PATH;
 char *g_current_input = NULL;
 IR *g_current_ir = NULL;
 
@@ -175,6 +175,11 @@ static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
 EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 
 static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
+
+EXP_ST u8 disable_dyn_instan = false,
+/* Disable Dynamic Instantiation based on error messages.          */
+       disable_rsg_generator = false;
+/* Use RSG to generate new SQL statements          */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     dump_library,             /* Dump squirrel libraries          */
@@ -283,7 +288,7 @@ EXP_ST u64 total_crashes, /* Total number of crashes          */
 
 static u32 subseq_tmouts; /* Number of timeouts in a row      */
 
-static u8 *stage_name = "init", /* Name of the current fuzz stage   */
+static u8 *stage_name = (u8*)"init", /* Name of the current fuzz stage   */
     *stage_short,               /* Short stage name                 */
     *syncing_party;             /* Currently syncing with...        */
 
@@ -5568,7 +5573,7 @@ void get_app_new_select_stmts(vector<IR*> &v_valid_stmts) {
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
 
-    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_valid_stmt();
+    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == nullptr){
       total_oracle_mutate_failed++;
       continue;
@@ -7036,6 +7041,9 @@ int main(int argc, char **argv) {
   p_oracle = nullptr;
   g_mutator.set_use_cri_val(false);
 
+  disable_dyn_instan = false;
+  disable_rsg_generator = false;
+
   // hsql_debug = 1;   // For debugging parser.
 
   min_stab_radio = 100.0;
@@ -7060,7 +7068,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:w")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:wXR")) > 0)
 
     switch (opt) {
 
@@ -7090,6 +7098,19 @@ int main(int argc, char **argv) {
     case 's': /* number of oracle SELECT stmts. */
       valid_max_num = atoi(optarg);
       break;
+
+    case 'X': {
+      disable_dyn_instan = true;
+      cout << "\033[1;31m Warning: Disabling query dynamic instantiation based "
+              "on the query error messages. "
+              "\033[0m \n\n\n";
+    } break;
+
+    case 'R': {
+      disable_rsg_generator = true;
+      cout << "\033[1;31m Warning: Disabling RSG (Random Statement Generator). "
+              "\033[0m \n\n\n";
+    } break;
 
     case 'M': { /* master sync ID */
 
@@ -7317,7 +7338,10 @@ int main(int argc, char **argv) {
     p_oracle = new SQL_OPT();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
+
   g_mutator.set_dump_library(dump_library);
+  g_mutator.set_disable_dyn_instan(disable_dyn_instan);
+  g_mutator.set_disable_rsg_generator(disable_rsg_generator);
 
   load_map_id();
 

@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
+#include "../rsg/rsg/h"
 #include "../AFL/types.h"
 
 #include <vector>
@@ -31,6 +32,14 @@ public:
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
   int get_cri_valid_collection_size() { return all_cri_valid_pstr_vec.size(); }
   int get_valid_collection_size() { return all_valid_pstr_vec.size(); }
+
+  void set_disable_dyn_instan(bool dis_dyn) {
+    this->disable_dyn_instan = dis_dyn;
+  }
+
+void set_disable_rsg_generator(bool in) {
+  this->disable_rsg_generator = in;
+}
 
   Mutator() { srand(time(nullptr)); }
 
@@ -83,7 +92,9 @@ public:
   IR *get_from_libary_with_left_type(IRTYPE);
   IR *get_from_libary_with_right_type(IRTYPE);
 
-  bool get_valid_str_from_lib(string &);
+  bool get_select_str_from_lib(string &);
+
+  string rsg_generate_valid(const IRTYPE type);
 
   bool is_stripped_str_in_lib(string stripped_str);
 
@@ -192,6 +203,9 @@ private:
   SQL_ORACLE *p_oracle;
 
   Program *parser(const char *sql);
+
+  u8 disable_rsg_generator, disable_dyn_instan;
+
 };
 
 #endif

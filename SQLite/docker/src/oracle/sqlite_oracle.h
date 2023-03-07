@@ -77,9 +77,9 @@ public:
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
 
-  virtual IR* get_random_mutated_valid_stmt();
+  virtual IR* get_random_mutated_select_stmt();
 
-  virtual string get_temp_valid_stmts() = 0;
+  virtual string get_temp_select_stmts() = 0;
 
   virtual unsigned get_mul_run_num() { return 1; }
 
