@@ -111,10 +111,6 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
     ) {
 
       if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
-      // else if (old_ir->type_ == kSelectCore || old_ir->type_ == kSelectCoreList) {
-        // v_mutated_ir = mutate_selectcorelist(root, old_ir);
-      // }
-      // else {continue;}
 
       for (IR* mutated_ir : v_mutated_ir) {
 
@@ -123,12 +119,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
         unsigned tmp_hash = hash(tmp);
         if (res_hash.find(tmp_hash) != res_hash.end()) {
           mutated_ir->deep_drop();
-          // cerr << "Aboard old_ir because tmp_hash being saved before. "
-          //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
-
-        // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << tmp << "\n\n\n";
 
         string *new_str = new string(tmp);
         res_hash.insert(tmp_hash);
@@ -337,19 +329,48 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
   IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
 
-  IR * new_stmt_ir = NULL;
   /* Get new insert statement. However, do not insert kSelectStatement */
-  while (new_stmt_ir == NULL) {
-    new_stmt_ir = get_from_libary_with_type(kStatement);
-    if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
-      cur_root->deep_drop();
-      return res_vec;
+  IR * new_stmt_ir = nullptr;
+  while (new_stmt_ir == nullptr) {
+
+    if (!disable_rsg_generator && get_rand_int(2)) {
+      // 1/2 chances, use RSG to generate new statement.
+      string tmp_stmt_str = rsg_generate_valid(kStatement);
+      vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
+      if (v_tmp_ir.size() == 0) {
+        // Parsing failed.
+        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << "\n\n\n";
+        new_stmt_ir = nullptr;
+        continue;
+      } else {
+        // Parsing succeed.
+        IR* tmp_root = v_tmp_ir.back();
+        vector<IR*> tmp_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec(tmp_root);
+        if (tmp_stmt_vec.size() == 0) {
+          cerr << "\n\n\nERROR: getting empty tmp_stmt_vec from rsg generated string: "
+            << tmp_stmt_str << "\n\n\n";
+          assert(false);
+          exit(1);
+        }
+        new_stmt_ir = tmp_stmt_vec.front();
+        tmp_root->detach_node(new_stmt_ir);
+        tmp_root->deep_drop();
+        num_rsg_gen++;
+      }
+    } else {
+      // Old normal method to generate new_stmt_ir.
+      new_stmt_ir = get_from_libary_with_type(kStatement);
+      if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+        cur_root->deep_drop();
+        return res_vec;
+      }
+      if (new_stmt_ir->left_->type_ == kSelectStatement) {
+        new_stmt_ir->deep_drop();
+        new_stmt_ir = NULL;
+      }
+      continue;
     }
-    if (new_stmt_ir->left_->type_ == kSelectStatement) {
-      new_stmt_ir->deep_drop();
-      new_stmt_ir = NULL;
-    }
-    continue;
+
   }
 
   IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
@@ -2944,6 +2965,8 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
       /* get on randomly generated query from the RSG module. */
       if (!disable_rsg_generator) {
         select_str = this->rsg_generate_valid(kSelectStatement) + "; ";
+        // Debug purpose
+        num_rsg_gen++;
       }
 
       if (select_str.empty()) {
