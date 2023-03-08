@@ -352,8 +352,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
           assert(false);
           exit(1);
         }
-        new_stmt_ir = tmp_stmt_vec.front();
-        tmp_root->detach_node(new_stmt_ir);
+        new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
         num_rsg_gen++;
       }
@@ -367,18 +366,17 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       if (new_stmt_ir->left_->type_ == kSelectStatement) {
         new_stmt_ir->deep_drop();
         new_stmt_ir = NULL;
+        continue;
       }
+      IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();
+      new_stmt_ir->deep_drop();
+      new_stmt_ir = new_stmt_ir_tmp;
       continue;
     }
 
   }
 
-  IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
-  new_stmt_ir->deep_drop();
-  new_stmt_ir = new_stmt_ir_tmp;
-
-  // cerr << "Replacing rep_old_ir: " << rep_old_ir->to_string() << " to: " << new_stmt_ir->to_string() << ". \n\n\n";
-
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
     new_stmt_ir->deep_drop();
     cur_root->deep_drop();
@@ -393,27 +391,56 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
 
   /* Get new insert statement. However, do not insert kSelectStatement */
-  new_stmt_ir = NULL;
-  while (new_stmt_ir == NULL) {
-    new_stmt_ir = get_from_libary_with_type(kStatement);
-    if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
-      cur_root->deep_drop();
-      return res_vec;
-    }
-    if (new_stmt_ir->left_->type_ == kSelectStatement) {
+  new_stmt_ir = nullptr;
+  while (new_stmt_ir == nullptr) {
+
+    if (!disable_rsg_generator && get_rand_int(2)) {
+      // 1/2 chances, use RSG to generate new statement.
+      string tmp_stmt_str = rsg_generate_valid(kStatement);
+      vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
+      if (v_tmp_ir.size() == 0) {
+        // Parsing failed.
+        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << "\n\n\n";
+        new_stmt_ir = nullptr;
+        continue;
+      } else {
+        // Parsing succeed.
+        IR* tmp_root = v_tmp_ir.back();
+        vector<IR*> tmp_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec(tmp_root);
+        if (tmp_stmt_vec.size() == 0) {
+          cerr << "\n\n\nERROR: getting empty tmp_stmt_vec from rsg generated string: "
+            << tmp_stmt_str << "\n\n\n";
+          assert(false);
+          exit(1);
+        }
+        new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
+        tmp_root->deep_drop();
+        num_rsg_gen++;
+      }
+    } else {
+      // Old normal method to generate new_stmt_ir.
+      new_stmt_ir = get_from_libary_with_type(kStatement);
+      if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+        cur_root->deep_drop();
+        return res_vec;
+      }
+      if (new_stmt_ir->left_->type_ == kSelectStatement) {
+        new_stmt_ir->deep_drop();
+        new_stmt_ir = NULL;
+        continue;
+      }
+      IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();
       new_stmt_ir->deep_drop();
-      new_stmt_ir = NULL;
+      new_stmt_ir = new_stmt_ir_tmp;
+      continue;
     }
-    continue;
+
   }
-  new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
-  new_stmt_ir->deep_drop();
-  new_stmt_ir = new_stmt_ir_tmp;
 
-  // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
-
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos)) {
     new_stmt_ir->deep_drop();
+    new_stmt_ir = nullptr;
     cur_root->deep_drop();
     return res_vec;
   }
@@ -2966,6 +2993,12 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
       if (!disable_rsg_generator) {
         select_str = this->rsg_generate_valid(kSelectStatement) + "; ";
         // Debug purpose
+        vector<IR*> v_tmp_check = this->parse_query_str_get_ir_set(select_str);
+        if (v_tmp_check.size() == 0) {
+          cerr << "\n\n\nError: Failed to parse RSG: " << select_str << "\n\n\n";
+        } else {
+          v_tmp_check.back()->deep_drop();
+        }
         num_rsg_gen++;
       }
 
