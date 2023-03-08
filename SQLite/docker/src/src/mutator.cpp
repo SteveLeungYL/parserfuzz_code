@@ -339,7 +339,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
         // Parsing failed.
-        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << "\n\n\n";
+        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
+          //<< ", gen num: " << num_rsg_gen
+          //<< "\n\n\n";
         new_stmt_ir = nullptr;
         continue;
       } else {
@@ -355,6 +357,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
         new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
         num_rsg_gen++;
+        cerr << "\n\n\nDEBUG: rsg stmt parsing succeed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
+          << ", gen num: " << num_rsg_gen
+          << "\n\n\n";
       }
     } else {
       // Old normal method to generate new_stmt_ir.
@@ -400,7 +405,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
         // Parsing failed.
-        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << "\n\n\n";
+        //cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
+          //<< ", gen num: " << num_rsg_gen
+          //<< "\n\n\n";
         new_stmt_ir = nullptr;
         continue;
       } else {
@@ -416,6 +423,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
         new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
         num_rsg_gen++;
+        cerr << "\n\n\nDEBUG: rsg stmt parsing succeed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
+          << ", gen num: " << num_rsg_gen
+          << "\n\n\n";
       }
     } else {
       // Old normal method to generate new_stmt_ir.
@@ -2995,7 +3005,7 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
         // Debug purpose
         vector<IR*> v_tmp_check = this->parse_query_str_get_ir_set(select_str);
         if (v_tmp_check.size() == 0) {
-          cerr << "\n\n\nError: Failed to parse RSG: " << select_str << "\n\n\n";
+          //cerr << "\n\n\nError: Failed to parse RSG: " << select_str << "\n\n\n";
         } else {
           v_tmp_check.back()->deep_drop();
         }
