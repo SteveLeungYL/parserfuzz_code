@@ -154,6 +154,8 @@ void set_disable_rsg_generator(bool in) {
   void rsg_exec_succeed_helper() { rsg_exec_succeed(); }
   void rsg_exec_failed_helper() { rsg_exec_failed(); }
 
+  int get_num_rsg_gen() {return this->num_rsg_gen;}
+
 private:
   void add_to_valid_lib(IR *, string &);
   void add_to_library(IR *, string &);
@@ -208,6 +210,8 @@ private:
   Program *parser(const char *sql);
 
   u8 disable_rsg_generator, disable_dyn_instan;
+
+  int num_rsg_gen = 0;
 
 };
 

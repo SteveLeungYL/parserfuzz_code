@@ -2721,6 +2721,8 @@ inline void print_exec_debug_info(ostream &out) {
       << g_mutator.get_cri_valid_collection_size() << "\n"
       << "total_valid_stmts:       " << g_mutator.get_valid_collection_size()
       << "\n"
+      << "total_num_rsg_generate:       " << g_mutator.get_num_rsg_gen()
+      << "\n"
       << "total bad queries:       " << debug_error << " / "
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
