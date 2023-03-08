@@ -357,9 +357,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
         new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
         num_rsg_gen++;
-        cerr << "\n\n\nDEBUG: rsg stmt parsing succeed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
-          << ", gen num: " << num_rsg_gen
-          << "\n\n\n";
       }
     } else {
       // Old normal method to generate new_stmt_ir.
@@ -423,9 +420,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
         new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
         num_rsg_gen++;
-        cerr << "\n\n\nDEBUG: rsg stmt parsing succeed: " << tmp_stmt_str << ", size: "<< tmp_stmt_str.size() 
-          << ", gen num: " << num_rsg_gen
-          << "\n\n\n";
       }
     } else {
       // Old normal method to generate new_stmt_ir.

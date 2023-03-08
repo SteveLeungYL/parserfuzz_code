@@ -44,6 +44,8 @@ vector<string> string_splitter(const string& in, string delimiter);
 
 bool is_str_empty(string input_str);
 
+int findStringCount(const std::string &strHaystack,
+                                      const std::string &strNeedle);
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);

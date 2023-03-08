@@ -2723,7 +2723,7 @@ inline void print_exec_debug_info(ostream &out) {
       << "\n"
       << "total_num_rsg_generate:       " << g_mutator.get_num_rsg_gen()
       << "\n"
-      << "total bad queries:       " << debug_error << " / "
+      << "total good queries:       " << debug_good << " / "
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
       << "bug_samples reports num: " << bug_output_id << "\n";
@@ -2825,6 +2825,10 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
     
     res_str = read_sqlite_output_and_reset_output_file();
 
+    // TODO:: May not be the optimal way to calculate validity.
+    debug_error += findStringCount(res_str, "error");
+    debug_good += findStringCount(cmd_string, ";");
+
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
     all_comp_res.v_res.push_back(fault);
@@ -2856,6 +2860,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
 
   total_execs++;
   total_execute++;
+
 
   return all_comp_res.final_res;
 
