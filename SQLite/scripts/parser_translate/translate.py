@@ -1,5 +1,4 @@
 import os.path
-import sys
 import json
 import click
 from loguru import logger
