@@ -11,10 +11,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/rsg/yacc"
 	"math"
 	"math/rand"
+	"os"
 	"strings"
 	"unicode"
 )
@@ -65,14 +67,38 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool, epsilon
 	return &rsg, nil
 }
 
+func (r *RSG) DumpParserRuleMap(outFile string) {
+
+	resJsonStr, err := json.Marshal(r.prods)
+
+	if err != nil {
+		fmt.Printf("\n\n\nError: Cannot generate the r.prods JSON file. \n\n\n")
+	}
+
+	f, err := os.OpenFile(outFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		fmt.Printf("\n\n\nError: Cannot write to parser_rule.json file. \n\n\n")
+	}
+	f.Write(resJsonStr)
+
+	defer f.Close()
+
+}
+
+func (r *RSG) ClearChosenExpr() {
+	// clear the map
+	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
+}
+
 func (r *RSG) IncrementSucceed() {
 	for prod := range r.curChosenExpr {
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
-	// clear the map
-	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
+
+	r.ClearChosenExpr()
 }
 
 func (r *RSG) IncrementFailed() {
@@ -81,8 +107,8 @@ func (r *RSG) IncrementFailed() {
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
-	// clear the map
-	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
+
+	r.ClearChosenExpr()
 }
 
 func (r *RSG) argMax(rewards []float64) int {
