@@ -3,97 +3,38 @@ import json
 import click
 from loguru import logger
 from typing import List
-import re
 
 
 ONETAB = " " * 4
 ONESPACE = " "
-default_ir_type = "kUnknown"
+default_ir_type = "TypeUnknown"
 
 saved_ir_type = []
 
-custom_additional_keywords = set(
-    [
-        "PASSWORD",
-        "CREATE",
-        "USER",
-        "DROP",
-        "SUBSCRIPTION",
-        "IF_P",
-        "EXISTS",
-        "/*EMPTY*/",
-        "/* EMPTY */",
-        "'('",
-        "')'",
-        "IN_P",
-        "/* There must be at least one */",
-        "SELECT",
-        "UPDATE",
-        "DELETE_P",
-        "INSERT",
-        "%prec",
-    ]
-)
-
-custom_additional_keywords_mapping = {"%prec": ""}
-
-with open("assets/keywords_mapping.json") as f:
-    keywords_mapping = json.load(f)
-    keywords_mapping.update(custom_additional_keywords_mapping)
-
-total_keywords = set()
-with open("assets/keywords.json") as f:
-    total_keywords |= set(json.load(f))
-total_keywords |= custom_additional_keywords
-
-total_tokens = set()
-with open("assets/tokens.json") as f:
-    total_tokens |= set(json.load(f))
-
-manually_translation = {
-    "empty_grouping_set": """   
-empty_grouping_set:
-
-    '(' ')' {
-        res = new IR(kEmptyGroupingSet, OP3("( )", "", ""));
-        $$ = res;
-    }
-
-;
-"""
-}
-
-
 class Token(object):
-    def __init__(self, word, index):
-        self.word = word
+    def __init__(self, value, index):
+        self.value = value 
         self.index = index
-        self._is_keyword = None
 
     @property
-    def is_keyword(self):
-        if self._is_keyword is not None:
-            return self._is_keyword
+    def is_term_token(self):
+        if self.value.startswith("'") or self.value.endswith("'"):
+            return True
+        if self.value[0].isupper():
+            return True
 
-        if "'" in self.word:
-            self._is_keyword = True
-            return self._is_keyword
-
-        self._is_keyword = self.word in total_keywords
-        return self._is_keyword
+        return False
 
     def __str__(self) -> str:
-        if self.is_keyword:
-            if self.word.startswith("'") and self.word.endswith("'"):
-                return self.word.strip("'")
-            if self.word in keywords_mapping:
-                return keywords_mapping[self.word]
+        if self.is_term_token:
+            if self.value.startswith("'") and self.value.endswith("'"):
+                return self.value.strip("'")
 
-        return self.word
+        return self.value
 
     def __repr__(self) -> str:
         return '{prefix}("{word}")'.format(
-            prefix="Keyword" if self.is_keyword else "Token", word=self.word
+            prefix="Keyword" if self.is_term_token else "Token", word=self.value
         )
 
     def __gt__(self, other):
@@ -104,57 +45,12 @@ class Token(object):
         return self.index > other_index
 
 
-def snake_to_camel(word):
+def snake_to_camel(word: str):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
 
 
-def camel_to_snake(word):
+def camel_to_snake(word: str):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
-
-
-def tokenize(line) -> List[Token]:
-    line = line.strip()
-    if line.startswith("/*") and line.endswith("*/"):
-        # HACK for empty grammar eg. /* EMPTY */
-        return [Token(line, 0)]
-
-    words = [word.strip() for word in line.split()]
-    words = [word for word in words if word]
-
-    token_sequence = []
-    for idx, word in enumerate(words):
-        if word == "%prec":
-            # ignore everything after %prec
-            break
-        token_sequence.append(Token(word, idx))
-
-    return token_sequence
-
-
-def repace_special_keyword_with_token(line):
-    words = [word.strip() for word in line.split()]
-    words = [word for word in words if word]
-
-    seq = []
-    for word in words:
-        word = word.strip()
-        if not word:
-            continue
-        # if word in keywords_mapping:
-        #     word = keywords_mapping[word]
-
-        seq.append(word)
-
-    return " ".join(seq)
-
-
-def prefix_tabs(text, tabs_num):
-    result = []
-    text = text.strip()
-    for line in text.splitlines():
-        result.append(ONETAB * tabs_num + line)
-    return "\n".join(result)
-
 
 def search_next_keyword(token_sequence, start_index):
     curr_token = None
@@ -302,65 +198,6 @@ def translate_single_line(line, parent):
     return body
 
 
-def find_first_alpha_index(data, start_index):
-    for idx, c in enumerate(data[start_index:]):
-        if c.isalpha() or c == "'" or c == "/" and data[start_index + idx + 1] == "*":
-            return start_index + idx
-
-
-def translate_preprocessing(data):
-    """Remove comments, and remove the original actions from the parser"""
-
-    """Remove original actions here. """
-    data = re.sub("\{.*?\}", "", data, flags=re.S)
-    data = data.strip()
-
-    all_new_data = ""  # not necessary. But it works now, no need to change. :-o
-    new_data = ""
-    cur_data = ""
-    all_lines = data.split("\n")
-    idx = -1
-    for cur_line in all_lines:
-        idx += 1
-        if ":" in cur_line and cur_data != "":
-            new_data += cur_data + "\n"
-            cur_data = " " + cur_line
-            all_new_data += new_data
-            new_data = ""
-        elif "|" in cur_line:
-            new_data += cur_data + "\n"
-            cur_data = " " + cur_line
-        elif cur_line == all_lines[-1]:
-            cur_data += " " + cur_line
-            new_data += cur_data + "\n"
-            all_new_data += new_data
-            new_data = ""
-        else:
-            cur_data += " " + cur_line
-
-    """Remove all semicolon in the statement? """
-    all_new_data_l = list(all_new_data)
-    semi_loc = all_new_data.rfind(";", 1)
-    if semi_loc != -1:
-        all_new_data_l[semi_loc] = ""
-    all_new_data = "".join(all_new_data_l)
-
-    # all_new_data += ";"
-    #
-    # with open("draft.txt", "a") as f:
-    #     f.write('----------------\n')
-    #     f.write(all_new_data)
-
-    return all_new_data
-
-
-def remove_comments_inside_statement(text):
-    text = text.strip()
-    if not (text.startswith("/*") and text.endswith("*/") and text.count("/*") == 1):
-        text = remove_comments_if_necessary(text, True)
-    return text
-
-
 def translate(data):
 
     data = translate_preprocessing(data=data)
@@ -425,219 +262,6 @@ def translate(data):
     logger.info(translation)
     return translation
 
-
-def load_keywords_from_kwlist():
-    global total_keywords
-
-    kwlist_path = "assets/kwlist.h"
-    with open(kwlist_path) as f:
-        keyword_data = f.read()
-
-    keyword_data = remove_comments_if_necessary(keyword_data, True)
-
-    keyword_data = keyword_data.splitlines()
-    keyword_data = [line.strip() for line in keyword_data]
-    keyword_data = [line for line in keyword_data if line.startswith("PG_KEYWORD")]
-
-    kwlist_tokens = set([line.split()[1].strip(",") for line in keyword_data])
-    total_keywords |= kwlist_tokens
-
-
-def load_keywords_mapping_from_kwlist():
-    global keywords_mapping
-
-    kwlist_path = "assets/kwlist.h"
-    with open(kwlist_path) as f:
-        keyword_data = f.read()
-
-    keyword_data = remove_comments_if_necessary(keyword_data, True)
-    keyword_data = keyword_data.splitlines()
-    keyword_data = [line.strip() for line in keyword_data]
-    keyword_data = [line for line in keyword_data if line.startswith("PG_KEYWORD")]
-
-    for line in keyword_data:
-        line = line[len('PG_KEYWORD("') :]
-        words = line.split(" ", 2)
-        kw_str = words[0].rstrip('",')
-        kw = words[1].rstrip(",")
-        keywords_mapping[kw] = kw_str
-
-    with open("assets/keywords_mapping.json", "w") as f:
-        json.dump(keywords_mapping, f, indent=2, sort_keys=True)
-
-
-def get_gram_tokens():
-    global total_tokens
-
-    tokens_file = "assets/tokens.y"
-    with open(tokens_file) as f:
-        token_data = f.read()
-
-    token_data = remove_comments_if_necessary(token_data, True)
-
-    token_data = token_data.splitlines()
-    token_data = [line.strip() for line in token_data]
-    token_data = [line for line in token_data if line]
-
-    gram_tokens = set()
-    for line in token_data:
-        line = line.replace("\t", " ")
-        if line.startswith("%type"):
-            line = line.split(" ", 2)[-1]
-
-        line = line.strip()
-        gram_tokens |= set(line.split())
-
-    for token in gram_tokens:
-        if token.startswith("<"):
-            logger.info(token)
-
-    unwanted = ["", " "]
-    for elem in unwanted:
-        if elem in gram_tokens:
-            gram_tokens.remove(elem)
-
-    total_tokens |= gram_tokens
-    with open("assets/tokens.json", "w") as f:
-        json.dump(list(total_tokens), f, indent=2, sort_keys=True)
-
-
-def get_gram_keywords():
-    global total_keywords
-
-    keywords_file = "assets/keywords.y"
-    with open(keywords_file) as f:
-        keyword_data = f.read()
-
-    keyword_data = remove_comments_if_necessary(keyword_data, True)
-
-    keyword_data = keyword_data.splitlines()
-    keyword_data = [line.strip() for line in keyword_data if line.strip()]
-    keyword_data = [
-        line
-        for line in keyword_data
-        if not (line.startswith("*") or line.startswith("/"))
-    ]
-
-    gram_keywords = set()
-    for line in keyword_data:
-        line = line.replace("\t", " ")
-
-        if line.startswith("%token") and " <" in line and "> " in line:
-            line = line.split(" ", 2)[-1]
-        elif line.startswith("%"):
-            line = line.split(" ", 1)[-1]
-
-        line = line.strip()
-        gram_keywords |= set(line.split())
-
-    unwanted = ["", " "]
-    for elem in unwanted:
-        if elem in gram_keywords:
-            gram_keywords.remove(elem)
-
-    total_keywords |= gram_keywords
-    with open("assets/keywords.json", "w") as f:
-        json.dump(list(total_keywords), f, indent=2, sort_keys=True)
-
-
-def remove_comments_if_necessary(text, need_remove):
-    if not need_remove:
-        return text
-
-    pattern = "/\*.*?\*/"
-    return re.sub(pattern, "", text, flags=re.S)
-
-
-def remove_original_actions(text):
-    pattern = "\{.*?\}"
-    return re.sub(pattern, "", text, flags=re.S)
-
-
-def select_translate_region(data):
-    pattern = "%%"
-    start_pos = data.find(pattern) + len(pattern)
-    stop_pos = data.find(pattern, start_pos)
-    return data[start_pos:stop_pos]
-
-
-def mark_statement_location(data):
-    class Line(object):
-        def __init__(self, lineno, contents):
-            self.lineno: int = lineno
-            self.contents: str = contents
-
-            words = self.contents.split()
-            first_elem: str = words[0] if words else ""
-            self.contain_colon = ":" in first_elem
-            self.first_word = first_elem.rstrip(":")
-            self.first_is_token = self.first_word in total_tokens
-
-        def __repr__(self):
-            return f"Line({self.lineno}, {self.first_word})"
-
-    lines = [line.strip() for line in data.splitlines()]
-    line_objs = [Line(lineno, contents) for lineno, contents in enumerate(lines)]
-    token_objs = [line_obj for line_obj in line_objs if line_obj.contain_colon]
-    token_objs = [line_obj for line_obj in token_objs if line_obj.first_is_token]
-
-    token_objs = sorted(token_objs, key=lambda x: x.lineno)
-
-    range_bits = [i for i in range(len(lines))]
-
-    def search_next_semicolon_line(lines, start_index, stop_index):
-        partial_lines = lines[start_index:stop_index]
-        for relative_index, line in enumerate(partial_lines):
-            if line == ";":
-                return start_index + relative_index
-
-        # HACK: hack for single line grammar, maybe not accurate
-        if partial_lines[0].endswith(";"):
-            return start_index
-
-        logger.warning("Cannot find next semicolon. ")
-        logger.warning(partial_lines)
-
-    extract_tokens = {}
-    for idx in range(len(token_objs)):
-        token_start = token_objs[idx]
-        lineno_start = token_start.lineno
-
-        if idx + 1 == len(token_objs):
-            lineno_stop = len(lines)
-        else:
-            token_stop = token_objs[idx + 1]
-            lineno_stop = token_stop.lineno
-
-        semicolon_index = search_next_semicolon_line(lines, lineno_start, lineno_stop)
-        extract_tokens[token_start.first_word] = "\n".join(
-            lines[lineno_start : semicolon_index + 1]
-        )
-
-        range_bits[lineno_start] = token_start.first_word
-        for j in range(lineno_start + 1, semicolon_index + 1):
-            range_bits[j] = False
-
-    marked_lines = []
-    for k in range_bits:
-        if k == False:
-            continue
-
-        if isinstance(k, str):
-            marked_lines.append(f"=== {k.strip()} ===")
-            continue
-
-        if k:
-            marked_lines.append(lines[k])
-            continue
-
-        marked_lines.append(lines[k])
-
-    marked_lines = "\n".join(marked_lines)
-
-    return marked_lines, extract_tokens
-
-
 @click.command()
 @click.option("-o", "--output", default="bison_parser_2.y")
 @click.option("--remove-comments", is_flag=True, default=False)
@@ -647,14 +271,6 @@ def run(output, remove_comments):
         os.remove("./all_ir_types.txt")
 
     data = open("assets/parser_stmts.y", "r").read()
-
-    data = remove_comments_if_necessary(data, remove_comments)
-    # data = select_translate_region(data)
-
-    # load_keywords_from_kwlist()
-    # load_keywords_mapping_from_kwlist()
-    # get_gram_tokens()
-    # get_gram_keywords()
 
     marked_lines, extract_tokens = mark_statement_location(data)
     for token_name, extract_token in extract_tokens.items():
