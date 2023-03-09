@@ -4065,7 +4065,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           total_oracle_mutate_failed, total_oracle_mutate, total_append_failed, 
           g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
           debug_error, debug_good, 
-          (float)debug_good / (float)(debug_error + debug_good),
+          (float)debug_good / (float)(debug_error + debug_good) * 100.0,
           bug_output_id, queued_with_cov,total_execs,
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
           num_total_mutate_all_tree_size / (num_mutate_all+1),
