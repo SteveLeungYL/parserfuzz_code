@@ -7,12 +7,14 @@ from typing import List
 
 ONETAB = " " * 4
 ONESPACE = " "
-default_ir_type = "TypeUnknown"
+default_ir_type = "kUnknown"
 
 saved_ir_type = []
 
 logger.remove()
 logger.add(sys.stderr, level="DEBUG") # or sys.stdout or other file object
+
+all_translated_types = []
 
 class Token(object):
     def __init__(self, value, index):
@@ -160,7 +162,7 @@ def translate_single_action(token_seq, parent):
 
             tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), A, {tmp_var});"""
+                f"""A = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), (IR*)A, (IR*){tmp_var});"""
                 + "\n"
             )
             tmp_num += 1
@@ -168,7 +170,7 @@ def translate_single_action(token_seq, parent):
             if right_token is not None:
                 tmp_var = chr(ord('B') + right_token.index)
                 body += (
-                    f"""A = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), A, {tmp_var});"""
+                    f"""A = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), (IR*)A, (IR*){tmp_var});"""
                     + "\n"
                 )
                 tmp_num += 1
@@ -177,7 +179,7 @@ def translate_single_action(token_seq, parent):
             tmp_var = chr(ord('B') + left_token.index)
             tmp_var_2 = chr(ord('B') + right_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), {tmp_var}, {tmp_var_2});"""
+                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), (IR*){tmp_var}, (IR*){tmp_var_2});"""
                 + "\n"
             )
 
@@ -193,7 +195,7 @@ def translate_single_action(token_seq, parent):
             logger.debug("Getting only single one non-term token. ")
             tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), {tmp_var});"""
+                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), (IR*){tmp_var});"""
                 + "\n"
             )
 
@@ -222,7 +224,10 @@ def translate_single_action(token_seq, parent):
     if body:
         ir_type_str = ir_type_str_rewrite(parent)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
-        body += "root_ir = A;\n"
+        body += "root_ir = (IR*)(A);\n"
+        if f"k{ir_type_str}" not in all_translated_types:
+            all_translated_types.append(f"k{ir_type_str}")
+
 
     logger.debug(f"Result: \n{body}")
     return body
@@ -236,7 +241,7 @@ def get_predef_text() ->str:
 // default type for non-terminals.
 //
 %token_type {const char*}
-%default_type {const char*}
+%default_type {IR*}
 
 // An extra argument to the parse function for the parser, which is available
 // to all actions.
@@ -254,7 +259,8 @@ def get_predef_text() ->str:
 //
 %include {
 
-    struct IR;
+    #include "../include/ast.h"
+    #include "../include/define.h"
 
 }
 
@@ -364,7 +370,7 @@ def get_rules_text() -> str:
     return all_saved_lines
 
 
-def run(output_fd):
+def run(output_fd, all_ir_type_fd):
 
     predef_str = get_predef_text()
     token_str = handle_ori_comp_parser()
@@ -375,11 +381,14 @@ def run(output_fd):
     output_fd.write(token_str)
     output_fd.write(rules_str)
 
+    all_ir_type_fd.write("\n".join(all_translated_types))
+
     return
 
 if __name__ == "__main__":
 
     output_file_str = "sqlite_lemon_parser.y"
+    all_ir_type_str = "sqlite_type_str.txt"
     if len(sys.argv) == 2:
         output_file_str = sys.argv[1] 
     elif len(sys.argv) > 2:
@@ -396,5 +405,5 @@ if __name__ == "__main__":
             not os.path.isfile("./assets/sqlite_parse_rule_only.y"):
         os.error("Error: The assets folder is not complete. \n")
 
-    with open(output_file_str, "w+") as fd:
-        run(fd)
+    with open(output_file_str, "w+") as fd, open(all_ir_type_str, "w+") as fd2:
+        run(fd, fd2)
