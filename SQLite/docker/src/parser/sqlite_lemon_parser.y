@@ -1,0 +1,2329 @@
+
+// All token codes are small integers with #defines that begin with "TK_"
+%token_prefix TKIR_
+
+// The type of the data attached to each token is Token.  This is also the
+// default type for non-terminals.
+//
+%token_type {IR*}
+%default_type {IR*}
+
+// An extra argument to the constructor for the parser, which is available
+// to all actions.
+%extra_context {IR* root_ir}
+
+// The name of the generated procedure that implements the parser
+// is as follows:
+%name IRParser
+
+// input is the start symbol
+%start_symbol input
+
+// The following text is included near the beginning of the C source
+// code file that implements the parser.
+//
+%include {
+
+    struct IR;
+
+}
+
+%type transtype {IR*}
+%type ifnotexists {IR*}
+%type temp {IR*}
+%type table_option_set {IR*}
+%type table_option {IR*}
+%token ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN BY CASCADE CAST.
+%token CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL.
+%token OR AND NOT IS MATCH LIKE_KW BETWEEN IN ISNULL NOTNULL NE EQ.
+%token GT LE LT GE ESCAPE.
+%fallback ID
+  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN BY CASCADE CAST COLUMNKW
+  CONFLICT DATABASE DEFERRED DESC DETACH DO
+  EACH END EXCLUSIVE EXPLAIN FAIL FOR
+  IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
+  QUERY KEY OF OFFSET PRAGMA RAISE RECURSIVE RELEASE REPLACE RESTRICT ROW ROWS
+  ROLLBACK SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL WITH WITHOUT
+  NULLS FIRST LAST
+  CURRENT FOLLOWING PARTITION PRECEDING RANGE UNBOUNDED
+  EXCLUDE GROUPS OTHERS TIES
+  GENERATED ALWAYS
+  MATERIALIZED
+  REINDEX RENAME CTIME_KW IF
+  .
+%wildcard ANY.
+%left OR.
+%left AND.
+%right NOT.
+%left IS MATCH LIKE_KW BETWEEN IN ISNULL NOTNULL NE EQ.
+%left GT LE LT GE.
+%right ESCAPE.
+%left BITAND BITOR LSHIFT RSHIFT.
+%left PLUS MINUS.
+%left STAR SLASH REM.
+%left CONCAT PTR.
+%left COLLATE.
+%right BITNOT.
+%nonassoc ON.
+%token_class id  ID|INDEXED.
+%token_class ids  ID|STRING.
+%type nm {IR*}
+%type typetoken {IR*}
+%type typename {IR*}
+%type scanpt {IR*}
+%type autoinc {IR*}
+%type refargs {IR*}
+%type refarg {IR*}
+%type refact {IR*}
+%type defer_subclause {IR*}
+%type init_deferred_pred_opt {IR*}
+%type defer_subclause_opt {IR*}
+%type onconf {IR*}
+%type orconf {IR*}
+%type resolvetype {IR*}
+%type ifexists {IR*}
+%type select {IR*}
+%type selectnowith {IR*}
+%type oneselect {IR*}
+%type multiselect_op {IR*}
+%type values {IR*}
+%type distinct {IR*}
+%type selcollist {IR*}
+%type sclp {IR*}
+%type as {IR*}
+%type seltablist {IR*}
+%type stl_prefix {IR*}
+%type from {IR*}
+%type dbnm {IR*}
+%type fullname {IR*}
+%type xfullname {IR*}
+%type joinop {IR*}
+%type on_using {IR*}
+%type indexed_opt {IR*}
+%type indexed_by  {IR*}
+%type orderby_opt {IR*}
+%type sortlist {IR*}
+%type sortorder {IR*}
+%type nulls {IR*}
+%type groupby_opt {IR*}
+%type having_opt {IR*}
+%type limit_opt {IR*}
+%type where_opt {IR*}
+%type where_opt_ret {IR*}
+%type setlist {IR*}
+%type upsert {IR*}
+%type insert_cmd {IR*}
+%type idlist_opt {IR*}
+%type idlist {IR*}
+%type expr {IR*}
+%type term {IR*}
+%type likeop {IR*}
+%type between_op {IR*}
+%type case_exprlist {IR*}
+%type case_else {IR*}
+%type case_operand {IR*}
+%type exprlist {IR*}
+%type nexprlist {IR*}
+%type paren_exprlist {IR*}
+%type uniqueflag {IR*}
+%type eidlist {IR*}
+%type eidlist_opt {IR*}
+%type collate {IR*}
+%type vinto {IR*}
+%token_class number INTEGER|FLOAT.
+%type trigger_time {IR*}
+%type trigger_event {IR*}
+%type when_clause {IR*}
+%type trigger_cmd_list {IR*}
+%type trnm {IR*}
+%type trigger_cmd {IR*}
+%type raisetype {IR*}
+%type key_opt {IR*}
+%type wqlist {IR*}
+%type wqitem {IR*}
+%type wqas {IR*}
+%type windowdefn_list {IR*}
+%type windowdefn {IR*}
+%type window {IR*}
+%type frame_opt {IR*}
+%type part_opt {IR*}
+%type filter_clause {IR*}
+%type over_clause {IR*}
+%type filter_over {IR*}
+%type range_or_rows {IR*}
+%type frame_bound {IR*}
+%type frame_bound_s {IR*}
+%type frame_bound_e {IR*}
+%type frame_exclude_opt {IR*}
+%type frame_exclude {IR*}
+%type window_clause {IR*}
+%token SPACE ILLEGAL.
+explain(A) ::= EXPLAIN . {
+A = new IR(kExplain, OP3("EXPLAIN", "", ""));
+root_ir = A;
+}
+
+explain(A) ::= EXPLAIN QUERY PLAN . {
+A = new IR(kExplain, OP3("EXPLAIN QUERY PLAN", "", ""));
+root_ir = A;
+}
+
+cmdx(A) ::= cmd(B) . {
+A = new IR(kCmdx, OP3("", "", ""), B);
+root_ir = A;
+}
+
+cmd(A) ::= BEGIN transtype(C) trans_opt(D) . {
+A = new IR(kCmd, OP3("BEGIN", "", ""), C, D);
+root_ir = A;
+}
+
+transtype(A) ::= . {
+A = new IR(kTranstype, OP0());
+root_ir = A;
+}
+
+transtype(A) ::= DEFERRED . {
+A = new IR(kTranstype, OP3("DEFERRED", "", ""));
+root_ir = A;
+}
+
+transtype(A) ::= IMMEDIATE . {
+A = new IR(kTranstype, OP3("IMMEDIATE", "", ""));
+root_ir = A;
+}
+
+transtype(A) ::= EXCLUSIVE . {
+A = new IR(kTranstype, OP3("EXCLUSIVE", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= COMMIT|END trans_opt(C) . {
+A = new IR(kCmd, OP3("COMMIT|END", "", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= ROLLBACK trans_opt(C) . {
+A = new IR(kCmd, OP3("ROLLBACK", "", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= SAVEPOINT nm(C) . {
+A = new IR(kCmd, OP3("SAVEPOINT", "", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= RELEASE savepoint_opt(C) nm(D) . {
+A = new IR(kCmd, OP3("RELEASE", "", ""), C, D);
+root_ir = A;
+}
+
+cmd(A) ::= ROLLBACK trans_opt(C) TO savepoint_opt(E) nm(F) . {
+A = new IR(TypeUnknown, OP3("ROLLBACK", "TO", ""), C, E);
+A = new IR(kCmd, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+create_table(A) ::= createkw(B) temp(C) TABLE ifnotexists(E) nm(F) dbnm(G) . {
+A = new IR(TypeUnknown, OP3("", "", "TABLE"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kCreateTable, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+createkw(A) ::= CREATE . {
+A = new IR(kCreatekw, OP3("CREATE", "", ""));
+root_ir = A;
+}
+
+ifnotexists(A) ::= . {
+A = new IR(kIfnotexists, OP0());
+root_ir = A;
+}
+
+ifnotexists(A) ::= IF NOT EXISTS . {
+A = new IR(kIfnotexists, OP3("IF NOT EXISTS", "", ""));
+root_ir = A;
+}
+
+temp(A) ::= TEMP . {
+A = new IR(kTemp, OP3("TEMP", "", ""));
+root_ir = A;
+}
+
+temp(A) ::= . {
+A = new IR(kTemp, OP0());
+root_ir = A;
+}
+
+create_table_args(A) ::= LP columnlist(C) conslist_opt(D) RP table_option_set(F) . {
+A = new IR(TypeUnknown, OP3("LP", "", "RP"), C, D);
+A = new IR(kCreateTableArgs, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+create_table_args(A) ::= AS select(C) . {
+A = new IR(kCreateTableArgs, OP3("AS", "", ""), C);
+root_ir = A;
+}
+
+table_option_set(A) ::= . {
+A = new IR(kTableOptionSet, OP0());
+root_ir = A;
+}
+
+table_option_set(A) ::= table_option_set(B) COMMA table_option(D) . {
+A = new IR(kTableOptionSet, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+table_option(A) ::= WITHOUT nm(C) . {
+A = new IR(kTableOption, OP3("WITHOUT", "", ""), C);
+root_ir = A;
+}
+
+table_option(A) ::= nm(B) . {
+A = new IR(kTableOption, OP3("", "", ""), B);
+root_ir = A;
+}
+
+columnname(A) ::= nm(B) typetoken(C) . {
+A = new IR(kColumnname, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+typetoken(A) ::= . {
+A = new IR(kTypetoken, OP0());
+root_ir = A;
+}
+
+typetoken(A) ::= typename(B) LP signed(D) RP . {
+A = new IR(kTypetoken, OP3("", "LP", "RP"), B, D);
+root_ir = A;
+}
+
+typetoken(A) ::= typename(B) LP signed(D) COMMA signed(F) RP . {
+A = new IR(TypeUnknown, OP3("", "LP", "COMMA"), B, D);
+A = new IR(kTypetoken, OP3("", "", "RP"), A, F);
+root_ir = A;
+}
+
+typename(A) ::= typename(B) ID|STRING . {
+A = new IR(kTypename, OP3("", "ID|STRING", ""), B);
+root_ir = A;
+}
+
+scanpt(A) ::= . {
+A = new IR(kScanpt, OP0());
+root_ir = A;
+}
+
+scantok(A) ::= . {
+A = new IR(kScantok, OP0());
+root_ir = A;
+}
+
+ccons(A) ::= CONSTRAINT nm(C) . {
+A = new IR(kCcons, OP3("CONSTRAINT", "", ""), C);
+root_ir = A;
+}
+
+ccons(A) ::= DEFAULT scantok(C) term(D) . {
+A = new IR(kCcons, OP3("DEFAULT", "", ""), C, D);
+root_ir = A;
+}
+
+ccons(A) ::= DEFAULT LP expr(D) RP . {
+A = new IR(kCcons, OP3("DEFAULT LP", "RP", ""), D);
+root_ir = A;
+}
+
+ccons(A) ::= DEFAULT PLUS scantok(D) term(E) . {
+A = new IR(kCcons, OP3("DEFAULT PLUS", "", ""), D, E);
+root_ir = A;
+}
+
+ccons(A) ::= DEFAULT MINUS scantok(D) term(E) . {
+A = new IR(kCcons, OP3("DEFAULT MINUS", "", ""), D, E);
+root_ir = A;
+}
+
+ccons(A) ::= DEFAULT scantok(C) ID|INDEXED . {
+A = new IR(kCcons, OP3("DEFAULT", "ID|INDEXED", ""), C);
+root_ir = A;
+}
+
+ccons(A) ::= NOT NULL onconf(D) . {
+A = new IR(kCcons, OP3("NOT NULL", "", ""), D);
+root_ir = A;
+}
+
+ccons(A) ::= PRIMARY KEY sortorder(D) onconf(E) autoinc(F) . {
+A = new IR(TypeUnknown, OP3("PRIMARY KEY", "", ""), D, E);
+A = new IR(kCcons, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+ccons(A) ::= UNIQUE onconf(C) . {
+A = new IR(kCcons, OP3("UNIQUE", "", ""), C);
+root_ir = A;
+}
+
+ccons(A) ::= CHECK LP expr(D) RP . {
+A = new IR(kCcons, OP3("CHECK LP", "RP", ""), D);
+root_ir = A;
+}
+
+ccons(A) ::= REFERENCES nm(C) eidlist_opt(D) refargs(E) . {
+A = new IR(TypeUnknown, OP3("REFERENCES", "", ""), C, D);
+A = new IR(kCcons, OP3("", "", ""), A, E);
+root_ir = A;
+}
+
+ccons(A) ::= defer_subclause(B) . {
+A = new IR(kCcons, OP3("", "", ""), B);
+root_ir = A;
+}
+
+ccons(A) ::= COLLATE ID|STRING . {
+A = new IR(kCcons, OP3("COLLATE ID|STRING", "", ""));
+root_ir = A;
+}
+
+generated(A) ::= LP expr(C) RP . {
+A = new IR(kGenerated, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+generated(A) ::= LP expr(C) RP ID . {
+A = new IR(kGenerated, OP3("LP", "RP ID", ""), C);
+root_ir = A;
+}
+
+autoinc(A) ::= . {
+A = new IR(kAutoinc, OP0());
+root_ir = A;
+}
+
+autoinc(A) ::= AUTOINCR . {
+A = new IR(kAutoinc, OP3("AUTOINCR", "", ""));
+root_ir = A;
+}
+
+refargs(A) ::= . {
+A = new IR(kRefargs, OP0());
+root_ir = A;
+}
+
+refargs(A) ::= refargs(B) refarg(C) . {
+A = new IR(kRefargs, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+refarg(A) ::= MATCH nm(C) . {
+A = new IR(kRefarg, OP3("MATCH", "", ""), C);
+root_ir = A;
+}
+
+refarg(A) ::= ON INSERT refact(D) . {
+A = new IR(kRefarg, OP3("ON INSERT", "", ""), D);
+root_ir = A;
+}
+
+refarg(A) ::= ON DELETE refact(D) . {
+A = new IR(kRefarg, OP3("ON DELETE", "", ""), D);
+root_ir = A;
+}
+
+refarg(A) ::= ON UPDATE refact(D) . {
+A = new IR(kRefarg, OP3("ON UPDATE", "", ""), D);
+root_ir = A;
+}
+
+refact(A) ::= SET NULL . {
+A = new IR(kRefact, OP3("SET NULL", "", ""));
+root_ir = A;
+}
+
+refact(A) ::= SET DEFAULT . {
+A = new IR(kRefact, OP3("SET DEFAULT", "", ""));
+root_ir = A;
+}
+
+refact(A) ::= CASCADE . {
+A = new IR(kRefact, OP3("CASCADE", "", ""));
+root_ir = A;
+}
+
+refact(A) ::= RESTRICT . {
+A = new IR(kRefact, OP3("RESTRICT", "", ""));
+root_ir = A;
+}
+
+refact(A) ::= NO ACTION . {
+A = new IR(kRefact, OP3("NO ACTION", "", ""));
+root_ir = A;
+}
+
+defer_subclause(A) ::= NOT DEFERRABLE init_deferred_pred_opt(D) . {
+A = new IR(kDeferSubclause, OP3("NOT DEFERRABLE", "", ""), D);
+root_ir = A;
+}
+
+defer_subclause(A) ::= DEFERRABLE init_deferred_pred_opt(C) . {
+A = new IR(kDeferSubclause, OP3("DEFERRABLE", "", ""), C);
+root_ir = A;
+}
+
+init_deferred_pred_opt(A) ::= . {
+A = new IR(kInitDeferredPredOpt, OP0());
+root_ir = A;
+}
+
+init_deferred_pred_opt(A) ::= INITIALLY DEFERRED . {
+A = new IR(kInitDeferredPredOpt, OP3("INITIALLY DEFERRED", "", ""));
+root_ir = A;
+}
+
+init_deferred_pred_opt(A) ::= INITIALLY IMMEDIATE . {
+A = new IR(kInitDeferredPredOpt, OP3("INITIALLY IMMEDIATE", "", ""));
+root_ir = A;
+}
+
+conslist_opt(A) ::= . {
+A = new IR(kConslistOpt, OP0());
+root_ir = A;
+}
+
+tconscomma(A) ::= COMMA . {
+A = new IR(kTconscomma, OP3("COMMA", "", ""));
+root_ir = A;
+}
+
+tcons(A) ::= CONSTRAINT nm(C) . {
+A = new IR(kTcons, OP3("CONSTRAINT", "", ""), C);
+root_ir = A;
+}
+
+tcons(A) ::= PRIMARY KEY LP sortlist(E) autoinc(F) RP onconf(H) . {
+A = new IR(TypeUnknown, OP3("PRIMARY KEY LP", "", "RP"), E, F);
+A = new IR(kTcons, OP3("", "", ""), A, H);
+root_ir = A;
+}
+
+tcons(A) ::= UNIQUE LP sortlist(D) RP onconf(F) . {
+A = new IR(kTcons, OP3("UNIQUE LP", "RP", ""), D, F);
+root_ir = A;
+}
+
+tcons(A) ::= CHECK LP expr(D) RP onconf(F) . {
+A = new IR(kTcons, OP3("CHECK LP", "RP", ""), D, F);
+root_ir = A;
+}
+
+tcons(A) ::= FOREIGN KEY LP eidlist(E) RP REFERENCES nm(H) eidlist_opt(I) refargs(J) defer_subclause_opt(K) . {
+A = new IR(TypeUnknown, OP3("FOREIGN KEY LP", "RP REFERENCES", ""), E, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, I);
+A = new IR(TypeUnknown, OP3("", "", ""), A, J);
+A = new IR(kTcons, OP3("", "", ""), A, K);
+root_ir = A;
+}
+
+defer_subclause_opt(A) ::= . {
+A = new IR(kDeferSubclauseOpt, OP0());
+root_ir = A;
+}
+
+onconf(A) ::= . {
+A = new IR(kOnconf, OP0());
+root_ir = A;
+}
+
+onconf(A) ::= ON CONFLICT resolvetype(D) . {
+A = new IR(kOnconf, OP3("ON CONFLICT", "", ""), D);
+root_ir = A;
+}
+
+orconf(A) ::= . {
+A = new IR(kOrconf, OP0());
+root_ir = A;
+}
+
+orconf(A) ::= OR resolvetype(C) . {
+A = new IR(kOrconf, OP3("OR", "", ""), C);
+root_ir = A;
+}
+
+resolvetype(A) ::= IGNORE . {
+A = new IR(kResolvetype, OP3("IGNORE", "", ""));
+root_ir = A;
+}
+
+resolvetype(A) ::= REPLACE . {
+A = new IR(kResolvetype, OP3("REPLACE", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= DROP TABLE ifexists(D) fullname(E) . {
+A = new IR(kCmd, OP3("DROP TABLE", "", ""), D, E);
+root_ir = A;
+}
+
+ifexists(A) ::= IF EXISTS . {
+A = new IR(kIfexists, OP3("IF EXISTS", "", ""));
+root_ir = A;
+}
+
+ifexists(A) ::= . {
+A = new IR(kIfexists, OP0());
+root_ir = A;
+}
+
+cmd(A) ::= createkw(B) temp(C) VIEW ifnotexists(E) nm(F) dbnm(G) eidlist_opt(H) AS select(J) . {
+A = new IR(TypeUnknown, OP3("", "", "VIEW"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", "AS"), A, H);
+A = new IR(kCmd, OP3("", "", ""), A, J);
+root_ir = A;
+}
+
+cmd(A) ::= DROP VIEW ifexists(D) fullname(E) . {
+A = new IR(kCmd, OP3("DROP VIEW", "", ""), D, E);
+root_ir = A;
+}
+
+cmd(A) ::= select(B) . {
+A = new IR(kCmd, OP3("", "", ""), B);
+root_ir = A;
+}
+
+select(A) ::= WITH wqlist(C) selectnowith(D) . {
+A = new IR(kSelect, OP3("WITH", "", ""), C, D);
+root_ir = A;
+}
+
+select(A) ::= WITH RECURSIVE wqlist(D) selectnowith(E) . {
+A = new IR(kSelect, OP3("WITH RECURSIVE", "", ""), D, E);
+root_ir = A;
+}
+
+select(A) ::= selectnowith(B) . {
+A = new IR(kSelect, OP3("", "", ""), B);
+root_ir = A;
+}
+
+selectnowith(A) ::= selectnowith(B) multiselect_op(C) oneselect(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kSelectnowith, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+multiselect_op(A) ::= UNION . {
+A = new IR(kMultiselectOp, OP3("UNION", "", ""));
+root_ir = A;
+}
+
+multiselect_op(A) ::= UNION ALL . {
+A = new IR(kMultiselectOp, OP3("UNION ALL", "", ""));
+root_ir = A;
+}
+
+multiselect_op(A) ::= EXCEPT|INTERSECT . {
+A = new IR(kMultiselectOp, OP3("EXCEPT|INTERSECT", "", ""));
+root_ir = A;
+}
+
+oneselect(A) ::= SELECT distinct(C) selcollist(D) from(E) where_opt(F) groupby_opt(G) having_opt(H) orderby_opt(I) limit_opt(J) . {
+A = new IR(TypeUnknown, OP3("SELECT", "", ""), C, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, I);
+A = new IR(kOneselect, OP3("", "", ""), A, J);
+root_ir = A;
+}
+
+oneselect(A) ::= SELECT distinct(C) selcollist(D) from(E) where_opt(F) groupby_opt(G) having_opt(H) window_clause(I) orderby_opt(J) limit_opt(K) . {
+A = new IR(TypeUnknown, OP3("SELECT", "", ""), C, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, I);
+A = new IR(TypeUnknown, OP3("", "", ""), A, J);
+A = new IR(kOneselect, OP3("", "", ""), A, K);
+root_ir = A;
+}
+
+values(A) ::= VALUES LP nexprlist(D) RP . {
+A = new IR(kValues, OP3("VALUES LP", "RP", ""), D);
+root_ir = A;
+}
+
+values(A) ::= values(B) COMMA LP nexprlist(E) RP . {
+A = new IR(kValues, OP3("", "COMMA LP", "RP"), B, E);
+root_ir = A;
+}
+
+distinct(A) ::= DISTINCT . {
+A = new IR(kDistinct, OP3("DISTINCT", "", ""));
+root_ir = A;
+}
+
+distinct(A) ::= ALL . {
+A = new IR(kDistinct, OP3("ALL", "", ""));
+root_ir = A;
+}
+
+distinct(A) ::= . {
+A = new IR(kDistinct, OP0());
+root_ir = A;
+}
+
+sclp(A) ::= . {
+A = new IR(kSclp, OP0());
+root_ir = A;
+}
+
+selcollist(A) ::= sclp(B) scanpt(C) expr(D) scanpt(E) as(F) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(kSelcollist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+selcollist(A) ::= sclp(B) scanpt(C) STAR . {
+A = new IR(kSelcollist, OP3("", "", "STAR"), B, C);
+root_ir = A;
+}
+
+selcollist(A) ::= sclp(B) scanpt(C) nm(D) DOT STAR . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kSelcollist, OP3("", "", "DOT STAR"), A, D);
+root_ir = A;
+}
+
+as(A) ::= AS nm(C) . {
+A = new IR(kAs, OP3("AS", "", ""), C);
+root_ir = A;
+}
+
+as(A) ::= . {
+A = new IR(kAs, OP0());
+root_ir = A;
+}
+
+from(A) ::= . {
+A = new IR(kFrom, OP0());
+root_ir = A;
+}
+
+from(A) ::= FROM seltablist(C) . {
+A = new IR(kFrom, OP3("FROM", "", ""), C);
+root_ir = A;
+}
+
+stl_prefix(A) ::= seltablist(B) joinop(C) . {
+A = new IR(kStlPrefix, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+stl_prefix(A) ::= . {
+A = new IR(kStlPrefix, OP0());
+root_ir = A;
+}
+
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) on_using(F) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(kSeltablist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) indexed_by(F) on_using(G) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kSeltablist, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) LP exprlist(F) RP as(H) on_using(I) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", "LP"), A, D);
+A = new IR(TypeUnknown, OP3("", "", "RP"), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(kSeltablist, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+seltablist(A) ::= stl_prefix(B) LP select(D) RP as(F) on_using(G) . {
+A = new IR(TypeUnknown, OP3("", "LP", "RP"), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kSeltablist, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+seltablist(A) ::= stl_prefix(B) LP seltablist(D) RP as(F) on_using(G) . {
+A = new IR(TypeUnknown, OP3("", "LP", "RP"), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kSeltablist, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+dbnm(A) ::= . {
+A = new IR(kDbnm, OP0());
+root_ir = A;
+}
+
+dbnm(A) ::= DOT nm(C) . {
+A = new IR(kDbnm, OP3("DOT", "", ""), C);
+root_ir = A;
+}
+
+fullname(A) ::= nm(B) . {
+A = new IR(kFullname, OP3("", "", ""), B);
+root_ir = A;
+}
+
+fullname(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kFullname, OP3("", "DOT", ""), B, D);
+root_ir = A;
+}
+
+xfullname(A) ::= nm(B) . {
+A = new IR(kXfullname, OP3("", "", ""), B);
+root_ir = A;
+}
+
+xfullname(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kXfullname, OP3("", "DOT", ""), B, D);
+root_ir = A;
+}
+
+xfullname(A) ::= nm(B) DOT nm(D) AS nm(F) . {
+A = new IR(TypeUnknown, OP3("", "DOT", "AS"), B, D);
+A = new IR(kXfullname, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+xfullname(A) ::= nm(B) AS nm(D) . {
+A = new IR(kXfullname, OP3("", "AS", ""), B, D);
+root_ir = A;
+}
+
+joinop(A) ::= COMMA|JOIN . {
+A = new IR(kJoinop, OP3("COMMA|JOIN", "", ""));
+root_ir = A;
+}
+
+joinop(A) ::= JOIN_KW JOIN . {
+A = new IR(kJoinop, OP3("JOIN_KW JOIN", "", ""));
+root_ir = A;
+}
+
+joinop(A) ::= JOIN_KW nm(C) JOIN . {
+A = new IR(kJoinop, OP3("JOIN_KW", "JOIN", ""), C);
+root_ir = A;
+}
+
+joinop(A) ::= JOIN_KW nm(C) nm(D) JOIN . {
+A = new IR(kJoinop, OP3("JOIN_KW", "", "JOIN"), C, D);
+root_ir = A;
+}
+
+on_using(A) ::= ON expr(C) . {
+A = new IR(kOnUsing, OP3("ON", "", ""), C);
+root_ir = A;
+}
+
+on_using(A) ::= USING LP idlist(D) RP . {
+A = new IR(kOnUsing, OP3("USING LP", "RP", ""), D);
+root_ir = A;
+}
+
+on_using(A) ::= .  [OR]{
+A = new IR(kOnUsing, OP0());
+root_ir = A;
+}
+
+indexed_opt(A) ::= . {
+A = new IR(kIndexedOpt, OP0());
+root_ir = A;
+}
+
+indexed_by(A) ::= INDEXED BY nm(D) . {
+A = new IR(kIndexedBy, OP3("INDEXED BY", "", ""), D);
+root_ir = A;
+}
+
+indexed_by(A) ::= NOT INDEXED . {
+A = new IR(kIndexedBy, OP3("NOT INDEXED", "", ""));
+root_ir = A;
+}
+
+orderby_opt(A) ::= . {
+A = new IR(kOrderbyOpt, OP0());
+root_ir = A;
+}
+
+orderby_opt(A) ::= ORDER BY sortlist(D) . {
+A = new IR(kOrderbyOpt, OP3("ORDER BY", "", ""), D);
+root_ir = A;
+}
+
+sortlist(A) ::= sortlist(B) COMMA expr(D) sortorder(E) nulls(F) . {
+A = new IR(TypeUnknown, OP3("", "COMMA", ""), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(kSortlist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+sortlist(A) ::= expr(B) sortorder(C) nulls(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kSortlist, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+sortorder(A) ::= ASC . {
+A = new IR(kSortorder, OP3("ASC", "", ""));
+root_ir = A;
+}
+
+sortorder(A) ::= DESC . {
+A = new IR(kSortorder, OP3("DESC", "", ""));
+root_ir = A;
+}
+
+sortorder(A) ::= . {
+A = new IR(kSortorder, OP0());
+root_ir = A;
+}
+
+nulls(A) ::= NULLS FIRST . {
+A = new IR(kNulls, OP3("NULLS FIRST", "", ""));
+root_ir = A;
+}
+
+nulls(A) ::= NULLS LAST . {
+A = new IR(kNulls, OP3("NULLS LAST", "", ""));
+root_ir = A;
+}
+
+nulls(A) ::= . {
+A = new IR(kNulls, OP0());
+root_ir = A;
+}
+
+groupby_opt(A) ::= . {
+A = new IR(kGroupbyOpt, OP0());
+root_ir = A;
+}
+
+groupby_opt(A) ::= GROUP BY nexprlist(D) . {
+A = new IR(kGroupbyOpt, OP3("GROUP BY", "", ""), D);
+root_ir = A;
+}
+
+having_opt(A) ::= . {
+A = new IR(kHavingOpt, OP0());
+root_ir = A;
+}
+
+having_opt(A) ::= HAVING expr(C) . {
+A = new IR(kHavingOpt, OP3("HAVING", "", ""), C);
+root_ir = A;
+}
+
+limit_opt(A) ::= . {
+A = new IR(kLimitOpt, OP0());
+root_ir = A;
+}
+
+limit_opt(A) ::= LIMIT expr(C) . {
+A = new IR(kLimitOpt, OP3("LIMIT", "", ""), C);
+root_ir = A;
+}
+
+limit_opt(A) ::= LIMIT expr(C) OFFSET expr(E) . {
+A = new IR(kLimitOpt, OP3("LIMIT", "OFFSET", ""), C, E);
+root_ir = A;
+}
+
+limit_opt(A) ::= LIMIT expr(C) COMMA expr(E) . {
+A = new IR(kLimitOpt, OP3("LIMIT", "COMMA", ""), C, E);
+root_ir = A;
+}
+
+cmd(A) ::= with(B) DELETE FROM xfullname(E) indexed_opt(F) where_opt_ret(G) . {
+A = new IR(TypeUnknown, OP3("", "DELETE FROM", ""), B, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kCmd, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+where_opt(A) ::= . {
+A = new IR(kWhereOpt, OP0());
+root_ir = A;
+}
+
+where_opt(A) ::= WHERE expr(C) . {
+A = new IR(kWhereOpt, OP3("WHERE", "", ""), C);
+root_ir = A;
+}
+
+where_opt_ret(A) ::= . {
+A = new IR(kWhereOptRet, OP0());
+root_ir = A;
+}
+
+where_opt_ret(A) ::= WHERE expr(C) . {
+A = new IR(kWhereOptRet, OP3("WHERE", "", ""), C);
+root_ir = A;
+}
+
+where_opt_ret(A) ::= RETURNING selcollist(C) . {
+A = new IR(kWhereOptRet, OP3("RETURNING", "", ""), C);
+root_ir = A;
+}
+
+where_opt_ret(A) ::= WHERE expr(C) RETURNING selcollist(E) . {
+A = new IR(kWhereOptRet, OP3("WHERE", "RETURNING", ""), C, E);
+root_ir = A;
+}
+
+cmd(A) ::= with(B) UPDATE orconf(D) xfullname(E) indexed_opt(F) SET setlist(H) from(I) where_opt_ret(J) . {
+A = new IR(TypeUnknown, OP3("", "UPDATE", ""), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", "SET"), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, I);
+A = new IR(kCmd, OP3("", "", ""), A, J);
+root_ir = A;
+}
+
+setlist(A) ::= setlist(B) COMMA nm(D) EQ expr(F) . {
+A = new IR(TypeUnknown, OP3("", "COMMA", "EQ"), B, D);
+A = new IR(kSetlist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+setlist(A) ::= setlist(B) COMMA LP idlist(E) RP EQ expr(H) . {
+A = new IR(TypeUnknown, OP3("", "COMMA LP", "RP EQ"), B, E);
+A = new IR(kSetlist, OP3("", "", ""), A, H);
+root_ir = A;
+}
+
+setlist(A) ::= nm(B) EQ expr(D) . {
+A = new IR(kSetlist, OP3("", "EQ", ""), B, D);
+root_ir = A;
+}
+
+setlist(A) ::= LP idlist(C) RP EQ expr(F) . {
+A = new IR(kSetlist, OP3("LP", "RP EQ", ""), C, F);
+root_ir = A;
+}
+
+cmd(A) ::= with(B) insert_cmd(C) INTO xfullname(E) idlist_opt(F) select(G) upsert(H) . {
+A = new IR(TypeUnknown, OP3("", "", "INTO"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(kCmd, OP3("", "", ""), A, H);
+root_ir = A;
+}
+
+cmd(A) ::= with(B) insert_cmd(C) INTO xfullname(E) idlist_opt(F) DEFAULT VALUES returning(I) . {
+A = new IR(TypeUnknown, OP3("", "", "INTO"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", "DEFAULT VALUES"), A, F);
+A = new IR(kCmd, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+upsert(A) ::= . {
+A = new IR(kUpsert, OP0());
+root_ir = A;
+}
+
+upsert(A) ::= RETURNING selcollist(C) . {
+A = new IR(kUpsert, OP3("RETURNING", "", ""), C);
+root_ir = A;
+}
+
+upsert(A) ::= ON CONFLICT LP sortlist(E) RP where_opt(G) DO UPDATE SET setlist(K) where_opt(L) upsert(M) . {
+A = new IR(TypeUnknown, OP3("ON CONFLICT LP", "RP", "DO UPDATE SET"), E, G);
+A = new IR(TypeUnknown, OP3("", "", ""), A, K);
+A = new IR(TypeUnknown, OP3("", "", ""), A, L);
+A = new IR(kUpsert, OP3("", "", ""), A, M);
+root_ir = A;
+}
+
+upsert(A) ::= ON CONFLICT LP sortlist(E) RP where_opt(G) DO NOTHING upsert(J) . {
+A = new IR(TypeUnknown, OP3("ON CONFLICT LP", "RP", "DO NOTHING"), E, G);
+A = new IR(kUpsert, OP3("", "", ""), A, J);
+root_ir = A;
+}
+
+upsert(A) ::= ON CONFLICT DO NOTHING returning(F) . {
+A = new IR(kUpsert, OP3("ON CONFLICT DO NOTHING", "", ""), F);
+root_ir = A;
+}
+
+upsert(A) ::= ON CONFLICT DO UPDATE SET setlist(G) where_opt(H) returning(I) . {
+A = new IR(TypeUnknown, OP3("ON CONFLICT DO UPDATE SET", "", ""), G, H);
+A = new IR(kUpsert, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+returning(A) ::= RETURNING selcollist(C) . {
+A = new IR(kReturning, OP3("RETURNING", "", ""), C);
+root_ir = A;
+}
+
+insert_cmd(A) ::= INSERT orconf(C) . {
+A = new IR(kInsertCmd, OP3("INSERT", "", ""), C);
+root_ir = A;
+}
+
+insert_cmd(A) ::= REPLACE . {
+A = new IR(kInsertCmd, OP3("REPLACE", "", ""));
+root_ir = A;
+}
+
+idlist_opt(A) ::= . {
+A = new IR(kIdlistOpt, OP0());
+root_ir = A;
+}
+
+idlist_opt(A) ::= LP idlist(C) RP . {
+A = new IR(kIdlistOpt, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+idlist(A) ::= idlist(B) COMMA nm(D) . {
+A = new IR(kIdlist, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+idlist(A) ::= nm(B) . {
+A = new IR(kIdlist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+expr(A) ::= LP expr(C) RP . {
+A = new IR(kExpr, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+expr(A) ::= ID|INDEXED . {
+A = new IR(kExpr, OP3("ID|INDEXED", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= JOIN_KW . {
+A = new IR(kExpr, OP3("JOIN_KW", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kExpr, OP3("", "DOT", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= nm(B) DOT nm(D) DOT nm(F) . {
+A = new IR(TypeUnknown, OP3("", "DOT", "DOT"), B, D);
+A = new IR(kExpr, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+term(A) ::= NULL|FLOAT|BLOB . {
+A = new IR(kTerm, OP3("NULL|FLOAT|BLOB", "", ""));
+root_ir = A;
+}
+
+term(A) ::= STRING . {
+A = new IR(kTerm, OP3("STRING", "", ""));
+root_ir = A;
+}
+
+term(A) ::= INTEGER . {
+A = new IR(kTerm, OP3("INTEGER", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= VARIABLE . {
+A = new IR(kExpr, OP3("VARIABLE", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= expr(B) COLLATE ID|STRING . {
+A = new IR(kExpr, OP3("", "COLLATE ID|STRING", ""), B);
+root_ir = A;
+}
+
+expr(A) ::= CAST LP expr(D) AS typetoken(F) RP . {
+A = new IR(kExpr, OP3("CAST LP", "AS", "RP"), D, F);
+root_ir = A;
+}
+
+expr(A) ::= ID|INDEXED LP distinct(D) exprlist(E) RP . {
+A = new IR(kExpr, OP3("ID|INDEXED LP", "", "RP"), D, E);
+root_ir = A;
+}
+
+expr(A) ::= ID|INDEXED LP STAR RP . {
+A = new IR(kExpr, OP3("ID|INDEXED LP STAR RP", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= ID|INDEXED LP distinct(D) exprlist(E) RP filter_over(G) . {
+A = new IR(TypeUnknown, OP3("ID|INDEXED LP", "", "RP"), D, E);
+A = new IR(kExpr, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+expr(A) ::= ID|INDEXED LP STAR RP filter_over(F) . {
+A = new IR(kExpr, OP3("ID|INDEXED LP STAR RP", "", ""), F);
+root_ir = A;
+}
+
+term(A) ::= CTIME_KW . {
+A = new IR(kTerm, OP3("CTIME_KW", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= LP nexprlist(C) COMMA expr(E) RP . {
+A = new IR(kExpr, OP3("LP", "COMMA", "RP"), C, E);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) AND expr(D) . {
+A = new IR(kExpr, OP3("", "AND", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) OR expr(D) . {
+A = new IR(kExpr, OP3("", "OR", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) LT|GT|GE|LE expr(D) . {
+A = new IR(kExpr, OP3("", "LT|GT|GE|LE", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) EQ|NE expr(D) . {
+A = new IR(kExpr, OP3("", "EQ|NE", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) BITAND|BITOR|LSHIFT|RSHIFT expr(D) . {
+A = new IR(kExpr, OP3("", "BITAND|BITOR|LSHIFT|RSHIFT", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) PLUS|MINUS expr(D) . {
+A = new IR(kExpr, OP3("", "PLUS|MINUS", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) STAR|SLASH|REM expr(D) . {
+A = new IR(kExpr, OP3("", "STAR|SLASH|REM", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) CONCAT expr(D) . {
+A = new IR(kExpr, OP3("", "CONCAT", ""), B, D);
+root_ir = A;
+}
+
+likeop(A) ::= NOT LIKE_KW|MATCH . {
+A = new IR(kLikeop, OP3("NOT LIKE_KW|MATCH", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= expr(B) likeop(C) expr(D) .  [LIKE_KW]{
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kExpr, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) likeop(C) expr(D) ESCAPE expr(F) .  [LIKE_KW]{
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", "ESCAPE"), A, D);
+A = new IR(kExpr, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) ISNULL|NOTNULL . {
+A = new IR(kExpr, OP3("", "ISNULL|NOTNULL", ""), B);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) NOT NULL . {
+A = new IR(kExpr, OP3("", "NOT NULL", ""), B);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) IS expr(D) . {
+A = new IR(kExpr, OP3("", "IS", ""), B, D);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) IS NOT expr(E) . {
+A = new IR(kExpr, OP3("", "IS NOT", ""), B, E);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) IS NOT DISTINCT FROM expr(G) . {
+A = new IR(kExpr, OP3("", "IS NOT DISTINCT FROM", ""), B, G);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) IS DISTINCT FROM expr(F) . {
+A = new IR(kExpr, OP3("", "IS DISTINCT FROM", ""), B, F);
+root_ir = A;
+}
+
+expr(A) ::= NOT expr(C) . {
+A = new IR(kExpr, OP3("NOT", "", ""), C);
+root_ir = A;
+}
+
+expr(A) ::= BITNOT expr(C) . {
+A = new IR(kExpr, OP3("BITNOT", "", ""), C);
+root_ir = A;
+}
+
+expr(A) ::= PLUS|MINUS expr(C) .  [BITNOT]{
+A = new IR(kExpr, OP3("PLUS|MINUS", "", ""), C);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) PTR expr(D) . {
+A = new IR(kExpr, OP3("", "PTR", ""), B, D);
+root_ir = A;
+}
+
+between_op(A) ::= BETWEEN . {
+A = new IR(kBetweenOp, OP3("BETWEEN", "", ""));
+root_ir = A;
+}
+
+between_op(A) ::= NOT BETWEEN . {
+A = new IR(kBetweenOp, OP3("NOT BETWEEN", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= expr(B) between_op(C) expr(D) AND expr(F) .  [BETWEEN]{
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", "AND"), A, D);
+A = new IR(kExpr, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+in_op(A) ::= IN . {
+A = new IR(kInOp, OP3("IN", "", ""));
+root_ir = A;
+}
+
+in_op(A) ::= NOT IN . {
+A = new IR(kInOp, OP3("NOT IN", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= expr(B) in_op(C) LP exprlist(E) RP .  [IN]{
+A = new IR(TypeUnknown, OP3("", "", "LP"), B, C);
+A = new IR(kExpr, OP3("", "", "RP"), A, E);
+root_ir = A;
+}
+
+expr(A) ::= LP select(C) RP . {
+A = new IR(kExpr, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) in_op(C) LP select(E) RP .  [IN]{
+A = new IR(TypeUnknown, OP3("", "", "LP"), B, C);
+A = new IR(kExpr, OP3("", "", "RP"), A, E);
+root_ir = A;
+}
+
+expr(A) ::= expr(B) in_op(C) nm(D) dbnm(E) paren_exprlist(F) .  [IN]{
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(kExpr, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+expr(A) ::= EXISTS LP select(D) RP . {
+A = new IR(kExpr, OP3("EXISTS LP", "RP", ""), D);
+root_ir = A;
+}
+
+expr(A) ::= CASE case_operand(C) case_exprlist(D) case_else(E) END . {
+A = new IR(TypeUnknown, OP3("CASE", "", ""), C, D);
+A = new IR(kExpr, OP3("", "", "END"), A, E);
+root_ir = A;
+}
+
+case_exprlist(A) ::= case_exprlist(B) WHEN expr(D) THEN expr(F) . {
+A = new IR(TypeUnknown, OP3("", "WHEN", "THEN"), B, D);
+A = new IR(kCaseExprlist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+case_exprlist(A) ::= WHEN expr(C) THEN expr(E) . {
+A = new IR(kCaseExprlist, OP3("WHEN", "THEN", ""), C, E);
+root_ir = A;
+}
+
+case_else(A) ::= ELSE expr(C) . {
+A = new IR(kCaseElse, OP3("ELSE", "", ""), C);
+root_ir = A;
+}
+
+case_else(A) ::= . {
+A = new IR(kCaseElse, OP0());
+root_ir = A;
+}
+
+case_operand(A) ::= expr(B) . {
+A = new IR(kCaseOperand, OP3("", "", ""), B);
+root_ir = A;
+}
+
+case_operand(A) ::= . {
+A = new IR(kCaseOperand, OP0());
+root_ir = A;
+}
+
+exprlist(A) ::= . {
+A = new IR(kExprlist, OP0());
+root_ir = A;
+}
+
+nexprlist(A) ::= nexprlist(B) COMMA expr(D) . {
+A = new IR(kNexprlist, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+nexprlist(A) ::= expr(B) . {
+A = new IR(kNexprlist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+paren_exprlist(A) ::= . {
+A = new IR(kParenExprlist, OP0());
+root_ir = A;
+}
+
+paren_exprlist(A) ::= LP exprlist(C) RP . {
+A = new IR(kParenExprlist, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= createkw(B) uniqueflag(C) INDEX ifnotexists(E) nm(F) dbnm(G) ON nm(I) LP sortlist(K) RP where_opt(M) . {
+A = new IR(TypeUnknown, OP3("", "", "INDEX"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", "ON"), A, G);
+A = new IR(TypeUnknown, OP3("", "", "LP"), A, I);
+A = new IR(TypeUnknown, OP3("", "", "RP"), A, K);
+A = new IR(kCmd, OP3("", "", ""), A, M);
+root_ir = A;
+}
+
+uniqueflag(A) ::= UNIQUE . {
+A = new IR(kUniqueflag, OP3("UNIQUE", "", ""));
+root_ir = A;
+}
+
+uniqueflag(A) ::= . {
+A = new IR(kUniqueflag, OP0());
+root_ir = A;
+}
+
+eidlist_opt(A) ::= . {
+A = new IR(kEidlistOpt, OP0());
+root_ir = A;
+}
+
+eidlist_opt(A) ::= LP eidlist(C) RP . {
+A = new IR(kEidlistOpt, OP3("LP", "RP", ""), C);
+root_ir = A;
+}
+
+eidlist(A) ::= eidlist(B) COMMA nm(D) collate(E) sortorder(F) . {
+A = new IR(TypeUnknown, OP3("", "COMMA", ""), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(kEidlist, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+eidlist(A) ::= nm(B) collate(C) sortorder(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kEidlist, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+collate(A) ::= . {
+A = new IR(kCollate, OP0());
+root_ir = A;
+}
+
+collate(A) ::= COLLATE ID|STRING . {
+A = new IR(kCollate, OP3("COLLATE ID|STRING", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= DROP INDEX ifexists(D) fullname(E) . {
+A = new IR(kCmd, OP3("DROP INDEX", "", ""), D, E);
+root_ir = A;
+}
+
+cmd(A) ::= VACUUM vinto(C) . {
+A = new IR(kCmd, OP3("VACUUM", "", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= VACUUM nm(C) vinto(D) . {
+A = new IR(kCmd, OP3("VACUUM", "", ""), C, D);
+root_ir = A;
+}
+
+vinto(A) ::= INTO expr(C) . {
+A = new IR(kVinto, OP3("INTO", "", ""), C);
+root_ir = A;
+}
+
+vinto(A) ::= . {
+A = new IR(kVinto, OP0());
+root_ir = A;
+}
+
+cmd(A) ::= PRAGMA nm(C) dbnm(D) . {
+A = new IR(kCmd, OP3("PRAGMA", "", ""), C, D);
+root_ir = A;
+}
+
+cmd(A) ::= PRAGMA nm(C) dbnm(D) EQ nmnum(F) . {
+A = new IR(TypeUnknown, OP3("PRAGMA", "", "EQ"), C, D);
+A = new IR(kCmd, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+cmd(A) ::= PRAGMA nm(C) dbnm(D) LP nmnum(F) RP . {
+A = new IR(TypeUnknown, OP3("PRAGMA", "", "LP"), C, D);
+A = new IR(kCmd, OP3("", "", "RP"), A, F);
+root_ir = A;
+}
+
+cmd(A) ::= PRAGMA nm(C) dbnm(D) EQ minus_num(F) . {
+A = new IR(TypeUnknown, OP3("PRAGMA", "", "EQ"), C, D);
+A = new IR(kCmd, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+cmd(A) ::= PRAGMA nm(C) dbnm(D) LP minus_num(F) RP . {
+A = new IR(TypeUnknown, OP3("PRAGMA", "", "LP"), C, D);
+A = new IR(kCmd, OP3("", "", "RP"), A, F);
+root_ir = A;
+}
+
+plus_num(A) ::= PLUS INTEGER|FLOAT . {
+A = new IR(kPlusNum, OP3("PLUS INTEGER|FLOAT", "", ""));
+root_ir = A;
+}
+
+minus_num(A) ::= MINUS INTEGER|FLOAT . {
+A = new IR(kMinusNum, OP3("MINUS INTEGER|FLOAT", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= createkw(B) trigger_decl(C) BEGIN trigger_cmd_list(E) END . {
+A = new IR(TypeUnknown, OP3("", "", "BEGIN"), B, C);
+A = new IR(kCmd, OP3("", "", "END"), A, E);
+root_ir = A;
+}
+
+trigger_decl(A) ::= temp(B) TRIGGER ifnotexists(D) nm(E) dbnm(F) trigger_time(G) trigger_event(H) ON fullname(J) foreach_clause(K) when_clause(L) . {
+A = new IR(TypeUnknown, OP3("", "TRIGGER", ""), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", "ON"), A, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, J);
+A = new IR(TypeUnknown, OP3("", "", ""), A, K);
+A = new IR(kTriggerDecl, OP3("", "", ""), A, L);
+root_ir = A;
+}
+
+trigger_time(A) ::= BEFORE|AFTER . {
+A = new IR(kTriggerTime, OP3("BEFORE|AFTER", "", ""));
+root_ir = A;
+}
+
+trigger_time(A) ::= INSTEAD OF . {
+A = new IR(kTriggerTime, OP3("INSTEAD OF", "", ""));
+root_ir = A;
+}
+
+trigger_time(A) ::= . {
+A = new IR(kTriggerTime, OP0());
+root_ir = A;
+}
+
+trigger_event(A) ::= DELETE|INSERT . {
+A = new IR(kTriggerEvent, OP3("DELETE|INSERT", "", ""));
+root_ir = A;
+}
+
+trigger_event(A) ::= UPDATE . {
+A = new IR(kTriggerEvent, OP3("UPDATE", "", ""));
+root_ir = A;
+}
+
+trigger_event(A) ::= UPDATE OF idlist(D) . {
+A = new IR(kTriggerEvent, OP3("UPDATE OF", "", ""), D);
+root_ir = A;
+}
+
+when_clause(A) ::= . {
+A = new IR(kWhenClause, OP0());
+root_ir = A;
+}
+
+when_clause(A) ::= WHEN expr(C) . {
+A = new IR(kWhenClause, OP3("WHEN", "", ""), C);
+root_ir = A;
+}
+
+trigger_cmd_list(A) ::= trigger_cmd_list(B) trigger_cmd(C) SEMI . {
+A = new IR(kTriggerCmdList, OP3("", "", "SEMI"), B, C);
+root_ir = A;
+}
+
+trigger_cmd_list(A) ::= trigger_cmd(B) SEMI . {
+A = new IR(kTriggerCmdList, OP3("", "SEMI", ""), B);
+root_ir = A;
+}
+
+trnm(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kTrnm, OP3("", "DOT", ""), B, D);
+root_ir = A;
+}
+
+tridxby(A) ::= INDEXED BY nm(D) . {
+A = new IR(kTridxby, OP3("INDEXED BY", "", ""), D);
+root_ir = A;
+}
+
+tridxby(A) ::= NOT INDEXED . {
+A = new IR(kTridxby, OP3("NOT INDEXED", "", ""));
+root_ir = A;
+}
+
+trigger_cmd(A) ::= UPDATE orconf(C) trnm(D) tridxby(E) SET setlist(G) from(H) where_opt(I) scanpt(J) . {
+A = new IR(TypeUnknown, OP3("UPDATE", "", ""), C, D);
+A = new IR(TypeUnknown, OP3("", "", "SET"), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(TypeUnknown, OP3("", "", ""), A, I);
+A = new IR(kTriggerCmd, OP3("", "", ""), A, J);
+root_ir = A;
+}
+
+trigger_cmd(A) ::= scanpt(B) insert_cmd(C) INTO trnm(E) idlist_opt(F) select(G) upsert(H) scanpt(I) . {
+A = new IR(TypeUnknown, OP3("", "", "INTO"), B, C);
+A = new IR(TypeUnknown, OP3("", "", ""), A, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(TypeUnknown, OP3("", "", ""), A, H);
+A = new IR(kTriggerCmd, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+trigger_cmd(A) ::= DELETE FROM trnm(D) tridxby(E) where_opt(F) scanpt(G) . {
+A = new IR(TypeUnknown, OP3("DELETE FROM", "", ""), D, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kTriggerCmd, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+trigger_cmd(A) ::= scanpt(B) select(C) scanpt(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kTriggerCmd, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+expr(A) ::= RAISE LP IGNORE RP . {
+A = new IR(kExpr, OP3("RAISE LP IGNORE RP", "", ""));
+root_ir = A;
+}
+
+expr(A) ::= RAISE LP raisetype(D) COMMA nm(F) RP . {
+A = new IR(kExpr, OP3("RAISE LP", "COMMA", "RP"), D, F);
+root_ir = A;
+}
+
+raisetype(A) ::= ROLLBACK . {
+A = new IR(kRaisetype, OP3("ROLLBACK", "", ""));
+root_ir = A;
+}
+
+raisetype(A) ::= ABORT . {
+A = new IR(kRaisetype, OP3("ABORT", "", ""));
+root_ir = A;
+}
+
+raisetype(A) ::= FAIL . {
+A = new IR(kRaisetype, OP3("FAIL", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= DROP TRIGGER ifexists(D) fullname(E) . {
+A = new IR(kCmd, OP3("DROP TRIGGER", "", ""), D, E);
+root_ir = A;
+}
+
+cmd(A) ::= ATTACH database_kw_opt(C) expr(D) AS expr(F) key_opt(G) . {
+A = new IR(TypeUnknown, OP3("ATTACH", "", "AS"), C, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kCmd, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+cmd(A) ::= DETACH database_kw_opt(C) expr(D) . {
+A = new IR(kCmd, OP3("DETACH", "", ""), C, D);
+root_ir = A;
+}
+
+key_opt(A) ::= . {
+A = new IR(kKeyOpt, OP0());
+root_ir = A;
+}
+
+key_opt(A) ::= KEY expr(C) . {
+A = new IR(kKeyOpt, OP3("KEY", "", ""), C);
+root_ir = A;
+}
+
+cmd(A) ::= REINDEX . {
+A = new IR(kCmd, OP3("REINDEX", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= REINDEX nm(C) dbnm(D) . {
+A = new IR(kCmd, OP3("REINDEX", "", ""), C, D);
+root_ir = A;
+}
+
+cmd(A) ::= ANALYZE . {
+A = new IR(kCmd, OP3("ANALYZE", "", ""));
+root_ir = A;
+}
+
+cmd(A) ::= ANALYZE nm(C) dbnm(D) . {
+A = new IR(kCmd, OP3("ANALYZE", "", ""), C, D);
+root_ir = A;
+}
+
+cmd(A) ::= ALTER TABLE fullname(D) RENAME TO nm(G) . {
+A = new IR(kCmd, OP3("ALTER TABLE", "RENAME TO", ""), D, G);
+root_ir = A;
+}
+
+cmd(A) ::= ALTER TABLE add_column_fullname(D) ADD kwcolumn_opt(F) columnname(G) carglist(H) . {
+A = new IR(TypeUnknown, OP3("ALTER TABLE", "ADD", ""), D, F);
+A = new IR(TypeUnknown, OP3("", "", ""), A, G);
+A = new IR(kCmd, OP3("", "", ""), A, H);
+root_ir = A;
+}
+
+cmd(A) ::= ALTER TABLE fullname(D) DROP kwcolumn_opt(F) nm(G) . {
+A = new IR(TypeUnknown, OP3("ALTER TABLE", "DROP", ""), D, F);
+A = new IR(kCmd, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+add_column_fullname(A) ::= fullname(B) . {
+A = new IR(kAddColumnFullname, OP3("", "", ""), B);
+root_ir = A;
+}
+
+cmd(A) ::= ALTER TABLE fullname(D) RENAME kwcolumn_opt(F) nm(G) TO nm(I) . {
+A = new IR(TypeUnknown, OP3("ALTER TABLE", "RENAME", ""), D, F);
+A = new IR(TypeUnknown, OP3("", "", "TO"), A, G);
+A = new IR(kCmd, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+cmd(A) ::= create_vtab(B) . {
+A = new IR(kCmd, OP3("", "", ""), B);
+root_ir = A;
+}
+
+cmd(A) ::= create_vtab(B) LP vtabarglist(D) RP . {
+A = new IR(kCmd, OP3("", "LP", "RP"), B, D);
+root_ir = A;
+}
+
+create_vtab(A) ::= createkw(B) VIRTUAL TABLE ifnotexists(E) nm(F) dbnm(G) USING nm(I) . {
+A = new IR(TypeUnknown, OP3("", "VIRTUAL TABLE", ""), B, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(TypeUnknown, OP3("", "", "USING"), A, G);
+A = new IR(kCreateVtab, OP3("", "", ""), A, I);
+root_ir = A;
+}
+
+vtabarg(A) ::= . {
+A = new IR(kVtabarg, OP0());
+root_ir = A;
+}
+
+vtabargtoken(A) ::= ANY . {
+A = new IR(kVtabargtoken, OP3("ANY", "", ""));
+root_ir = A;
+}
+
+vtabargtoken(A) ::= lp(B) anylist(C) RP . {
+A = new IR(kVtabargtoken, OP3("", "", "RP"), B, C);
+root_ir = A;
+}
+
+lp(A) ::= LP . {
+A = new IR(kLp, OP3("LP", "", ""));
+root_ir = A;
+}
+
+with(A) ::= WITH wqlist(C) . {
+A = new IR(kWith, OP3("WITH", "", ""), C);
+root_ir = A;
+}
+
+with(A) ::= WITH RECURSIVE wqlist(D) . {
+A = new IR(kWith, OP3("WITH RECURSIVE", "", ""), D);
+root_ir = A;
+}
+
+wqas(A) ::= AS . {
+A = new IR(kWqas, OP3("AS", "", ""));
+root_ir = A;
+}
+
+wqas(A) ::= AS MATERIALIZED . {
+A = new IR(kWqas, OP3("AS MATERIALIZED", "", ""));
+root_ir = A;
+}
+
+wqas(A) ::= AS NOT MATERIALIZED . {
+A = new IR(kWqas, OP3("AS NOT MATERIALIZED", "", ""));
+root_ir = A;
+}
+
+wqitem(A) ::= nm(B) eidlist_opt(C) wqas(D) LP select(F) RP . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(TypeUnknown, OP3("", "", "LP"), A, D);
+A = new IR(kWqitem, OP3("", "", "RP"), A, F);
+root_ir = A;
+}
+
+wqlist(A) ::= wqitem(B) . {
+A = new IR(kWqlist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+wqlist(A) ::= wqlist(B) COMMA wqitem(D) . {
+A = new IR(kWqlist, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+windowdefn_list(A) ::= windowdefn(B) . {
+A = new IR(kWindowdefnList, OP3("", "", ""), B);
+root_ir = A;
+}
+
+windowdefn_list(A) ::= windowdefn_list(B) COMMA windowdefn(D) . {
+A = new IR(kWindowdefnList, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+windowdefn(A) ::= nm(B) AS LP window(E) RP . {
+A = new IR(kWindowdefn, OP3("", "AS LP", "RP"), B, E);
+root_ir = A;
+}
+
+window(A) ::= PARTITION BY nexprlist(D) orderby_opt(E) frame_opt(F) . {
+A = new IR(TypeUnknown, OP3("PARTITION BY", "", ""), D, E);
+A = new IR(kWindow, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+window(A) ::= nm(B) PARTITION BY nexprlist(E) orderby_opt(F) frame_opt(G) . {
+A = new IR(TypeUnknown, OP3("", "PARTITION BY", ""), B, E);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kWindow, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+window(A) ::= ORDER BY sortlist(D) frame_opt(E) . {
+A = new IR(kWindow, OP3("ORDER BY", "", ""), D, E);
+root_ir = A;
+}
+
+window(A) ::= nm(B) ORDER BY sortlist(E) frame_opt(F) . {
+A = new IR(TypeUnknown, OP3("", "ORDER BY", ""), B, E);
+A = new IR(kWindow, OP3("", "", ""), A, F);
+root_ir = A;
+}
+
+window(A) ::= frame_opt(B) . {
+A = new IR(kWindow, OP3("", "", ""), B);
+root_ir = A;
+}
+
+window(A) ::= nm(B) frame_opt(C) . {
+A = new IR(kWindow, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+frame_opt(A) ::= . {
+A = new IR(kFrameOpt, OP0());
+root_ir = A;
+}
+
+frame_opt(A) ::= range_or_rows(B) frame_bound_s(C) frame_exclude_opt(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kFrameOpt, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+frame_opt(A) ::= range_or_rows(B) BETWEEN frame_bound_s(D) AND frame_bound_e(F) frame_exclude_opt(G) . {
+A = new IR(TypeUnknown, OP3("", "BETWEEN", "AND"), B, D);
+A = new IR(TypeUnknown, OP3("", "", ""), A, F);
+A = new IR(kFrameOpt, OP3("", "", ""), A, G);
+root_ir = A;
+}
+
+range_or_rows(A) ::= RANGE|ROWS|GROUPS . {
+A = new IR(kRangeOrRows, OP3("RANGE|ROWS|GROUPS", "", ""));
+root_ir = A;
+}
+
+frame_bound_s(A) ::= frame_bound(B) . {
+A = new IR(kFrameBoundS, OP3("", "", ""), B);
+root_ir = A;
+}
+
+frame_bound_s(A) ::= UNBOUNDED PRECEDING . {
+A = new IR(kFrameBoundS, OP3("UNBOUNDED PRECEDING", "", ""));
+root_ir = A;
+}
+
+frame_bound_e(A) ::= frame_bound(B) . {
+A = new IR(kFrameBoundE, OP3("", "", ""), B);
+root_ir = A;
+}
+
+frame_bound_e(A) ::= UNBOUNDED FOLLOWING . {
+A = new IR(kFrameBoundE, OP3("UNBOUNDED FOLLOWING", "", ""));
+root_ir = A;
+}
+
+frame_bound(A) ::= expr(B) PRECEDING|FOLLOWING . {
+A = new IR(kFrameBound, OP3("", "PRECEDING|FOLLOWING", ""), B);
+root_ir = A;
+}
+
+frame_bound(A) ::= CURRENT ROW . {
+A = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
+root_ir = A;
+}
+
+frame_exclude_opt(A) ::= . {
+A = new IR(kFrameExcludeOpt, OP0());
+root_ir = A;
+}
+
+frame_exclude_opt(A) ::= EXCLUDE frame_exclude(C) . {
+A = new IR(kFrameExcludeOpt, OP3("EXCLUDE", "", ""), C);
+root_ir = A;
+}
+
+frame_exclude(A) ::= NO OTHERS . {
+A = new IR(kFrameExclude, OP3("NO OTHERS", "", ""));
+root_ir = A;
+}
+
+frame_exclude(A) ::= CURRENT ROW . {
+A = new IR(kFrameExclude, OP3("CURRENT ROW", "", ""));
+root_ir = A;
+}
+
+frame_exclude(A) ::= GROUP|TIES . {
+A = new IR(kFrameExclude, OP3("GROUP|TIES", "", ""));
+root_ir = A;
+}
+
+window_clause(A) ::= WINDOW windowdefn_list(C) . {
+A = new IR(kWindowClause, OP3("WINDOW", "", ""), C);
+root_ir = A;
+}
+
+filter_over(A) ::= filter_clause(B) over_clause(C) . {
+A = new IR(kFilterOver, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+filter_over(A) ::= over_clause(B) . {
+A = new IR(kFilterOver, OP3("", "", ""), B);
+root_ir = A;
+}
+
+filter_over(A) ::= filter_clause(B) . {
+A = new IR(kFilterOver, OP3("", "", ""), B);
+root_ir = A;
+}
+
+over_clause(A) ::= OVER LP window(D) RP . {
+A = new IR(kOverClause, OP3("OVER LP", "RP", ""), D);
+root_ir = A;
+}
+
+over_clause(A) ::= OVER nm(C) . {
+A = new IR(kOverClause, OP3("OVER", "", ""), C);
+root_ir = A;
+}
+
+filter_clause(A) ::= FILTER LP WHERE expr(E) RP . {
+A = new IR(kFilterClause, OP3("FILTER LP WHERE", "RP", ""), E);
+root_ir = A;
+}
+
+input(A) ::= cmdlist(B) . {
+A = new IR(kInput, OP3("", "", ""), B);
+root_ir = A;
+}
+
+cmdlist(A) ::= cmdlist(B) ecmd(C) . {
+A = new IR(kCmdlist, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+cmdlist(A) ::= ecmd(B) . {
+A = new IR(kCmdlist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+ecmd(A) ::= SEMI . {
+A = new IR(kEcmd, OP3("SEMI", "", ""));
+root_ir = A;
+}
+
+ecmd(A) ::= cmdx(B) SEMI . {
+A = new IR(kEcmd, OP3("", "SEMI", ""), B);
+root_ir = A;
+}
+
+ecmd(A) ::= explain(B) cmdx(C) SEMI . {
+A = new IR(kEcmd, OP3("", "", "SEMI"), B, C);
+root_ir = A;
+}
+
+trans_opt(A) ::= . {
+A = new IR(kTransOpt, OP0());
+root_ir = A;
+}
+
+trans_opt(A) ::= TRANSACTION . {
+A = new IR(kTransOpt, OP3("TRANSACTION", "", ""));
+root_ir = A;
+}
+
+trans_opt(A) ::= TRANSACTION nm(C) . {
+A = new IR(kTransOpt, OP3("TRANSACTION", "", ""), C);
+root_ir = A;
+}
+
+savepoint_opt(A) ::= SAVEPOINT . {
+A = new IR(kSavepointOpt, OP3("SAVEPOINT", "", ""));
+root_ir = A;
+}
+
+savepoint_opt(A) ::= . {
+A = new IR(kSavepointOpt, OP0());
+root_ir = A;
+}
+
+cmd(A) ::= create_table(B) create_table_args(C) . {
+A = new IR(kCmd, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+table_option_set(A) ::= table_option(B) . {
+A = new IR(kTableOptionSet, OP3("", "", ""), B);
+root_ir = A;
+}
+
+columnlist(A) ::= columnlist(B) COMMA columnname(D) carglist(E) . {
+A = new IR(TypeUnknown, OP3("", "COMMA", ""), B, D);
+A = new IR(kColumnlist, OP3("", "", ""), A, E);
+root_ir = A;
+}
+
+columnlist(A) ::= columnname(B) carglist(C) . {
+A = new IR(kColumnlist, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+nm(A) ::= ID|INDEXED . {
+A = new IR(kNm, OP3("ID|INDEXED", "", ""));
+root_ir = A;
+}
+
+nm(A) ::= STRING . {
+A = new IR(kNm, OP3("STRING", "", ""));
+root_ir = A;
+}
+
+nm(A) ::= JOIN_KW . {
+A = new IR(kNm, OP3("JOIN_KW", "", ""));
+root_ir = A;
+}
+
+typetoken(A) ::= typename(B) . {
+A = new IR(kTypetoken, OP3("", "", ""), B);
+root_ir = A;
+}
+
+typename(A) ::= ID|STRING . {
+A = new IR(kTypename, OP3("ID|STRING", "", ""));
+root_ir = A;
+}
+
+signed(A) ::= plus_num(B) . {
+A = new IR(kSigned, OP3("", "", ""), B);
+root_ir = A;
+}
+
+signed(A) ::= minus_num(B) . {
+A = new IR(kSigned, OP3("", "", ""), B);
+root_ir = A;
+}
+
+carglist(A) ::= carglist(B) ccons(C) . {
+A = new IR(kCarglist, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+carglist(A) ::= . {
+A = new IR(kCarglist, OP0());
+root_ir = A;
+}
+
+ccons(A) ::= NULL onconf(C) . {
+A = new IR(kCcons, OP3("NULL", "", ""), C);
+root_ir = A;
+}
+
+ccons(A) ::= GENERATED ALWAYS AS generated(E) . {
+A = new IR(kCcons, OP3("GENERATED ALWAYS AS", "", ""), E);
+root_ir = A;
+}
+
+ccons(A) ::= AS generated(C) . {
+A = new IR(kCcons, OP3("AS", "", ""), C);
+root_ir = A;
+}
+
+conslist_opt(A) ::= COMMA conslist(C) . {
+A = new IR(kConslistOpt, OP3("COMMA", "", ""), C);
+root_ir = A;
+}
+
+conslist(A) ::= conslist(B) tconscomma(C) tcons(D) . {
+A = new IR(TypeUnknown, OP3("", "", ""), B, C);
+A = new IR(kConslist, OP3("", "", ""), A, D);
+root_ir = A;
+}
+
+conslist(A) ::= tcons(B) . {
+A = new IR(kConslist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+tconscomma(A) ::= . {
+A = new IR(kTconscomma, OP0());
+root_ir = A;
+}
+
+defer_subclause_opt(A) ::= defer_subclause(B) . {
+A = new IR(kDeferSubclauseOpt, OP3("", "", ""), B);
+root_ir = A;
+}
+
+resolvetype(A) ::= raisetype(B) . {
+A = new IR(kResolvetype, OP3("", "", ""), B);
+root_ir = A;
+}
+
+selectnowith(A) ::= oneselect(B) . {
+A = new IR(kSelectnowith, OP3("", "", ""), B);
+root_ir = A;
+}
+
+oneselect(A) ::= values(B) . {
+A = new IR(kOneselect, OP3("", "", ""), B);
+root_ir = A;
+}
+
+sclp(A) ::= selcollist(B) COMMA . {
+A = new IR(kSclp, OP3("", "COMMA", ""), B);
+root_ir = A;
+}
+
+as(A) ::= ID|STRING . {
+A = new IR(kAs, OP3("ID|STRING", "", ""));
+root_ir = A;
+}
+
+indexed_opt(A) ::= indexed_by(B) . {
+A = new IR(kIndexedOpt, OP3("", "", ""), B);
+root_ir = A;
+}
+
+returning(A) ::= . {
+A = new IR(kReturning, OP0());
+root_ir = A;
+}
+
+expr(A) ::= term(B) . {
+A = new IR(kExpr, OP3("", "", ""), B);
+root_ir = A;
+}
+
+likeop(A) ::= LIKE_KW|MATCH . {
+A = new IR(kLikeop, OP3("LIKE_KW|MATCH", "", ""));
+root_ir = A;
+}
+
+exprlist(A) ::= nexprlist(B) . {
+A = new IR(kExprlist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+nmnum(A) ::= plus_num(B) . {
+A = new IR(kNmnum, OP3("", "", ""), B);
+root_ir = A;
+}
+
+nmnum(A) ::= nm(B) . {
+A = new IR(kNmnum, OP3("", "", ""), B);
+root_ir = A;
+}
+
+nmnum(A) ::= ON . {
+A = new IR(kNmnum, OP3("ON", "", ""));
+root_ir = A;
+}
+
+nmnum(A) ::= DELETE . {
+A = new IR(kNmnum, OP3("DELETE", "", ""));
+root_ir = A;
+}
+
+nmnum(A) ::= DEFAULT . {
+A = new IR(kNmnum, OP3("DEFAULT", "", ""));
+root_ir = A;
+}
+
+plus_num(A) ::= INTEGER|FLOAT . {
+A = new IR(kPlusNum, OP3("INTEGER|FLOAT", "", ""));
+root_ir = A;
+}
+
+foreach_clause(A) ::= . {
+A = new IR(kForeachClause, OP0());
+root_ir = A;
+}
+
+foreach_clause(A) ::= FOR EACH ROW . {
+A = new IR(kForeachClause, OP3("FOR EACH ROW", "", ""));
+root_ir = A;
+}
+
+trnm(A) ::= nm(B) . {
+A = new IR(kTrnm, OP3("", "", ""), B);
+root_ir = A;
+}
+
+tridxby(A) ::= . {
+A = new IR(kTridxby, OP0());
+root_ir = A;
+}
+
+database_kw_opt(A) ::= DATABASE . {
+A = new IR(kDatabaseKwOpt, OP3("DATABASE", "", ""));
+root_ir = A;
+}
+
+database_kw_opt(A) ::= . {
+A = new IR(kDatabaseKwOpt, OP0());
+root_ir = A;
+}
+
+kwcolumn_opt(A) ::= . {
+A = new IR(kKwcolumnOpt, OP0());
+root_ir = A;
+}
+
+kwcolumn_opt(A) ::= COLUMNKW . {
+A = new IR(kKwcolumnOpt, OP3("COLUMNKW", "", ""));
+root_ir = A;
+}
+
+vtabarglist(A) ::= vtabarg(B) . {
+A = new IR(kVtabarglist, OP3("", "", ""), B);
+root_ir = A;
+}
+
+vtabarglist(A) ::= vtabarglist(B) COMMA vtabarg(D) . {
+A = new IR(kVtabarglist, OP3("", "COMMA", ""), B, D);
+root_ir = A;
+}
+
+vtabarg(A) ::= vtabarg(B) vtabargtoken(C) . {
+A = new IR(kVtabarg, OP3("", "", ""), B, C);
+root_ir = A;
+}
+
+anylist(A) ::= . {
+A = new IR(kAnylist, OP0());
+root_ir = A;
+}
+
+anylist(A) ::= anylist(B) LP anylist(D) RP . {
+A = new IR(kAnylist, OP3("", "LP", "RP"), B, D);
+root_ir = A;
+}
+
+anylist(A) ::= anylist(B) ANY . {
+A = new IR(kAnylist, OP3("", "ANY", ""), B);
+root_ir = A;
+}
+
+with(A) ::= . {
+A = new IR(kWith, OP0());
+root_ir = A;
+}
+
