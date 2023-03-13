@@ -11,6 +11,9 @@ default_ir_type = "TypeUnknown"
 
 saved_ir_type = []
 
+logger.remove()
+logger.add(sys.stderr, level="DEBUG") # or sys.stdout or other file object
+
 class Token(object):
     def __init__(self, value, index):
         self.value = value 
@@ -61,23 +64,19 @@ def is_terminating_keyword(word: str) -> bool:
 def search_next_keyword(token_seq, start_index):
     curr_token = None
     term_keywords = []
-    token_idx = start_index
-    term_token_idx = start_index
 
     if start_index >= len(token_seq):
-        return curr_token, term_keywords, len(token_seq), len(token_seq)
+        return curr_token, term_keywords
 
     for idx in range(start_index, len(token_seq)):
         if is_terminating_keyword(token_seq[idx]):
-            term_keywords.append(curr_token)
-            token_idx = idx + 1
-            term_token_idx = idx + 1
+            curr_term_keyword = Token(token_seq[idx], idx)
+            term_keywords.append(curr_term_keyword)
         else:
-            curr_token = token_seq[idx]
-            token_idx = idx + 1
+            curr_token = Token(token_seq[idx], idx)
             break
 
-    return curr_token, term_keywords, token_idx, term_token_idx
+    return curr_token, term_keywords
 
 
 def ir_type_str_rewrite(cur_types) -> str:
@@ -100,88 +99,34 @@ def ir_type_str_rewrite(cur_types) -> str:
     cur_types = "".join(cur_types_l)
     return cur_types
 
-
-
-# def translate(data):
-
-    # data = translate_preprocessing(data=data)
-    # data = data.strip() + "\n"
-
-    # parent_element = data[: data.find(":")]
-    # logger.debug(f"Parent element: '{parent_element}'")
-
-    # first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
-    # first_child_element = data[
-        # first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
-    # ]
-    # first_child_element = remove_comments_inside_statement(first_child_element)
-    # first_child_body = translate_single_line(first_child_element, parent_element)
-
-    # mapped_first_child_element = repace_special_keyword_with_token(first_child_element)
-    # logger.debug(f"First child element: '{mapped_first_child_element}'")
-    # translation = f"""
-# {parent_element}:
-
-# {ONETAB}{mapped_first_child_element}{ONESPACE}{{
-# {prefix_tabs(first_child_body, 2)}
-# {ONETAB}}}
-# """
-
-    # rest_children_elements = [line.strip() for line in data.splitlines() if "|" in line]
-    # rest_children_elements = [
-        # line[1:].strip() for line in rest_children_elements if line.startswith("|")
-    # ]
-    # for child_element in rest_children_elements:
-        # child_element = remove_comments_inside_statement(child_element)
-        # child_body = translate_single_line(child_element, parent_element)
-
-        # mapped_child_element = repace_special_keyword_with_token(child_element)
-        # logger.debug(f"Child element => '{mapped_child_element}'")
-        # translation += f"""
-# {ONETAB}|{ONESPACE}{mapped_child_element}{ONESPACE}{{
-# {prefix_tabs(child_body, 2)}
-# {ONETAB}}}
-# """
-
-    # translation += "\n;"
-
-    # # fix the IR type to kUnknown
-    # with open("all_ir_types.txt", "a") as f:
-        # ir_type_str = ir_type_str_rewrite(parent_element)
-
-        # if ir_type_str not in saved_ir_type:
-            # saved_ir_type.append(ir_type_str)
-            # f.write(f"V(k{ir_type_str})   \\\n")
-
-        # default_ir_type_num = translation.count(default_ir_type)
-        # for idx in range(default_ir_type_num):
-            # translation = translation.replace(
-                # default_ir_type, f"k{ir_type_str}_{idx+1}", 1
-            # )
-            # # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
-            # if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
-                # saved_ir_type.append(f"{ir_type_str}_{idx+1}")
-                # f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
-
-    # logger.info(translation)
-    # return translation
-
 def translate_single_rule(token_seq, parent):
 
     i = 0
     tmp_num = 1
     body = ""
     need_more_ir = False
+
+    if len(token_seq) == 0:
+        logger.debug("Getting empty rule.")
+        body += (
+            f"""res = new IR({default_ir_type}, OP0());"""
+            + "\n"
+        )
+
+
     while i < len(token_seq):
-        left_token, left_keywords, i, _ = search_next_keyword(token_seq, i)
+        left_token, left_keywords = search_next_keyword(token_seq, i)
         logger.debug(f"Left tokens: '{left_token}', Left keywords: '{left_keywords}'")
 
-        right_token, mid_keywords, i, _ = search_next_keyword(
-            token_seq, i
-        )
+        right_token = None
+        mid_keywords = []
+        if left_token is not None:
+            right_token, mid_keywords = search_next_keyword(
+                token_seq, left_token.index+1
+            )
         right_keywords = []
         if right_token:
-            _, right_keywords, _, i = search_next_keyword(
+            _, right_keywords = search_next_keyword(
                 token_seq, right_token.index + 1
             )
 
@@ -196,8 +141,9 @@ def translate_single_rule(token_seq, parent):
         )
 
         if need_more_ir:
+            # Second or more loop
+            # left node has been pre-defined as res.
 
-            # body += "PUSH(res);"
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += (
                 f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
@@ -205,7 +151,7 @@ def translate_single_rule(token_seq, parent):
             )
             tmp_num += 1
 
-            if right_token and not right_token.is_keyword:
+            if right_token is not None:
                 # body += "PUSH(res);"
                 body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
                 body += (
@@ -214,7 +160,7 @@ def translate_single_rule(token_seq, parent):
                 )
                 tmp_num += 1
 
-        elif right_token and right_token.is_keyword == False:
+        elif right_token is not None:
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
             body += (
@@ -224,24 +170,14 @@ def translate_single_rule(token_seq, parent):
 
             tmp_num += 2
             need_more_ir = True
-        elif left_token:
-            # Only single one keywords here.
-            if (
-                not body
-                and left_token.index == len(token_sequence) - 1
-                and token_sequence[left_token.index].word in total_keywords
-            ):
-                # the only one keywords is a comment
-                if left_keywords_str.startswith("/*") and left_keywords_str.endswith(
-                    "*/"
+
+        elif left_token is not None and (
+                    left_token.index == len(token_seq) - 1 or
+                    len(mid_keywords) > 0 and
+                    mid_keywords[-1].index == len(token_seq) - 1
                 ):
-                    # HACK for empty grammar eg. /* EMPTY */
-                    left_keywords_str = ""
-                body += (
-                    f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
-                    + "\n"
-                )
-                break
+            # only single one token.
+            logger.debug("Getting only single one non-term token. ")
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += (
                 f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
@@ -250,13 +186,21 @@ def translate_single_rule(token_seq, parent):
 
             tmp_num += 1
             need_more_ir = True
+            break
+
+        # Only zero or more keywords here.
         else:
-            pass
+            logger.debug("Getting Zero or more keywords only.")
+            body += (
+                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
+                + "\n"
+            )
+            break
 
         compare_tokens = left_keywords + mid_keywords + right_keywords
-        if left_token:
+        if left_token is not None:
             compare_tokens.append(left_token)
-        if right_token:
+        if right_token is not None:
             compare_tokens.append(right_token)
 
         max_index_token = max(compare_tokens)
@@ -388,9 +332,12 @@ def get_rules_text() -> str:
         else:
             token_list = []
 
-    # print(all_saved_lines)
+        logger.debug(f"Transforming single rule: {cur_keyword}")
+        all_saved_lines += ori_line + "{\n"
+        all_saved_lines += translate_single_rule(token_list, cur_keyword)
+        all_saved_lines += "\n}\n\n"
 
-    return ""
+    return all_saved_lines
 
 
 def run(output_fd):
@@ -400,37 +347,11 @@ def run(output_fd):
 
     rules_str = get_rules_text()
 
+    output_fd.write(predef_str)
+    output_fd.write(token_str)
+    output_fd.write(rules_str)
 
-    # marked_lines, extract_tokens = mark_statement_location(data)
-    # for token_name, extract_token in extract_tokens.items():
-        # if token_name in manually_translation:
-            # translation = manually_translation[token_name]
-        # else:
-            # translation = translate(extract_token)
-
-        # marked_lines = marked_lines.replace(
-            # f"=== {token_name.strip()} ===", translation, 1
-        # )
-
-    # if os.path.exists(output):
-        # backup = os.path.abspath(output + ".bak")
-        # os.system("cp {} {}".format(os.path.abspath(output), backup))
-        # logger.info(f"Backup the original bison_parser.y to {backup}")
-
-        # with open(backup, "r") as f:
-            # original_contents = f.read()
-
-        # with open(output, "w") as f:
-            # start_pos = original_contents.find("%%") + len("%%")
-            # stop_pos = original_contents.find("%%", start_pos + 1)
-
-            # f.write(original_contents[:start_pos])
-            # f.write(marked_lines)
-            # f.write(original_contents[stop_pos:])
-    # else:
-        # with open(output, "w") as f:
-            # f.write(marked_lines)
-
+    return
 
 if __name__ == "__main__":
 
