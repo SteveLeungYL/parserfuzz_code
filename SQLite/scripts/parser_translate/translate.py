@@ -105,7 +105,10 @@ def translate_single_rule(token_seq, parent):
 
     tmp_idx = 0
     for cur_token in token_seq:
-        all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
+        if cur_token[0].islower():
+            all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
+        else:
+            all_saved_str += cur_token + " "
         tmp_idx += 1
 
     return all_saved_str
@@ -120,7 +123,7 @@ def translate_single_action(token_seq, parent):
     if len(token_seq) == 0:
         logger.debug("Getting empty rule.")
         body += (
-            f"""res = new IR({default_ir_type}, OP0());"""
+            f"""A = new IR({default_ir_type}, OP0());"""
             + "\n"
         )
 
@@ -231,8 +234,8 @@ def get_predef_text() ->str:
 // The type of the data attached to each token is Token.  This is also the
 // default type for non-terminals.
 //
-%token_type {Token}
-%default_type {Token}
+%token_type {IR*}
+%default_type {IR*}
 
 // An extra argument to the constructor for the parser, which is available
 // to all actions.
@@ -241,6 +244,9 @@ def get_predef_text() ->str:
 // The name of the generated procedure that implements the parser
 // is as follows:
 %name IRParser
+
+// input is the start symbol
+%start_symbol input
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
@@ -314,7 +320,7 @@ def handle_ori_comp_parser() -> str:
 
     logger.debug("\n\n\nGetting all_saved_lines for token declaration : %s\n\n\n"%(all_saved_lines))
     
-    return ""
+    return all_saved_lines
 
 def get_rules_text() -> str:
     # gather all the token information first. 
@@ -329,8 +335,15 @@ def get_rules_text() -> str:
             continue
 
         ori_line = cur_line
-        # Remove the "." and the "\n" at the end.
-        cur_line = cur_line[:-2]
+        # Remove the "\n" at the end.
+        cur_line = cur_line[:-1]
+
+        # Remove the . sign
+        cur_line_split = cur_line.split(".")
+        cur_line = cur_line_split[0]
+        cur_line_after_dot = ""
+        if len(cur_line_split) > 1:
+            cur_line_after_dot = cur_line_split[1]
 
         token_list = cur_line.split()
 
@@ -342,7 +355,8 @@ def get_rules_text() -> str:
             token_list = []
 
         logger.debug(f"Translating single rule: {cur_keyword}")
-        all_saved_lines += translate_single_rule(token_list, cur_keyword) + "{\n"
+        all_saved_lines += translate_single_rule(token_list, cur_keyword)
+        all_saved_lines += ". " + cur_line_after_dot + "{\n"
         all_saved_lines += translate_single_action(token_list, cur_keyword)
         all_saved_lines += "}\n\n"
 
