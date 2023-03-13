@@ -1,6 +1,6 @@
+import sys
 import os.path
 import json
-import click
 from loguru import logger
 from typing import List
 
@@ -52,23 +52,32 @@ def snake_to_camel(word: str):
 def camel_to_snake(word: str):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
-def search_next_keyword(token_sequence, start_index):
+def is_terminating_keyword(word: str) -> bool:
+    if word[0].isupper():
+        return True
+    else:
+        return False
+
+def search_next_keyword(token_seq, start_index):
     curr_token = None
-    left_keywords = []
+    term_keywords = []
+    token_idx = start_index
+    term_token_idx = start_index
 
-    if start_index > len(token_sequence):
-        return curr_token, left_keywords
+    if start_index >= len(token_seq):
+        return curr_token, term_keywords, len(token_seq), len(token_seq)
 
-    # found_token = False
-    for idx in range(start_index, len(token_sequence)):
-        curr_token = token_sequence[idx]
-        if curr_token.is_keyword:
-            left_keywords.append(curr_token)
+    for idx in range(start_index, len(token_seq)):
+        if is_terminating_keyword(token_seq[idx]):
+            term_keywords.append(curr_token)
+            token_idx = idx + 1
+            term_token_idx = idx + 1
         else:
-            # found_token = True
+            curr_token = token_seq[idx]
+            token_idx = idx + 1
             break
 
-    return curr_token, left_keywords
+    return curr_token, term_keywords, token_idx, term_token_idx
 
 
 def ir_type_str_rewrite(cur_types) -> str:
@@ -92,24 +101,88 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 
-def translate_single_line(line, parent):
-    token_sequence = tokenize(line)
+
+# def translate(data):
+
+    # data = translate_preprocessing(data=data)
+    # data = data.strip() + "\n"
+
+    # parent_element = data[: data.find(":")]
+    # logger.debug(f"Parent element: '{parent_element}'")
+
+    # first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
+    # first_child_element = data[
+        # first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
+    # ]
+    # first_child_element = remove_comments_inside_statement(first_child_element)
+    # first_child_body = translate_single_line(first_child_element, parent_element)
+
+    # mapped_first_child_element = repace_special_keyword_with_token(first_child_element)
+    # logger.debug(f"First child element: '{mapped_first_child_element}'")
+    # translation = f"""
+# {parent_element}:
+
+# {ONETAB}{mapped_first_child_element}{ONESPACE}{{
+# {prefix_tabs(first_child_body, 2)}
+# {ONETAB}}}
+# """
+
+    # rest_children_elements = [line.strip() for line in data.splitlines() if "|" in line]
+    # rest_children_elements = [
+        # line[1:].strip() for line in rest_children_elements if line.startswith("|")
+    # ]
+    # for child_element in rest_children_elements:
+        # child_element = remove_comments_inside_statement(child_element)
+        # child_body = translate_single_line(child_element, parent_element)
+
+        # mapped_child_element = repace_special_keyword_with_token(child_element)
+        # logger.debug(f"Child element => '{mapped_child_element}'")
+        # translation += f"""
+# {ONETAB}|{ONESPACE}{mapped_child_element}{ONESPACE}{{
+# {prefix_tabs(child_body, 2)}
+# {ONETAB}}}
+# """
+
+    # translation += "\n;"
+
+    # # fix the IR type to kUnknown
+    # with open("all_ir_types.txt", "a") as f:
+        # ir_type_str = ir_type_str_rewrite(parent_element)
+
+        # if ir_type_str not in saved_ir_type:
+            # saved_ir_type.append(ir_type_str)
+            # f.write(f"V(k{ir_type_str})   \\\n")
+
+        # default_ir_type_num = translation.count(default_ir_type)
+        # for idx in range(default_ir_type_num):
+            # translation = translation.replace(
+                # default_ir_type, f"k{ir_type_str}_{idx+1}", 1
+            # )
+            # # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
+            # if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
+                # saved_ir_type.append(f"{ir_type_str}_{idx+1}")
+                # f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
+
+    # logger.info(translation)
+    # return translation
+
+def translate_single_rule(token_seq, parent):
 
     i = 0
     tmp_num = 1
     body = ""
     need_more_ir = False
-    while i < len(token_sequence):
-        left_token, left_keywords = search_next_keyword(token_sequence, i)
+    while i < len(token_seq):
+        left_token, left_keywords, i, _ = search_next_keyword(token_seq, i)
         logger.debug(f"Left tokens: '{left_token}', Left keywords: '{left_keywords}'")
 
-        right_token, mid_keywords = search_next_keyword(
-            token_sequence, left_token.index + 1
+        right_token, mid_keywords, i, _ = search_next_keyword(
+            token_seq, i
         )
         right_keywords = []
         if right_token:
-            _, right_keywords = search_next_keyword(
-                token_sequence, right_token.index + 1
+            _, right_keywords, _, i = search_next_keyword(
+                token_seq, right_token.index + 1
             )
 
         left_keywords_str = " ".join(
@@ -197,111 +270,186 @@ def translate_single_line(line, parent):
     logger.debug(f"Result: \n{body}")
     return body
 
+def get_predef_text() ->str:
+    return """
+// All token codes are small integers with #defines that begin with "TK_"
+%token_prefix TKIR_
 
-def translate(data):
+// The type of the data attached to each token is Token.  This is also the
+// default type for non-terminals.
+//
+%token_type {Token}
+%default_type {Token}
 
-    data = translate_preprocessing(data=data)
-    data = data.strip() + "\n"
+// An extra argument to the constructor for the parser, which is available
+// to all actions.
+%extra_context {IR* ir}
 
-    parent_element = data[: data.find(":")]
-    logger.debug(f"Parent element: '{parent_element}'")
+// The name of the generated procedure that implements the parser
+// is as follows:
+%name IRParser
 
-    first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
-    first_child_element = data[
-        first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
-    ]
-    first_child_element = remove_comments_inside_statement(first_child_element)
-    first_child_body = translate_single_line(first_child_element, parent_element)
+// The following text is included near the beginning of the C source
+// code file that implements the parser.
+//
+%include {
 
-    mapped_first_child_element = repace_special_keyword_with_token(first_child_element)
-    logger.debug(f"First child element: '{mapped_first_child_element}'")
-    translation = f"""
-{parent_element}:
+    struct IR;
 
-{ONETAB}{mapped_first_child_element}{ONESPACE}{{
-{prefix_tabs(first_child_body, 2)}
-{ONETAB}}}
-"""
+}
 
-    rest_children_elements = [line.strip() for line in data.splitlines() if "|" in line]
-    rest_children_elements = [
-        line[1:].strip() for line in rest_children_elements if line.startswith("|")
-    ]
-    for child_element in rest_children_elements:
-        child_element = remove_comments_inside_statement(child_element)
-        child_body = translate_single_line(child_element, parent_element)
+    """
 
-        mapped_child_element = repace_special_keyword_with_token(child_element)
-        logger.debug(f"Child element => '{mapped_child_element}'")
-        translation += f"""
-{ONETAB}|{ONESPACE}{mapped_child_element}{ONESPACE}{{
-{prefix_tabs(child_body, 2)}
-{ONETAB}}}
-"""
 
-    translation += "\n;"
+def handle_ori_comp_parser() -> str:
+    # gather all the token information first. 
 
-    # fix the IR type to kUnknown
-    with open("all_ir_types.txt", "a") as f:
-        ir_type_str = ir_type_str_rewrite(parent_element)
+    file_fd = open("./assets/sqlite_ori_parse.y")
 
-        if ir_type_str not in saved_ir_type:
-            saved_ir_type.append(ir_type_str)
-            f.write(f"V(k{ir_type_str})   \\\n")
+    all_lines = file_fd.readlines()
+    all_saved_lines = ""
 
-        default_ir_type_num = translation.count(default_ir_type)
-        for idx in range(default_ir_type_num):
-            translation = translation.replace(
-                default_ir_type, f"k{ir_type_str}_{idx+1}", 1
-            )
-            # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
-            if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
-                saved_ir_type.append(f"{ir_type_str}_{idx+1}")
-                f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
+    is_fallback_multiline = False
+    is_def_ignore = False
 
-    logger.info(translation)
-    return translation
+    for cur_line in all_lines:
 
-@click.command()
-@click.option("-o", "--output", default="bison_parser_2.y")
-@click.option("--remove-comments", is_flag=True, default=False)
-def run(output, remove_comments):
-    # Remove all_ir_type.txt, if exist
-    if os.path.exists("./all_ir_types.txt"):
-        os.remove("./all_ir_types.txt")
+        # ignore the #ifdef line and all the contents between
+        if cur_line.startswith("%ifdef "):
+            is_def_ignore = True
+            continue
+        if is_def_ignore == True and cur_line.startswith("%endif"):
+            is_def_ignore = False
+            continue
+        if is_def_ignore == True:
+            continue
 
-    data = open("assets/parser_stmts.y", "r").read()
+        # ignore all the `#ifndef` line, but still save all the things between.
+        if cur_line.startswith("%ifndef ")  or \
+                cur_line.startswith("%endif"):
+                    continue
 
-    marked_lines, extract_tokens = mark_statement_location(data)
-    for token_name, extract_token in extract_tokens.items():
-        if token_name in manually_translation:
-            translation = manually_translation[token_name]
+        # For the fallback grammar
+        if cur_line.startswith("%fallback "):
+            all_saved_lines += cur_line
+            is_fallback_multiline = True
+            continue
+        if is_fallback_multiline and "." in cur_line:
+            all_saved_lines += cur_line
+            is_fallback_multiline = False
+            continue
+        if is_fallback_multiline == True:
+            all_saved_lines += cur_line
+            continue
+
+        # All other saved types.
+        if cur_line.startswith("%token ") or \
+                cur_line.startswith("%left ") or \
+                cur_line.startswith("%right ") or \
+                cur_line.startswith("%nonassoc ") or \
+                cur_line.startswith("%wildcard ") or \
+                cur_line.startswith("%token_class "):
+            # the line contains the new line symbol
+            all_saved_lines += cur_line
+            continue
+
+        if cur_line.startswith("%type "):
+            # Change all the non-terminal types to IR*.
+            cur_line = cur_line.split("{")[0]
+            cur_line += "{IR*}\n"
+            all_saved_lines += cur_line
+
+    logger.debug("\n\n\nGetting all_saved_lines for token declaration : %s\n\n\n"%(all_saved_lines))
+    
+    return ""
+
+def get_rules_text() -> str:
+    # gather all the token information first. 
+
+    file_fd = open("./assets/sqlite_parse_rule_only.y")
+
+    all_lines = file_fd.readlines()
+    all_saved_lines = ""
+
+    for cur_line in all_lines:
+        if cur_line.startswith("// "):
+            continue
+
+        ori_line = cur_line
+        # Remove the "." and the "\n" at the end.
+        cur_line = cur_line[:-2]
+
+        token_list = cur_line.split()
+
+        cur_keyword = token_list[0]
+
+        if len(token_list) > 2:
+            token_list = token_list[2:]
         else:
-            translation = translate(extract_token)
+            token_list = []
 
-        marked_lines = marked_lines.replace(
-            f"=== {token_name.strip()} ===", translation, 1
-        )
+    # print(all_saved_lines)
 
-    if os.path.exists(output):
-        backup = os.path.abspath(output + ".bak")
-        os.system("cp {} {}".format(os.path.abspath(output), backup))
-        logger.info(f"Backup the original bison_parser.y to {backup}")
+    return ""
 
-        with open(backup, "r") as f:
-            original_contents = f.read()
 
-        with open(output, "w") as f:
-            start_pos = original_contents.find("%%") + len("%%")
-            stop_pos = original_contents.find("%%", start_pos + 1)
+def run(output_fd):
 
-            f.write(original_contents[:start_pos])
-            f.write(marked_lines)
-            f.write(original_contents[stop_pos:])
-    else:
-        with open(output, "w") as f:
-            f.write(marked_lines)
+    predef_str = get_predef_text()
+    token_str = handle_ori_comp_parser()
+
+    rules_str = get_rules_text()
+
+
+    # marked_lines, extract_tokens = mark_statement_location(data)
+    # for token_name, extract_token in extract_tokens.items():
+        # if token_name in manually_translation:
+            # translation = manually_translation[token_name]
+        # else:
+            # translation = translate(extract_token)
+
+        # marked_lines = marked_lines.replace(
+            # f"=== {token_name.strip()} ===", translation, 1
+        # )
+
+    # if os.path.exists(output):
+        # backup = os.path.abspath(output + ".bak")
+        # os.system("cp {} {}".format(os.path.abspath(output), backup))
+        # logger.info(f"Backup the original bison_parser.y to {backup}")
+
+        # with open(backup, "r") as f:
+            # original_contents = f.read()
+
+        # with open(output, "w") as f:
+            # start_pos = original_contents.find("%%") + len("%%")
+            # stop_pos = original_contents.find("%%", start_pos + 1)
+
+            # f.write(original_contents[:start_pos])
+            # f.write(marked_lines)
+            # f.write(original_contents[stop_pos:])
+    # else:
+        # with open(output, "w") as f:
+            # f.write(marked_lines)
 
 
 if __name__ == "__main__":
-    run()
+
+    output_file_str = "sqlite_lemon_parser.y"
+    if len(sys.argv) == 2:
+        output_file_str = sys.argv[1] 
+    elif len(sys.argv) > 2:
+        os.error("Usage: python3 translate.py lemon_output_file.y")
+
+    if os.path.exists(output_file_str):
+        os.remove(output_file_str)
+
+    if not os.path.exists("./assets"):
+        os.error("Error: The assets folder does not exists in the current working \
+                directory: %s. \n", os.getcwd())
+    if not os.path.isfile("./assets/sqlite_ori_parse.y") or \
+            not os.path.isfile("./assets/sqlite_parser_rules.json") or \
+            not os.path.isfile("./assets/sqlite_parse_rule_only.y"):
+        os.error("Error: The assets folder is not complete. \n")
+
+    with open(output_file_str, "w+") as fd:
+        run(fd)
