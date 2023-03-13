@@ -2,6 +2,7 @@
 // Created by Yu Liang on 3/13/23.
 //
 
+#include <cassert>
 #include "parser_helper.h"
 #include "sqlite_lemon_parser.h"
 
@@ -634,7 +635,7 @@ int sqlite3GetToken(const unsigned char *z, int *tokenType){
   return i;
 }
 
-vector<IR*> parser_helper(const string in_str) {
+IR* parser_helper(const string in_str) {
 
   IR* root_ir = nullptr;
 
@@ -692,5 +693,7 @@ vector<IR*> parser_helper(const string in_str) {
     zSql += n;
   }
   IRParserFree(pEngine, free);
+
+  return root_ir;
 
 }
