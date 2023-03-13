@@ -222,6 +222,7 @@ def translate_single_action(token_seq, parent):
     if body:
         ir_type_str = ir_type_str_rewrite(parent)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
+        body += "root_ir = A;\n"
 
     logger.debug(f"Result: \n{body}")
     return body
@@ -239,7 +240,7 @@ def get_predef_text() ->str:
 
 // An extra argument to the constructor for the parser, which is available
 // to all actions.
-%extra_context {IR* ir}
+%extra_context {IR* root_ir}
 
 // The name of the generated procedure that implements the parser
 // is as follows:
