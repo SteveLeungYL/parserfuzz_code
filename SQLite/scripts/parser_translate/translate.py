@@ -100,6 +100,17 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 def translate_single_rule(token_seq, parent):
+    
+    all_saved_str = parent  + "(A) ::= "
+
+    tmp_idx = 0
+    for cur_token in token_seq:
+        all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
+        tmp_idx += 1
+
+    return all_saved_str
+
+def translate_single_action(token_seq, parent):
 
     i = 0
     tmp_num = 1
@@ -144,27 +155,26 @@ def translate_single_rule(token_seq, parent):
             # Second or more loop
             # left node has been pre-defined as res.
 
-            body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
+            tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
+                f"""A = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), A, {tmp_var});"""
                 + "\n"
             )
             tmp_num += 1
 
             if right_token is not None:
-                # body += "PUSH(res);"
-                body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
+                tmp_var = chr(ord('B') + right_token.index)
                 body += (
-                    f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
+                    f"""A = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), A, {tmp_var});"""
                     + "\n"
                 )
                 tmp_num += 1
 
         elif right_token is not None:
-            body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
-            body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
+            tmp_var = chr(ord('B') + left_token.index)
+            tmp_var_2 = chr(ord('B') + right_token.index)
             body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
+                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), {tmp_var}, {tmp_var_2});"""
                 + "\n"
             )
 
@@ -178,9 +188,9 @@ def translate_single_rule(token_seq, parent):
                 ):
             # only single one token.
             logger.debug("Getting only single one non-term token. ")
-            body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
+            tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
+                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), {tmp_var});"""
                 + "\n"
             )
 
@@ -192,7 +202,7 @@ def translate_single_rule(token_seq, parent):
         else:
             logger.debug("Getting Zero or more keywords only.")
             body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
+                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
                 + "\n"
             )
             break
@@ -209,7 +219,6 @@ def translate_single_rule(token_seq, parent):
     if body:
         ir_type_str = ir_type_str_rewrite(parent)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
-        body += "$$ = res;"
 
     logger.debug(f"Result: \n{body}")
     return body
@@ -242,7 +251,7 @@ def get_predef_text() ->str:
 
 }
 
-    """
+"""
 
 
 def handle_ori_comp_parser() -> str:
@@ -332,10 +341,10 @@ def get_rules_text() -> str:
         else:
             token_list = []
 
-        logger.debug(f"Transforming single rule: {cur_keyword}")
-        all_saved_lines += ori_line + "{\n"
-        all_saved_lines += translate_single_rule(token_list, cur_keyword)
-        all_saved_lines += "\n}\n\n"
+        logger.debug(f"Translating single rule: {cur_keyword}")
+        all_saved_lines += translate_single_rule(token_list, cur_keyword) + "{\n"
+        all_saved_lines += translate_single_action(token_list, cur_keyword)
+        all_saved_lines += "}\n\n"
 
     return all_saved_lines
 
