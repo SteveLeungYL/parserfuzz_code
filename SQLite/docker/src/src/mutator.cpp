@@ -3,8 +3,7 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
-#include "../parser/bison_parser.h"
-#include "../parser/flex_lexer.h"
+#include "../parser/parser_helper.h"
 
 #include "../oracle/sqlite_oracle.h"
 #include "../AFL/debug.h"
@@ -19,6 +18,7 @@
 #include <cstdio>
 #include <deque>
 #include <fstream>
+#include <cstring>
 
 using namespace std;
 
@@ -174,27 +174,19 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 vector<IR *> Mutator::parse_query_str_get_ir_set(const string &query_str) {
   vector<IR *> ir_set;
 
-  Program *p_strip_sql = parser(query_str.c_str());
-  if (p_strip_sql == NULL)
-    return ir_set;
+  IR* tmp_root = parser_helper(query_str);
 
-  try {
-    IR *root_ir = p_strip_sql->translate(ir_set);
-  } catch (...) {
-    p_strip_sql->deep_delete();
-
-    for (auto ir : ir_set)
-      ir->drop();
-
-    ir_set.clear();
+  if (tmp_root == nullptr) {
     return ir_set;
   }
 
-  int unique_id_for_node = 0;
-  for (auto ir : ir_set)
-    ir->uniq_id_in_tree_ = unique_id_for_node++;
+  ir_set = p_oracle->ir_wrapper.get_all_ir_node(tmp_root);
 
-  p_strip_sql->deep_delete();
+  int unique_id_for_node = 0;
+  for (auto ir : ir_set) {
+    ir->uniq_id_in_tree_ = unique_id_for_node++;
+  }
+
   return ir_set;
 }
 
@@ -2941,29 +2933,6 @@ void Mutator::reset_database_single_stmt() {
   m_tables_with_tmp.clear();
   v_create_table_names_single_with_tmp.clear();
   v_create_column_names_single_with_tmp.clear();
-}
-
-
-Program *Mutator::parser(const char *query) {
-
-  yyscan_t scanner;
-  YY_BUFFER_STATE state;
-
-  if (hsql_lex_init(&scanner)) return NULL;
-
-  state = hsql__scan_string(query, scanner);
-
-  Program *p = new Program();
-  int ret = hsql_parse(p, scanner);
-
-  hsql__delete_buffer(state, scanner);
-  hsql_lex_destroy(scanner);
-  if (ret != 0) {
-    p->deep_delete();
-    return NULL;
-  }
-
-  return p;
 }
 
 // Return use_temp or not.

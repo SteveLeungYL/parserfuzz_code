@@ -3,7 +3,7 @@
 
 #include "../include/ast.h"
 
-vector<IR*> parse_helper(string in);
+IR* parser_helper(const string in);
 
 /*
 ** The interface to the LEMON-generated parser
