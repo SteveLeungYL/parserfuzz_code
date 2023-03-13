@@ -235,12 +235,12 @@ def get_predef_text() ->str:
 // The type of the data attached to each token is Token.  This is also the
 // default type for non-terminals.
 //
-%token_type {IR*}
-%default_type {IR*}
+%token_type {const char*}
+%default_type {const char*}
 
-// An extra argument to the constructor for the parser, which is available
+// An extra argument to the parse function for the parser, which is available
 // to all actions.
-%extra_context {IR* root_ir}
+%extra_argument {IR* root_ir}
 
 // The name of the generated procedure that implements the parser
 // is as follows:
