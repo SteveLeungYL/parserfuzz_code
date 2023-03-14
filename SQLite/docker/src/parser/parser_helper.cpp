@@ -280,18 +280,10 @@ static int keywordCode(const char *z, int n, int *pType){
     for(i=((int)aKWHash[i])-1; i>=0; i=((int)aKWNext[i])-1){
       if( aKWLen[i]!=n ) continue;
       zKW = &zKWText[aKWOffset[i]];
-#ifdef SQLITE_ASCII
       if( (z[0]&~0x20)!=zKW[0] ) continue;
       if( (z[1]&~0x20)!=zKW[1] ) continue;
       j = 2;
       while( j<n && (z[j]&~0x20)==zKW[j] ){ j++; }
-#endif
-#ifdef SQLITE_EBCDIC
-      if( toupper(z[0])!=zKW[0] ) continue;
-      if( toupper(z[1])!=zKW[1] ) continue;
-      j = 2;
-      while( j<n && toupper(z[j])==zKW[j] ){ j++; }
-#endif
       if( j<n ) continue;
       *pType = aKWCode[i];
       break;
@@ -638,6 +630,7 @@ int sqlite3GetToken(const unsigned char *z, int *tokenType){
 IR* parser_helper(const string in_str) {
 
   IR* root_ir = nullptr;
+  IR** tmp_p_root_ir = &root_ir;
 
   void* pEngine = IRParserAlloc(malloc);
   if (pEngine == 0) {
@@ -651,6 +644,9 @@ IR* parser_helper(const string in_str) {
   int lastTokenParsed = -1;
 
   while( 1 ) {
+    if ((zSql - in_str.c_str()) == in_str.size()) {
+      break;
+    }
     n = sqlite3GetToken((const unsigned char *)zSql, &tokenType);
 
     if (tokenType >= TKIR_WINDOW) {
@@ -688,10 +684,11 @@ IR* parser_helper(const string in_str) {
         break;
       }
     }
-    IRParser(pEngine, tokenType, zSql, root_ir);
+    IRParser(pEngine, tokenType, zSql, tmp_p_root_ir);
     lastTokenParsed = tokenType;
     zSql += n;
   }
+  IRParser(pEngine, 0, "", tmp_p_root_ir);
   IRParserFree(pEngine, free);
 
   return root_ir;

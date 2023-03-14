@@ -487,7 +487,7 @@ vector<IR*> IRWrapper::get_all_ir_node() {
     // Begin iterating. 
     while (!is_finished_search) {
         ir_vec_iter.push_back(cur_IR);
-        if (cur_IR->type_ != kProgram) 
+        if (cur_IR->type_ != kInput)
             {all_ir_node_vec.push_back(cur_IR);} // Ignore kProgram at the moment, put it at the end of the vector. 
 
         if (cur_IR->left_ != nullptr){

@@ -10,6 +10,6 @@ IR* parser_helper(const string in);
 */
 void *IRParserAlloc(void* (*)(size_t));
 void IRParserFree(void*, void(*)(void*));
-void IRParser(void*, int, const char*, IR*);
+void IRParser(void*, int, const char*, IR**);
 
 #endif // SRC_PARSER_HELPER_H
