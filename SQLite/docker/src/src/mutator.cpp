@@ -2573,7 +2573,7 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
-  if (op_ && op_->prefix_) {
+  if (op_ && !(op_->prefix_.empty())) {
     res += op_->prefix_;
     res += " ";
   }
@@ -2583,7 +2583,7 @@ void Mutator::_fix(IR *root, string &res) {
     res += " ";
   }
 
-  if (op_ && op_->middle_) {
+  if (op_ && !(op_->middle_.empty())) {
     res += op_->middle_;
     res += " ";
   }
@@ -2593,7 +2593,7 @@ void Mutator::_fix(IR *root, string &res) {
     res += " ";
   }
 
-  if (op_ && op_->suffix_)
+  if (op_ && !(op_->suffix_.empty()))
     res += op_->suffix_;
 
   return;
@@ -2632,13 +2632,13 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
   if (cur_trans_stmt->type_ != kAlterStatement) {return;}
 
   IR* cur_ir = cur_trans_stmt;
-  while (!(cur_ir->op_ != nullptr && cur_ir->op_->middle_ != NULL)) {
+  while (!(cur_ir->op_ != nullptr && !cur_ir->op_->middle_.empty())) {
     cur_ir = cur_ir->left_;
   }
   IROperator* op_ = cur_ir->op_;
 
   // RENAME tables.
-  if (strcmp(op_->middle_, "RENAME TO") == 0){
+  if (op_->middle_ == "RENAME TO"){
     IR* tablename_from_ir;
     if (cur_ir->left_->right_ != nullptr) {tablename_from_ir = cur_ir->left_->right_;}
     else {tablename_from_ir = cur_ir->left_->left_;}
@@ -2673,7 +2673,7 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
   }
 
   // RNAME columns
-  if (strcmp(op_->middle_, "TO") == 0) {
+  if (op_->middle_ == "TO") {
     IR* tablename_ir = cur_ir->left_->left_->left_;
     if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
     else {tablename_ir = cur_ir->left_;}
@@ -2702,7 +2702,7 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
   }
 
   // ADD columns.
-  if (strcmp(op_->middle_, "ADD") == 0) {
+  if (op_->middle_ == "ADD") {
     IR* tablename_ir = cur_ir->left_;
     if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_;}
     else {tablename_ir = cur_ir->left_;}
@@ -2720,7 +2720,7 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
   }
 
   // DROP columns.
-  if (strcmp(op_->middle_, "DROP") == 0) {
+  if (op_->middle_ == "DROP") {
     IR* tablename_ir = cur_ir->left_;
     if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
     else {tablename_ir = cur_ir->left_;}
@@ -2849,7 +2849,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     return;
   }
 
-  if (op_ && op_->prefix_) {
+  if (op_ && !(op_->prefix_.empty())) {
     res += op_->prefix_;
     res += " ";
   }
@@ -2859,7 +2859,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     res += " ";
   }
 
-  if (op_ && op_->middle_) {
+  if (op_ && !(op_->middle_.empty())) {
     res += op_->middle_;
     res += " ";
   }
@@ -2869,7 +2869,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     res += " ";
   }
 
-  if (op_ && op_->suffix_) {
+  if (op_ && !(op_->suffix_.empty())) {
     res += op_->suffix_;
   }
 

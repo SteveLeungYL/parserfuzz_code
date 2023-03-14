@@ -128,7 +128,7 @@ void IR::_to_string(string &res) {
     return;
   }
 
-  if (op_ && op_->prefix_) {
+  if (op_ && !(op_->prefix_.empty())) {
     res += op_->prefix_;
     res +=  " ";
   }
@@ -138,7 +138,7 @@ void IR::_to_string(string &res) {
     res += " ";
   }
 
-  if (op_ && op_->middle_) {
+  if (op_ && !(op_->middle_.empty())) {
     res += op_->middle_;
     res += " ";
   }
@@ -148,7 +148,7 @@ void IR::_to_string(string &res) {
     res += " ";
   }
 
-  if (op_ && op_->suffix_) {
+  if (op_ && !(op_->suffix_.empty())) {
     res += op_->suffix_;
   }
 

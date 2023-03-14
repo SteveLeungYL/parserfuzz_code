@@ -3,6 +3,8 @@
 //
 
 #include <cassert>
+#include <string.h>
+#include <vector>
 #include "parser_helper.h"
 #include "sqlite_lemon_parser.h"
 
@@ -642,6 +644,7 @@ IR* parser_helper(const string in_str) {
   const char* zSql = in_str.c_str();
   int n = 0;
   int lastTokenParsed = -1;
+  vector<char*> all_dup_zSql;
 
   while( 1 ) {
     if ((zSql - in_str.c_str()) == in_str.size()) {
@@ -684,12 +687,27 @@ IR* parser_helper(const string in_str) {
         break;
       }
     }
-    IRParser(pEngine, tokenType, zSql, tmp_p_root_ir);
+    char tmp_zSql[n+1];
+    for (int i = 0; i < n; i++) {
+      tmp_zSql[i] = zSql[i];
+    }
+    tmp_zSql[n] = '\0';
+
+    //cerr << "For token: " << tokenType << "\n, getting value: " << tmp_zSql << "\n\n\n";
+    char* tmp_tmp_zSql = strdup(tmp_zSql);
+
+    all_dup_zSql.push_back(tmp_tmp_zSql);
+
+    IRParser(pEngine, tokenType, tmp_tmp_zSql, tmp_p_root_ir);
     lastTokenParsed = tokenType;
     zSql += n;
   }
   IRParser(pEngine, 0, "", tmp_p_root_ir);
   IRParserFree(pEngine, free);
+
+  for (char* cur_zSql : all_dup_zSql) {
+    free(cur_zSql);
+  }
 
   return root_ir;
 

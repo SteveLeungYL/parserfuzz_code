@@ -644,7 +644,7 @@ bool IRWrapper::is_exist_group_by(IR* cur_stmt){
         vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
         for (IR *cur_opt_group : all_opt_group) {
             if (cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && 
-                strcmp(cur_opt_group->op_->prefix_, "GROUP BY") == 0) {
+                cur_opt_group->op_->prefix_ == "GROUP BY") {
                 return true;
             }
         }
@@ -659,7 +659,7 @@ bool IRWrapper::is_exist_having(IR* cur_stmt){
             if (cur_opt_group->right_ != nullptr) {
                 IR* opt_having = cur_opt_group->right_;
                 if (opt_having->op_ != nullptr && 
-                    strcmp(opt_having->op_->prefix_, "HAVING") == 0) {
+                    opt_having->op_->prefix_ == "HAVING") {
                     return true;
                 }
             }
@@ -673,7 +673,7 @@ bool IRWrapper::is_exist_distinct(IR* cur_stmt) {
     for (IR* opt_distinct_ir : opt_distinct_vec) {
         if (opt_distinct_ir && 
             opt_distinct_ir->op_ &&
-            strcmp(opt_distinct_ir->op_->prefix_, "DISTINCT") == 0) {
+            opt_distinct_ir->op_->prefix_ == "DISTINCT") {
             return true;
         }
     }
@@ -813,7 +813,7 @@ IR* IRWrapper::get_alias_iden_from_tablename_iden(IR* tablename_iden){
     if (opt_alias_ir != nullptr &&
         opt_alias_ir->op_ != nullptr &&
         (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) &&
-        strcmp(opt_alias_ir->op_->prefix_, "AS") == 0) {
+        opt_alias_ir->op_->prefix_ == "AS") {
         if (opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) { // kOptTableAliasAs -> kTableAlias ->  identifier.
             return opt_alias_ir->left_->left_;
         }

@@ -107,14 +107,14 @@ typedef NODETYPE IRTYPE;
 
 class IROperator {
 public:
-  IROperator(const char *prefix = NULL,
-             const char *middle = NULL,
-             const char *suffix = NULL)
+  IROperator(const string prefix = "",
+             const string middle = "",
+             const string suffix = "")
       : prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
-  const char *prefix_;
-  const char *middle_;
-  const char *suffix_;
+  string prefix_;
+  string middle_;
+  string suffix_;
 };
 
 class IR {
