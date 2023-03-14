@@ -110,10 +110,7 @@ def translate_single_rule(token_seq, parent):
 
     tmp_idx = 0
     for cur_token in token_seq:
-        if not is_terminating_keyword(cur_token):
-            all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
-        else:
-            all_saved_str += cur_token + " "
+        all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
         tmp_idx += 1
 
     return all_saved_str
@@ -149,15 +146,22 @@ def translate_single_action(token_seq, parent):
                 token_seq, right_token.index + 1
             )
 
-        left_keywords_str = " ".join(
-            [str(token).upper() for token in left_keywords if str(token)]
+        left_keywords_str = " + ".join(
+            ["string(" + chr(ord('B') + token.index) + ")" for token in left_keywords]
         )
-        mid_keywords_str = " ".join(
-            [str(token).upper() for token in mid_keywords if str(token)]
+        mid_keywords_str = " + ".join(
+            ["string(" + chr(ord('B') + token.index) + ")" for token in mid_keywords]
         )
-        right_keywords_str = " ".join(
-            [str(token).upper() for token in right_keywords if str(token)]
+        right_keywords_str = " + ".join(
+            ["string(" + chr(ord('B') + token.index) + ")" for token in right_keywords]
         )
+
+        if len(left_keywords_str) == 0:
+            left_keywords_str = "\"\""
+        if len(mid_keywords_str) == 0:
+            mid_keywords_str = "\"\""
+        if len(right_keywords_str) == 0:
+            right_keywords_str = "\"\""
 
         if need_more_ir:
             # Second or more loop
@@ -165,7 +169,7 @@ def translate_single_action(token_seq, parent):
 
             tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), (IR*)A, (IR*){tmp_var});"""
+                f"""A = new IR({default_ir_type}, OP3("", {left_keywords_str}, {mid_keywords_str}), (IR*)A, (IR*){tmp_var});"""
                 + "\n"
             )
             tmp_num += 1
@@ -173,7 +177,7 @@ def translate_single_action(token_seq, parent):
             if right_token is not None:
                 tmp_var = chr(ord('B') + right_token.index)
                 body += (
-                    f"""A = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), (IR*)A, (IR*){tmp_var});"""
+                    f"""A = new IR({default_ir_type}, OP3("", "", {right_keywords_str}), (IR*)A, (IR*){tmp_var});"""
                     + "\n"
                 )
                 tmp_num += 1
@@ -182,7 +186,7 @@ def translate_single_action(token_seq, parent):
             tmp_var = chr(ord('B') + left_token.index)
             tmp_var_2 = chr(ord('B') + right_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), (IR*){tmp_var}, (IR*){tmp_var_2});"""
+                f"""A = new IR({default_ir_type}, OP3({left_keywords_str}, {mid_keywords_str}, {right_keywords_str}), (IR*){tmp_var}, (IR*){tmp_var_2});"""
                 + "\n"
             )
 
@@ -198,7 +202,7 @@ def translate_single_action(token_seq, parent):
             logger.debug("Getting only single one non-term token. ")
             tmp_var = chr(ord('B') + left_token.index)
             body += (
-                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), (IR*){tmp_var});"""
+                f"""A = new IR({default_ir_type}, OP3({left_keywords_str}, {mid_keywords_str}, ""), (IR*){tmp_var});"""
                 + "\n"
             )
 
@@ -210,7 +214,7 @@ def translate_single_action(token_seq, parent):
         else:
             logger.debug("Getting Zero or more keywords only.")
             body += (
-                f"""A = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
+                f"""A = new IR({default_ir_type}, OP3({left_keywords_str}, "", ""));"""
                 + "\n"
             )
             break
