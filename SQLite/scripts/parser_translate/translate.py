@@ -59,6 +59,8 @@ def camel_to_snake(word: str):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 def is_terminating_keyword(word: str) -> bool:
+    if word == "id" or word == "ids" or word == "number":
+        return True
     if word[0].isupper():
         return True
     else:
@@ -108,7 +110,7 @@ def translate_single_rule(token_seq, parent):
 
     tmp_idx = 0
     for cur_token in token_seq:
-        if cur_token[0].islower():
+        if not is_terminating_keyword(cur_token):
             all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
         else:
             all_saved_str += cur_token + " "
@@ -272,7 +274,6 @@ def handle_ori_comp_parser() -> str:
     # gather all the token information first. 
 
     file_fd = open("./assets/sqlite_ori_parse.y")
-    rules_only_fd = open("./assets/sqlite_parse_rule_only.y", "w+")
 
     all_lines = file_fd.readlines()
     all_saved_lines = ""
@@ -288,8 +289,10 @@ def handle_ori_comp_parser() -> str:
         if cur_line.startswith("%ifdef "):
             is_def_ignore = True
             continue
-        if is_def_ignore == True and cur_line.startswith("%endif"):
-            is_def_ignore = False
+        if "%endif" in cur_line:
+            if is_def_ignore == True:
+                is_def_ignore = False
+            macro_is_read = True
             continue
         if is_def_ignore == True:
             continue
@@ -304,6 +307,11 @@ def handle_ori_comp_parser() -> str:
             all_saved_lines += cur_line
             is_fallback_multiline = True
             continue
+        if cur_line.startswith("%token ") or cur_line.startswith("%token\n"):
+            all_saved_lines += cur_line
+            if "." not in cur_line:
+                is_fallback_multiline = True
+            continue
         if is_fallback_multiline and "." in cur_line:
             all_saved_lines += cur_line
             is_fallback_multiline = False
@@ -312,9 +320,9 @@ def handle_ori_comp_parser() -> str:
             all_saved_lines += cur_line
             continue
 
+
         # All other saved types.
-        if cur_line.startswith("%token ") or \
-                cur_line.startswith("%left ") or \
+        if cur_line.startswith("%left ") or \
                 cur_line.startswith("%right ") or \
                 cur_line.startswith("%nonassoc ") or \
                 cur_line.startswith("%wildcard ") or \
@@ -328,11 +336,8 @@ def handle_ori_comp_parser() -> str:
             cur_line = cur_line.split("{")[0]
             cur_line += "{IR*}\n"
             all_saved_lines += cur_line
+            continue
 
-    for cur_line in all_lines:
-
-        if "%endif" in cur_line:
-            macro_is_read = True
 
         if macro_is_read == False:
             continue
@@ -346,20 +351,20 @@ def handle_ori_comp_parser() -> str:
             cur_line = re.sub("\n", "", cur_line)
             # remove all the bracket and the contents within.
             cur_line = re.sub("[\(].*?[\)]", "", cur_line)
-            rules_only_fd.write(cur_line+"\n")
+            all_saved_lines += cur_line+"\n"
             rule_is_read = False
             continue
 
         if rule_is_read == True and "." not in cur_line:
             cur_line = re.sub("[\(].*?[\)]", "", cur_line)
             cur_line = re.sub("\n", "", cur_line)
-            rules_only_fd.write(cur_line)
+            all_saved_lines+=cur_line
             continue
 
         if "::=" in cur_line and "." not in cur_line:
             cur_line = re.sub("[\(].*?[\)]", "", cur_line)
             cur_line = re.sub("\n", "", cur_line)
-            rules_only_fd.write(cur_line)
+            all_saved_lines+=cur_line
             rule_is_read = True
             continue
 
@@ -368,26 +373,27 @@ def handle_ori_comp_parser() -> str:
             cur_line = re.sub("\n", "", cur_line)
             # remove all the bracket and the contents within.
             cur_line = re.sub("[\(].*?[\)]", "", cur_line)
-            rules_only_fd.write(cur_line+"\n")
+            all_saved_lines+=cur_line+"\n"
             continue
 
     logger.debug("\n\n\nGetting all_saved_lines for token declaration : %s\n\n\n"%(all_saved_lines))
 
     file_fd.close()
-    rules_only_fd.close()
     
     return all_saved_lines
 
-def get_rules_text() -> str:
+def get_rules_text(all_saved_str: str) -> str:
     # gather all the token information first. 
 
-    file_fd = open("./assets/sqlite_parse_rule_only.y")
-
-    all_lines = file_fd.readlines()
+    all_lines = all_saved_str.splitlines()
     all_saved_lines = ""
 
     for cur_line in all_lines:
         if cur_line.startswith("// "):
+            continue
+
+        if "::=" not in cur_line:
+            all_saved_lines += cur_line + "\n"
             continue
 
         ori_line = cur_line
@@ -424,10 +430,10 @@ def run(output_fd, all_ir_type_fd):
     predef_str = get_predef_text()
     token_str = handle_ori_comp_parser()
 
-    rules_str = get_rules_text()
+    rules_str = get_rules_text(token_str)
 
     output_fd.write(predef_str)
-    output_fd.write(token_str)
+    # output_fd.write(token_str)
     output_fd.write(rules_str)
 
     all_ir_type_fd.write("\n".join(all_translated_types))
