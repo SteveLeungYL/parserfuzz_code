@@ -3,6 +3,7 @@ import os.path
 import json
 from loguru import logger
 from typing import List
+import re
 
 
 ONETAB = " " * 4
@@ -224,7 +225,7 @@ def translate_single_action(token_seq, parent):
     if body:
         ir_type_str = ir_type_str_rewrite(parent)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
-        body += "root_ir = (IR*)(A);\n"
+        body += "*root_ir = (IR*)(A);\n"
         if f"k{ir_type_str}" not in all_translated_types:
             all_translated_types.append(f"k{ir_type_str}")
 
@@ -245,7 +246,7 @@ def get_predef_text() ->str:
 
 // An extra argument to the parse function for the parser, which is available
 // to all actions.
-%extra_argument {IR* root_ir}
+%extra_argument {IR** root_ir}
 
 // The name of the generated procedure that implements the parser
 // is as follows:
@@ -271,12 +272,15 @@ def handle_ori_comp_parser() -> str:
     # gather all the token information first. 
 
     file_fd = open("./assets/sqlite_ori_parse.y")
+    rules_only_fd = open("./assets/sqlite_parse_rule_only.y", "w+")
 
     all_lines = file_fd.readlines()
     all_saved_lines = ""
 
     is_fallback_multiline = False
     is_def_ignore = False
+    rule_is_read = False
+    macro_is_read = True 
 
     for cur_line in all_lines:
 
@@ -325,7 +329,52 @@ def handle_ori_comp_parser() -> str:
             cur_line += "{IR*}\n"
             all_saved_lines += cur_line
 
+    for cur_line in all_lines:
+
+        if "%endif" in cur_line:
+            macro_is_read = True
+
+        if macro_is_read == False:
+            continue
+
+        if "%else" in cur_line:
+            macro_is_read = False
+            continue
+        
+        if rule_is_read == True and "." in cur_line:
+            cur_line = cur_line.split("{")[0]
+            cur_line = re.sub("\n", "", cur_line)
+            # remove all the bracket and the contents within.
+            cur_line = re.sub("[\(].*?[\)]", "", cur_line)
+            rules_only_fd.write(cur_line+"\n")
+            rule_is_read = False
+            continue
+
+        if rule_is_read == True and "." not in cur_line:
+            cur_line = re.sub("[\(].*?[\)]", "", cur_line)
+            cur_line = re.sub("\n", "", cur_line)
+            rules_only_fd.write(cur_line)
+            continue
+
+        if "::=" in cur_line and "." not in cur_line:
+            cur_line = re.sub("[\(].*?[\)]", "", cur_line)
+            cur_line = re.sub("\n", "", cur_line)
+            rules_only_fd.write(cur_line)
+            rule_is_read = True
+            continue
+
+        if "::=" in cur_line and "." in cur_line:
+            cur_line = cur_line.split("{")[0]
+            cur_line = re.sub("\n", "", cur_line)
+            # remove all the bracket and the contents within.
+            cur_line = re.sub("[\(].*?[\)]", "", cur_line)
+            rules_only_fd.write(cur_line+"\n")
+            continue
+
     logger.debug("\n\n\nGetting all_saved_lines for token declaration : %s\n\n\n"%(all_saved_lines))
+
+    file_fd.close()
+    rules_only_fd.close()
     
     return all_saved_lines
 
