@@ -2729,6 +2729,7 @@ inline void print_exec_debug_info(ostream &out) {
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
       << "bug_samples reports num: " << bug_output_id << "\n"
+      << "gram coverage size num: " << g_mutator.get_gram_total_cov_size_num() << "\n"
       << "gram coverage size: " << g_mutator.get_gram_total_cov_size() << "\n";
 
   return;
