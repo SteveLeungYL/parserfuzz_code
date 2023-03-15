@@ -25,9 +25,12 @@ oracle_str = "NOREC"
 feedback_str = ""
 explain_flag = False
 is_non_deter = False
+is_disable_rsg = False
+is_disable_rsg_cov = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:T:E", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "timeout=", "non-deter"])
+    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:T:ERr", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "timeout=", "non-deter", \
+        "disable-rsg", "disable-rsg-cov"])
 except getopt.GetoptError:
     print("Arguments parsing error")
     exit(1)
@@ -56,6 +59,12 @@ for opt, arg in opts:
     elif opt in ("--non-deter"):
         is_non_deter = True
         print("Using Non-Deterministic Behavior. ")
+    elif opt in ("-R", "disable-rsg"):
+        is_disable_rsg = True
+        print("Disable RSG module. ")
+    elif opt in ("-r", "disable-rsg-cov"):
+        is_disable_rsg_cov = True
+        print("Disable RSG coverage feedback. ")
     else:
         print("Error. Input arguments not supported. \n")
         exit(1)
@@ -83,6 +92,12 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "-c", str(cur_inst_id),
         "-O", str(oracle_str)
     ]
+
+    if is_disable_rsg:
+        fuzzing_command.append("-R")
+
+    if is_disable_rsg_cov:
+        fuzzing_command.append("-r")
 
     if explain_flag:
         fuzzing_command.append("-E")
