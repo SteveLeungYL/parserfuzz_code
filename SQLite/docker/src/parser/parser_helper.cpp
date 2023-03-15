@@ -8,6 +8,10 @@
 #include "parser_helper.h"
 #include "sqlite_lemon_parser.h"
 
+extern "C" {
+#include "sqlite3.h"
+}
+
 /* Character classes for tokenizing
 **
 ** In the sqlite3GetToken() function, a switch() on aiClass[c] is implemented
@@ -91,7 +95,7 @@ static const unsigned char aKWHash[127] = {
     132,   0,  98,  38,  39,   0,  20,  45, 117,  93,
 };
 
-const unsigned char sqlite3CtypeMap[256] = {
+static const unsigned char sqlite3CtypeMap[256] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* 00..07    ........ */
     0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00,  /* 08..0f    ........ */
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* 10..17    ........ */
@@ -299,7 +303,7 @@ int sqlite3KeywordCode(const unsigned char *z, int n){
   return id;
 }
 
-int sqlite3GetToken(const unsigned char *z, int *tokenType);
+static int sqlite3GetToken(const unsigned char *z, int *tokenType);
 
 static int sqlite3ParserFallback(int iToken){
 #ifdef YYFALLBACK
@@ -355,7 +359,7 @@ inline int analyzeFilterKeyword(const unsigned char *z, int lastToken){
   return TKIR_ID;
 }
 
-int sqlite3GetToken(const unsigned char *z, int *tokenType){
+static int sqlite3GetToken(const unsigned char *z, int *tokenType){
   int i, c;
   switch( aiClass[*z] ){  /* Switch on the character-class of the first byte
                           ** of the token. See the comment on the CC_ defines
@@ -630,6 +634,29 @@ int sqlite3GetToken(const unsigned char *z, int *tokenType){
 }
 
 IR* parser_helper(const string in_str) {
+
+  // First of all, try to parse the query with SQLite3 original interface.
+  sqlite3 *db;
+  sqlite3_stmt *pstmt;
+  int rc;
+
+  rc = sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+  if (rc) {
+    cerr << "\n\n\nERROR: cannot open sqlite3 database in memory. \n\n\n";
+    exit(1);
+  }
+  
+  rc = sqlite3_prepare_v2(db, in_str.c_str(), -1, &pstmt, NULL);
+
+  sqlite3_finalize(pstmt);
+  sqlite3_close_v2(db);
+
+  if (pstmt == nullptr) {
+    cerr << "\n\n\nDEBUG: Parsing failure. \n\n\n";
+    cerr << "\n\n\nGetting return code: " << rc << "\n\n\n";
+    printf("%s: %s\n", sqlite3_errstr(sqlite3_extended_errcode(db)), sqlite3_errmsg(db));
+    return nullptr;
+  }
 
   IR* root_ir = nullptr;
   IR** tmp_p_root_ir = &root_ir;

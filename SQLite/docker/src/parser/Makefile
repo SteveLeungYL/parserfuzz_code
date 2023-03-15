@@ -14,7 +14,7 @@ sqlite_lemon_parser.cpp: sqlite_lemon_parser.y
 	mv sqlite_lemon_parser.c sqlite_lemon_parser.cpp
 
 clean:
-	rm -rf sqlite_lemon_parser.cpp sqlite_lemon_parser.h sqlite_lemon_parser.out *.o .deps
+	rm -rf sqlite_lemon_parser.cpp sqlite_lemon_parser.h sqlite_lemon_parser.out sqlite_lemon_parser.o parser_helper.o .deps
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d

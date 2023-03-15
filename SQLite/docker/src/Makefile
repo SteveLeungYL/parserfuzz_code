@@ -1,6 +1,6 @@
 SUB_DIRS := oracle src AFL
 
-PARSER_SRCS := parser/parser_helper.o parser/sqlite_lemon_parser.o
+PARSER_SRCS := parser/sqlite3.o parser/parser_helper.o parser/sqlite_lemon_parser.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 COMM_OBJS += rsg/rsg.o
@@ -11,7 +11,7 @@ TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 MINIMIZER_OBJS := AFL/query-minimizer.o $(COMM_OBJS)
 
 export CC = g++
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS)
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS) -pthread
 LDFLAGS = -ldl
 
 
