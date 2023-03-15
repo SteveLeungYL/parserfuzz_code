@@ -144,6 +144,9 @@ public:
     u32 t_bytes = this->count_non_255_bytes(this->virgin_map);
     return ((double)t_bytes * 100.0) / MAP_SIZE;
   }
+  inline u32 get_total_cov_size_num() {
+    return this->count_non_255_bytes(this->virgin_map);
+  }
 
   unsigned char* get_cov_map() {
     return this->cov_map;

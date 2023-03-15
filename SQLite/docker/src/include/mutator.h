@@ -165,7 +165,8 @@ public:
 
   int get_num_rsg_gen() {return this->num_rsg_gen;}
 
-  double get_gram_total_cov_size() {return this->gram_cov_map.get_total_cov_size();}
+  inline double get_gram_total_cov_size() {return this->gram_cov_map.get_total_cov_size();}
+  inline u32 get_gram_total_cov_size_num() {return this->gram_cov_map.get_total_cov_size_num();}
 
 private:
   void add_to_valid_lib(IR *, string &);
