@@ -2,11 +2,13 @@
 #define __AST_H__
 
 #include "define.h"
+#include "../AFL/config.h"
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
+#include <cstring>
 
 using namespace std;
 
@@ -104,6 +106,58 @@ enum IDTYPE {
 };
 
 typedef NODETYPE IRTYPE;
+
+class GramCovMap {
+
+public:
+
+  GramCovMap() {
+    this->cov_map = new unsigned char[MAP_SIZE]();
+    memset(this->cov_map, 0, MAP_SIZE);
+    this->virgin_map = new unsigned char[MAP_SIZE]();
+    memset(this->virgin_map, 0xff, MAP_SIZE);
+    prev_cov = 0;
+  }
+  ~GramCovMap() {
+    delete(this->cov_map);
+    delete(this->virgin_map);
+  }
+
+  u8 has_new_grammar_bits();
+
+  void reset_cov_map() {
+    memset(this->cov_map, 0, MAP_SIZE);
+    prev_cov = 0;
+  }
+  void reset_virgin_map() {
+    memset(this->virgin_map, 0, MAP_SIZE);
+    prev_cov = 0;
+  }
+
+  void log_cov_map(unsigned int cur_cov) {
+    unsigned int offset = (prev_cov ^ cur_cov);
+    if (cov_map[offset] < 0xff) { cov_map[offset]++; }
+    prev_cov = (cur_cov >> 1);
+  }
+
+  inline double get_total_cov_size() {
+    u32 t_bytes = this->count_non_255_bytes(this->virgin_map);
+    return ((double)t_bytes * 100.0) / MAP_SIZE;
+  }
+
+  unsigned char* get_cov_map() {
+    return this->cov_map;
+  }
+private:
+  unsigned char* cov_map = nullptr;
+  unsigned char* virgin_map = nullptr;
+  unsigned int prev_cov;
+
+  /* Count the number of non-255 bytes set in the bitmap. Used strictly for the
+   status screen, several calls per second or so. */
+  // Copy from afl-fuzz.
+  u32 count_non_255_bytes(u8 *mem);
+};
 
 class IROperator {
 public:

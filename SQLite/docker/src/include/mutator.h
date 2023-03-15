@@ -27,7 +27,6 @@ class Mutator {
 public:
 
   // simple setters
-  //
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
   int get_cri_valid_collection_size() { return all_cri_valid_pstr_vec.size(); }
@@ -37,9 +36,13 @@ public:
     this->disable_dyn_instan = dis_dyn;
   }
 
-void set_disable_rsg_generator(bool in) {
-  this->disable_rsg_generator = in;
-}
+  void set_disable_rsg_generator(bool in) {
+    this->disable_rsg_generator = in;
+  }
+
+  void set_disable_rsg_cov_feedback(bool in) {
+    this->disable_rsg_cov_feedback = in;
+  }
 
   Mutator() { srand(time(nullptr)); rsg_initialize(); }
 
@@ -151,10 +154,12 @@ void set_disable_rsg_generator(bool in) {
   void resolve_drop_statement(IR*, bool is_debug_info = false);
   void resolve_alter_statement(IR*, bool is_debug_info = false);
 
-  void rsg_exec_succeed_helper() { rsg_exec_succeed(); }
-  void rsg_exec_failed_helper() { rsg_exec_failed(); }
+  void rsg_exec_succeed_helper() { if (!disable_rsg_cov_feedback && !disable_rsg_generator) {rsg_exec_succeed();} }
+  void rsg_exec_failed_helper() { if (!disable_rsg_cov_feedback && !disable_rsg_generator) { rsg_exec_failed();} }
 
   int get_num_rsg_gen() {return this->num_rsg_gen;}
+
+  double get_gram_total_cov_size() {return this->gram_cov_map.get_total_cov_size();}
 
 private:
   void add_to_valid_lib(IR *, string &);
@@ -209,9 +214,11 @@ private:
 
   Program *parser(const char *sql);
 
-  u8 disable_rsg_generator, disable_dyn_instan;
+  u8 disable_rsg_generator, disable_dyn_instan, disable_rsg_cov_feedback;
 
   int num_rsg_gen = 0;
+
+  GramCovMap gram_cov_map;
 
 };
 

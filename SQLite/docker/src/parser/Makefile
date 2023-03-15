@@ -1,3 +1,5 @@
+BISON?=bison
+FLEX?=flex
 LEMON?=lemon
 
 #FLEX_VERSION=$(shell $(FLEX) --version | head -n 1 | grep -o '[0-9]\.[0-9]\+')
@@ -5,16 +7,22 @@ LEMON?=lemon
 #ifneq ($(FLEX_VERSION_SUPPORTED), 1)
 #$(error Flex version $(FLEX_VERSION) not supported. If you are using OS X, `flex` uses the system default instead of the brew version. Run FLEX=/usr/local/opt/flex/bin/flex make)
 #endif
-SRCS = sqlite_lemon_parser.cpp parser_helper.cpp
+SRCS = sqlite_lemon_parser.cpp parser_helper.cpp bison_parser.cpp flex_lexer.cpp
 
 all: $(SRCS:%.cpp=%.o)
+
+bison_parser.cpp: bison_parser.y
+	$(BISON) bison_parser.y --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
+
+flex_lexer.cpp: flex_lexer.l
+	$(FLEX) flex_lexer.l
 
 sqlite_lemon_parser.cpp: sqlite_lemon_parser.y
 	$(LEMON) sqlite_lemon_parser.y
 	mv sqlite_lemon_parser.c sqlite_lemon_parser.cpp
 
 clean:
-	rm -rf sqlite_lemon_parser.cpp sqlite_lemon_parser.h sqlite_lemon_parser.out sqlite_lemon_parser.o parser_helper.o .deps
+	rm -rf bison_parser.cpp flex_lexer.cpp bison_parser.h flex_lexer.h *.output sqlite_lemon_parser.cpp sqlite_lemon_parser.h sqlite_lemon_parser.out *.o .deps
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d

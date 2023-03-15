@@ -174,18 +174,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 vector<IR *> Mutator::parse_query_str_get_ir_set(const string &query_str) {
   vector<IR *> ir_set;
 
-  IR* tmp_root = parser_helper(query_str);
 
-  if (tmp_root == nullptr) {
-    return ir_set;
-  }
-
-  ir_set = p_oracle->ir_wrapper.get_all_ir_node(tmp_root);
-
-  int unique_id_for_node = 0;
-  for (auto ir : ir_set) {
-    ir->uniq_id_in_tree_ = unique_id_for_node++;
-  }
+  ir_set = parser_helper(query_str, &(this->gram_cov_map));
 
   return ir_set;
 }

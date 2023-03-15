@@ -7,10 +7,9 @@
 #include <vector>
 #include "parser_helper.h"
 #include "sqlite_lemon_parser.h"
+#include "bison_parser.h"
+#include "flex_lexer.h"
 
-extern "C" {
-#include "sqlite3.h"
-}
 
 /* Character classes for tokenizing
 **
@@ -633,34 +632,30 @@ static int sqlite3GetToken(const unsigned char *z, int *tokenType){
   return i;
 }
 
-IR* parser_helper(const string in_str) {
+Program *bison_parser_helper(const char *query) {
+  yyscan_t scanner;
+  YY_BUFFER_STATE state;
 
-  // First of all, try to parse the query with SQLite3 original interface.
-  sqlite3 *db;
-  sqlite3_stmt *pstmt;
-  int rc;
+  if (hsql_lex_init(&scanner)) return NULL;
 
-  rc = sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-  if (rc) {
-    cerr << "\n\n\nERROR: cannot open sqlite3 database in memory. \n\n\n";
-    exit(1);
-  }
-  
-  rc = sqlite3_prepare_v2(db, in_str.c_str(), -1, &pstmt, NULL);
+  state = hsql__scan_string(query, scanner);
 
-  sqlite3_finalize(pstmt);
-  sqlite3_close_v2(db);
+  Program *p = new Program();
+  int ret = hsql_parse(p, scanner);
 
-  if (pstmt == nullptr) {
-    cerr << "\n\n\nDEBUG: Parsing failure. \n\n\n";
-    cerr << "\n\n\nGetting return code: " << rc << "\n\n\n";
-    printf("%s: %s\n", sqlite3_errstr(sqlite3_extended_errcode(db)), sqlite3_errmsg(db));
-    return nullptr;
+  hsql__delete_buffer(state, scanner);
+  hsql_lex_destroy(scanner);
+  if (ret != 0) {
+    p->deep_delete();
+    return NULL;
   }
 
-  IR* root_ir = nullptr;
-  IR** tmp_p_root_ir = &root_ir;
+  return p;
+}
 
+u8 lemon_parser_helper(const string& in_str, GramCovMap* p_gram) {
+
+  // Fuzzer internal lemon parsing engine.
   void* pEngine = IRParserAlloc(malloc);
   if (pEngine == 0) {
     cerr << "\n\n\nERROR: Lemon parser initialization failed. \n\n\n";
@@ -725,17 +720,74 @@ IR* parser_helper(const string in_str) {
 
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
-    IRParser(pEngine, tokenType, tmp_tmp_zSql, tmp_p_root_ir);
+    IRParser(pEngine, tokenType, tmp_tmp_zSql, p_gram);
     lastTokenParsed = tokenType;
     zSql += n;
   }
-  IRParser(pEngine, 0, "", tmp_p_root_ir);
+  IRParser(pEngine, 0, "", p_gram);
   IRParserFree(pEngine, free);
 
   for (char* cur_zSql : all_dup_zSql) {
     free(cur_zSql);
   }
 
-  return root_ir;
+  u8 res = p_gram->has_new_grammar_bits();
+  p_gram->reset_cov_map();
+  return res;
+}
 
+//bool ori_sqlite_parser_helper(const string& in_str) {
+//    sqlite3 *db;
+//    sqlite3_stmt *pstmt;
+//    int rc;
+//
+//    rc = sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+//    if (rc) {
+//      cerr << "\n\n\nERROR: cannot open sqlite3 database in memory. \n\n\n";
+//      exit(1);
+//    }
+//
+//    rc = sqlite3_prepare_v2(db, in_str.c_str(), -1, &pstmt, NULL);
+//
+//    sqlite3_finalize(pstmt);
+//    sqlite3_close_v2(db);
+//
+//    if (pstmt == nullptr) {
+//      return nullptr;
+//    }
+//}
+
+vector<IR*> parser_helper(const string in_str, GramCovMap* p_gram) {
+
+  // First of all, try to parse the query with SQLite3 original interface.
+//  ori_sqlite_parser_helper(in_str);
+
+  // And then, use the lemon parser to gather the grammar coverage.
+  if (p_gram != nullptr) {
+    lemon_parser_helper(in_str, p_gram);
+  }
+
+  vector<IR *> ir_set;
+  Program *p_strip_sql = bison_parser_helper(in_str.c_str());
+  if (p_strip_sql == NULL)
+    return ir_set;
+
+  try {
+    IR *root_ir = p_strip_sql->translate(ir_set);
+  } catch (...) {
+    p_strip_sql->deep_delete();
+
+    for (auto ir : ir_set)
+      ir->drop();
+
+    ir_set.clear();
+    return ir_set;
+  }
+
+  int unique_id_for_node = 0;
+  for (auto ir : ir_set)
+    ir->uniq_id_in_tree_ = unique_id_for_node++;
+
+  p_strip_sql->deep_delete();
+  return ir_set;
 }

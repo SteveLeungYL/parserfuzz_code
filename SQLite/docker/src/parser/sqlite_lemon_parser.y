@@ -10,7 +10,7 @@
 
 // An extra argument to the parse function for the parser, which is available
 // to all actions.
-%extra_argument {IR** root_ir}
+%extra_argument {GramCovMap* p_cov_map}
 
 // The name of the generated procedure that implements the parser
 // is as follows:
@@ -29,220 +29,173 @@
 
 }
 
-input(A) ::= cmdlist(B) . {
-A = new IR(kInput, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+input ::= cmdlist . {
+p_cov_map->log_cov_map(239893); 
 }
 
-cmdlist(A) ::= cmdlist(B) ecmd(C) . {
-A = new IR(kCmdlist, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+cmdlist ::= cmdlist ecmd . {
+p_cov_map->log_cov_map(108263); 
 }
 
-cmdlist(A) ::= ecmd(B) . {
-A = new IR(kCmdlist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+cmdlist ::= ecmd . {
+p_cov_map->log_cov_map(176099); 
 }
 
-ecmd(A) ::= SEMI(B) . {
-A = new IR(kEcmd, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+ecmd ::= SEMI . {
+p_cov_map->log_cov_map(68306); 
 }
 
-ecmd(A) ::= cmdx(B) SEMI(C) . {
-A = new IR(kEcmd, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+ecmd ::= cmdx SEMI . {
+p_cov_map->log_cov_map(75711); 
 }
 
-ecmd(A) ::= explain(B) cmdx(C) SEMI(D) .       {
-A = new IR(kEcmd, OP3("", "", string(D)), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+ecmd ::= explain cmdx SEMI .       {
+p_cov_map->log_cov_map(31733); 
 }
 
-explain(A) ::= EXPLAIN(B) .              {
-A = new IR(kExplain, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+explain ::= EXPLAIN .              {
+p_cov_map->log_cov_map(222208); 
 }
 
-explain(A) ::= EXPLAIN(B) QUERY(C) PLAN(D) .   {
-A = new IR(kExplain, OP3(string(B) + string(C) + string(D), "", ""));
-*root_ir = (IR*)(A);
+explain ::= EXPLAIN QUERY PLAN .   {
+p_cov_map->log_cov_map(229205); 
 }
 
-cmdx(A) ::= cmd(B) .           {
-A = new IR(kCmdx, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+cmdx ::= cmd .           {
+p_cov_map->log_cov_map(223441); 
 }
 
-cmd(A) ::= BEGIN(B) transtype(C) trans_opt(D) .  {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= BEGIN transtype trans_opt .  {
+p_cov_map->log_cov_map(228461); 
 }
 
-trans_opt(A) ::= . {
-A = new IR(kTransOpt, OP0());
-*root_ir = (IR*)(A);
+trans_opt ::= . {
+p_cov_map->log_cov_map(5921); 
 }
 
-trans_opt(A) ::= TRANSACTION(B) . {
-A = new IR(kTransOpt, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+trans_opt ::= TRANSACTION . {
+p_cov_map->log_cov_map(213721); 
 }
 
-trans_opt(A) ::= TRANSACTION(B) nm(C) . {
-A = new IR(kTransOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+trans_opt ::= TRANSACTION nm . {
+p_cov_map->log_cov_map(147123); 
 }
 
 %type transtype {IR*}
-transtype(A) ::= .             {
-A = new IR(kTranstype, OP0());
-*root_ir = (IR*)(A);
+transtype ::= .             {
+p_cov_map->log_cov_map(105862); 
 }
 
-transtype(A) ::= DEFERRED(B) .  {
-A = new IR(kTranstype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+transtype ::= DEFERRED .  {
+p_cov_map->log_cov_map(12200); 
 }
 
-transtype(A) ::= IMMEDIATE(B) . {
-A = new IR(kTranstype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+transtype ::= IMMEDIATE . {
+p_cov_map->log_cov_map(31335); 
 }
 
-transtype(A) ::= EXCLUSIVE(B) . {
-A = new IR(kTranstype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+transtype ::= EXCLUSIVE . {
+p_cov_map->log_cov_map(30187); 
 }
 
-cmd(A) ::= COMMIT|END(B) trans_opt(C) .   {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+cmd ::= COMMIT|END trans_opt .   {
+p_cov_map->log_cov_map(23480); 
 }
 
-cmd(A) ::= ROLLBACK(B) trans_opt(C) .     {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+cmd ::= ROLLBACK trans_opt .     {
+p_cov_map->log_cov_map(23886); 
 }
 
-savepoint_opt(A) ::= SAVEPOINT(B) . {
-A = new IR(kSavepointOpt, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+savepoint_opt ::= SAVEPOINT . {
+p_cov_map->log_cov_map(45249); 
 }
 
-savepoint_opt(A) ::= . {
-A = new IR(kSavepointOpt, OP0());
-*root_ir = (IR*)(A);
+savepoint_opt ::= . {
+p_cov_map->log_cov_map(5962); 
 }
 
-cmd(A) ::= SAVEPOINT(B) nm(C) . {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+cmd ::= SAVEPOINT nm . {
+p_cov_map->log_cov_map(136346); 
 }
 
-cmd(A) ::= RELEASE(B) savepoint_opt(C) nm(D) . {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= RELEASE savepoint_opt nm . {
+p_cov_map->log_cov_map(259572); 
 }
 
-cmd(A) ::= ROLLBACK(B) trans_opt(C) TO(D) savepoint_opt(E) nm(F) . {
-A = new IR(kUnknown, OP3(string(B), string(D), ""), (IR*)C, (IR*)E);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+cmd ::= ROLLBACK trans_opt TO savepoint_opt nm . {
+p_cov_map->log_cov_map(118733); 
 }
 
-cmd(A) ::= create_table(B) create_table_args(C) . {
-A = new IR(kCmd, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+cmd ::= create_table create_table_args . {
+p_cov_map->log_cov_map(96608); 
 }
 
-create_table(A) ::= createkw(B) temp(C) TABLE(D) ifnotexists(E) nm(F) dbnm(G) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kCreateTable, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+create_table ::= createkw temp TABLE ifnotexists nm dbnm . {
+p_cov_map->log_cov_map(136098); 
 }
 
-createkw(A) ::= CREATE(B) .  {
-A = new IR(kCreatekw, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+createkw ::= CREATE .  {
+p_cov_map->log_cov_map(23695); 
 }
 
 %type ifnotexists {IR*}
-ifnotexists(A) ::= .              {
-A = new IR(kIfnotexists, OP0());
-*root_ir = (IR*)(A);
+ifnotexists ::= .              {
+p_cov_map->log_cov_map(64391); 
 }
 
-ifnotexists(A) ::= IF(B) NOT(C) EXISTS(D) . {
-A = new IR(kIfnotexists, OP3(string(B) + string(C) + string(D), "", ""));
-*root_ir = (IR*)(A);
+ifnotexists ::= IF NOT EXISTS . {
+p_cov_map->log_cov_map(162176); 
 }
 
 %type temp {IR*}
-temp(A) ::= TEMP(B) .  {
-A = new IR(kTemp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+temp ::= TEMP .  {
+p_cov_map->log_cov_map(194710); 
 }
 
-temp(A) ::= .      {
-A = new IR(kTemp, OP0());
-*root_ir = (IR*)(A);
+temp ::= .      {
+p_cov_map->log_cov_map(12617); 
 }
 
-create_table_args(A) ::= LP(B) columnlist(C) conslist_opt(D) RP(E) table_option_set(F) . {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kCreateTableArgs, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+create_table_args ::= LP columnlist conslist_opt RP table_option_set . {
+p_cov_map->log_cov_map(186184); 
 }
 
-create_table_args(A) ::= AS(B) select(C) . {
-A = new IR(kCreateTableArgs, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+create_table_args ::= AS select . {
+p_cov_map->log_cov_map(19775); 
 }
 
 %type table_option_set {IR*}
 %type table_option {IR*}
-table_option_set(A) ::= .    {
-A = new IR(kTableOptionSet, OP0());
-*root_ir = (IR*)(A);
+table_option_set ::= .    {
+p_cov_map->log_cov_map(229601); 
 }
 
-table_option_set(A) ::= table_option(B) . {
-A = new IR(kTableOptionSet, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+table_option_set ::= table_option . {
+p_cov_map->log_cov_map(183066); 
 }
 
-table_option_set(A) ::= table_option_set(B) COMMA(C) table_option(D) . {
-A = new IR(kTableOptionSet, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+table_option_set ::= table_option_set COMMA table_option . {
+p_cov_map->log_cov_map(86783); 
 }
 
-table_option(A) ::= WITHOUT(B) nm(C) . {
-A = new IR(kTableOption, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+table_option ::= WITHOUT nm . {
+p_cov_map->log_cov_map(5928); 
 }
 
-table_option(A) ::= nm(B) . {
-A = new IR(kTableOption, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+table_option ::= nm . {
+p_cov_map->log_cov_map(45460); 
 }
 
-columnlist(A) ::= columnlist(B) COMMA(C) columnname(D) carglist(E) . {
-A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
-A = new IR(kColumnlist, OP3("", "", ""), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+columnlist ::= columnlist COMMA columnname carglist . {
+p_cov_map->log_cov_map(201337); 
 }
 
-columnlist(A) ::= columnname(B) carglist(C) . {
-A = new IR(kColumnlist, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+columnlist ::= columnname carglist . {
+p_cov_map->log_cov_map(47841); 
 }
 
-columnname(A) ::= nm(B) typetoken(C) . {
-A = new IR(kColumnname, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+columnname ::= nm typetoken . {
+p_cov_map->log_cov_map(101617); 
 }
 
 %token ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN BY CASCADE CAST.
@@ -280,1895 +233,1424 @@ A = new IR(kColumnname, OP3("", "", ""), (IR*)B, (IR*)C);
 %token_class id  ID|INDEXED.
 %token_class ids  ID|STRING.
 %type nm {IR*}
-nm(A) ::= id(B) . {
-A = new IR(kNm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nm ::= id . {
+p_cov_map->log_cov_map(200661); 
 }
 
-nm(A) ::= STRING(B) . {
-A = new IR(kNm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nm ::= STRING . {
+p_cov_map->log_cov_map(106347); 
 }
 
-nm(A) ::= JOIN_KW(B) . {
-A = new IR(kNm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nm ::= JOIN_KW . {
+p_cov_map->log_cov_map(45767); 
 }
 
 %type typetoken {IR*}
-typetoken(A) ::= .   {
-A = new IR(kTypetoken, OP0());
-*root_ir = (IR*)(A);
+typetoken ::= .   {
+p_cov_map->log_cov_map(41222); 
 }
 
-typetoken(A) ::= typename(B) . {
-A = new IR(kTypetoken, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+typetoken ::= typename . {
+p_cov_map->log_cov_map(200721); 
 }
 
-typetoken(A) ::= typename(B) LP(C) signed(D) RP(E) . {
-A = new IR(kTypetoken, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+typetoken ::= typename LP signed RP . {
+p_cov_map->log_cov_map(174372); 
 }
 
-typetoken(A) ::= typename(B) LP(C) signed(D) COMMA(E) signed(F) RP(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kTypetoken, OP3("", "", string(G)), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+typetoken ::= typename LP signed COMMA signed RP . {
+p_cov_map->log_cov_map(4098); 
 }
 
 %type typename {IR*}
-typename(A) ::= ids(B) . {
-A = new IR(kTypename, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+typename ::= ids . {
+p_cov_map->log_cov_map(115395); 
 }
 
-typename(A) ::= typename(B) ids(C) . {
-A = new IR(kTypename, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+typename ::= typename ids . {
+p_cov_map->log_cov_map(14808); 
 }
 
-signed(A) ::= plus_num(B) . {
-A = new IR(kSigned, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+signed ::= plus_num . {
+p_cov_map->log_cov_map(120408); 
 }
 
-signed(A) ::= minus_num(B) . {
-A = new IR(kSigned, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+signed ::= minus_num . {
+p_cov_map->log_cov_map(101489); 
 }
 
 %type scanpt {IR*}
-scanpt(A) ::= . {
-A = new IR(kScanpt, OP0());
-*root_ir = (IR*)(A);
+scanpt ::= . {
+p_cov_map->log_cov_map(55300); 
 }
 
-scantok(A) ::= . {
-A = new IR(kScantok, OP0());
-*root_ir = (IR*)(A);
+scantok ::= . {
+p_cov_map->log_cov_map(120832); 
 }
 
-carglist(A) ::= carglist(B) ccons(C) . {
-A = new IR(kCarglist, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+carglist ::= carglist ccons . {
+p_cov_map->log_cov_map(116534); 
 }
 
-carglist(A) ::= . {
-A = new IR(kCarglist, OP0());
-*root_ir = (IR*)(A);
+carglist ::= . {
+p_cov_map->log_cov_map(148820); 
 }
 
-ccons(A) ::= CONSTRAINT(B) nm(C) .           {
-A = new IR(kCcons, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+ccons ::= CONSTRAINT nm .           {
+p_cov_map->log_cov_map(21413); 
 }
 
-ccons(A) ::= DEFAULT(B) scantok(C) term(D) . {
-A = new IR(kCcons, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+ccons ::= DEFAULT scantok term . {
+p_cov_map->log_cov_map(217960); 
 }
 
-ccons(A) ::= DEFAULT(B) LP(C) expr(D) RP(E) . {
-A = new IR(kCcons, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+ccons ::= DEFAULT LP expr RP . {
+p_cov_map->log_cov_map(190915); 
 }
 
-ccons(A) ::= DEFAULT(B) PLUS(C) scantok(D) term(E) . {
-A = new IR(kCcons, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+ccons ::= DEFAULT PLUS scantok term . {
+p_cov_map->log_cov_map(121565); 
 }
 
-ccons(A) ::= DEFAULT(B) MINUS(C) scantok(D) term(E) . {
-A = new IR(kCcons, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+ccons ::= DEFAULT MINUS scantok term . {
+p_cov_map->log_cov_map(196619); 
 }
 
-ccons(A) ::= DEFAULT(B) scantok(C) id(D) .       {
-A = new IR(kCcons, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+ccons ::= DEFAULT scantok id .       {
+p_cov_map->log_cov_map(207439); 
 }
 
-ccons(A) ::= NULL(B) onconf(C) . {
-A = new IR(kCcons, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+ccons ::= NULL onconf . {
+p_cov_map->log_cov_map(260553); 
 }
 
-ccons(A) ::= NOT(B) NULL(C) onconf(D) .    {
-A = new IR(kCcons, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+ccons ::= NOT NULL onconf .    {
+p_cov_map->log_cov_map(260266); 
 }
 
-ccons(A) ::= PRIMARY(B) KEY(C) sortorder(D) onconf(E) autoinc(F) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-A = new IR(kCcons, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+ccons ::= PRIMARY KEY sortorder onconf autoinc . {
+p_cov_map->log_cov_map(99624); 
 }
 
-ccons(A) ::= UNIQUE(B) onconf(C) .      {
-A = new IR(kCcons, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+ccons ::= UNIQUE onconf .      {
+p_cov_map->log_cov_map(151753); 
 }
 
-ccons(A) ::= CHECK(B) LP(C) expr(D) RP(E) .  {
-A = new IR(kCcons, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+ccons ::= CHECK LP expr RP .  {
+p_cov_map->log_cov_map(144525); 
 }
 
-ccons(A) ::= REFERENCES(B) nm(C) eidlist_opt(D) refargs(E) . {
-A = new IR(kUnknown, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-A = new IR(kCcons, OP3("", "", ""), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+ccons ::= REFERENCES nm eidlist_opt refargs . {
+p_cov_map->log_cov_map(235802); 
 }
 
-ccons(A) ::= defer_subclause(B) .    {
-A = new IR(kCcons, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+ccons ::= defer_subclause .    {
+p_cov_map->log_cov_map(82802); 
 }
 
-ccons(A) ::= COLLATE(B) ids(C) .        {
-A = new IR(kCcons, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+ccons ::= COLLATE ids .        {
+p_cov_map->log_cov_map(11704); 
 }
 
-ccons(A) ::= GENERATED(B) ALWAYS(C) AS(D) generated(E) . {
-A = new IR(kCcons, OP3(string(B) + string(C) + string(D), "", ""), (IR*)E);
-*root_ir = (IR*)(A);
+ccons ::= GENERATED ALWAYS AS generated . {
+p_cov_map->log_cov_map(21221); 
 }
 
-ccons(A) ::= AS(B) generated(C) . {
-A = new IR(kCcons, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+ccons ::= AS generated . {
+p_cov_map->log_cov_map(199552); 
 }
 
-generated(A) ::= LP(B) expr(C) RP(D) .          {
-A = new IR(kGenerated, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+generated ::= LP expr RP .          {
+p_cov_map->log_cov_map(111895); 
 }
 
-generated(A) ::= LP(B) expr(C) RP(D) ID(E) . {
-A = new IR(kGenerated, OP3(string(B), string(D) + string(E), ""), (IR*)C);
-*root_ir = (IR*)(A);
+generated ::= LP expr RP ID . {
+p_cov_map->log_cov_map(40933); 
 }
 
 %type autoinc {IR*}
-autoinc(A) ::= .          {
-A = new IR(kAutoinc, OP0());
-*root_ir = (IR*)(A);
+autoinc ::= .          {
+p_cov_map->log_cov_map(212257); 
 }
 
-autoinc(A) ::= AUTOINCR(B) .  {
-A = new IR(kAutoinc, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+autoinc ::= AUTOINCR .  {
+p_cov_map->log_cov_map(180260); 
 }
 
 %type refargs {IR*}
-refargs(A) ::= .                  {
-A = new IR(kRefargs, OP0());
-*root_ir = (IR*)(A);
+refargs ::= .                  {
+p_cov_map->log_cov_map(151152); 
 }
 
-refargs(A) ::= refargs(B) refarg(C) . {
-A = new IR(kRefargs, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+refargs ::= refargs refarg . {
+p_cov_map->log_cov_map(179571); 
 }
 
 %type refarg {IR*}
-refarg(A) ::= MATCH(B) nm(C) .              {
-A = new IR(kRefarg, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+refarg ::= MATCH nm .              {
+p_cov_map->log_cov_map(237294); 
 }
 
-refarg(A) ::= ON(B) INSERT(C) refact(D) .      {
-A = new IR(kRefarg, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+refarg ::= ON INSERT refact .      {
+p_cov_map->log_cov_map(217755); 
 }
 
-refarg(A) ::= ON(B) DELETE(C) refact(D) .   {
-A = new IR(kRefarg, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+refarg ::= ON DELETE refact .   {
+p_cov_map->log_cov_map(60502); 
 }
 
-refarg(A) ::= ON(B) UPDATE(C) refact(D) .   {
-A = new IR(kRefarg, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+refarg ::= ON UPDATE refact .   {
+p_cov_map->log_cov_map(23999); 
 }
 
 %type refact {IR*}
-refact(A) ::= SET(B) NULL(C) .              {
-A = new IR(kRefact, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+refact ::= SET NULL .              {
+p_cov_map->log_cov_map(162853); 
 }
 
-refact(A) ::= SET(B) DEFAULT(C) .           {
-A = new IR(kRefact, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+refact ::= SET DEFAULT .           {
+p_cov_map->log_cov_map(248627); 
 }
 
-refact(A) ::= CASCADE(B) .               {
-A = new IR(kRefact, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+refact ::= CASCADE .               {
+p_cov_map->log_cov_map(199536); 
 }
 
-refact(A) ::= RESTRICT(B) .              {
-A = new IR(kRefact, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+refact ::= RESTRICT .              {
+p_cov_map->log_cov_map(165408); 
 }
 
-refact(A) ::= NO(B) ACTION(C) .             {
-A = new IR(kRefact, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+refact ::= NO ACTION .             {
+p_cov_map->log_cov_map(46103); 
 }
 
 %type defer_subclause {IR*}
-defer_subclause(A) ::= NOT(B) DEFERRABLE(C) init_deferred_pred_opt(D) .     {
-A = new IR(kDeferSubclause, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+defer_subclause ::= NOT DEFERRABLE init_deferred_pred_opt .     {
+p_cov_map->log_cov_map(23106); 
 }
 
-defer_subclause(A) ::= DEFERRABLE(B) init_deferred_pred_opt(C) .      {
-A = new IR(kDeferSubclause, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+defer_subclause ::= DEFERRABLE init_deferred_pred_opt .      {
+p_cov_map->log_cov_map(53381); 
 }
 
 %type init_deferred_pred_opt {IR*}
-init_deferred_pred_opt(A) ::= .                       {
-A = new IR(kInitDeferredPredOpt, OP0());
-*root_ir = (IR*)(A);
+init_deferred_pred_opt ::= .                       {
+p_cov_map->log_cov_map(27417); 
 }
 
-init_deferred_pred_opt(A) ::= INITIALLY(B) DEFERRED(C) .     {
-A = new IR(kInitDeferredPredOpt, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+init_deferred_pred_opt ::= INITIALLY DEFERRED .     {
+p_cov_map->log_cov_map(227268); 
 }
 
-init_deferred_pred_opt(A) ::= INITIALLY(B) IMMEDIATE(C) .    {
-A = new IR(kInitDeferredPredOpt, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+init_deferred_pred_opt ::= INITIALLY IMMEDIATE .    {
+p_cov_map->log_cov_map(184579); 
 }
 
-conslist_opt(A) ::= .                         {
-A = new IR(kConslistOpt, OP0());
-*root_ir = (IR*)(A);
+conslist_opt ::= .                         {
+p_cov_map->log_cov_map(200818); 
 }
 
-conslist_opt(A) ::= COMMA(B) conslist(C) . {
-A = new IR(kConslistOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+conslist_opt ::= COMMA conslist . {
+p_cov_map->log_cov_map(86890); 
 }
 
-conslist(A) ::= conslist(B) tconscomma(C) tcons(D) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kConslist, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+conslist ::= conslist tconscomma tcons . {
+p_cov_map->log_cov_map(50753); 
 }
 
-conslist(A) ::= tcons(B) . {
-A = new IR(kConslist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+conslist ::= tcons . {
+p_cov_map->log_cov_map(226489); 
 }
 
-tconscomma(A) ::= COMMA(B) .            {
-A = new IR(kTconscomma, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+tconscomma ::= COMMA .            {
+p_cov_map->log_cov_map(69568); 
 }
 
-tconscomma(A) ::= . {
-A = new IR(kTconscomma, OP0());
-*root_ir = (IR*)(A);
+tconscomma ::= . {
+p_cov_map->log_cov_map(226461); 
 }
 
-tcons(A) ::= CONSTRAINT(B) nm(C) .      {
-A = new IR(kTcons, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+tcons ::= CONSTRAINT nm .      {
+p_cov_map->log_cov_map(65284); 
 }
 
-tcons(A) ::= PRIMARY(B) KEY(C) LP(D) sortlist(E) autoinc(F) RP(G) onconf(H) . {
-A = new IR(kUnknown, OP3(string(B) + string(C) + string(D), "", string(G)), (IR*)E, (IR*)F);
-A = new IR(kTcons, OP3("", "", ""), (IR*)A, (IR*)H);
-*root_ir = (IR*)(A);
+tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf . {
+p_cov_map->log_cov_map(35803); 
 }
 
-tcons(A) ::= UNIQUE(B) LP(C) sortlist(D) RP(E) onconf(F) . {
-A = new IR(kTcons, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
-*root_ir = (IR*)(A);
+tcons ::= UNIQUE LP sortlist RP onconf . {
+p_cov_map->log_cov_map(7607); 
 }
 
-tcons(A) ::= CHECK(B) LP(C) expr(D) RP(E) onconf(F) . {
-A = new IR(kTcons, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
-*root_ir = (IR*)(A);
+tcons ::= CHECK LP expr RP onconf . {
+p_cov_map->log_cov_map(1434); 
 }
 
-tcons(A) ::= FOREIGN(B) KEY(C) LP(D) eidlist(E) RP(F) REFERENCES(G) nm(H) eidlist_opt(I) refargs(J) defer_subclause_opt(K) . {
-A = new IR(kUnknown, OP3(string(B) + string(C) + string(D), string(F) + string(G), ""), (IR*)E, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)J);
-A = new IR(kTcons, OP3("", "", ""), (IR*)A, (IR*)K);
-*root_ir = (IR*)(A);
+tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt . {
+p_cov_map->log_cov_map(243226); 
 }
 
 %type defer_subclause_opt {IR*}
-defer_subclause_opt(A) ::= .                    {
-A = new IR(kDeferSubclauseOpt, OP0());
-*root_ir = (IR*)(A);
+defer_subclause_opt ::= .                    {
+p_cov_map->log_cov_map(252267); 
 }
 
-defer_subclause_opt(A) ::= defer_subclause(B) . {
-A = new IR(kDeferSubclauseOpt, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+defer_subclause_opt ::= defer_subclause . {
+p_cov_map->log_cov_map(73776); 
 }
 
 %type onconf {IR*}
 %type orconf {IR*}
 %type resolvetype {IR*}
-onconf(A) ::= .                              {
-A = new IR(kOnconf, OP0());
-*root_ir = (IR*)(A);
+onconf ::= .                              {
+p_cov_map->log_cov_map(73496); 
 }
 
-onconf(A) ::= ON(B) CONFLICT(C) resolvetype(D) .    {
-A = new IR(kOnconf, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+onconf ::= ON CONFLICT resolvetype .    {
+p_cov_map->log_cov_map(196313); 
 }
 
-orconf(A) ::= .                              {
-A = new IR(kOrconf, OP0());
-*root_ir = (IR*)(A);
+orconf ::= .                              {
+p_cov_map->log_cov_map(39290); 
 }
 
-orconf(A) ::= OR(B) resolvetype(C) .             {
-A = new IR(kOrconf, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+orconf ::= OR resolvetype .             {
+p_cov_map->log_cov_map(22197); 
 }
 
-resolvetype(A) ::= raisetype(B) . {
-A = new IR(kResolvetype, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+resolvetype ::= raisetype . {
+p_cov_map->log_cov_map(62475); 
 }
 
-resolvetype(A) ::= IGNORE(B) .                   {
-A = new IR(kResolvetype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+resolvetype ::= IGNORE .                   {
+p_cov_map->log_cov_map(259998); 
 }
 
-resolvetype(A) ::= REPLACE(B) .                  {
-A = new IR(kResolvetype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+resolvetype ::= REPLACE .                  {
+p_cov_map->log_cov_map(204390); 
 }
 
-cmd(A) ::= DROP(B) TABLE(C) ifexists(D) fullname(E) . {
-A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+cmd ::= DROP TABLE ifexists fullname . {
+p_cov_map->log_cov_map(258431); 
 }
 
 %type ifexists {IR*}
-ifexists(A) ::= IF(B) EXISTS(C) .   {
-A = new IR(kIfexists, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+ifexists ::= IF EXISTS .   {
+p_cov_map->log_cov_map(23363); 
 }
 
-ifexists(A) ::= .            {
-A = new IR(kIfexists, OP0());
-*root_ir = (IR*)(A);
+ifexists ::= .            {
+p_cov_map->log_cov_map(221608); 
 }
 
-cmd(A) ::= createkw(B) temp(C) VIEW(D) ifnotexists(E) nm(F) dbnm(G) eidlist_opt(H) AS(I) select(J) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", string(I)), (IR*)A, (IR*)H);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)J);
-*root_ir = (IR*)(A);
+cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select . {
+p_cov_map->log_cov_map(93376); 
 }
 
-cmd(A) ::= DROP(B) VIEW(C) ifexists(D) fullname(E) . {
-A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+cmd ::= DROP VIEW ifexists fullname . {
+p_cov_map->log_cov_map(137895); 
 }
 
-cmd(A) ::= select(B) .  {
-A = new IR(kCmd, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+cmd ::= select .  {
+p_cov_map->log_cov_map(199210); 
 }
 
 %type select {IR*}
 %type selectnowith {IR*}
 %type oneselect {IR*}
-select(A) ::= WITH(B) wqlist(C) selectnowith(D) . {
-A = new IR(kSelect, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+select ::= WITH wqlist selectnowith . {
+p_cov_map->log_cov_map(116500); 
 }
 
-select(A) ::= WITH(B) RECURSIVE(C) wqlist(D) selectnowith(E) . {
-A = new IR(kSelect, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+select ::= WITH RECURSIVE wqlist selectnowith . {
+p_cov_map->log_cov_map(108833); 
 }
 
-select(A) ::= selectnowith(B) . {
-A = new IR(kSelect, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+select ::= selectnowith . {
+p_cov_map->log_cov_map(63420); 
 }
 
-selectnowith(A) ::= oneselect(B) . {
-A = new IR(kSelectnowith, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+selectnowith ::= oneselect . {
+p_cov_map->log_cov_map(233456); 
 }
 
-selectnowith(A) ::= selectnowith(B) multiselect_op(C) oneselect(D) .  {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kSelectnowith, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+selectnowith ::= selectnowith multiselect_op oneselect .  {
+p_cov_map->log_cov_map(100512); 
 }
 
 %type multiselect_op {IR*}
-multiselect_op(A) ::= UNION(B) .             {
-A = new IR(kMultiselectOp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+multiselect_op ::= UNION .             {
+p_cov_map->log_cov_map(142320); 
 }
 
-multiselect_op(A) ::= UNION(B) ALL(C) .             {
-A = new IR(kMultiselectOp, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+multiselect_op ::= UNION ALL .             {
+p_cov_map->log_cov_map(162406); 
 }
 
-multiselect_op(A) ::= EXCEPT|INTERSECT(B) .  {
-A = new IR(kMultiselectOp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+multiselect_op ::= EXCEPT|INTERSECT .  {
+p_cov_map->log_cov_map(133750); 
 }
 
-oneselect(A) ::= SELECT(B) distinct(C) selcollist(D) from(E) where_opt(F) groupby_opt(G) having_opt(H) orderby_opt(I) limit_opt(J) . {
-A = new IR(kUnknown, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
-A = new IR(kOneselect, OP3("", "", ""), (IR*)A, (IR*)J);
-*root_ir = (IR*)(A);
+oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt orderby_opt limit_opt . {
+p_cov_map->log_cov_map(170329); 
 }
 
-oneselect(A) ::= SELECT(B) distinct(C) selcollist(D) from(E) where_opt(F) groupby_opt(G) having_opt(H) window_clause(I) orderby_opt(J) limit_opt(K) . {
-A = new IR(kUnknown, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)J);
-A = new IR(kOneselect, OP3("", "", ""), (IR*)A, (IR*)K);
-*root_ir = (IR*)(A);
+oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt window_clause orderby_opt limit_opt . {
+p_cov_map->log_cov_map(451); 
 }
 
-oneselect(A) ::= values(B) . {
-A = new IR(kOneselect, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+oneselect ::= values . {
+p_cov_map->log_cov_map(256497); 
 }
 
 %type values {IR*}
-values(A) ::= VALUES(B) LP(C) nexprlist(D) RP(E) . {
-A = new IR(kValues, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+values ::= VALUES LP nexprlist RP . {
+p_cov_map->log_cov_map(162536); 
 }
 
-values(A) ::= values(B) COMMA(C) LP(D) nexprlist(E) RP(F) . {
-A = new IR(kValues, OP3("", string(C) + string(D), string(F)), (IR*)B, (IR*)E);
-*root_ir = (IR*)(A);
+values ::= values COMMA LP nexprlist RP . {
+p_cov_map->log_cov_map(176067); 
 }
 
 %type distinct {IR*}
-distinct(A) ::= DISTINCT(B) .   {
-A = new IR(kDistinct, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+distinct ::= DISTINCT .   {
+p_cov_map->log_cov_map(56680); 
 }
 
-distinct(A) ::= ALL(B) .        {
-A = new IR(kDistinct, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+distinct ::= ALL .        {
+p_cov_map->log_cov_map(208518); 
 }
 
-distinct(A) ::= .           {
-A = new IR(kDistinct, OP0());
-*root_ir = (IR*)(A);
+distinct ::= .           {
+p_cov_map->log_cov_map(90256); 
 }
 
 %type selcollist {IR*}
 %type sclp {IR*}
-sclp(A) ::= selcollist(B) COMMA(C) . {
-A = new IR(kSclp, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+sclp ::= selcollist COMMA . {
+p_cov_map->log_cov_map(74849); 
 }
 
-sclp(A) ::= .                                {
-A = new IR(kSclp, OP0());
-*root_ir = (IR*)(A);
+sclp ::= .                                {
+p_cov_map->log_cov_map(102170); 
 }
 
-selcollist(A) ::= sclp(B) scanpt(C) expr(D) scanpt(E) as(F) .     {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kSelcollist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+selcollist ::= sclp scanpt expr scanpt as .     {
+p_cov_map->log_cov_map(37426); 
 }
 
-selcollist(A) ::= sclp(B) scanpt(C) STAR(D) . {
-A = new IR(kSelcollist, OP3("", "", string(D)), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+selcollist ::= sclp scanpt STAR . {
+p_cov_map->log_cov_map(155344); 
 }
 
-selcollist(A) ::= sclp(B) scanpt(C) nm(D) DOT(E) STAR(F) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kSelcollist, OP3("", "", string(E) + string(F)), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+selcollist ::= sclp scanpt nm DOT STAR . {
+p_cov_map->log_cov_map(6664); 
 }
 
 %type as {IR*}
-as(A) ::= AS(B) nm(C) .    {
-A = new IR(kAs, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+as ::= AS nm .    {
+p_cov_map->log_cov_map(129328); 
 }
 
-as(A) ::= ids(B) . {
-A = new IR(kAs, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+as ::= ids . {
+p_cov_map->log_cov_map(157822); 
 }
 
-as(A) ::= .            {
-A = new IR(kAs, OP0());
-*root_ir = (IR*)(A);
+as ::= .            {
+p_cov_map->log_cov_map(96906); 
 }
 
 %type seltablist {IR*}
 %type stl_prefix {IR*}
 %type from {IR*}
-from(A) ::= .                {
-A = new IR(kFrom, OP0());
-*root_ir = (IR*)(A);
+from ::= .                {
+p_cov_map->log_cov_map(208952); 
 }
 
-from(A) ::= FROM(B) seltablist(C) . {
-A = new IR(kFrom, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+from ::= FROM seltablist . {
+p_cov_map->log_cov_map(177368); 
 }
 
-stl_prefix(A) ::= seltablist(B) joinop(C) .    {
-A = new IR(kStlPrefix, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+stl_prefix ::= seltablist joinop .    {
+p_cov_map->log_cov_map(96971); 
 }
 
-stl_prefix(A) ::= .                           {
-A = new IR(kStlPrefix, OP0());
-*root_ir = (IR*)(A);
+stl_prefix ::= .                           {
+p_cov_map->log_cov_map(246312); 
 }
 
-seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) on_using(F) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+seltablist ::= stl_prefix nm dbnm as on_using . {
+p_cov_map->log_cov_map(188690); 
 }
 
-seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) indexed_by(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+seltablist ::= stl_prefix nm dbnm as indexed_by on_using . {
+p_cov_map->log_cov_map(21227); 
 }
 
-seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) LP(E) exprlist(F) RP(G) as(H) on_using(I) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)A, (IR*)D);
-A = new IR(kUnknown, OP3("", "", string(G)), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+seltablist ::= stl_prefix nm dbnm LP exprlist RP as on_using . {
+p_cov_map->log_cov_map(125920); 
 }
 
-seltablist(A) ::= stl_prefix(B) LP(C) select(D) RP(E) as(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+seltablist ::= stl_prefix LP select RP as on_using . {
+p_cov_map->log_cov_map(252324); 
 }
 
-seltablist(A) ::= stl_prefix(B) LP(C) seltablist(D) RP(E) as(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+seltablist ::= stl_prefix LP seltablist RP as on_using . {
+p_cov_map->log_cov_map(58409); 
 }
 
 %type dbnm {IR*}
-dbnm(A) ::= .          {
-A = new IR(kDbnm, OP0());
-*root_ir = (IR*)(A);
+dbnm ::= .          {
+p_cov_map->log_cov_map(226858); 
 }
 
-dbnm(A) ::= DOT(B) nm(C) . {
-A = new IR(kDbnm, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+dbnm ::= DOT nm . {
+p_cov_map->log_cov_map(178757); 
 }
 
 %type fullname {IR*}
-fullname(A) ::= nm(B) .  {
-A = new IR(kFullname, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+fullname ::= nm .  {
+p_cov_map->log_cov_map(69241); 
 }
 
-fullname(A) ::= nm(B) DOT(C) nm(D) . {
-A = new IR(kFullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+fullname ::= nm DOT nm . {
+p_cov_map->log_cov_map(23886); 
 }
 
 %type xfullname {IR*}
-xfullname(A) ::= nm(B) .  {
-A = new IR(kXfullname, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+xfullname ::= nm .  {
+p_cov_map->log_cov_map(112588); 
 }
 
-xfullname(A) ::= nm(B) DOT(C) nm(D) .  {
-A = new IR(kXfullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+xfullname ::= nm DOT nm .  {
+p_cov_map->log_cov_map(94723); 
 }
 
-xfullname(A) ::= nm(B) DOT(C) nm(D) AS(E) nm(F) .  {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kXfullname, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+xfullname ::= nm DOT nm AS nm .  {
+p_cov_map->log_cov_map(36301); 
 }
 
-xfullname(A) ::= nm(B) AS(C) nm(D) . {
-A = new IR(kXfullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+xfullname ::= nm AS nm . {
+p_cov_map->log_cov_map(19144); 
 }
 
 %type joinop {IR*}
-joinop(A) ::= COMMA|JOIN(B) .              {
-A = new IR(kJoinop, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+joinop ::= COMMA|JOIN .              {
+p_cov_map->log_cov_map(141572); 
 }
 
-joinop(A) ::= JOIN_KW(B) JOIN(C) . {
-A = new IR(kJoinop, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+joinop ::= JOIN_KW JOIN . {
+p_cov_map->log_cov_map(49520); 
 }
 
-joinop(A) ::= JOIN_KW(B) nm(C) JOIN(D) . {
-A = new IR(kJoinop, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+joinop ::= JOIN_KW nm JOIN . {
+p_cov_map->log_cov_map(129264); 
 }
 
-joinop(A) ::= JOIN_KW(B) nm(C) nm(D) JOIN(E) . {
-A = new IR(kJoinop, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+joinop ::= JOIN_KW nm nm JOIN . {
+p_cov_map->log_cov_map(28134); 
 }
 
 %type on_using {IR*}
-on_using(A) ::= ON(B) expr(C) .            {
-A = new IR(kOnUsing, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+on_using ::= ON expr .            {
+p_cov_map->log_cov_map(118016); 
 }
 
-on_using(A) ::= USING(B) LP(C) idlist(D) RP(E) . {
-A = new IR(kOnUsing, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+on_using ::= USING LP idlist RP . {
+p_cov_map->log_cov_map(47606); 
 }
 
-on_using(A) ::= .                  [OR]{
-A = new IR(kOnUsing, OP0());
-*root_ir = (IR*)(A);
+on_using ::= .                  [OR]{
+p_cov_map->log_cov_map(192417); 
 }
 
 %type indexed_opt {IR*}
 %type indexed_by  {IR*}
-indexed_opt(A) ::= .                 {
-A = new IR(kIndexedOpt, OP0());
-*root_ir = (IR*)(A);
+indexed_opt ::= .                 {
+p_cov_map->log_cov_map(5612); 
 }
 
-indexed_opt(A) ::= indexed_by(B) . {
-A = new IR(kIndexedOpt, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+indexed_opt ::= indexed_by . {
+p_cov_map->log_cov_map(33806); 
 }
 
-indexed_by(A) ::= INDEXED(B) BY(C) nm(D) . {
-A = new IR(kIndexedBy, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+indexed_by ::= INDEXED BY nm . {
+p_cov_map->log_cov_map(197418); 
 }
 
-indexed_by(A) ::= NOT(B) INDEXED(C) .      {
-A = new IR(kIndexedBy, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+indexed_by ::= NOT INDEXED .      {
+p_cov_map->log_cov_map(5082); 
 }
 
 %type orderby_opt {IR*}
 %type sortlist {IR*}
-orderby_opt(A) ::= .                          {
-A = new IR(kOrderbyOpt, OP0());
-*root_ir = (IR*)(A);
+orderby_opt ::= .                          {
+p_cov_map->log_cov_map(218830); 
 }
 
-orderby_opt(A) ::= ORDER(B) BY(C) sortlist(D) .      {
-A = new IR(kOrderbyOpt, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+orderby_opt ::= ORDER BY sortlist .      {
+p_cov_map->log_cov_map(210567); 
 }
 
-sortlist(A) ::= sortlist(B) COMMA(C) expr(D) sortorder(E) nulls(F) . {
-A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kSortlist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+sortlist ::= sortlist COMMA expr sortorder nulls . {
+p_cov_map->log_cov_map(60101); 
 }
 
-sortlist(A) ::= expr(B) sortorder(C) nulls(D) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kSortlist, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+sortlist ::= expr sortorder nulls . {
+p_cov_map->log_cov_map(5069); 
 }
 
 %type sortorder {IR*}
-sortorder(A) ::= ASC(B) .           {
-A = new IR(kSortorder, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+sortorder ::= ASC .           {
+p_cov_map->log_cov_map(180838); 
 }
 
-sortorder(A) ::= DESC(B) .          {
-A = new IR(kSortorder, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+sortorder ::= DESC .          {
+p_cov_map->log_cov_map(117481); 
 }
 
-sortorder(A) ::= .              {
-A = new IR(kSortorder, OP0());
-*root_ir = (IR*)(A);
+sortorder ::= .              {
+p_cov_map->log_cov_map(61370); 
 }
 
 %type nulls {IR*}
-nulls(A) ::= NULLS(B) FIRST(C) .       {
-A = new IR(kNulls, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+nulls ::= NULLS FIRST .       {
+p_cov_map->log_cov_map(205344); 
 }
 
-nulls(A) ::= NULLS(B) LAST(C) .        {
-A = new IR(kNulls, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+nulls ::= NULLS LAST .        {
+p_cov_map->log_cov_map(41837); 
 }
 
-nulls(A) ::= .                  {
-A = new IR(kNulls, OP0());
-*root_ir = (IR*)(A);
+nulls ::= .                  {
+p_cov_map->log_cov_map(102729); 
 }
 
 %type groupby_opt {IR*}
-groupby_opt(A) ::= .                      {
-A = new IR(kGroupbyOpt, OP0());
-*root_ir = (IR*)(A);
+groupby_opt ::= .                      {
+p_cov_map->log_cov_map(175742); 
 }
 
-groupby_opt(A) ::= GROUP(B) BY(C) nexprlist(D) . {
-A = new IR(kGroupbyOpt, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+groupby_opt ::= GROUP BY nexprlist . {
+p_cov_map->log_cov_map(163109); 
 }
 
 %type having_opt {IR*}
-having_opt(A) ::= .                {
-A = new IR(kHavingOpt, OP0());
-*root_ir = (IR*)(A);
+having_opt ::= .                {
+p_cov_map->log_cov_map(29740); 
 }
 
-having_opt(A) ::= HAVING(B) expr(C) .  {
-A = new IR(kHavingOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+having_opt ::= HAVING expr .  {
+p_cov_map->log_cov_map(83525); 
 }
 
 %type limit_opt {IR*}
-limit_opt(A) ::= .       {
-A = new IR(kLimitOpt, OP0());
-*root_ir = (IR*)(A);
+limit_opt ::= .       {
+p_cov_map->log_cov_map(220201); 
 }
 
-limit_opt(A) ::= LIMIT(B) expr(C) . {
-A = new IR(kLimitOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+limit_opt ::= LIMIT expr . {
+p_cov_map->log_cov_map(162968); 
 }
 
-limit_opt(A) ::= LIMIT(B) expr(C) OFFSET(D) expr(E) . {
-A = new IR(kLimitOpt, OP3(string(B), string(D), ""), (IR*)C, (IR*)E);
-*root_ir = (IR*)(A);
+limit_opt ::= LIMIT expr OFFSET expr . {
+p_cov_map->log_cov_map(133855); 
 }
 
-limit_opt(A) ::= LIMIT(B) expr(C) COMMA(D) expr(E) . {
-A = new IR(kLimitOpt, OP3(string(B), string(D), ""), (IR*)C, (IR*)E);
-*root_ir = (IR*)(A);
+limit_opt ::= LIMIT expr COMMA expr . {
+p_cov_map->log_cov_map(175460); 
 }
 
-cmd(A) ::= with(B) DELETE(C) FROM(D) xfullname(E) indexed_opt(F) where_opt_ret(G) orderby_opt(H) limit_opt(I) . {
-A = new IR(kUnknown, OP3("", string(C) + string(D), ""), (IR*)B, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret orderby_opt limit_opt . {
+p_cov_map->log_cov_map(101283); 
 }
 
 %type where_opt {IR*}
 %type where_opt_ret {IR*}
-where_opt(A) ::= .                    {
-A = new IR(kWhereOpt, OP0());
-*root_ir = (IR*)(A);
+where_opt ::= .                    {
+p_cov_map->log_cov_map(219759); 
 }
 
-where_opt(A) ::= WHERE(B) expr(C) .       {
-A = new IR(kWhereOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+where_opt ::= WHERE expr .       {
+p_cov_map->log_cov_map(187610); 
 }
 
-where_opt_ret(A) ::= .                                      {
-A = new IR(kWhereOptRet, OP0());
-*root_ir = (IR*)(A);
+where_opt_ret ::= .                                      {
+p_cov_map->log_cov_map(123266); 
 }
 
-where_opt_ret(A) ::= WHERE(B) expr(C) .                         {
-A = new IR(kWhereOptRet, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+where_opt_ret ::= WHERE expr .                         {
+p_cov_map->log_cov_map(24269); 
 }
 
-where_opt_ret(A) ::= RETURNING(B) selcollist(C) .               {
-A = new IR(kWhereOptRet, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+where_opt_ret ::= RETURNING selcollist .               {
+p_cov_map->log_cov_map(97252); 
 }
 
-where_opt_ret(A) ::= WHERE(B) expr(C) RETURNING(D) selcollist(E) . {
-A = new IR(kWhereOptRet, OP3(string(B), string(D), ""), (IR*)C, (IR*)E);
-*root_ir = (IR*)(A);
+where_opt_ret ::= WHERE expr RETURNING selcollist . {
+p_cov_map->log_cov_map(255902); 
 }
 
-cmd(A) ::= with(B) UPDATE(C) orconf(D) xfullname(E) indexed_opt(F) SET(G) setlist(H) from(I) where_opt_ret(J) orderby_opt(K) limit_opt(L) .  {
-A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", string(G)), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)J);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)K);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)L);
-*root_ir = (IR*)(A);
+cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret orderby_opt limit_opt .  {
+p_cov_map->log_cov_map(52329); 
 }
 
 %type setlist {IR*}
-setlist(A) ::= setlist(B) COMMA(C) nm(D) EQ(E) expr(F) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kSetlist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+setlist ::= setlist COMMA nm EQ expr . {
+p_cov_map->log_cov_map(259930); 
 }
 
-setlist(A) ::= setlist(B) COMMA(C) LP(D) idlist(E) RP(F) EQ(G) expr(H) . {
-A = new IR(kUnknown, OP3("", string(C) + string(D), string(F) + string(G)), (IR*)B, (IR*)E);
-A = new IR(kSetlist, OP3("", "", ""), (IR*)A, (IR*)H);
-*root_ir = (IR*)(A);
+setlist ::= setlist COMMA LP idlist RP EQ expr . {
+p_cov_map->log_cov_map(35835); 
 }
 
-setlist(A) ::= nm(B) EQ(C) expr(D) . {
-A = new IR(kSetlist, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+setlist ::= nm EQ expr . {
+p_cov_map->log_cov_map(220890); 
 }
 
-setlist(A) ::= LP(B) idlist(C) RP(D) EQ(E) expr(F) . {
-A = new IR(kSetlist, OP3(string(B), string(D) + string(E), ""), (IR*)C, (IR*)F);
-*root_ir = (IR*)(A);
+setlist ::= LP idlist RP EQ expr . {
+p_cov_map->log_cov_map(108657); 
 }
 
-cmd(A) ::= with(B) insert_cmd(C) INTO(D) xfullname(E) idlist_opt(F) select(G) upsert(H) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)H);
-*root_ir = (IR*)(A);
+cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert . {
+p_cov_map->log_cov_map(46805); 
 }
 
-cmd(A) ::= with(B) insert_cmd(C) INTO(D) xfullname(E) idlist_opt(F) DEFAULT(G) VALUES(H) returning(I) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", string(G) + string(H)), (IR*)A, (IR*)F);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning . {
+p_cov_map->log_cov_map(23); 
 }
 
 %type upsert {IR*}
-upsert(A) ::= . {
-A = new IR(kUpsert, OP0());
-*root_ir = (IR*)(A);
+upsert ::= . {
+p_cov_map->log_cov_map(81997); 
 }
 
-upsert(A) ::= RETURNING(B) selcollist(C) .  {
-A = new IR(kUpsert, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+upsert ::= RETURNING selcollist .  {
+p_cov_map->log_cov_map(35074); 
 }
 
-upsert(A) ::= ON(B) CONFLICT(C) LP(D) sortlist(E) RP(F) where_opt(G) DO(H) UPDATE(I) SET(J) setlist(K) where_opt(L) upsert(M) . {
-A = new IR(kUnknown, OP3(string(B) + string(C) + string(D), string(F), string(H) + string(I) + string(J)), (IR*)E, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)K);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)L);
-A = new IR(kUpsert, OP3("", "", ""), (IR*)A, (IR*)M);
-*root_ir = (IR*)(A);
+upsert ::= ON CONFLICT LP sortlist RP where_opt DO UPDATE SET setlist where_opt upsert . {
+p_cov_map->log_cov_map(54416); 
 }
 
-upsert(A) ::= ON(B) CONFLICT(C) LP(D) sortlist(E) RP(F) where_opt(G) DO(H) NOTHING(I) upsert(J) . {
-A = new IR(kUnknown, OP3(string(B) + string(C) + string(D), string(F), string(H) + string(I)), (IR*)E, (IR*)G);
-A = new IR(kUpsert, OP3("", "", ""), (IR*)A, (IR*)J);
-*root_ir = (IR*)(A);
+upsert ::= ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert . {
+p_cov_map->log_cov_map(250887); 
 }
 
-upsert(A) ::= ON(B) CONFLICT(C) DO(D) NOTHING(E) returning(F) . {
-A = new IR(kUpsert, OP3(string(B) + string(C) + string(D) + string(E), "", ""), (IR*)F);
-*root_ir = (IR*)(A);
+upsert ::= ON CONFLICT DO NOTHING returning . {
+p_cov_map->log_cov_map(235538); 
 }
 
-upsert(A) ::= ON(B) CONFLICT(C) DO(D) UPDATE(E) SET(F) setlist(G) where_opt(H) returning(I) . {
-A = new IR(kUnknown, OP3(string(B) + string(C) + string(D) + string(E) + string(F), "", ""), (IR*)G, (IR*)H);
-A = new IR(kUpsert, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+upsert ::= ON CONFLICT DO UPDATE SET setlist where_opt returning . {
+p_cov_map->log_cov_map(110239); 
 }
 
-returning(A) ::= RETURNING(B) selcollist(C) .  {
-A = new IR(kReturning, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+returning ::= RETURNING selcollist .  {
+p_cov_map->log_cov_map(129021); 
 }
 
-returning(A) ::= . {
-A = new IR(kReturning, OP0());
-*root_ir = (IR*)(A);
+returning ::= . {
+p_cov_map->log_cov_map(81207); 
 }
 
 %type insert_cmd {IR*}
-insert_cmd(A) ::= INSERT(B) orconf(C) .   {
-A = new IR(kInsertCmd, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+insert_cmd ::= INSERT orconf .   {
+p_cov_map->log_cov_map(6299); 
 }
 
-insert_cmd(A) ::= REPLACE(B) .            {
-A = new IR(kInsertCmd, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+insert_cmd ::= REPLACE .            {
+p_cov_map->log_cov_map(34713); 
 }
 
 %type idlist_opt {IR*}
 %type idlist {IR*}
-idlist_opt(A) ::= .                       {
-A = new IR(kIdlistOpt, OP0());
-*root_ir = (IR*)(A);
+idlist_opt ::= .                       {
+p_cov_map->log_cov_map(1997); 
 }
 
-idlist_opt(A) ::= LP(B) idlist(C) RP(D) .    {
-A = new IR(kIdlistOpt, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+idlist_opt ::= LP idlist RP .    {
+p_cov_map->log_cov_map(260680); 
 }
 
-idlist(A) ::= idlist(B) COMMA(C) nm(D) . {
-A = new IR(kIdlist, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+idlist ::= idlist COMMA nm . {
+p_cov_map->log_cov_map(38892); 
 }
 
-idlist(A) ::= nm(B) . {
-A = new IR(kIdlist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+idlist ::= nm . {
+p_cov_map->log_cov_map(37968); 
 }
 
 %type expr {IR*}
 %type term {IR*}
-expr(A) ::= term(B) . {
-A = new IR(kExpr, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+expr ::= term . {
+p_cov_map->log_cov_map(49801); 
 }
 
-expr(A) ::= LP(B) expr(C) RP(D) . {
-A = new IR(kExpr, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+expr ::= LP expr RP . {
+p_cov_map->log_cov_map(6773); 
 }
 
-expr(A) ::= id(B) .          {
-A = new IR(kExpr, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+expr ::= id .          {
+p_cov_map->log_cov_map(4510); 
 }
 
-expr(A) ::= JOIN_KW(B) .     {
-A = new IR(kExpr, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+expr ::= JOIN_KW .     {
+p_cov_map->log_cov_map(93396); 
 }
 
-expr(A) ::= nm(B) DOT(C) nm(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= nm DOT nm . {
+p_cov_map->log_cov_map(153563); 
 }
 
-expr(A) ::= nm(B) DOT(C) nm(D) DOT(E) nm(F) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= nm DOT nm DOT nm . {
+p_cov_map->log_cov_map(105654); 
 }
 
-term(A) ::= NULL|FLOAT|BLOB(B) . {
-A = new IR(kTerm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+term ::= NULL|FLOAT|BLOB . {
+p_cov_map->log_cov_map(182656); 
 }
 
-term(A) ::= STRING(B) .          {
-A = new IR(kTerm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+term ::= STRING .          {
+p_cov_map->log_cov_map(10461); 
 }
 
-term(A) ::= INTEGER(B) . {
-A = new IR(kTerm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+term ::= INTEGER . {
+p_cov_map->log_cov_map(112395); 
 }
 
-expr(A) ::= VARIABLE(B) .     {
-A = new IR(kExpr, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+expr ::= VARIABLE .     {
+p_cov_map->log_cov_map(157407); 
 }
 
-expr(A) ::= expr(B) COLLATE(C) ids(D) . {
-A = new IR(kExpr, OP3("", string(C) + string(D), ""), (IR*)B);
-*root_ir = (IR*)(A);
+expr ::= expr COLLATE ids . {
+p_cov_map->log_cov_map(115608); 
 }
 
-expr(A) ::= CAST(B) LP(C) expr(D) AS(E) typetoken(F) RP(G) . {
-A = new IR(kExpr, OP3(string(B) + string(C), string(E), string(G)), (IR*)D, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= CAST LP expr AS typetoken RP . {
+p_cov_map->log_cov_map(204885); 
 }
 
-expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) . {
-A = new IR(kExpr, OP3(string(B) + string(C), "", string(F)), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= id LP distinct exprlist RP . {
+p_cov_map->log_cov_map(245239); 
 }
 
-expr(A) ::= id(B) LP(C) STAR(D) RP(E) . {
-A = new IR(kExpr, OP3(string(B) + string(C) + string(D) + string(E), "", ""));
-*root_ir = (IR*)(A);
+expr ::= id LP STAR RP . {
+p_cov_map->log_cov_map(257100); 
 }
 
-expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) filter_over(G) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), "", string(F)), (IR*)D, (IR*)E);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+expr ::= id LP distinct exprlist RP filter_over . {
+p_cov_map->log_cov_map(254867); 
 }
 
-expr(A) ::= id(B) LP(C) STAR(D) RP(E) filter_over(F) . {
-A = new IR(kExpr, OP3(string(B) + string(C) + string(D) + string(E), "", ""), (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= id LP STAR RP filter_over . {
+p_cov_map->log_cov_map(36013); 
 }
 
-term(A) ::= CTIME_KW(B) . {
-A = new IR(kTerm, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+term ::= CTIME_KW . {
+p_cov_map->log_cov_map(34598); 
 }
 
-expr(A) ::= LP(B) nexprlist(C) COMMA(D) expr(E) RP(F) . {
-A = new IR(kExpr, OP3(string(B), string(D), string(F)), (IR*)C, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= LP nexprlist COMMA expr RP . {
+p_cov_map->log_cov_map(155225); 
 }
 
-expr(A) ::= expr(B) AND(C) expr(D) .        {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr AND expr .        {
+p_cov_map->log_cov_map(21857); 
 }
 
-expr(A) ::= expr(B) OR(C) expr(D) .     {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr OR expr .     {
+p_cov_map->log_cov_map(30438); 
 }
 
-expr(A) ::= expr(B) LT|GT|GE|LE(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr LT|GT|GE|LE expr . {
+p_cov_map->log_cov_map(258330); 
 }
 
-expr(A) ::= expr(B) EQ|NE(C) expr(D) .  {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr EQ|NE expr .  {
+p_cov_map->log_cov_map(121703); 
 }
 
-expr(A) ::= expr(B) BITAND|BITOR|LSHIFT|RSHIFT(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr BITAND|BITOR|LSHIFT|RSHIFT expr . {
+p_cov_map->log_cov_map(249292); 
 }
 
-expr(A) ::= expr(B) PLUS|MINUS(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr PLUS|MINUS expr . {
+p_cov_map->log_cov_map(121411); 
 }
 
-expr(A) ::= expr(B) STAR|SLASH|REM(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr STAR|SLASH|REM expr . {
+p_cov_map->log_cov_map(106614); 
 }
 
-expr(A) ::= expr(B) CONCAT(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr CONCAT expr . {
+p_cov_map->log_cov_map(187068); 
 }
 
 %type likeop {IR*}
-likeop(A) ::= LIKE_KW|MATCH(B) . {
-A = new IR(kLikeop, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+likeop ::= LIKE_KW|MATCH . {
+p_cov_map->log_cov_map(65559); 
 }
 
-likeop(A) ::= NOT(B) LIKE_KW|MATCH(C) . {
-A = new IR(kLikeop, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+likeop ::= NOT LIKE_KW|MATCH . {
+p_cov_map->log_cov_map(253278); 
 }
 
-expr(A) ::= expr(B) likeop(C) expr(D) .   [LIKE_KW] {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr likeop expr .   [LIKE_KW] {
+p_cov_map->log_cov_map(14367); 
 }
 
-expr(A) ::= expr(B) likeop(C) expr(D) ESCAPE(E) expr(F) .   [LIKE_KW] {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)A, (IR*)D);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= expr likeop expr ESCAPE expr .   [LIKE_KW] {
+p_cov_map->log_cov_map(212141); 
 }
 
-expr(A) ::= expr(B) ISNULL|NOTNULL(C) .   {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+expr ::= expr ISNULL|NOTNULL .   {
+p_cov_map->log_cov_map(243157); 
 }
 
-expr(A) ::= expr(B) NOT(C) NULL(D) .    {
-A = new IR(kExpr, OP3("", string(C) + string(D), ""), (IR*)B);
-*root_ir = (IR*)(A);
+expr ::= expr NOT NULL .    {
+p_cov_map->log_cov_map(196778); 
 }
 
-expr(A) ::= expr(B) IS(C) expr(D) .     {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr IS expr .     {
+p_cov_map->log_cov_map(160766); 
 }
 
-expr(A) ::= expr(B) IS(C) NOT(D) expr(E) . {
-A = new IR(kExpr, OP3("", string(C) + string(D), ""), (IR*)B, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= expr IS NOT expr . {
+p_cov_map->log_cov_map(217154); 
 }
 
-expr(A) ::= expr(B) IS(C) NOT(D) DISTINCT(E) FROM(F) expr(G) .     {
-A = new IR(kExpr, OP3("", string(C) + string(D) + string(E) + string(F), ""), (IR*)B, (IR*)G);
-*root_ir = (IR*)(A);
+expr ::= expr IS NOT DISTINCT FROM expr .     {
+p_cov_map->log_cov_map(63709); 
 }
 
-expr(A) ::= expr(B) IS(C) DISTINCT(D) FROM(E) expr(F) . {
-A = new IR(kExpr, OP3("", string(C) + string(D) + string(E), ""), (IR*)B, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= expr IS DISTINCT FROM expr . {
+p_cov_map->log_cov_map(254070); 
 }
 
-expr(A) ::= NOT(B) expr(C) .  {
-A = new IR(kExpr, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+expr ::= NOT expr .  {
+p_cov_map->log_cov_map(82426); 
 }
 
-expr(A) ::= BITNOT(B) expr(C) . {
-A = new IR(kExpr, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+expr ::= BITNOT expr . {
+p_cov_map->log_cov_map(221270); 
 }
 
-expr(A) ::= PLUS|MINUS(B) expr(C) .  [BITNOT]{
-A = new IR(kExpr, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+expr ::= PLUS|MINUS expr .  [BITNOT]{
+p_cov_map->log_cov_map(5006); 
 }
 
-expr(A) ::= expr(B) PTR(C) expr(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= expr PTR expr . {
+p_cov_map->log_cov_map(126961); 
 }
 
 %type between_op {IR*}
-between_op(A) ::= BETWEEN(B) .     {
-A = new IR(kBetweenOp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+between_op ::= BETWEEN .     {
+p_cov_map->log_cov_map(38193); 
 }
 
-between_op(A) ::= NOT(B) BETWEEN(C) . {
-A = new IR(kBetweenOp, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+between_op ::= NOT BETWEEN . {
+p_cov_map->log_cov_map(257209); 
 }
 
-expr(A) ::= expr(B) between_op(C) expr(D) AND(E) expr(F) .  [BETWEEN]{
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)A, (IR*)D);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= expr between_op expr AND expr .  [BETWEEN]{
+p_cov_map->log_cov_map(19433); 
 }
 
-in_op(A) ::= IN(B) .      {
-A = new IR(kInOp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+in_op ::= IN .      {
+p_cov_map->log_cov_map(158196); 
 }
 
-in_op(A) ::= NOT(B) IN(C) .  {
-A = new IR(kInOp, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+in_op ::= NOT IN .  {
+p_cov_map->log_cov_map(179543); 
 }
 
-expr(A) ::= expr(B) in_op(C) LP(D) exprlist(E) RP(F) .  [IN]{
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= expr in_op LP exprlist RP .  [IN]{
+p_cov_map->log_cov_map(161047); 
 }
 
-expr(A) ::= LP(B) select(C) RP(D) . {
-A = new IR(kExpr, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+expr ::= LP select RP . {
+p_cov_map->log_cov_map(247130); 
 }
 
-expr(A) ::= expr(B) in_op(C) LP(D) select(E) RP(F) .   [IN]{
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= expr in_op LP select RP .   [IN]{
+p_cov_map->log_cov_map(70299); 
 }
 
-expr(A) ::= expr(B) in_op(C) nm(D) dbnm(E) paren_exprlist(F) .  [IN]{
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= expr in_op nm dbnm paren_exprlist .  [IN]{
+p_cov_map->log_cov_map(97944); 
 }
 
-expr(A) ::= EXISTS(B) LP(C) select(D) RP(E) . {
-A = new IR(kExpr, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+expr ::= EXISTS LP select RP . {
+p_cov_map->log_cov_map(135737); 
 }
 
-expr(A) ::= CASE(B) case_operand(C) case_exprlist(D) case_else(E) END(F) . {
-A = new IR(kUnknown, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+expr ::= CASE case_operand case_exprlist case_else END . {
+p_cov_map->log_cov_map(177123); 
 }
 
 %type case_exprlist {IR*}
-case_exprlist(A) ::= case_exprlist(B) WHEN(C) expr(D) THEN(E) expr(F) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kCaseExprlist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+case_exprlist ::= case_exprlist WHEN expr THEN expr . {
+p_cov_map->log_cov_map(39904); 
 }
 
-case_exprlist(A) ::= WHEN(B) expr(C) THEN(D) expr(E) . {
-A = new IR(kCaseExprlist, OP3(string(B), string(D), ""), (IR*)C, (IR*)E);
-*root_ir = (IR*)(A);
+case_exprlist ::= WHEN expr THEN expr . {
+p_cov_map->log_cov_map(149755); 
 }
 
 %type case_else {IR*}
-case_else(A) ::= ELSE(B) expr(C) .         {
-A = new IR(kCaseElse, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+case_else ::= ELSE expr .         {
+p_cov_map->log_cov_map(253036); 
 }
 
-case_else(A) ::= .                     {
-A = new IR(kCaseElse, OP0());
-*root_ir = (IR*)(A);
+case_else ::= .                     {
+p_cov_map->log_cov_map(86786); 
 }
 
 %type case_operand {IR*}
-case_operand(A) ::= expr(B) .            {
-A = new IR(kCaseOperand, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+case_operand ::= expr .            {
+p_cov_map->log_cov_map(196200); 
 }
 
-case_operand(A) ::= .                   {
-A = new IR(kCaseOperand, OP0());
-*root_ir = (IR*)(A);
+case_operand ::= .                   {
+p_cov_map->log_cov_map(52666); 
 }
 
 %type exprlist {IR*}
 %type nexprlist {IR*}
-exprlist(A) ::= nexprlist(B) . {
-A = new IR(kExprlist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+exprlist ::= nexprlist . {
+p_cov_map->log_cov_map(140653); 
 }
 
-exprlist(A) ::= .                            {
-A = new IR(kExprlist, OP0());
-*root_ir = (IR*)(A);
+exprlist ::= .                            {
+p_cov_map->log_cov_map(53335); 
 }
 
-nexprlist(A) ::= nexprlist(B) COMMA(C) expr(D) . {
-A = new IR(kNexprlist, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+nexprlist ::= nexprlist COMMA expr . {
+p_cov_map->log_cov_map(124513); 
 }
 
-nexprlist(A) ::= expr(B) . {
-A = new IR(kNexprlist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+nexprlist ::= expr . {
+p_cov_map->log_cov_map(101042); 
 }
 
 %type paren_exprlist {IR*}
-paren_exprlist(A) ::= .   {
-A = new IR(kParenExprlist, OP0());
-*root_ir = (IR*)(A);
+paren_exprlist ::= .   {
+p_cov_map->log_cov_map(43654); 
 }
 
-paren_exprlist(A) ::= LP(B) exprlist(C) RP(D) .  {
-A = new IR(kParenExprlist, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+paren_exprlist ::= LP exprlist RP .  {
+p_cov_map->log_cov_map(63823); 
 }
 
-cmd(A) ::= createkw(B) uniqueflag(C) INDEX(D) ifnotexists(E) nm(F) dbnm(G) ON(H) nm(I) LP(J) sortlist(K) RP(L) where_opt(M) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", string(H)), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", string(J)), (IR*)A, (IR*)I);
-A = new IR(kUnknown, OP3("", "", string(L)), (IR*)A, (IR*)K);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)M);
-*root_ir = (IR*)(A);
+cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt . {
+p_cov_map->log_cov_map(92167); 
 }
 
 %type uniqueflag {IR*}
-uniqueflag(A) ::= UNIQUE(B) .  {
-A = new IR(kUniqueflag, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+uniqueflag ::= UNIQUE .  {
+p_cov_map->log_cov_map(153119); 
 }
 
-uniqueflag(A) ::= .        {
-A = new IR(kUniqueflag, OP0());
-*root_ir = (IR*)(A);
+uniqueflag ::= .        {
+p_cov_map->log_cov_map(25125); 
 }
 
 %type eidlist {IR*}
 %type eidlist_opt {IR*}
-eidlist_opt(A) ::= .                         {
-A = new IR(kEidlistOpt, OP0());
-*root_ir = (IR*)(A);
+eidlist_opt ::= .                         {
+p_cov_map->log_cov_map(88265); 
 }
 
-eidlist_opt(A) ::= LP(B) eidlist(C) RP(D) .         {
-A = new IR(kEidlistOpt, OP3(string(B), string(D), ""), (IR*)C);
-*root_ir = (IR*)(A);
+eidlist_opt ::= LP eidlist RP .         {
+p_cov_map->log_cov_map(184026); 
 }
 
-eidlist(A) ::= eidlist(B) COMMA(C) nm(D) collate(E) sortorder(F) .  {
-A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+eidlist ::= eidlist COMMA nm collate sortorder .  {
+p_cov_map->log_cov_map(109745); 
 }
 
-eidlist(A) ::= nm(B) collate(C) sortorder(D) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+eidlist ::= nm collate sortorder . {
+p_cov_map->log_cov_map(111053); 
 }
 
 %type collate {IR*}
-collate(A) ::= .              {
-A = new IR(kCollate, OP0());
-*root_ir = (IR*)(A);
+collate ::= .              {
+p_cov_map->log_cov_map(246534); 
 }
 
-collate(A) ::= COLLATE(B) ids(C) .   {
-A = new IR(kCollate, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+collate ::= COLLATE ids .   {
+p_cov_map->log_cov_map(183703); 
 }
 
-cmd(A) ::= DROP(B) INDEX(C) ifexists(D) fullname(E) .   {
-A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+cmd ::= DROP INDEX ifexists fullname .   {
+p_cov_map->log_cov_map(164476); 
 }
 
 %type vinto {IR*}
-cmd(A) ::= VACUUM(B) vinto(C) .                {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+cmd ::= VACUUM vinto .                {
+p_cov_map->log_cov_map(93734); 
 }
 
-cmd(A) ::= VACUUM(B) nm(C) vinto(D) .          {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= VACUUM nm vinto .          {
+p_cov_map->log_cov_map(44377); 
 }
 
-vinto(A) ::= INTO(B) expr(C) .              {
-A = new IR(kVinto, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+vinto ::= INTO expr .              {
+p_cov_map->log_cov_map(222569); 
 }
 
-vinto(A) ::= .                          {
-A = new IR(kVinto, OP0());
-*root_ir = (IR*)(A);
+vinto ::= .                          {
+p_cov_map->log_cov_map(43693); 
 }
 
-cmd(A) ::= PRAGMA(B) nm(C) dbnm(D) .                {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= PRAGMA nm dbnm .                {
+p_cov_map->log_cov_map(47914); 
 }
 
-cmd(A) ::= PRAGMA(B) nm(C) dbnm(D) EQ(E) nmnum(F) .    {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+cmd ::= PRAGMA nm dbnm EQ nmnum .    {
+p_cov_map->log_cov_map(13213); 
 }
 
-cmd(A) ::= PRAGMA(B) nm(C) dbnm(D) LP(E) nmnum(F) RP(G) . {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kCmd, OP3("", "", string(G)), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+cmd ::= PRAGMA nm dbnm LP nmnum RP . {
+p_cov_map->log_cov_map(31828); 
 }
 
-cmd(A) ::= PRAGMA(B) nm(C) dbnm(D) EQ(E) minus_num(F) . {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+cmd ::= PRAGMA nm dbnm EQ minus_num . {
+p_cov_map->log_cov_map(226754); 
 }
 
-cmd(A) ::= PRAGMA(B) nm(C) dbnm(D) LP(E) minus_num(F) RP(G) . {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kCmd, OP3("", "", string(G)), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+cmd ::= PRAGMA nm dbnm LP minus_num RP . {
+p_cov_map->log_cov_map(180054); 
 }
 
-nmnum(A) ::= plus_num(B) . {
-A = new IR(kNmnum, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+nmnum ::= plus_num . {
+p_cov_map->log_cov_map(81689); 
 }
 
-nmnum(A) ::= nm(B) . {
-A = new IR(kNmnum, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+nmnum ::= nm . {
+p_cov_map->log_cov_map(154223); 
 }
 
-nmnum(A) ::= ON(B) . {
-A = new IR(kNmnum, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nmnum ::= ON . {
+p_cov_map->log_cov_map(230752); 
 }
 
-nmnum(A) ::= DELETE(B) . {
-A = new IR(kNmnum, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nmnum ::= DELETE . {
+p_cov_map->log_cov_map(98948); 
 }
 
-nmnum(A) ::= DEFAULT(B) . {
-A = new IR(kNmnum, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+nmnum ::= DEFAULT . {
+p_cov_map->log_cov_map(177610); 
 }
 
 %token_class number INTEGER|FLOAT.
-plus_num(A) ::= PLUS(B) number(C) .       {
-A = new IR(kPlusNum, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+plus_num ::= PLUS number .       {
+p_cov_map->log_cov_map(66979); 
 }
 
-plus_num(A) ::= number(B) . {
-A = new IR(kPlusNum, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+plus_num ::= number . {
+p_cov_map->log_cov_map(124251); 
 }
 
-minus_num(A) ::= MINUS(B) number(C) .     {
-A = new IR(kMinusNum, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+minus_num ::= MINUS number .     {
+p_cov_map->log_cov_map(150740); 
 }
 
-cmd(A) ::= createkw(B) trigger_decl(C) BEGIN(D) trigger_cmd_list(E) END(F) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kCmd, OP3("", "", string(F)), (IR*)A, (IR*)E);
-*root_ir = (IR*)(A);
+cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END . {
+p_cov_map->log_cov_map(109202); 
 }
 
-trigger_decl(A) ::= temp(B) TRIGGER(C) ifnotexists(D) nm(E) dbnm(F) trigger_time(G) trigger_event(H) ON(I) fullname(J) foreach_clause(K) when_clause(L) . {
-A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", string(I)), (IR*)A, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)J);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)K);
-A = new IR(kTriggerDecl, OP3("", "", ""), (IR*)A, (IR*)L);
-*root_ir = (IR*)(A);
+trigger_decl ::= temp TRIGGER ifnotexists nm dbnm trigger_time trigger_event ON fullname foreach_clause when_clause . {
+p_cov_map->log_cov_map(141269); 
 }
 
 %type trigger_time {IR*}
-trigger_time(A) ::= BEFORE|AFTER(B) .  {
-A = new IR(kTriggerTime, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+trigger_time ::= BEFORE|AFTER .  {
+p_cov_map->log_cov_map(227129); 
 }
 
-trigger_time(A) ::= INSTEAD(B) OF(C) .  {
-A = new IR(kTriggerTime, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+trigger_time ::= INSTEAD OF .  {
+p_cov_map->log_cov_map(92576); 
 }
 
-trigger_time(A) ::= .            {
-A = new IR(kTriggerTime, OP0());
-*root_ir = (IR*)(A);
+trigger_time ::= .            {
+p_cov_map->log_cov_map(97636); 
 }
 
 %type trigger_event {IR*}
-trigger_event(A) ::= DELETE|INSERT(B) .   {
-A = new IR(kTriggerEvent, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+trigger_event ::= DELETE|INSERT .   {
+p_cov_map->log_cov_map(247155); 
 }
 
-trigger_event(A) ::= UPDATE(B) .          {
-A = new IR(kTriggerEvent, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+trigger_event ::= UPDATE .          {
+p_cov_map->log_cov_map(31990); 
 }
 
-trigger_event(A) ::= UPDATE(B) OF(C) idlist(D) . {
-A = new IR(kTriggerEvent, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+trigger_event ::= UPDATE OF idlist . {
+p_cov_map->log_cov_map(151032); 
 }
 
-foreach_clause(A) ::= . {
-A = new IR(kForeachClause, OP0());
-*root_ir = (IR*)(A);
+foreach_clause ::= . {
+p_cov_map->log_cov_map(184264); 
 }
 
-foreach_clause(A) ::= FOR(B) EACH(C) ROW(D) . {
-A = new IR(kForeachClause, OP3(string(B) + string(C) + string(D), "", ""));
-*root_ir = (IR*)(A);
+foreach_clause ::= FOR EACH ROW . {
+p_cov_map->log_cov_map(121964); 
 }
 
 %type when_clause {IR*}
-when_clause(A) ::= .             {
-A = new IR(kWhenClause, OP0());
-*root_ir = (IR*)(A);
+when_clause ::= .             {
+p_cov_map->log_cov_map(106691); 
 }
 
-when_clause(A) ::= WHEN(B) expr(C) . {
-A = new IR(kWhenClause, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+when_clause ::= WHEN expr . {
+p_cov_map->log_cov_map(133589); 
 }
 
 %type trigger_cmd_list {IR*}
-trigger_cmd_list(A) ::= trigger_cmd_list(B) trigger_cmd(C) SEMI(D) . {
-A = new IR(kTriggerCmdList, OP3("", "", string(D)), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+trigger_cmd_list ::= trigger_cmd_list trigger_cmd SEMI . {
+p_cov_map->log_cov_map(192260); 
 }
 
-trigger_cmd_list(A) ::= trigger_cmd(B) SEMI(C) . {
-A = new IR(kTriggerCmdList, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+trigger_cmd_list ::= trigger_cmd SEMI . {
+p_cov_map->log_cov_map(195535); 
 }
 
 %type trnm {IR*}
-trnm(A) ::= nm(B) . {
-A = new IR(kTrnm, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+trnm ::= nm . {
+p_cov_map->log_cov_map(14568); 
 }
 
-trnm(A) ::= nm(B) DOT(C) nm(D) . {
-A = new IR(kTrnm, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+trnm ::= nm DOT nm . {
+p_cov_map->log_cov_map(54663); 
 }
 
-tridxby(A) ::= . {
-A = new IR(kTridxby, OP0());
-*root_ir = (IR*)(A);
+tridxby ::= . {
+p_cov_map->log_cov_map(39369); 
 }
 
-tridxby(A) ::= INDEXED(B) BY(C) nm(D) . {
-A = new IR(kTridxby, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+tridxby ::= INDEXED BY nm . {
+p_cov_map->log_cov_map(86231); 
 }
 
-tridxby(A) ::= NOT(B) INDEXED(C) . {
-A = new IR(kTridxby, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+tridxby ::= NOT INDEXED . {
+p_cov_map->log_cov_map(196014); 
 }
 
 %type trigger_cmd {IR*}
-trigger_cmd(A) ::= UPDATE(B) orconf(C) trnm(D) tridxby(E) SET(F) setlist(G) from(H) where_opt(I) scanpt(J) .  {
-A = new IR(kUnknown, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-A = new IR(kUnknown, OP3("", "", string(F)), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
-A = new IR(kTriggerCmd, OP3("", "", ""), (IR*)A, (IR*)J);
-*root_ir = (IR*)(A);
+trigger_cmd ::= UPDATE orconf trnm tridxby SET setlist from where_opt scanpt .  {
+p_cov_map->log_cov_map(55970); 
 }
 
-trigger_cmd(A) ::= scanpt(B) insert_cmd(C) INTO(D) trnm(E) idlist_opt(F) select(G) upsert(H) scanpt(I) . {
-A = new IR(kUnknown, OP3("", "", string(D)), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
-A = new IR(kTriggerCmd, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+trigger_cmd ::= scanpt insert_cmd INTO trnm idlist_opt select upsert scanpt . {
+p_cov_map->log_cov_map(228479); 
 }
 
-trigger_cmd(A) ::= DELETE(B) FROM(C) trnm(D) tridxby(E) where_opt(F) scanpt(G) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kTriggerCmd, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+trigger_cmd ::= DELETE FROM trnm tridxby where_opt scanpt . {
+p_cov_map->log_cov_map(109252); 
 }
 
-trigger_cmd(A) ::= scanpt(B) select(C) scanpt(D) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kTriggerCmd, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+trigger_cmd ::= scanpt select scanpt . {
+p_cov_map->log_cov_map(179412); 
 }
 
-expr(A) ::= RAISE(B) LP(C) IGNORE(D) RP(E) .  {
-A = new IR(kExpr, OP3(string(B) + string(C) + string(D) + string(E), "", ""));
-*root_ir = (IR*)(A);
+expr ::= RAISE LP IGNORE RP .  {
+p_cov_map->log_cov_map(211734); 
 }
 
-expr(A) ::= RAISE(B) LP(C) raisetype(D) COMMA(E) nm(F) RP(G) .  {
-A = new IR(kExpr, OP3(string(B) + string(C), string(E), string(G)), (IR*)D, (IR*)F);
-*root_ir = (IR*)(A);
+expr ::= RAISE LP raisetype COMMA nm RP .  {
+p_cov_map->log_cov_map(155543); 
 }
 
 %type raisetype {IR*}
-raisetype(A) ::= ROLLBACK(B) .  {
-A = new IR(kRaisetype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+raisetype ::= ROLLBACK .  {
+p_cov_map->log_cov_map(68901); 
 }
 
-raisetype(A) ::= ABORT(B) .     {
-A = new IR(kRaisetype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+raisetype ::= ABORT .     {
+p_cov_map->log_cov_map(89150); 
 }
 
-raisetype(A) ::= FAIL(B) .      {
-A = new IR(kRaisetype, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+raisetype ::= FAIL .      {
+p_cov_map->log_cov_map(251217); 
 }
 
-cmd(A) ::= DROP(B) TRIGGER(C) ifexists(D) fullname(E) . {
-A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+cmd ::= DROP TRIGGER ifexists fullname . {
+p_cov_map->log_cov_map(30083); 
 }
 
-cmd(A) ::= ATTACH(B) database_kw_opt(C) expr(D) AS(E) expr(F) key_opt(G) . {
-A = new IR(kUnknown, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+cmd ::= ATTACH database_kw_opt expr AS expr key_opt . {
+p_cov_map->log_cov_map(103390); 
 }
 
-cmd(A) ::= DETACH(B) database_kw_opt(C) expr(D) . {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= DETACH database_kw_opt expr . {
+p_cov_map->log_cov_map(117767); 
 }
 
 %type key_opt {IR*}
-key_opt(A) ::= .                     {
-A = new IR(kKeyOpt, OP0());
-*root_ir = (IR*)(A);
+key_opt ::= .                     {
+p_cov_map->log_cov_map(157272); 
 }
 
-key_opt(A) ::= KEY(B) expr(C) .          {
-A = new IR(kKeyOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+key_opt ::= KEY expr .          {
+p_cov_map->log_cov_map(59398); 
 }
 
-database_kw_opt(A) ::= DATABASE(B) . {
-A = new IR(kDatabaseKwOpt, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+database_kw_opt ::= DATABASE . {
+p_cov_map->log_cov_map(110976); 
 }
 
-database_kw_opt(A) ::= . {
-A = new IR(kDatabaseKwOpt, OP0());
-*root_ir = (IR*)(A);
+database_kw_opt ::= . {
+p_cov_map->log_cov_map(6958); 
 }
 
-cmd(A) ::= REINDEX(B) .                {
-A = new IR(kCmd, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+cmd ::= REINDEX .                {
+p_cov_map->log_cov_map(51837); 
 }
 
-cmd(A) ::= REINDEX(B) nm(C) dbnm(D) .  {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= REINDEX nm dbnm .  {
+p_cov_map->log_cov_map(154841); 
 }
 
-cmd(A) ::= ANALYZE(B) .                {
-A = new IR(kCmd, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+cmd ::= ANALYZE .                {
+p_cov_map->log_cov_map(225033); 
 }
 
-cmd(A) ::= ANALYZE(B) nm(C) dbnm(D) .  {
-A = new IR(kCmd, OP3(string(B), "", ""), (IR*)C, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= ANALYZE nm dbnm .  {
+p_cov_map->log_cov_map(177091); 
 }
 
-cmd(A) ::= ALTER(B) TABLE(C) fullname(D) RENAME(E) TO(F) nm(G) . {
-A = new IR(kCmd, OP3(string(B) + string(C), string(E) + string(F), ""), (IR*)D, (IR*)G);
-*root_ir = (IR*)(A);
+cmd ::= ALTER TABLE fullname RENAME TO nm . {
+p_cov_map->log_cov_map(174052); 
 }
 
-cmd(A) ::= ALTER(B) TABLE(C) add_column_fullname(D) ADD(E) kwcolumn_opt(F) columnname(G) carglist(H) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)H);
-*root_ir = (IR*)(A);
+cmd ::= ALTER TABLE add_column_fullname ADD kwcolumn_opt columnname carglist . {
+p_cov_map->log_cov_map(185942); 
 }
 
-cmd(A) ::= ALTER(B) TABLE(C) fullname(D) DROP(E) kwcolumn_opt(F) nm(G) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm . {
+p_cov_map->log_cov_map(206584); 
 }
 
-add_column_fullname(A) ::= fullname(B) . {
-A = new IR(kAddColumnFullname, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+add_column_fullname ::= fullname . {
+p_cov_map->log_cov_map(103809); 
 }
 
-cmd(A) ::= ALTER(B) TABLE(C) fullname(D) RENAME(E) kwcolumn_opt(F) nm(G) TO(H) nm(I) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
-A = new IR(kUnknown, OP3("", "", string(H)), (IR*)A, (IR*)G);
-A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm . {
+p_cov_map->log_cov_map(204355); 
 }
 
-kwcolumn_opt(A) ::= . {
-A = new IR(kKwcolumnOpt, OP0());
-*root_ir = (IR*)(A);
+kwcolumn_opt ::= . {
+p_cov_map->log_cov_map(13010); 
 }
 
-kwcolumn_opt(A) ::= COLUMNKW(B) . {
-A = new IR(kKwcolumnOpt, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+kwcolumn_opt ::= COLUMNKW . {
+p_cov_map->log_cov_map(55464); 
 }
 
-cmd(A) ::= create_vtab(B) .                       {
-A = new IR(kCmd, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+cmd ::= create_vtab .                       {
+p_cov_map->log_cov_map(114631); 
 }
 
-cmd(A) ::= create_vtab(B) LP(C) vtabarglist(D) RP(E) .  {
-A = new IR(kCmd, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+cmd ::= create_vtab LP vtabarglist RP .  {
+p_cov_map->log_cov_map(40003); 
 }
 
-create_vtab(A) ::= createkw(B) VIRTUAL(C) TABLE(D) ifnotexists(E) nm(F) dbnm(G) USING(H) nm(I) . {
-A = new IR(kUnknown, OP3("", string(C) + string(D), ""), (IR*)B, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kUnknown, OP3("", "", string(H)), (IR*)A, (IR*)G);
-A = new IR(kCreateVtab, OP3("", "", ""), (IR*)A, (IR*)I);
-*root_ir = (IR*)(A);
+create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm . {
+p_cov_map->log_cov_map(76766); 
 }
 
-vtabarglist(A) ::= vtabarg(B) . {
-A = new IR(kVtabarglist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+vtabarglist ::= vtabarg . {
+p_cov_map->log_cov_map(260291); 
 }
 
-vtabarglist(A) ::= vtabarglist(B) COMMA(C) vtabarg(D) . {
-A = new IR(kVtabarglist, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+vtabarglist ::= vtabarglist COMMA vtabarg . {
+p_cov_map->log_cov_map(44326); 
 }
 
-vtabarg(A) ::= .                       {
-A = new IR(kVtabarg, OP0());
-*root_ir = (IR*)(A);
+vtabarg ::= .                       {
+p_cov_map->log_cov_map(160132); 
 }
 
-vtabarg(A) ::= vtabarg(B) vtabargtoken(C) . {
-A = new IR(kVtabarg, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+vtabarg ::= vtabarg vtabargtoken . {
+p_cov_map->log_cov_map(127900); 
 }
 
-vtabargtoken(A) ::= ANY(B) .            {
-A = new IR(kVtabargtoken, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+vtabargtoken ::= ANY .            {
+p_cov_map->log_cov_map(187562); 
 }
 
-vtabargtoken(A) ::= lp(B) anylist(C) RP(D) .  {
-A = new IR(kVtabargtoken, OP3("", "", string(D)), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+vtabargtoken ::= lp anylist RP .  {
+p_cov_map->log_cov_map(61307); 
 }
 
-lp(A) ::= LP(B) .                       {
-A = new IR(kLp, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+lp ::= LP .                       {
+p_cov_map->log_cov_map(207784); 
 }
 
-anylist(A) ::= . {
-A = new IR(kAnylist, OP0());
-*root_ir = (IR*)(A);
+anylist ::= . {
+p_cov_map->log_cov_map(164212); 
 }
 
-anylist(A) ::= anylist(B) LP(C) anylist(D) RP(E) . {
-A = new IR(kAnylist, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+anylist ::= anylist LP anylist RP . {
+p_cov_map->log_cov_map(175888); 
 }
 
-anylist(A) ::= anylist(B) ANY(C) . {
-A = new IR(kAnylist, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+anylist ::= anylist ANY . {
+p_cov_map->log_cov_map(173974); 
 }
 
 %type wqlist {IR*}
 %type wqitem {IR*}
-with(A) ::= . {
-A = new IR(kWith, OP0());
-*root_ir = (IR*)(A);
+with ::= . {
+p_cov_map->log_cov_map(191304); 
 }
 
-with(A) ::= WITH(B) wqlist(C) .              {
-A = new IR(kWith, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+with ::= WITH wqlist .              {
+p_cov_map->log_cov_map(148800); 
 }
 
-with(A) ::= WITH(B) RECURSIVE(C) wqlist(D) .    {
-A = new IR(kWith, OP3(string(B) + string(C), "", ""), (IR*)D);
-*root_ir = (IR*)(A);
+with ::= WITH RECURSIVE wqlist .    {
+p_cov_map->log_cov_map(26630); 
 }
 
 %type wqas {IR*}
-wqas(A) ::= AS(B) .                  {
-A = new IR(kWqas, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+wqas ::= AS .                  {
+p_cov_map->log_cov_map(131871); 
 }
 
-wqas(A) ::= AS(B) MATERIALIZED(C) .     {
-A = new IR(kWqas, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+wqas ::= AS MATERIALIZED .     {
+p_cov_map->log_cov_map(210578); 
 }
 
-wqas(A) ::= AS(B) NOT(C) MATERIALIZED(D) . {
-A = new IR(kWqas, OP3(string(B) + string(C) + string(D), "", ""));
-*root_ir = (IR*)(A);
+wqas ::= AS NOT MATERIALIZED . {
+p_cov_map->log_cov_map(113778); 
 }
 
-wqitem(A) ::= nm(B) eidlist_opt(C) wqas(D) LP(E) select(F) RP(G) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)A, (IR*)D);
-A = new IR(kWqitem, OP3("", "", string(G)), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+wqitem ::= nm eidlist_opt wqas LP select RP . {
+p_cov_map->log_cov_map(72142); 
 }
 
-wqlist(A) ::= wqitem(B) . {
-A = new IR(kWqlist, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+wqlist ::= wqitem . {
+p_cov_map->log_cov_map(52285); 
 }
 
-wqlist(A) ::= wqlist(B) COMMA(C) wqitem(D) . {
-A = new IR(kWqlist, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+wqlist ::= wqlist COMMA wqitem . {
+p_cov_map->log_cov_map(253506); 
 }
 
 %type windowdefn_list {IR*}
-windowdefn_list(A) ::= windowdefn(B) . {
-A = new IR(kWindowdefnList, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+windowdefn_list ::= windowdefn . {
+p_cov_map->log_cov_map(68364); 
 }
 
-windowdefn_list(A) ::= windowdefn_list(B) COMMA(C) windowdefn(D) . {
-A = new IR(kWindowdefnList, OP3("", string(C), ""), (IR*)B, (IR*)D);
-*root_ir = (IR*)(A);
+windowdefn_list ::= windowdefn_list COMMA windowdefn . {
+p_cov_map->log_cov_map(3034); 
 }
 
 %type windowdefn {IR*}
-windowdefn(A) ::= nm(B) AS(C) LP(D) window(E) RP(F) . {
-A = new IR(kWindowdefn, OP3("", string(C) + string(D), string(F)), (IR*)B, (IR*)E);
-*root_ir = (IR*)(A);
+windowdefn ::= nm AS LP window RP . {
+p_cov_map->log_cov_map(47681); 
 }
 
 %type window {IR*}
@@ -2181,154 +1663,119 @@ A = new IR(kWindowdefn, OP3("", string(C) + string(D), string(F)), (IR*)B, (IR*)
 %type frame_bound {IR*}
 %type frame_bound_s {IR*}
 %type frame_bound_e {IR*}
-window(A) ::= PARTITION(B) BY(C) nexprlist(D) orderby_opt(E) frame_opt(F) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+window ::= PARTITION BY nexprlist orderby_opt frame_opt . {
+p_cov_map->log_cov_map(9569); 
 }
 
-window(A) ::= nm(B) PARTITION(C) BY(D) nexprlist(E) orderby_opt(F) frame_opt(G) . {
-A = new IR(kUnknown, OP3("", string(C) + string(D), ""), (IR*)B, (IR*)E);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+window ::= nm PARTITION BY nexprlist orderby_opt frame_opt . {
+p_cov_map->log_cov_map(118346); 
 }
 
-window(A) ::= ORDER(B) BY(C) sortlist(D) frame_opt(E) . {
-A = new IR(kWindow, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
-*root_ir = (IR*)(A);
+window ::= ORDER BY sortlist frame_opt . {
+p_cov_map->log_cov_map(14366); 
 }
 
-window(A) ::= nm(B) ORDER(C) BY(D) sortlist(E) frame_opt(F) . {
-A = new IR(kUnknown, OP3("", string(C) + string(D), ""), (IR*)B, (IR*)E);
-A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)F);
-*root_ir = (IR*)(A);
+window ::= nm ORDER BY sortlist frame_opt . {
+p_cov_map->log_cov_map(86937); 
 }
 
-window(A) ::= frame_opt(B) . {
-A = new IR(kWindow, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+window ::= frame_opt . {
+p_cov_map->log_cov_map(235584); 
 }
 
-window(A) ::= nm(B) frame_opt(C) . {
-A = new IR(kWindow, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+window ::= nm frame_opt . {
+p_cov_map->log_cov_map(113469); 
 }
 
-frame_opt(A) ::= .                             {
-A = new IR(kFrameOpt, OP0());
-*root_ir = (IR*)(A);
+frame_opt ::= .                             {
+p_cov_map->log_cov_map(78756); 
 }
 
-frame_opt(A) ::= range_or_rows(B) frame_bound_s(C) frame_exclude_opt(D) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-A = new IR(kFrameOpt, OP3("", "", ""), (IR*)A, (IR*)D);
-*root_ir = (IR*)(A);
+frame_opt ::= range_or_rows frame_bound_s frame_exclude_opt . {
+p_cov_map->log_cov_map(72768); 
 }
 
-frame_opt(A) ::= range_or_rows(B) BETWEEN(C) frame_bound_s(D) AND(E) frame_bound_e(F) frame_exclude_opt(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
-A = new IR(kFrameOpt, OP3("", "", ""), (IR*)A, (IR*)G);
-*root_ir = (IR*)(A);
+frame_opt ::= range_or_rows BETWEEN frame_bound_s AND frame_bound_e frame_exclude_opt . {
+p_cov_map->log_cov_map(194465); 
 }
 
-range_or_rows(A) ::= RANGE|ROWS|GROUPS(B) .   {
-A = new IR(kRangeOrRows, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+range_or_rows ::= RANGE|ROWS|GROUPS .   {
+p_cov_map->log_cov_map(65250); 
 }
 
-frame_bound_s(A) ::= frame_bound(B) .         {
-A = new IR(kFrameBoundS, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+frame_bound_s ::= frame_bound .         {
+p_cov_map->log_cov_map(14419); 
 }
 
-frame_bound_s(A) ::= UNBOUNDED(B) PRECEDING(C) . {
-A = new IR(kFrameBoundS, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+frame_bound_s ::= UNBOUNDED PRECEDING . {
+p_cov_map->log_cov_map(50934); 
 }
 
-frame_bound_e(A) ::= frame_bound(B) .         {
-A = new IR(kFrameBoundE, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+frame_bound_e ::= frame_bound .         {
+p_cov_map->log_cov_map(24589); 
 }
 
-frame_bound_e(A) ::= UNBOUNDED(B) FOLLOWING(C) . {
-A = new IR(kFrameBoundE, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+frame_bound_e ::= UNBOUNDED FOLLOWING . {
+p_cov_map->log_cov_map(12600); 
 }
 
-frame_bound(A) ::= expr(B) PRECEDING|FOLLOWING(C) . {
-A = new IR(kFrameBound, OP3("", string(C), ""), (IR*)B);
-*root_ir = (IR*)(A);
+frame_bound ::= expr PRECEDING|FOLLOWING . {
+p_cov_map->log_cov_map(239996); 
 }
 
-frame_bound(A) ::= CURRENT(B) ROW(C) .           {
-A = new IR(kFrameBound, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+frame_bound ::= CURRENT ROW .           {
+p_cov_map->log_cov_map(16479); 
 }
 
 %type frame_exclude_opt {IR*}
-frame_exclude_opt(A) ::= . {
-A = new IR(kFrameExcludeOpt, OP0());
-*root_ir = (IR*)(A);
+frame_exclude_opt ::= . {
+p_cov_map->log_cov_map(7558); 
 }
 
-frame_exclude_opt(A) ::= EXCLUDE(B) frame_exclude(C) . {
-A = new IR(kFrameExcludeOpt, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+frame_exclude_opt ::= EXCLUDE frame_exclude . {
+p_cov_map->log_cov_map(34835); 
 }
 
 %type frame_exclude {IR*}
-frame_exclude(A) ::= NO(B) OTHERS(C) .   {
-A = new IR(kFrameExclude, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+frame_exclude ::= NO OTHERS .   {
+p_cov_map->log_cov_map(111782); 
 }
 
-frame_exclude(A) ::= CURRENT(B) ROW(C) . {
-A = new IR(kFrameExclude, OP3(string(B) + string(C), "", ""));
-*root_ir = (IR*)(A);
+frame_exclude ::= CURRENT ROW . {
+p_cov_map->log_cov_map(124293); 
 }
 
-frame_exclude(A) ::= GROUP|TIES(B) .  {
-A = new IR(kFrameExclude, OP3(string(B), "", ""));
-*root_ir = (IR*)(A);
+frame_exclude ::= GROUP|TIES .  {
+p_cov_map->log_cov_map(121958); 
 }
 
 %type window_clause {IR*}
-window_clause(A) ::= WINDOW(B) windowdefn_list(C) . {
-A = new IR(kWindowClause, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+window_clause ::= WINDOW windowdefn_list . {
+p_cov_map->log_cov_map(159606); 
 }
 
-filter_over(A) ::= filter_clause(B) over_clause(C) . {
-A = new IR(kFilterOver, OP3("", "", ""), (IR*)B, (IR*)C);
-*root_ir = (IR*)(A);
+filter_over ::= filter_clause over_clause . {
+p_cov_map->log_cov_map(115328); 
 }
 
-filter_over(A) ::= over_clause(B) . {
-A = new IR(kFilterOver, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+filter_over ::= over_clause . {
+p_cov_map->log_cov_map(157941); 
 }
 
-filter_over(A) ::= filter_clause(B) . {
-A = new IR(kFilterOver, OP3("", "", ""), (IR*)B);
-*root_ir = (IR*)(A);
+filter_over ::= filter_clause . {
+p_cov_map->log_cov_map(49408); 
 }
 
-over_clause(A) ::= OVER(B) LP(C) window(D) RP(E) . {
-A = new IR(kOverClause, OP3(string(B) + string(C), string(E), ""), (IR*)D);
-*root_ir = (IR*)(A);
+over_clause ::= OVER LP window RP . {
+p_cov_map->log_cov_map(133851); 
 }
 
-over_clause(A) ::= OVER(B) nm(C) . {
-A = new IR(kOverClause, OP3(string(B), "", ""), (IR*)C);
-*root_ir = (IR*)(A);
+over_clause ::= OVER nm . {
+p_cov_map->log_cov_map(127380); 
 }
 
-filter_clause(A) ::= FILTER(B) LP(C) WHERE(D) expr(E) RP(F) .  {
-A = new IR(kFilterClause, OP3(string(B) + string(C) + string(D), string(F), ""), (IR*)E);
-*root_ir = (IR*)(A);
+filter_clause ::= FILTER LP WHERE expr RP .  {
+p_cov_map->log_cov_map(69429); 
 }
 
 %token

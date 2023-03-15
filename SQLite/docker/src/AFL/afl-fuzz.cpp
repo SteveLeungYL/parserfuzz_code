@@ -178,7 +178,9 @@ static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 disable_dyn_instan = false,
 /* Disable Dynamic Instantiation based on error messages.          */
-       disable_rsg_generator = false;
+       disable_rsg_generator = false,
+       disable_rsg_cov_feedback = false;
+
 /* Use RSG to generate new SQL statements          */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
@@ -1038,7 +1040,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
     map_file_id++;
   }
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
   u64 *current = (u64 *)trace_bits;
   u64 *virgin = (u64 *)virgin_map;
@@ -1052,7 +1054,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
   u32 i = (MAP_SIZE >> 2);
 
-#endif /* ^__x86_64__ */
+#endif /* ^__x86_64__ __arm64__ __aarch64__ */
 
   u8 ret = 0;
 
@@ -1072,7 +1074,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
         /* Looks like we have not found any new bytes yet; see if any non-zero
            bytes in current[] are pristine in virgin[]. */
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
@@ -1098,7 +1100,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
         else
           ret = 1;
 
-#endif /* ^__x86_64__ */
+#endif /* ^__x86_64__ __arm64__ __aarch64__ */
       }
 
       *virgin &= ~*current;
@@ -2726,7 +2728,8 @@ inline void print_exec_debug_info(ostream &out) {
       << "total good queries:       " << debug_good << " / "
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
-      << "bug_samples reports num: " << bug_output_id << "\n";
+      << "bug_samples reports num: " << bug_output_id << "\n"
+      << "gram coverage size: " << g_mutator.get_gram_total_cov_size() << "\n";
 
   return;
 }
@@ -4056,7 +4059,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
@@ -4069,7 +4072,8 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           bug_output_id, queued_with_cov,total_execs,
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
           num_total_mutate_all_tree_size / (num_mutate_all+1),
-          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed, num_total_mutate_all_before_ir_set_size / (num_mutate_all+1)
+          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed, num_total_mutate_all_before_ir_set_size / (num_mutate_all+1),
+      g_mutator.get_gram_total_cov_size()
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -6499,7 +6503,10 @@ EXP_ST void setup_dirs_fds(void) {
                      "total_mutate_num,total_oracle_mutate_failed,total_oracle_mutate,"
                      "total_append_failed,total_cri_valid_stmts_lib,total_valid_stmts_lib,"
                      "total_bad_statms,total_good_stmts,total_good_rate,but_output_id,new_edges_on,total_execs,"
-                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed," "total_oracle_rand_valid_failed,avg_ir_set_size"
+                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,"
+                     "avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed,"
+                     "total_oracle_rand_valid_failed,avg_ir_set_size,"
+                     "total_gram_cov_size"
                      "\n");
   /* ignore errors */
 }
@@ -7057,6 +7064,7 @@ int main(int argc, char **argv) {
 
   disable_dyn_instan = false;
   disable_rsg_generator = false;
+  disable_rsg_cov_feedback = false;
 
   // hsql_debug = 1;   // For debugging parser.
 
@@ -7082,7 +7090,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:wXR")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:wXRr")) > 0)
 
     switch (opt) {
 
@@ -7123,6 +7131,13 @@ int main(int argc, char **argv) {
     case 'R': {
       disable_rsg_generator = true;
       cout << "\033[1;31m Warning: Disabling RSG (Random Statement Generator). "
+              "\033[0m \n\n\n";
+    } break;
+
+    case 'r': {
+      disable_rsg_cov_feedback = true;
+      cout << "\033[1;31m Warning: Disabling RSG (Random Statement Generator)"
+              " coverage feedback. "
               "\033[0m \n\n\n";
     } break;
 
@@ -7356,6 +7371,7 @@ int main(int argc, char **argv) {
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);
   g_mutator.set_disable_rsg_generator(disable_rsg_generator);
+  g_mutator.set_disable_rsg_cov_feedback(disable_rsg_cov_feedback);
 
   load_map_id();
 
