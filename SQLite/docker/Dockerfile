@@ -73,7 +73,7 @@ WORKDIR /home/sqlite/sqlite
 RUN git checkout master
 ENV CXX=/home/sqlite/AFL/afl-clang-fast++
 ENV CC=/home/sqlite/AFL/afl-clang-fast
-RUN ./configure --enable-debug --enable-fts5
+RUN ./configure --enable-debug --enable-all
 RUN make -j$(nproc)
 
 ## Build uninstrumented SQLite3
@@ -82,7 +82,7 @@ WORKDIR /home/sqlite/sqlite_ori
 RUN git checkout master
 ENV CXX=g++-9
 ENV CC=gcc-9
-RUN ./configure --enable-debug --enable-fts5
+RUN ./configure --enable-debug --enable-all
 RUN make -j$(nproc)
 
 # Setup the Golang compilation
