@@ -154,8 +154,14 @@ public:
   void resolve_drop_statement(IR*, bool is_debug_info = false);
   void resolve_alter_statement(IR*, bool is_debug_info = false);
 
-  void rsg_exec_succeed_helper() { if (!disable_rsg_cov_feedback && !disable_rsg_generator) {rsg_exec_succeed();} }
-  void rsg_exec_failed_helper() { if (!disable_rsg_cov_feedback && !disable_rsg_generator) { rsg_exec_failed();} }
+  void rsg_exec_succeed_helper() {
+    if (!disable_rsg_cov_feedback && !disable_rsg_generator) {rsg_exec_succeed();}
+    else { rsg_clear_chosen_expr(); }
+  }
+  void rsg_exec_failed_helper() {
+    if (!disable_rsg_cov_feedback && !disable_rsg_generator) { rsg_exec_failed();}
+    else { rsg_clear_chosen_expr(); }
+  }
 
   int get_num_rsg_gen() {return this->num_rsg_gen;}
 

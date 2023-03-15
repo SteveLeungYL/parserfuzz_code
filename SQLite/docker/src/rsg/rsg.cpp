@@ -21,6 +21,10 @@ void rsg_initialize() {
   return;
 }
 
+void rsg_clear_chosen_expr() {
+  RSGClearChosenExpr();
+}
+
 void rsg_exec_succeed() {
   RSGExecSucceed();
 }
