@@ -40,6 +40,7 @@ apt -y install llvm && \
 apt -y install clang && \
 apt install -y g++-9 && \
 apt install -y gcc-9 && \
+apt install -y lemon && \
 pip3 install gitpython
 
 RUN useradd -ms /bin/bash sqlite
