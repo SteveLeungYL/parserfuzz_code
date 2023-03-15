@@ -72,6 +72,12 @@ func RSGInitialize(fileName string, dbmsName string, epsilon float64) {
 
 }
 
+//export RSGClearChosenExpr
+func RSGClearChosenExpr() {
+	r.ClearChosenExpr()
+	return
+}
+
 //export RSGDumpParserRuleMap
 func RSGDumpParserRuleMap(outFile string) {
 	r.DumpParserRuleMap(outFile)
