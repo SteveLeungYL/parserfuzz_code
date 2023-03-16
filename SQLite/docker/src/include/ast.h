@@ -112,6 +112,11 @@ class GramCovMap {
 public:
 
   GramCovMap() {
+    this->block_cov_map = new unsigned char[MAP_SIZE]();
+    memset(this->block_cov_map, 0, MAP_SIZE);
+    this->block_virgin_map = new unsigned char[MAP_SIZE]();
+    memset(this->block_virgin_map, 0xff, MAP_SIZE);
+
     this->edge_cov_map = new unsigned char[MAP_SIZE]();
     memset(this->edge_cov_map, 0, MAP_SIZE);
     this->edge_virgin_map = new unsigned char[MAP_SIZE]();
