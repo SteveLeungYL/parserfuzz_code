@@ -133,7 +133,7 @@ public:
   }
 
   u8 has_new_grammar_bits(bool is_debug = false) {
-    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map);
+    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
     return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map);
   }
   u8 has_new_grammar_bits(u8*, u8*, bool is_debug = false);
