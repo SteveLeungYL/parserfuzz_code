@@ -17,7 +17,7 @@ void rsg_initialize() {
   const string dbms_name = "sqlite";
   GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
 
-  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.5);
+  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3);
   return;
 }
 
