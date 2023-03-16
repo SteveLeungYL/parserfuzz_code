@@ -9,7 +9,7 @@
 
 static string s_table_name;
 
-u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map) {
+u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map, bool is_debug) {
 
 #if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
@@ -37,7 +37,7 @@ u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map) {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2)) {
+      if (likely(ret < 2) || unlikely(is_debug)) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -52,8 +52,14 @@ u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map) {
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
           ret = 2;
+          if (unlikely(is_debug)) {
+            vector<u8> byte = get_cur_new_byte(cur, vir);
+            for (const u8& cur_byte: byte){
+              this->gram_log_map_id(i, cur_byte);
+            }
+          }
         }
-        else
+        else if (unlikely(ret != 2))
           ret = 1;
 
 #else
@@ -61,7 +67,7 @@ u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map) {
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff))
           ret = 2;
-        else
+        else if (unlikely(ret != 2))
           ret = 1;
 
 #endif /* ^__x86_64__ __arm64__ __aarch64__ */

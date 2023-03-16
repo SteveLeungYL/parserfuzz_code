@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 
 using namespace std;
 
@@ -130,11 +132,11 @@ public:
     delete(this->edge_virgin_map);
   }
 
-  u8 has_new_grammar_bits() {
+  u8 has_new_grammar_bits(bool is_debug = false) {
     has_new_grammar_bits(this->block_cov_map, this->block_virgin_map);
     return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map);
   }
-  u8 has_new_grammar_bits(u8*, u8*);
+  u8 has_new_grammar_bits(u8*, u8*, bool is_debug = false);
 
   void reset_block_cov_map() {
     memset(this->block_cov_map, 0, MAP_SIZE);
@@ -190,6 +192,29 @@ private:
    status screen, several calls per second or so. */
   // Copy from afl-fuzz.
   u32 count_non_255_bytes(u8 *mem);
+
+  inline vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+    vector<u8> new_byte_v;
+    for (u8 i = 0; i < 8; i++){
+      if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+    }
+    return new_byte_v;
+  }
+
+  inline void gram_log_map_id (u32 i, u8 byte) {
+    fstream gram_id_out;
+    i = (MAP_SIZE >> 3) - i - 1 ;
+    u32 actual_idx = i * 8 + byte;
+
+    if (!filesystem::exists("./gram_cov.txt")) {
+      gram_id_out.open("./gram_cov.txt", std::fstream::out | std::fstream::trunc);
+    } else {
+      gram_id_out.open("./gram_cov.txt", std::fstream::out | std::fstream::app);
+    }
+    gram_id_out << actual_idx << endl;
+    gram_id_out.flush();
+    gram_id_out.close();
+  }
 };
 
 class IROperator {
