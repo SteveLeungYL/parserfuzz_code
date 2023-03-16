@@ -357,11 +357,19 @@ public:
   vector<OptSemicolon *> v_opt_semicolon_list_;
 };
 
+class Explain: public Node {
+public:
+  virtual void deep_delete();
+  virtual IR *translate(vector<IR *> &v_ir_collector);
+  string str_val_;
+};
+
 class Statement : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   PreparableStatement *preparable_statement_;
+  Explain* explain_;
 };
 
 class PragmaKey : public Node {

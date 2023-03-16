@@ -104,6 +104,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     StatementList* statement_list_t;
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
+    Explain* explain_t;
     FilePath* file_path_t;
     TableRefCommaList* table_ref_commalist_t;
     CreateStatement* create_statement_t;
@@ -325,7 +326,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token OUTER RIGHT TABLE UNION USING WHERE CALL CASE DATE DATETIME
 %token CHAR CHARACTER NCHAR VARYING NATIVE VARCHAR NVARCHAR
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
-%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT ANY STRINGTOKEN THEN TIME BLOB CLOB
+%token LEFT LIKE LOAD LONG NULL QUERY PLAN SHOW TEXT ANY STRINGTOKEN THEN TIME BLOB CLOB
 %token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL BOOLEAN
 %token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TOP AS BY IF IN IS OF ON OR TO
@@ -347,6 +348,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
+%type <explain_t> explain
 %type <file_path_t>	file_path
 %type <create_statement_t>	create_statement
 %type <create_table_statement_t> create_table_statement
@@ -625,7 +627,25 @@ statement:
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
         }
+    |   explain preparable_statement {
+            $$ = new Statement();
+            $$->sub_type_ = CASE1;
+            $$->explain_ = $1;
+            $$->preparable_statement_ = $2;
+        }
     ;
+
+explain:
+        EXPLAIN QUERY PLAN {
+            $$ = new Explain();
+            $$->sub_type_ = CASE0;
+            $$->str_val_ = "EXPLAIN QUERY PLAN";
+        }
+    |   EXPLAIN {
+            $$ = new Explain();
+            $$->sub_type_ = CASE0;
+            $$->str_val_ = "EXPLAIN";
+        }
 
 preparable_statement:
     /* have checked */
@@ -2622,7 +2642,7 @@ join_clause:
 
 table_or_subquery_list:
         table_or_subquery { $$ = new TableOrSubqueryList(); $$->v_table_or_subquery_list_.push_back($1); }
-    |   table_or_subquery_list ',' table_or_subquery { $1->v_table_or_subquery_list_.push_back($3); $$ = $1; }
+    |   table_or_subquery ',' table_or_subquery_list { $3->v_table_or_subquery_list_.push_back($1); $$ = $3; }
 
 table_or_subquery:
         '(' select_statement ')' opt_table_alias {

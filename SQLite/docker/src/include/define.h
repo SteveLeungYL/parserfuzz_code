@@ -10,6 +10,7 @@
   V(kOptString)                                                                \
   V(kProgram)                                                                  \
   V(kStatement)                                                                \
+  V(kExplain)                                                                  \
   V(kPreparableStatement)                                                      \
   V(kSelectStatement)                                                          \
   V(kCreateStatement)                                                          \
@@ -217,6 +218,7 @@
   V(OptString)                                                                 \
   V(Program)                                                                   \
   V(Statement)                                                                 \
+  V(Explain)                                                                   \
   V(PreparableStatement)                                                       \
   V(SelectStatement)                                                           \
   V(CreateStatement)                                                           \

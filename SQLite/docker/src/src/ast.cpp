@@ -564,12 +564,28 @@ IR *StatementList::translate(vector<IR *> &v_ir_collector) {
 
 IR *Statement::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
+  SWITCHSTART
 
+  CASESTART(0)
   res = SAFETRANSLATE(preparable_statement_);
   res = new IR(kStatement, OP0(), res);
+  CASEEND
+  CASESTART(1)
+  auto tmp0 = SAFETRANSLATE(explain_);
+  auto tmp1 = SAFETRANSLATE(preparable_statement_);
+  res = new IR(kStatement, OP0(), tmp0, tmp1);
+  CASEEND
 
+  SWITCHEND
   TRANSLATEEND
 }
+
+IR *Explain::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  res = new IR(kExplain, string(this->str_val_));
+  TRANSLATEEND
+}
+
 
 IR *PreparableStatement::translate(vector<IR *> &v_ir_collector) { assert(0); }
 
@@ -2267,8 +2283,13 @@ void StatementList::deep_delete() {
   delete this;
 }
 
+void Explain::deep_delete() {
+  delete this;
+}
+
 void Statement::deep_delete() {
   SAFEDELETE(preparable_statement_);
+  SAFEDELETE(explain_);
   delete this;
 }
 
@@ -3353,8 +3374,12 @@ IR *FrameExclude::translate(vector<IR *> &v_ir_collector) {
 void FrameExclude::deep_delete() { delete this; }
 
 IR *TableOrSubqueryList::translate(vector<IR *> &v_ir_collector) {
+  vector<TableOrSubquery*> tmp_reversed_v_table_or_subquery_list_;
+  for (auto iter = v_table_or_subquery_list_.rbegin(); iter != v_table_or_subquery_list_.rend(); iter++) {
+    tmp_reversed_v_table_or_subquery_list_.push_back(*iter);
+  }
   TRANSLATESTART
-  TRANSLATELIST(kTableOrSubqueryList, v_table_or_subquery_list_, ",");
+  TRANSLATELIST(kTableOrSubqueryList, tmp_reversed_v_table_or_subquery_list_, ",");
   TRANSLATEENDNOPUSH
 }
 
