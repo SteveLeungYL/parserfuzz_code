@@ -16,6 +16,10 @@ logger.remove()
 logger.add(sys.stderr, level="DEBUG") # or sys.stdout or other file object
 
 all_translated_types = []
+all_rule_maps = dict()
+
+total_edge_num = 0
+total_block_num = 0
 
 class Token(object):
     def __init__(self, value, index):
@@ -105,7 +109,9 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 def translate_single_rule(token_seq, parent):
-    
+    global total_block_num
+    global all_rule_maps
+
     all_saved_str = parent  + "(A) ::= "
 
     tmp_idx = 0
@@ -113,6 +119,12 @@ def translate_single_rule(token_seq, parent):
         all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
         tmp_idx += 1
 
+    if parent not in all_rule_maps:
+        all_rule_maps[parent] = [token_seq]
+    else:
+        all_rule_maps[parent].append(token_seq)
+
+    total_block_num += 1
     return all_saved_str
 
 def translate_single_action(token_seq, parent):
@@ -428,8 +440,29 @@ def get_rules_text(all_saved_str: str) -> str:
 
     return all_saved_lines
 
+def calc_total_edge_num():
+    global all_rule_maps
+    global total_edge_num
+
+    total_edge_num = 0
+
+    for _, list_token_seq in all_rule_maps.items():
+        print(list_token_seq)
+        for token_seq in list_token_seq:
+            tmp = 0
+            for cur_token in token_seq:
+                if cur_token in all_rule_maps:
+                    # Add how many choices for one non-term token.
+                    if tmp == 0:
+                        tmp = 1
+                    print("for token: %s, len: %d" %(cur_token, len(all_rule_maps[cur_token])) )
+                    tmp *= len(all_rule_maps[cur_token])
+            print("for %s, getting edge: %d" % (token_seq, tmp))
+            total_edge_num += tmp
 
 def run(output_fd, all_ir_type_fd):
+    global total_block_num
+    global total_edge_num
 
     predef_str = get_predef_text()
     token_str = handle_ori_comp_parser()
@@ -441,6 +474,10 @@ def run(output_fd, all_ir_type_fd):
     output_fd.write(rules_str)
 
     all_ir_type_fd.write("\n".join(all_translated_types))
+
+    # Summarize the total block number and total edge number
+    calc_total_edge_num()
+    logger.info("Total block num: %d, total edge num: %d.\n"% (total_block_num, total_edge_num))
 
     return
 
