@@ -2729,8 +2729,10 @@ inline void print_exec_debug_info(ostream &out) {
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
       << "bug_samples reports num: " << bug_output_id << "\n"
-      << "gram coverage size num: " << g_mutator.get_gram_total_cov_size_num() << "\n"
-      << "gram coverage size: " << g_mutator.get_gram_total_cov_size() << "\n";
+      << "gram block coverage size num: " << g_mutator.get_gram_total_block_cov_size_num() << "\n"
+      << "gram block coverage size: " << g_mutator.get_gram_total_block_cov_size() << "\n"
+      << "gram edge coverage size num: " << g_mutator.get_gram_total_edge_cov_size_num() << "\n"
+      << "gram edge coverage size: " << g_mutator.get_gram_total_edge_cov_size() << "\n";
 
   return;
 }
@@ -4060,7 +4062,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %0.02f%%\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
@@ -4074,7 +4076,10 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
           num_total_mutate_all_tree_size / (num_mutate_all+1),
           total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed, num_total_mutate_all_before_ir_set_size / (num_mutate_all+1),
-          g_mutator.get_gram_total_cov_size_num(), g_mutator.get_gram_total_cov_size()
+          g_mutator.get_gram_total_block_cov_size_num(),
+          g_mutator.get_gram_total_block_cov_size(),
+          g_mutator.get_gram_total_edge_cov_size_num(),
+          g_mutator.get_gram_total_edge_cov_size()
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -6507,7 +6512,8 @@ EXP_ST void setup_dirs_fds(void) {
                      "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,"
                      "avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed,"
                      "total_oracle_rand_valid_failed,avg_ir_set_size,"
-                     "total_gram_cov_size_num,total_gram_cov_size_percent"
+                     "total_gram_block_cov_size_num,total_gram_block_cov_size_percent,"
+                     "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent"
                      "\n");
   /* ignore errors */
 }

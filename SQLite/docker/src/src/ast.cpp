@@ -9,12 +9,12 @@
 
 static string s_table_name;
 
-u8 GramCovMap::has_new_grammar_bits() {
+u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map) {
 
 #if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
-  u64 *current = (u64 *)this->cov_map;
-  u64 *virgin = (u64 *)this->virgin_map;
+  u64 *current = (u64 *)cur_cov_map;
+  u64 *virgin = (u64 *)cur_virgin_map;
 
   u32 i = (MAP_SIZE >> 3);
 

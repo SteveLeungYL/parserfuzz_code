@@ -112,49 +112,74 @@ class GramCovMap {
 public:
 
   GramCovMap() {
-    this->cov_map = new unsigned char[MAP_SIZE]();
-    memset(this->cov_map, 0, MAP_SIZE);
-    this->virgin_map = new unsigned char[MAP_SIZE]();
-    memset(this->virgin_map, 0xff, MAP_SIZE);
-    prev_cov = 0;
+    this->edge_cov_map = new unsigned char[MAP_SIZE]();
+    memset(this->edge_cov_map, 0, MAP_SIZE);
+    this->edge_virgin_map = new unsigned char[MAP_SIZE]();
+    memset(this->edge_virgin_map, 0xff, MAP_SIZE);
+    edge_prev_cov = 0;
   }
   ~GramCovMap() {
-    delete(this->cov_map);
-    delete(this->virgin_map);
+    delete(this->block_cov_map);
+    delete(this->block_virgin_map);
+    delete(this->edge_cov_map);
+    delete(this->edge_virgin_map);
   }
 
-  u8 has_new_grammar_bits();
-
-  void reset_cov_map() {
-    memset(this->cov_map, 0, MAP_SIZE);
-    prev_cov = 0;
+  u8 has_new_grammar_bits() {
+    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map);
+    return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map);
   }
-  void reset_virgin_map() {
-    memset(this->virgin_map, 0, MAP_SIZE);
-    prev_cov = 0;
+  u8 has_new_grammar_bits(u8*, u8*);
+
+  void reset_block_cov_map() {
+    memset(this->block_cov_map, 0, MAP_SIZE);
+  }
+  void reset_block_virgin_map() {
+    memset(this->block_virgin_map, 0, MAP_SIZE);
+  }
+
+  void reset_edge_cov_map() {
+    memset(this->edge_cov_map, 0, MAP_SIZE);
+    edge_prev_cov = 0;
+  }
+  void reset_edge_virgin_map() {
+    memset(this->edge_virgin_map, 0, MAP_SIZE);
+    edge_prev_cov = 0;
   }
 
   void log_cov_map(unsigned int cur_cov) {
-    unsigned int offset = (prev_cov ^ cur_cov);
-    if (cov_map[offset] < 0xff) { cov_map[offset]++; }
-    prev_cov = (cur_cov >> 1);
+    unsigned int offset = (edge_prev_cov ^ cur_cov);
+    if (edge_cov_map[offset] < 0xff) { edge_cov_map[offset]++; }
+    edge_prev_cov = (cur_cov >> 1);
+
+    if (block_cov_map[cur_cov] < 0xff) {block_cov_map[cur_cov]++;}
   }
 
-  inline double get_total_cov_size() {
-    u32 t_bytes = this->count_non_255_bytes(this->virgin_map);
+  inline double get_total_block_cov_size() {
+    u32 t_bytes = this->count_non_255_bytes(this->block_virgin_map);
     return ((double)t_bytes * 100.0) / MAP_SIZE;
   }
-  inline u32 get_total_cov_size_num() {
-    return this->count_non_255_bytes(this->virgin_map);
+  inline u32 get_total_block_cov_size_num() {
+    return this->count_non_255_bytes(this->block_virgin_map);
   }
 
-  unsigned char* get_cov_map() {
-    return this->cov_map;
+  inline double get_total_edge_cov_size() {
+    u32 t_bytes = this->count_non_255_bytes(this->edge_virgin_map);
+    return ((double)t_bytes * 100.0) / MAP_SIZE;
+  }
+  inline u32 get_total_edge_cov_size_num() {
+    return this->count_non_255_bytes(this->edge_virgin_map);
+  }
+
+  unsigned char* get_edge_cov_map() {
+    return this->edge_cov_map;
   }
 private:
-  unsigned char* cov_map = nullptr;
-  unsigned char* virgin_map = nullptr;
-  unsigned int prev_cov;
+  unsigned char* block_cov_map = nullptr;
+  unsigned char* block_virgin_map = nullptr;
+  unsigned char* edge_cov_map = nullptr;
+  unsigned char* edge_virgin_map = nullptr;
+  unsigned int edge_prev_cov;
 
   /* Count the number of non-255 bytes set in the bitmap. Used strictly for the
    status screen, several calls per second or so. */

@@ -732,7 +732,8 @@ u8 lemon_parser_helper(const string& in_str, GramCovMap* p_gram) {
   }
 
   u8 res = p_gram->has_new_grammar_bits();
-  p_gram->reset_cov_map();
+  p_gram->reset_block_cov_map();
+  p_gram->reset_edge_cov_map();
   return res;
 }
 
