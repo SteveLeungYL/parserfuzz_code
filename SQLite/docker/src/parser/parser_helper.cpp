@@ -632,28 +632,28 @@ static int sqlite3GetToken(const unsigned char *z, int *tokenType){
   return i;
 }
 
-Program *bison_parser_helper(const char *query) {
-  yyscan_t scanner;
-  YY_BUFFER_STATE state;
+//Program *bison_parser_helper(const char *query) {
+//  yyscan_t scanner;
+//  YY_BUFFER_STATE state;
+//
+//  if (hsql_lex_init(&scanner)) return NULL;
+//
+//  state = hsql__scan_string(query, scanner);
+//
+//  Program *p = new Program();
+//  int ret = hsql_parse(p, scanner);
+//
+//  hsql__delete_buffer(state, scanner);
+//  hsql_lex_destroy(scanner);
+//  if (ret != 0) {
+//    p->deep_delete();
+//    return NULL;
+//  }
+//
+//  return p;
+//}
 
-  if (hsql_lex_init(&scanner)) return NULL;
-
-  state = hsql__scan_string(query, scanner);
-
-  Program *p = new Program();
-  int ret = hsql_parse(p, scanner);
-
-  hsql__delete_buffer(state, scanner);
-  hsql_lex_destroy(scanner);
-  if (ret != 0) {
-    p->deep_delete();
-    return NULL;
-  }
-
-  return p;
-}
-
-u8 lemon_parser_helper(const string& in_str, GramCovMap* p_gram) {
+u8 lemon_parser_helper(const string& in_str, IR* root_ir) {
 
   // Fuzzer internal lemon parsing engine.
   void* pEngine = IRParserAlloc(malloc);
@@ -720,21 +720,17 @@ u8 lemon_parser_helper(const string& in_str, GramCovMap* p_gram) {
 
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
-    IRParser(pEngine, tokenType, tmp_tmp_zSql, p_gram);
+    IRParser(pEngine, tokenType, tmp_tmp_zSql, &root_ir);
     lastTokenParsed = tokenType;
     zSql += n;
   }
-  IRParser(pEngine, 0, "", p_gram);
+  IRParser(pEngine, 0, "", &root_ir);
   IRParserFree(pEngine, free);
 
   for (char* cur_zSql : all_dup_zSql) {
     free(cur_zSql);
   }
-
-  u8 res = p_gram->has_new_grammar_bits();
-  p_gram->reset_block_cov_map();
-  p_gram->reset_edge_cov_map();
-  return res;
+  return 0;
 }
 
 //bool ori_sqlite_parser_helper(const string& in_str) {
@@ -758,37 +754,18 @@ u8 lemon_parser_helper(const string& in_str, GramCovMap* p_gram) {
 //    }
 //}
 
-vector<IR*> parser_helper(const string in_str, GramCovMap* p_gram) {
+IR* parser_helper(const string in_str, GramCovMap* p_gram) {
 
   // First of all, try to parse the query with SQLite3 original interface.
 //  ori_sqlite_parser_helper(in_str);
 
+  IR* root_ir = nullptr;
+
   // And then, use the lemon parser to gather the grammar coverage.
   if (p_gram != nullptr) {
-    lemon_parser_helper(in_str, p_gram);
+    lemon_parser_helper(in_str, root_ir);
   }
 
-  vector<IR *> ir_set;
-  Program *p_strip_sql = bison_parser_helper(in_str.c_str());
-  if (p_strip_sql == NULL)
-    return ir_set;
+  return root_ir;
 
-  try {
-    IR *root_ir = p_strip_sql->translate(ir_set);
-  } catch (...) {
-    p_strip_sql->deep_delete();
-
-    for (auto ir : ir_set)
-      ir->drop();
-
-    ir_set.clear();
-    return ir_set;
-  }
-
-  int unique_id_for_node = 0;
-  for (auto ir : ir_set)
-    ir->uniq_id_in_tree_ = unique_id_for_node++;
-
-  p_strip_sql->deep_delete();
-  return ir_set;
 }

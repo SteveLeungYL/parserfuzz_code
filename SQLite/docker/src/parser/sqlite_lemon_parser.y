@@ -26,7 +26,9 @@
 
     #include "../include/ast.h"
     #include "../include/define.h"
+    #include "../include/utils.h"
     #include <vector>
+    #include <string>
 
     void iter_set_id_type(IR* in, IDTYPE id_type) {
         if (in == nullptr) {
@@ -284,7 +286,7 @@ A = new IR(kTableOption, OP3(string(B), "", ""), (IR*)C);
 }
 
 table_option(A) ::= nm(B) . {
-B->str_val_ = "STRICT"
+B->str_val_ = "STRICT";
 A = new IR(kTableOption, OP3("", "", ""), (IR*)B);
 *root_ir = (IR*)(A);
 }
@@ -449,7 +451,6 @@ A = new IR(kCcons, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
 ccons(A) ::= DEFAULT(B) scantok(C) id(D) .       {
 A = new IR(kCcons, OP3(string(B), string(D), ""), (IR*)C);
 *root_ir = (IR*)(A);
-D->id_type_ = id_column_name; // TODO:: Not sure.
 }
 
 ccons(A) ::= NULL(B) onconf(C) . {
@@ -512,7 +513,7 @@ A = new IR(kGenerated, OP3(string(B), string(D), ""), (IR*)C);
 
 generated(A) ::= LP(B) expr(C) RP(D) ID(E) . {
 string id_str = E;
-if (toupper(id_str) != "VIRTUAL" || toupper(id_str) != "STORE") {
+if (findStringIn(id_str, "VIRTUAL") || findStringIn(id_str, "STORE")) {
     id_str = "VIRTUAL";
 }
 A = new IR(kGenerated, OP3(string(B), string(D) + id_str, ""), (IR*)C);
@@ -731,10 +732,10 @@ cmd(A) ::= DROP(B) TABLE(C) ifexists(D) fullname(E) . {
 A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
 *root_ir = (IR*)(A);
 if (E->right_ != nullptr) {
-    E->left_->id_database_name;
-    E->right_->id_top_table_name;
+    E->left_->id_type_ = id_database_name;
+    E->right_->id_type_ = id_top_table_name;
 } else {
-    E->left_->id_top_table_name;
+    E->left_->id_type_ = id_top_table_name;
 }
 }
 
@@ -759,7 +760,7 @@ A = new IR(kCmd, OP3("", "", ""), (IR*)A, (IR*)J);
 *root_ir = (IR*)(A);
 if (!(F->is_empty()) && !(G->is_empty())) {
     F->id_type_ = id_database_name;
-    G->left_id_type_ = id_create_view_name;
+    G->left_->id_type_ = id_create_view_name;
 } else {
     F->id_type_ = id_create_view_name;
 }
@@ -769,10 +770,10 @@ cmd(A) ::= DROP(B) VIEW(C) ifexists(D) fullname(E) . {
 A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
 *root_ir = (IR*)(A);
 if (E->right_ != nullptr) {
-    E->left_->id_database_name;
-    E->right_->id_view_name;
+    E->left_->id_type_ = id_database_name;
+    E->right_->id_type_ = id_view_name;
 } else {
-    E->left_->id_view_name;
+    E->left_->id_type_ = id_view_name;
 }
 }
 
@@ -1470,28 +1471,38 @@ A = new IR(kExpr, OP3(string(B) + string(C), string(E), string(G)), (IR*)D, (IR*
 }
 
 expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) . {
-A = new IR(kExpr, OP3(string(B) + string(C), "", string(F)), (IR*)D, (IR*)E);
+
+IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
+A = new IR(kUnknown, OP3("", string(C), ""), func_ir, (IR*)D );
+A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
 *root_ir = (IR*)(A);
-B->id_type_ = id_function_name;
+
 }
 
 expr(A) ::= id(B) LP(C) STAR(D) RP(E) . {
-A = new IR(kExpr, OP3(string(B) + string(C) + string(D) + string(E), "", ""));
+
+IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
+A = new IR(kExpr, OP3("", string(C) + string(D) + string(E), ""), func_ir);
 *root_ir = (IR*)(A);
-B->id_type_ = id_function_name;
+
 }
 
 expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) filter_over(G) . {
-A = new IR(kUnknown, OP3(string(B) + string(C), "", string(F)), (IR*)D, (IR*)E);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)G);
+
+IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
+
+A = new IR(kUnknown, OP3("", string(C), ""), func_ir, (IR*)D);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
+A = new IR(kExpr, OP3("", string(F), ""), (IR*)A, (IR*)G);
 *root_ir = (IR*)(A);
-B->id_type_ = id_function_name;
 }
 
 expr(A) ::= id(B) LP(C) STAR(D) RP(E) filter_over(F) . {
-A = new IR(kExpr, OP3(string(B) + string(C) + string(D) + string(E), "", ""), (IR*)F);
+
+IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
+A = new IR(kExpr, OP3("", string(C) + string(D) + string(E), ""), func_ir, (IR*)F);
 *root_ir = (IR*)(A);
-B->id_type_ = id_function_name;
+
 }
 
 term(A) ::= CTIME_KW(B) . {
@@ -1830,10 +1841,10 @@ cmd(A) ::= DROP(B) INDEX(C) ifexists(D) fullname(E) .   {
 A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
 *root_ir = (IR*)(A);
 if (E->right_ != nullptr) {
-    E->left_->id_database_name;
-    E->right_->id_index_name;
+    E->left_->id_type_ = id_database_name;
+    E->right_->id_type_ = id_index_name;
 } else {
-    E->left_->id_index_name;
+    E->left_->id_type_ = id_index_name;
 }
 }
 
@@ -1980,10 +1991,10 @@ if (!(E->is_empty()) && !(F->is_empty())) {
     E->id_type_ = id_create_index_name;
 }
 if (J->right_ != nullptr) {
-    J->left_->id_database_name;
-    j->right_->id_top_table_name;
+    J->left_->id_type_ = id_database_name;
+    J->right_->id_type_ = id_top_table_name;
 } else {
-    J->left_->id_top_table_name;
+    J->left_->id_type_ = id_top_table_name;
 }
 
 }
@@ -2146,10 +2157,10 @@ cmd(A) ::= DROP(B) TRIGGER(C) ifexists(D) fullname(E) . {
 A = new IR(kCmd, OP3(string(B) + string(C), "", ""), (IR*)D, (IR*)E);
 *root_ir = (IR*)(A);
 if (E->right_ != nullptr) {
-    E->left_->id_database_name;
-    E->right_->id_trigger_name;
+    E->left_->id_type_ = id_database_name;
+    E->right_->id_type_ = id_trigger_name;
 } else {
-    E->left_->id_trigger_name;
+    E->left_->id_type_ = id_trigger_name;
 }
 }
 
