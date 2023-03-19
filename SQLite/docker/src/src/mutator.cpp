@@ -92,7 +92,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 
   for (auto old_ir : v_ir_collector) {
     total_mutate_gen_num++;
-    if (old_ir == root || old_ir->type_ == kProgram  ||
+    if (old_ir == root || old_ir->type_ == kInput  ||
         old_ir->is_node_struct_fixed)
       {
         // cerr << "Aboard old_ir because it is root or kStatement, or node_struct_fixed. "
@@ -105,12 +105,12 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
     vector<IR*> v_mutated_ir;
 
     if (
-      old_ir->type_ == kStatementList
+      old_ir->type_ == kCmdlist
       // old_ir->type_ == kSelectCoreList ||
       // old_ir->type_ == kSelectCore
     ) {
 
-      if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
+      if (old_ir->type_ == kCmdlist) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
 
       for (IR* mutated_ir : v_mutated_ir) {
 
@@ -172,16 +172,25 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 }
 
 vector<IR *> Mutator::parse_query_str_get_ir_set(const string &query_str) {
-  vector<IR *> ir_set;
 
+  IR* root_ir = parser_helper(query_str, &(this->gram_cov_map));
 
-  ir_set = parser_helper(query_str, &(this->gram_cov_map));
+  if (root_ir == nullptr) {
+    return {};
+  }
+
+  vector<IR*> ir_set = p_oracle->ir_wrapper.get_all_ir_node(root_ir);
+
+  int unique_id_for_node = 0;
+  for (auto ir : ir_set) {
+    ir->uniq_id_in_tree_ = unique_id_for_node++;
+  }
 
   return ir_set;
 }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size() {
-  return this->ir_libary_2D_hash_[kStatement].size();
+  return this->ir_libary_2D_hash_[kCmd].size();
 }
 
 void Mutator::init(string f_testcase, string f_common_string, string pragma) {
@@ -2591,7 +2600,7 @@ void Mutator::_fix(IR *root, string &res) {
 
 void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info){
   IRTYPE stmt_type = this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
-  if (stmt_type == kDropTableStatement || stmt_type == kDropViewStatement) {
+  if (stmt_type == kCmdDropTable || stmt_type == kCmdDropView) {
     vector<IR*> drop_tablename_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
     for (IR* drop_table_ir : drop_tablename_vec) {
       string drop_table_str = drop_table_ir->str_val_;
@@ -2603,7 +2612,7 @@ void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info){
       }
     }
   }
-  else if (stmt_type == kDropIndexStatement) {
+  else if (stmt_type == kCmdDropIndex) {
     vector<IR*> drop_indexname_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_index_name);
     for (IR* drop_indexname_ir : drop_indexname_vec) {
       string drop_indexname_str = drop_indexname_ir->str_val_;
@@ -2619,87 +2628,18 @@ void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info){
 }
 
 void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
-  if (cur_trans_stmt->type_ != kAlterStatement) {return;}
 
-  IR* cur_ir = cur_trans_stmt;
-  while (!(cur_ir->op_ != nullptr && !cur_ir->op_->middle_.empty())) {
-    cur_ir = cur_ir->left_;
-  }
-  IROperator* op_ = cur_ir->op_;
-
-  // RENAME tables.
-  if (op_->middle_ == "RENAME TO"){
-    IR* tablename_from_ir;
-    if (cur_ir->left_->right_ != nullptr) {tablename_from_ir = cur_ir->left_->right_;}
-    else {tablename_from_ir = cur_ir->left_->left_;}
-    string tablename_from_str = tablename_from_ir->str_val_;
-
-    IR* tablename_to_ir;
-    if (cur_ir->right_->right_ != nullptr) {tablename_to_ir = cur_ir->right_->right_;}
-    else {tablename_from_ir = cur_ir->right_->left_;}
-    string tablename_to_str = tablename_from_ir->str_val_;
-
-    for (string& saved_tablename : v_table_names) {
-      if (saved_tablename == tablename_from_str) {saved_tablename = tablename_to_str;}
+  if (cur_trans_stmt->type_ == kCmdAlterTableAddColumn) {
+    // Add Table Column name.
+    IR* tablename_ir = cur_trans_stmt->left_->left_->left_;
+    string tablename_str = tablename_ir->to_string();
+    vector<string> tmp_split = string_splitter(tablename_str, ".");
+    if (tmp_split.size() > 1) {
+      tablename_str = tmp_split.back();
     }
-    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
-      if (iter->first == tablename_from_str) {
-        m_tables[tablename_to_str] = iter->second;
-        m_tables.erase(tablename_from_str);
-        break;
-      }
-    }
-    for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
-      if (iter->first == tablename_from_str) {
-        m_table2index[tablename_to_str] = iter->second;
-        m_table2index.erase(tablename_from_str);
-        break;
-      }
-    }
-    if (is_debug_info) {
-      cerr << "Dependency: In resolve_alter_statement, altering table_name: " << tablename_from_str <<  " to " << tablename_to_str << "\n\n\n";
-    }
-    return;
-  }
 
-  // RNAME columns
-  if (op_->middle_ == "TO") {
-    IR* tablename_ir = cur_ir->left_->left_->left_;
-    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
-    else {tablename_ir = cur_ir->left_;}
-    string tablename_str = tablename_ir->str_val_;
-
-    IR* columnname_to_ir = cur_ir->right_;
-    if (columnname_to_ir->right_ != nullptr || columnname_to_ir->str_val_ == "*" || columnname_to_ir->left_ == nullptr) {return;}  // Semantic error
-    string columnname_to_str = columnname_to_ir->left_->str_val_;
-
-    IR* columnname_from_ir = cur_ir->left_->right_;
-    if (columnname_from_ir->right_ != nullptr || columnname_from_ir->str_val_ == "*" || columnname_from_ir->left_ == nullptr) {return;}  // Semantic error
-    string columnname_from_str = columnname_from_ir->left_->str_val_;
-
-    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
-      vector<string>& table2column_vec = iter->second;
-      for (string& cur_column_str : table2column_vec) {
-        if (cur_column_str == columnname_from_str) {
-          cur_column_str = columnname_to_str;
-        }
-      }
-    }
-    if (is_debug_info) {
-      cerr << "Dependency: In resolve_alter_statement, altering column_name: " << columnname_from_str <<  " to " << columnname_to_str << "\n\n\n";
-    }
-    return;
-  }
-
-  // ADD columns.
-  if (op_->middle_ == "ADD") {
-    IR* tablename_ir = cur_ir->left_;
-    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_;}
-    else {tablename_ir = cur_ir->left_;}
-    string tablename_str = tablename_ir->str_val_;
-
-    IR* columnname_ir = cur_ir->get_parent()->right_->left_->left_;
-    string columnname_str = columnname_ir->str_val_;
+    IR* columnname_ir = cur_trans_stmt->get_parent()->left_->right_; // TypeColumnName
+    string columnname_str = columnname_ir->left_->str_val_; // TypeNm
 
     m_tables[tablename_str].push_back(columnname_str);
     if (is_debug_info) {
@@ -2707,18 +2647,17 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
     }
 
     return;
-  }
+  } else if (cur_trans_stmt->type_ == kCmdAlterTableDropColumn) {
+    // Drop Table Column name.
 
-  // DROP columns.
-  if (op_->middle_ == "DROP") {
-    IR* tablename_ir = cur_ir->left_;
-    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
-    else {tablename_ir = cur_ir->left_;}
-    string tablename_str = tablename_ir->str_val_;
+    IR* tablename_ir = cur_trans_stmt->left_->left_;
+    string tablename_str = tablename_ir->to_string();
+    vector<string> tmp_split = string_splitter(tablename_str, ".");
+    if (tmp_split.size() > 1) {
+      tablename_str = tmp_split.back();
+    }
 
-    IR* columnname_ir = cur_ir->get_parent()->right_;
-    if (columnname_ir->right_ != nullptr || columnname_ir->str_val_ == "*" || columnname_ir->left_ == nullptr) {return;}  // Semantic error
-    string columnname_from_str = columnname_ir->left_->str_val_;
+    IR* columnname_ir = cur_trans_stmt->right_;
     string columnname_str = columnname_ir->str_val_;
 
     vector<string>& table2column_vec = m_tables[tablename_str];
@@ -2729,7 +2668,65 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
     }
 
     return;
+  } else if (cur_trans_stmt->type_ == kCmdAlterTableRenameColumn) {
+    // Rename Column name.
+    IR* tablename_ir = cur_trans_stmt->left_->left_->left_;
+    string tablename_str = tablename_ir->to_string();
+    vector<string> tmp_split = string_splitter(tablename_str, ".");
+    if (tmp_split.size() > 1) {
+      tablename_str = tmp_split.back();
+    }
+
+    IR* rov_columnname_ir = cur_trans_stmt->left_->right_;
+    string rov_columnname_str = rov_columnname_ir->str_val_;
+
+    vector<string>& table2column_vec = m_tables[tablename_str];
+    table2column_vec.erase(std::remove(table2column_vec.begin(), table2column_vec.end(), rov_columnname_str), table2column_vec.end());
+
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, adding column_name: " << rov_columnname_str << "\n\n\n";
+    }
+
+    IR* new_columnname_ir = cur_trans_stmt->right_;
+    string new_columnname_str = new_columnname_ir->str_val_;
+
+    m_tables[tablename_str].push_back(new_columnname_str);
+
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, dropping column_name: " << new_columnname_str << "\n\n\n";
+    }
+
+    return;
+
+  } else if (cur_trans_stmt->type_ == kCmdAlterTableRename) {
+    // Rename Table Name.
+    IR* ori_table_ir = cur_trans_stmt->left_;
+    string ori_table_str = ori_table_ir->to_string();
+
+    IR* new_table_ir = cur_trans_stmt->right_;
+    string new_table_str = new_table_ir->to_string();
+
+    vector<string> tmp_saved;
+    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+      if (iter->first == ori_table_str) {
+        tmp_saved = iter->second;
+        m_tables.erase(ori_table_str);
+        break;
+      }
+    }
+    m_tables[new_table_str] = tmp_saved;
+    tmp_saved.clear();
+
+    for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
+      if (iter->first == ori_table_str) {
+        tmp_saved = iter->second;
+        m_table2index.erase(ori_table_str);
+        break;
+      }
+    }
+    m_table2index[new_table_str] = tmp_saved;
   }
+
   return;
 
 }
@@ -2782,17 +2779,6 @@ void Mutator::_extract_struct(IR *root, string &res) {
       return;
   }
 
-  if (type_ == kColumnName && str_val_ == "*") {
-    res += str_val_;
-    return;
-  }
-
-  if (type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType ||
-      type_ == kSetOperator || type_ == kOptJoinType || type_ == kOptDistinct) {
-    res += str_val_;
-    return;
-  }
-
   if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
     res += "y";
     root->str_val_ = "y";
@@ -2817,7 +2803,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     return;
   }
 
-  if (type_ == kNumericLiteral) {
+  if (type_ == kFloatLiteral || type_ == kIntegerLiteral) {
     unsigned long h = hash(root->str_val_);
     if (value_library_hash_.find(h) == value_library_hash_.end()) {
       value_libary.push_back(root->str_val_);
@@ -2828,11 +2814,11 @@ void Mutator::_extract_struct(IR *root, string &res) {
     return;
   }
 
-  if (type_ == kFilePath) {
-    res += "'file_name'";
-    root->str_val_ = "'file_name'";
-    return;
-  }
+//  if (type_ == kFilePath) {
+//    res += "'file_name'";
+//    root->str_val_ = "'file_name'";
+//    return;
+//  }
 
   if (!str_val_.empty()) {
     res += str_val_;
@@ -2954,7 +2940,7 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
     } else {
       /* get on randomly generated query from the RSG module. */
       if (!disable_rsg_generator) {
-        select_str = this->rsg_generate_valid(kSelectStatement) + "; ";
+        select_str = this->rsg_generate_valid(kCmdSelect) + "; ";
         // Debug purpose
         vector<IR*> v_tmp_check = this->parse_query_str_get_ir_set(select_str);
         if (v_tmp_check.size() == 0) {
