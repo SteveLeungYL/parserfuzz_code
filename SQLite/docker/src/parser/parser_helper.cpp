@@ -651,10 +651,19 @@ static int sqlite3GetToken(const unsigned char *z, int *tokenType){
 //  return p;
 //}
 
-u8 lemon_parser_helper(const string& in_str, IR** root_ir) {
+static void* custom_malloc(size_t t) {
+  void* p = new char[t];
+  return p;
+}
+
+static void custom_free(void* p) {
+  delete[] (char*)p;
+}
+
+u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir) {
 
   // Fuzzer internal lemon parsing engine.
-  void* pEngine = IRParserAlloc(malloc);
+  void* pEngine = IRParserAlloc(custom_malloc);
   if (pEngine == 0) {
     cerr << "\n\n\nERROR: Lemon parser initialization failed. \n\n\n";
     exit(1);
@@ -718,12 +727,12 @@ u8 lemon_parser_helper(const string& in_str, IR** root_ir) {
 
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
-    IRParser(pEngine, tokenType, tmp_tmp_zSql, root_ir);
+    IRParser(pEngine, tokenType, tmp_tmp_zSql, &v_ir);
     lastTokenParsed = tokenType;
     zSql += n;
   }
-  IRParser(pEngine, 0, "", root_ir);
-  IRParserFree(pEngine, free);
+  IRParser(pEngine, 0, "", &v_ir);
+  IRParserFree(pEngine, custom_free);
 
   for (char* cur_zSql : all_dup_zSql) {
     free(cur_zSql);
@@ -752,25 +761,41 @@ u8 lemon_parser_helper(const string& in_str, IR** root_ir) {
 //    }
 //}
 
-IR* parser_helper(const string in_str, GramCovMap* p_gram) {
+vector<IR*> parser_helper(const string in_str, GramCovMap* p_gram) {
 
   // First of all, try to parse the query with SQLite3 original interface.
 //  ori_sqlite_parser_helper(in_str);
 
-  IR* root_ir = nullptr;
+  vector<IR*> v_ir;
 
   // And then, use the lemon parser to gather the grammar coverage.
   if (p_gram != nullptr) {
-    lemon_parser_helper(in_str, &root_ir);
+    lemon_parser_helper(in_str, v_ir);
   }
+
+  if (v_ir.size() == 0) {
+    return {};
+  }
+
+  IR* root_ir = v_ir.back();
 
   if (root_ir == nullptr) {
-    return nullptr;
+    for (auto ir_to_drop : v_ir) {
+      ir_to_drop->drop();
+    }
+    return {};
   } else if (root_ir -> type_ != kInput) {
-    root_ir->deep_drop();
-    return nullptr;
+    for (auto ir_to_drop : v_ir) {
+      ir_to_drop->drop();
+    }
+    return {};
   }
 
-  return root_ir;
+  int unique_id_for_node = 0;
+  for (auto ir : v_ir) {
+    ir->uniq_id_in_tree_ = unique_id_for_node++;
+  }
+
+  return v_ir;
 
 }
