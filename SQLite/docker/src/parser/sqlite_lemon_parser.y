@@ -2294,7 +2294,7 @@ A = new IR(kUnknown, OP3(string(B) + string(C), string(E), ""), (IR*)D, (IR*)F);
 A = new IR(kCmdAlterTableDropColumn, OP3("", "", ""), (IR*)A, (IR*)G);
 A = new IR(kCmd, OP0(), (IR*)(A));
 *root_ir = (IR*)(A);
-G->left_->id_type_ = id_column_name;
+G->id_type_ = id_column_name;
 }
 
 add_column_fullname(A) ::= fullname(B) . {

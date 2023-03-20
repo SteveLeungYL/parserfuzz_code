@@ -651,7 +651,7 @@ static int sqlite3GetToken(const unsigned char *z, int *tokenType){
 //  return p;
 //}
 
-u8 lemon_parser_helper(const string& in_str, IR* root_ir) {
+u8 lemon_parser_helper(const string& in_str, IR** root_ir) {
 
   // Fuzzer internal lemon parsing engine.
   void* pEngine = IRParserAlloc(malloc);
@@ -718,11 +718,11 @@ u8 lemon_parser_helper(const string& in_str, IR* root_ir) {
 
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
-    IRParser(pEngine, tokenType, tmp_tmp_zSql, &root_ir);
+    IRParser(pEngine, tokenType, tmp_tmp_zSql, root_ir);
     lastTokenParsed = tokenType;
     zSql += n;
   }
-  IRParser(pEngine, 0, "", &root_ir);
+  IRParser(pEngine, 0, "", root_ir);
   IRParserFree(pEngine, free);
 
   for (char* cur_zSql : all_dup_zSql) {
@@ -761,7 +761,7 @@ IR* parser_helper(const string in_str, GramCovMap* p_gram) {
 
   // And then, use the lemon parser to gather the grammar coverage.
   if (p_gram != nullptr) {
-    lemon_parser_helper(in_str, root_ir);
+    lemon_parser_helper(in_str, &root_ir);
   }
 
   return root_ir;
