@@ -340,8 +340,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
         if (tmp_stmt_vec.size() == 0) {
           cerr << "\n\n\nERROR: getting empty tmp_stmt_vec from rsg generated string: "
             << tmp_stmt_str << "\n\n\n";
-          assert(false);
-          exit(1);
+          tmp_root->deep_drop();
+          new_stmt_ir = nullptr;
+          continue;
         }
         new_stmt_ir = tmp_stmt_vec.front()->deep_copy();
         tmp_root->deep_drop();
