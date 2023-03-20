@@ -29,6 +29,7 @@
     #include "../include/utils.h"
     #include <vector>
     #include <string>
+    #include <algorithm>
 
     void iter_set_id_type(IR* in, IDTYPE id_type) {
         if (in == nullptr) {
@@ -1894,6 +1895,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 delete C;
 delete D;
+std::remove(v_ir->begin(), v_ir->end(), C);
+std::remove(v_ir->begin(), v_ir->end(), D);
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 A = new IR(kCmdPragma, OP3(string(B), "", ""), (IR*)cmd_name_ir );
 A = new IR(kCmd, OP0(), (IR*)(A));
@@ -1905,6 +1908,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 delete C;
 delete D;
+std::remove(v_ir->begin(), v_ir->end(), C);
+std::remove(v_ir->begin(), v_ir->end(), D);
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
 A = new IR(kCmdPragma, OP3("", "", ""), (IR*)A, (IR*)F);
@@ -1917,6 +1922,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 delete C;
 delete D;
+std::remove(v_ir->begin(), v_ir->end(), C);
+std::remove(v_ir->begin(), v_ir->end(), D);
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
 A = new IR(kCmdPragma, OP3("", "", string(G)), (IR*)A, (IR*)F);
@@ -1929,6 +1936,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 delete C;
 delete D;
+std::remove(v_ir->begin(), v_ir->end(), C);
+std::remove(v_ir->begin(), v_ir->end(), D);
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
 A = new IR(kCmdPragma, OP3("", "", ""), (IR*)A, (IR*)F);
@@ -1941,6 +1950,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 delete C;
 delete D;
+std::remove(v_ir->begin(), v_ir->end(), C);
+std::remove(v_ir->begin(), v_ir->end(), D);
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
 A = new IR(kCmdPragma, OP3("", "", string(G)), (IR*)A, (IR*)F);
