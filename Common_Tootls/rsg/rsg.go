@@ -381,7 +381,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				continue
 			case "CTIME_KW":
 				// Not sure.
-				ret = append(ret, " CTIME ")
+				ret = append(ret, " '' ")
 				continue
 			case "BITAND":
 				ret = append(ret, " & ")
@@ -427,6 +427,21 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				continue
 			case "ID":
 				ret = append(ret, "v0")
+				continue
+			case "id":
+				ret = append(ret, "v0")
+				continue
+			case "STRING":
+				ret = append(ret, "''")
+				continue
+			case "FLOAT":
+				ret = append(ret, "0.0")
+				continue
+			case "BLOB":
+				ret = append(ret, "''")
+				continue
+			case "INTEGER":
+				ret = append(ret, "0")
 				continue
 
 			default:
