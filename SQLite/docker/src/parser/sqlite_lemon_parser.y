@@ -1430,7 +1430,7 @@ A = new IR(kExpr, OP3(string(B), string(D), ""), (IR*)C);
 }
 
 expr(A) ::= id(B) .          {
-A = new IR(kExpr, OP3(string(B), "", ""));
+A = new IR(kIdentifier, string(B), id_column_name);
 *root_ir = (IR*)(A);
 }
 
