@@ -107,7 +107,6 @@ public:
   string extract_struct(IR *root);
   void _extract_struct(IR *root, string &);
   string extract_struct(string);
-  void add_new_table(IR *root, string &table_name);
   void reset_database();
   void reset_database_single_stmt();
 
@@ -220,8 +219,6 @@ private:
   vector<string *> all_cri_valid_pstr_vec;
 
   SQL_ORACLE *p_oracle;
-
-  Program *parser(const char *sql);
 
   u8 disable_rsg_generator, disable_dyn_instan, disable_rsg_cov_feedback;
 

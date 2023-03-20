@@ -40,7 +40,7 @@ string rsg_generate(const IRTYPE type) {
   // Convert the test string to GoString format.
   // Only supporting TypeSelect and TypeStmt.
   string input_str = "";
-  if (type == kSelectStatement) {
+  if (type == kCmdSelect) {
     input_str = "select";
   } else {
     input_str = "cmd";

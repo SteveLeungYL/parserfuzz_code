@@ -23,7 +23,7 @@ public:
   /* ====== Above have been checked ======================= */
 
   inline bool is_select_stmt(IR* cur_IR) {
-    if (cur_IR->type_ == kSelectStatement) {
+    if (cur_IR->type_ == kCmdSelect || cur_IR->type_ == kSelect) {
       return true;
     } else {
       return false;

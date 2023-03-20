@@ -130,13 +130,13 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_id_type(IR* cur_stmt,
 bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node) {
     IR* cur_iter = check_node;
     while (cur_iter) {
-        if (cur_iter->type_ == kStatementList) { // Iter to the parent node. This is Not a subquery. 
+        if (cur_iter->type_ == kCmd) { // Iter to the parent node. This is Not a subquery.
             return false;
         }
         else if (cur_iter->parent_ == NULL) {
             return false;
         }
-        else if (cur_iter->type_ == kSelectStatement && this->get_parent_type(cur_iter, 1) != kStatement)  // This IS a subquery. 
+        else if (cur_iter->type_ == kSelect && this->get_parent_type(cur_iter, 1) != kCmdSelect)  // This IS a subquery.
         {
             return true;
         }
@@ -147,7 +147,7 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node) {
 }
 
 vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type, 
-    bool is_subquery, int stmt_idx) { // (IRTYPE, subquery_level)
+    bool is_subquery, int stmt_idx) {
 
     if (stmt_idx < 0) {
         FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node__in_stmt_with_type. Idx < 0. idx: '%d' \n", stmt_idx);
@@ -219,7 +219,7 @@ bool IRWrapper::is_ir_after(IR* f, IR* l){
 
 }
 
-vector<IRTYPE> IRWrapper::get_all_ir_type(){
+vector<IRTYPE> IRWrapper::get_all_stmt_ir_type(){
 
     vector<IR*> stmt_v = this->get_stmt_ir_vec();
 
@@ -236,7 +236,7 @@ int IRWrapper::get_stmt_num(){
 }
 
 int IRWrapper::get_stmt_num(IR* cur_root) {
-    if (cur_root->type_ != kProgram) {
+    if (cur_root->type_ != kInput) {
         cerr << "Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n";
         FATAL("Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n");
     }
@@ -275,8 +275,20 @@ bool IRWrapper::append_stmt_after_idx(string app_str, int idx, Mutator& g_mutato
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> kStatementlist -> kStatement -> kSpecificStmt 
-    app_IR_node = app_IR_node->deep_copy();
+    IR* app_IR_node = nullptr;
+    for (auto cur_ir : app_IR_vec) {
+        if (cur_ir->type_ == kCmd) {
+            app_IR_vec.push_back(cur_ir);
+            break;
+        }
+    }
+    if (app_IR_node == nullptr) {
+        cerr << "\n\n\nError: cannot get the app_IR_node from the parsed str. "
+                "append_stmt_after_idx. \n\n\n";
+        app_IR_node = nullptr;
+    } else {
+        app_IR_node = app_IR_node->deep_copy();
+    }
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
@@ -290,8 +302,20 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> Statementlist -> Statement -> kSpecificStmt
-    app_IR_node = app_IR_node->deep_copy();
+    IR* app_IR_node = nullptr;
+    for (auto cur_ir : app_IR_vec) {
+        if (cur_ir->type_ == kCmd) {
+            app_IR_vec.push_back(cur_ir);
+            break;
+        }
+    }
+    if (app_IR_node == nullptr) {
+        cerr << "\n\n\nError: cannot get the app_IR_node from the parsed str. "
+                "append_stmt_after_idx. \n\n\n";
+        app_IR_node = nullptr;
+    } else {
+        app_IR_node = app_IR_node->deep_copy();
+    }
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
@@ -308,12 +332,12 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please prov
         return false;
     }
 
-    app_IR_node = new IR(kStatement, OP0(), app_IR_node);
+    app_IR_node = new IR(kCmd, OP0(), app_IR_node);
 
     if (idx != -1) {
         IR* insert_pos_ir = stmt_list_v[idx];
 
-        auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
+        auto new_res = new IR(kCmdlist, OPMID(";"), NULL, app_IR_node);
 
         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
             new_res->deep_drop();
@@ -328,8 +352,8 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please prov
     } else { // idx == -1
         IR * insert_before_pos_ir = stmt_list_v[0];
 
-        auto starting_res = new IR(kStatementList, OP0(), NULL);
-        auto second_res = new IR(kStatementList, OPMID(";"), starting_res, insert_before_pos_ir->left_->deep_copy());
+        auto starting_res = new IR(kCmdlist, OP0(), NULL);
+        auto second_res = new IR(kCmdlist, OPMID(";"), starting_res, insert_before_pos_ir->left_->deep_copy());
 
         if (!ir_root->swap_node(insert_before_pos_ir, second_res)) {
             second_res->deep_drop();
@@ -375,7 +399,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
     // For removing idx 0, we need to rewrite idx 1 to fit in the specific format of statementlist idx 0. 
     if (idx == 0){
         IR* next_stmt = stmt_list_v[1];
-        IR* new_next_stmt = new IR(kStatementList, OP0(), next_stmt->right_->deep_copy());
+        IR* new_next_stmt = new IR(kCmdlist, OP0(), next_stmt->right_->deep_copy());
         if (!this->ir_root->swap_node(next_stmt, new_next_stmt)){
             cerr << "Error: swap_node failure. idx: " << idx << ". In function: IRWrapper::remove_stmt_at_idx_and_free(); \n";
             new_next_stmt->deep_drop();
@@ -400,17 +424,9 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
 
 vector<IR*> IRWrapper::get_stmt_ir_vec() {
-    vector<IR*> stmtlist_vec = this->get_stmtlist_IR_vec(), stmt_vec;
-    if (stmtlist_vec.size() == 0) return stmt_vec;
 
-    stmt_vec.push_back(stmtlist_vec[0]->left_->left_); // kStatementlist -> kStatement -> specific_statement_type
+    vector<IR*> stmt_vec = this->get_ir_node_in_stmt_with_type(this->ir_root, kCmd, false, false);
 
-    if (stmtlist_vec.size() > 1) {
-        for (int i = 1; i < stmtlist_vec.size(); i++){
-            stmt_vec.push_back(stmtlist_vec[i]->right_->left_); // kStatementlist -> kStatement -> specific_statement_type
-        }
-    }
-    
     // // DEBUG
     // for (auto stmt : stmt_vec) {
     //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
@@ -567,12 +583,11 @@ IR* IRWrapper::get_parent_with_a_type(IR* cur_IR, int depth) {
 
 IR* IRWrapper::add_cast_expr(IR* ori_expr, string column_type_str) {
     
-    auto new_column_type_ir = new IR(kOptColumnNullable, column_type_str);
-    auto res = new IR(kNewExpr, OP3("CAST (", "AS", ")"), ori_expr->deep_copy(), new_column_type_ir);
+    auto new_column_type_ir = new IR(kUnknown, column_type_str);
+    auto res = new IR(kExpr, OP3("CAST (", "AS", ")"), ori_expr->deep_copy(), new_column_type_ir);
 
     if (!ir_root->swap_node(ori_expr, res)) {
         res->deep_drop();
-        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::add_cast_expr. \n";
         return nullptr;
     }
@@ -585,21 +600,18 @@ IR* IRWrapper::add_cast_expr(IR* ori_expr, string column_type_str) {
 IR* IRWrapper::add_func(IR* ori_expr, string func_name_str) {
     
     // For func_name
-    auto new_identifier_ir = new IR(kIdentifier, func_name_str, id_whatever);
-    auto func_name_ir = new IR(kFunctionName, OP0(), new_identifier_ir);
+    auto func_name_ir = new IR(kIdentifier, func_name_str, id_function_name);
     // For func_args
-    auto opt_distinct_ir = new IR(kOptDistinct, ""); // Do not use DISTINCT or ALL. 
-    auto expr_list_ir = new IR(kExprList, OP0(), ori_expr->deep_copy());
-    auto func_args_ir = new IR(kFunctionArgs, OP0(), opt_distinct_ir, expr_list_ir);
+    auto func_args_ir = new IR(kExpr, OP0(), ori_expr->deep_copy());
     // For opt_filter_clause
-    auto opt_filter_ir = new IR(kOptFilterClause, string(""));
+    auto opt_filter_ir = new IR(kFilterClause, string(""));
     // For opt_over_clause
-    auto opt_over_ir = new IR(kOptOverClause, string(""));
+    auto opt_over_ir = new IR(kOverClause, string(""));
 
     // Build the function ir
     auto new_expr_ir = new IR(kUnknown, OP3("", "(", ")"), func_name_ir, func_args_ir);
     new_expr_ir = new IR(kUnknown, OP0(), new_expr_ir, opt_filter_ir);
-    new_expr_ir = new IR(kNewExpr, OP0(), new_expr_ir, opt_over_ir);
+    new_expr_ir = new IR(kExpr, OP0(), new_expr_ir, opt_over_ir);
 
 
     if (!ir_root->swap_node(ori_expr, new_expr_ir)) {
@@ -619,10 +631,7 @@ IR* IRWrapper::add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR*
     bool is_free_right) {
 
     // For Binary_op
-    auto binary_op_ir = new IR(kBinaryOp, op_value);
-
-    auto new_expr_ir = new IR(kUnknown, OP2("(", ")"), left_stmt_expr->deep_copy(), binary_op_ir);
-    new_expr_ir = new IR(kNewExpr, OP0(), new_expr_ir, right_stmt_expr->deep_copy());
+    auto new_expr_ir = new IR(kExpr, OP3("", op_value, ""), left_stmt_expr->deep_copy(), right_stmt_expr->deep_copy());
 
     if (!ir_root->swap_node(ori_expr, new_expr_ir)) {
         new_expr_ir->deep_drop();
@@ -640,36 +649,28 @@ IR* IRWrapper::add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR*
 
 
 bool IRWrapper::is_exist_group_by(IR* cur_stmt){
-    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false)) {
-        vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
-        for (IR *cur_opt_group : all_opt_group) {
-            if (cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && 
-                cur_opt_group->op_->prefix_ == "GROUP BY") {
-                return true;
-            }
+    vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kGroupbyOpt, false);
+    for (IR *cur_opt_group : all_opt_group) {
+        if (!(cur_opt_group->is_empty())) {
+            return true;
         }
     }
     return false;
 }
 
 bool IRWrapper::is_exist_having(IR* cur_stmt){
-    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false)) {
-        vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
-        for (IR *cur_opt_group : all_opt_group) {
-            if (cur_opt_group->right_ != nullptr) {
-                IR* opt_having = cur_opt_group->right_;
-                if (opt_having->op_ != nullptr && 
-                    opt_having->op_->prefix_ == "HAVING") {
-                    return true;
-                }
-            }
+    vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kHavingOpt, false);
+    for (IR *cur_opt_group : all_opt_group) {
+        if (!(cur_opt_group->is_empty())) {
+            return true;
         }
     }
+    return false;
     return false;
 }
 
 bool IRWrapper::is_exist_distinct(IR* cur_stmt) {
-    vector<IR*> opt_distinct_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
+    vector<IR*> opt_distinct_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kDistinct, false);
     for (IR* opt_distinct_ir : opt_distinct_vec) {
         if (opt_distinct_ir && 
             opt_distinct_ir->op_ &&
@@ -680,305 +681,28 @@ bool IRWrapper::is_exist_distinct(IR* cur_stmt) {
     return false;
 }
 
-IR* IRWrapper::get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx){
-    // if (cur_stmt->type_ != kSelectStatement) {
-    //     cerr << "Error: get_result_column_in_select_clause_in_select_stmt() not receiving kSelectStatement. \n";
-    //     cerr << "Receiving " << cur_stmt->type_ << endl;
-    //     return nullptr;
-    // }
-    vector<IR*> all_result_column_list = get_result_column_list_in_select_clause(cur_stmt);
-    if (idx >= int(all_result_column_list.size()) || idx < 0) {
-        cerr << "Error, idx exceeding the total number of ResultColumnList in the select clause. \n";
-        return nullptr;
-    }
-    IR* cur_result_column_list = all_result_column_list[idx];
-    if (idx == 0) {
-        return cur_result_column_list->left_;
-    } else {
-        return cur_result_column_list->right_;
-    }
-}
-
-vector<IR*> IRWrapper::get_result_column_list_in_select_clause(IR* cur_stmt){
-
-    IR* match_column_list = nullptr;
-    vector<IR*> match_column_list_vec_rev, match_column_list_vec;
-    vector<IR*> select_result_column_list_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kResultColumnList, false);
-    for (IR* cur_select_result_column_list : select_result_column_list_vec) {
-      if (
-        this->get_parent_type(cur_select_result_column_list, 1) == kSelectCore
-      ) {match_column_list = cur_select_result_column_list;} // This is the last expr. 
-    }
-
-    if (match_column_list != nullptr) {
-        match_column_list_vec_rev.push_back(match_column_list);
-        while (match_column_list->right_ != nullptr) {
-            match_column_list = match_column_list->right_;
-            match_column_list_vec_rev.push_back(match_column_list);
-        }
-        for (auto iter = match_column_list_vec_rev.rbegin(); iter != match_column_list_vec_rev.rend(); iter++){
-            match_column_list_vec.push_back(*iter);
-        }
-    }
-    return match_column_list_vec;
-}
-
-int IRWrapper::get_num_result_column_in_select_clause(IR* cur_stmt) {
-    return this->get_result_column_list_in_select_clause(cur_stmt).size();
-}
-
-bool IRWrapper::add_without_rowid_to_stmt(IR* cur_stmt){
-    if (
-        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateTableStatement, false) &&
-        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateVirtualTableStatement, false)
-    ) { 
-        cerr << "Error: cur_stmt is not a CREATE statement. Func: IRWrapper::add_without_rowid_to_stmt(IR* cur_stmt). \n";
-        return false;
-    }
-
-    vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
-    for (auto without_rowid_ir : without_rowid_vec) {
-        if (without_rowid_ir == nullptr) {continue;}
-        if (without_rowid_ir->op_ == nullptr) without_rowid_ir->op_ = new IROperator();
-        without_rowid_ir->op_->prefix_ = "WITHOUT ROWID";
-    }
-    return true;
-}
-
-bool IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt){
-    if (
-        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateTableStatement, false) &&
-        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateVirtualTableStatement, false)
-    ) { 
-        cerr << "Error: cur_stmt is not a CREATE statement. Func: IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt). \n";
-        return false;
-    }
-
-    vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
-    for (auto without_rowid_ir : without_rowid_vec) {
-        if (without_rowid_ir == nullptr) {continue;}
-        if (without_rowid_ir->op_ == nullptr) without_rowid_ir->op_ = new IROperator();
-        without_rowid_ir->op_->prefix_ = "";
-    }
-    return true;
-}
-
-bool IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right) {
-    if (!this->is_exist_ir_node_in_stmt_with_type(left_stmt, kSelectStatement, false)) {
-        cerr << "Error: The left_stmt received is not a SELECT stmt. Cannot combine it to selectcore clause. "
-             << "Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str). \n";
-        return false;
-    }
-    if (!this->is_exist_ir_node_in_stmt_with_type(right_stmt, kSelectStatement, false)) {
-        cerr << "Error: The right_stmt received is not a SELECT stmt. Cannot combine it to selectcore clause. "
-             << "Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str). \n";
-        return false;
-    }
-
-    IR* cur_stmt = left_stmt;
-    IR* cur_selectcorelist = cur_stmt->left_->right_;  // This should be the last kselectcorelist or kselectcore in the stmt. 
-
-    IR* right_selectcorelist = right_stmt->left_->right_;
-    IR* right_selectcore;
-    if (right_selectcorelist->type_ == kSelectCoreList) {
-        // Iterate to the very first right_select_core_list in order. 
-        while (right_selectcorelist->left_->type_ != kSelectCore ) {
-            right_selectcorelist = right_selectcorelist->left_;
-        }
-        right_selectcore = right_selectcorelist->left_->deep_copy();
-        right_selectcore->parent_ = nullptr;
-    } else {
-        right_selectcore = right_selectcorelist->deep_copy();
-    }
-
-    IR* set_op = new IR(kSetOperator, set_operator_str);
-    IR* new_selectcorelist = new IR(kUnknown, OP0(), cur_selectcorelist->deep_copy(), set_op);
-    new_selectcorelist = new IR(kSelectCoreList, OP0(), new_selectcorelist, right_selectcore);
-
-    if(!cur_stmt->swap_node(cur_selectcorelist, new_selectcorelist)){
-        new_selectcorelist->deep_drop();
-        cerr << "Error: Swap node failure; in Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right)" << endl;
-        return false;
-    }
-    cur_selectcorelist->deep_drop();
-
-    if (is_free_left) {left_stmt->deep_drop();}
-    if (is_free_right) {right_stmt->deep_drop();}
-    
-    return true;
-}
-
 IR* IRWrapper::get_alias_iden_from_tablename_iden(IR* tablename_iden){
-    IR *opt_alias_ir = tablename_iden->parent_->parent_->right_; // identifier -> ktablename -> parent_ -> kOptTableAliasAs
-    if (opt_alias_ir != nullptr &&
-        opt_alias_ir->op_ != nullptr &&
-        (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) &&
-        opt_alias_ir->op_->prefix_ == "AS") {
-        if (opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) { // kOptTableAliasAs -> kTableAlias ->  identifier.
-            return opt_alias_ir->left_->left_;
-        }
-    }
-    return nullptr;
+    IR* opt_alias_ir = find_closest_node_exclude_child(tablename_iden, id_alias_name);
+    return opt_alias_ir;
 }
 
 IRTYPE IRWrapper::get_cur_stmt_type(IR* cur_ir) {
     while (cur_ir->parent_ != nullptr) {
-        if (cur_ir->type_ == kStatement) {
+        if (cur_ir->type_ == kCmd) {
             return cur_ir->left_->type_;
-        }
-        if (cur_ir->type_ == kStatementList) {
-            if (cur_ir->right_ == nullptr) {
-                if (cur_ir->left_->type_ == kStatement) {return cur_ir->left_->left_->type_;}
-                else {return cur_ir->left_->type_;}
-            }
-            else {
-                if (cur_ir->right_->type_ == kStatement) {return cur_ir->right_->left_->type_;}
-                else {return cur_ir->right_->type_;}
-            }
         }
         cur_ir = cur_ir->parent_;
     }
     return kUnknown;
 }
 
-vector<IR*> IRWrapper::get_selectcore_vec(IR* cur_stmt){
-    if (cur_stmt->type_ != kSelectStatement) {
-        // cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
-        vector<IR*> tmp; return tmp;
-    }
-
-    vector<IR*> res_selectcore_vec;
-    IR* cur_selectcorelist = cur_stmt->left_->right_;
-
-    // Only one entry. Doesn't have kSelectCoreList struct. 
-    if (cur_selectcorelist->type_ == kSelectCore) {
-        res_selectcore_vec.push_back(cur_selectcorelist); 
-        return res_selectcore_vec;
-    }
-
-    bool is_finished = false;
-    while (!is_finished) {
-        if (cur_selectcorelist->type_ == kSelectCoreList) 
-            {res_selectcore_vec.push_back(cur_selectcorelist->right_);}  // kSelectcoreList -> kSelectcore
-        else if (cur_selectcorelist->type_ == kSelectCore) {
-            res_selectcore_vec.push_back(cur_selectcorelist);  // The first kSelectcore. 
-            is_finished = true; 
-            break;
-        }
-        cur_selectcorelist = cur_selectcorelist->left_;
-    }
-
-    // Reverse the order of the list. After reversion, the order is from the first kSelectcore to the last one. 
-    reverse(res_selectcore_vec.begin(), res_selectcore_vec.end()); 
-    return res_selectcore_vec;
-}
-
-bool IRWrapper::append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx) {
-    if (app_ir->type_ != kSelectCore) {
-        cerr << "Error: Not receiving kSelectCore in the func: IRWrapper::append_selectcore_clause(). \n";
-        return false;
-    }
-    if (cur_stmt->type_ != kSelectStatement) {
-        cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::append_selectcore_clause(). \n";
-        return false;
-    }
-
-    vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
-    if (int(selectcore_vec.size()) > idx) {
-        cerr << "Idx exceeding the maximum number of selectcore in the statement. \n";
-        return false;
-    }
-
-    if (idx >= 0) {
-        IR* app_pos_ir;
-        if (idx > 0) {app_pos_ir = selectcore_vec[idx]->parent_;}  // kSelectCore -> kSelectCoreList
-        else {app_pos_ir = selectcore_vec[idx];} // There is no kSelectCoreList for the first entry. 
-        IR* set_operator_ir = new IR(kSetOperator, set_oper_str);
-
-        auto new_selectcorelist = new IR(kUnknown, OP0(), NULL, set_operator_ir);
-        new_selectcorelist = new IR(kSelectCoreList, OP0(), new_selectcorelist, app_ir);
-
-        if (!cur_stmt->swap_node(app_pos_ir, new_selectcorelist)) {
-            new_selectcorelist->deep_drop();
-            std::cerr << "IRWrapper::append_selectcore_clause_after_idx. idx = " << idx << "\n";
-            return false;
-        }
-        new_selectcorelist->left_->update_left(app_pos_ir);
-        return true;
-    } else if (idx == -1) {
-
-        IR* app_pos_ir = selectcore_vec[0]; // This is a kSelectCore, NOT A kSelectCoreList!!!
-
-        IR* set_operator_ir = new IR(kSetOperator, set_oper_str);
-        auto starting_res = app_ir;
-        auto second_res = new IR(kUnknown, OP0(), starting_res, set_operator_ir);
-        second_res = new IR(kSelectCoreList, OP0(), second_res, NULL);
-
-        if (!cur_stmt->swap_node(app_pos_ir, second_res)) {
-            second_res->deep_drop();
-            std::cerr << "IRWrapper::append_selectcore_clause_after_idx. idx = " << idx << "\n";
-            return false;
-        }
-        second_res->update_right(app_pos_ir);
-        return true;
-
-    } else {
-        std::cerr << "In func: IRWrapper::append_selectcore_clause_after_idx(), Idx not making sense. idx: " << idx << ". \n";
-        return false;
-    }
-}
-
-bool IRWrapper::remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx) {
-    vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
-    if (idx >= int(selectcore_vec.size()) || idx < 0) {
-        cerr << "Error: Idx exceeding selectcorelist size, or idx < 0. idx: " << idx 
-             << ". Func: IRWrapper::remove_selectcore_clause_at_idx_and_free. \n";
-        return false;
-    }
-
-    if (selectcore_vec.size() == 1) {
-        cerr << "Cannot remove current selectcore becuase there is only one selectcore left in the select statement. \n In function IRWrapper::remove_selectcore_clause_at_idx_and_free.";
-        return false;
-    }
-
-    if (idx == 0) {
-        IR* next_selectcore_ir = selectcore_vec[1]->deep_copy();
-        IR* next_selectcorelist_ir = selectcore_vec[1]->parent_; // kSelectCore -> kSelectCoreList
-        if (!cur_stmt->swap_node(next_selectcorelist_ir, next_selectcore_ir)) {
-            next_selectcore_ir->deep_drop();
-            cerr << "swap_node failed: Func: IRWrapper::remove_selectcore_clause_at_idx_and_free(); \n";
-            return false;
-        }
-        next_selectcorelist_ir->deep_drop(); // Remove the kSelectCore for the first statement, and the kSelectCorelist for the second statment. 
-        return true;
-    } else {
-        IR* prev_selectcore_ir;
-        if (idx == 1) { prev_selectcore_ir = selectcore_vec[0]->deep_copy(); }
-        else { prev_selectcore_ir = selectcore_vec[idx-1]->parent_->deep_copy(); }
-        IR* rov_selectcore_ir = selectcore_vec[idx]->parent_; // kSelectCore -> kSelectCoreList -> unknown_parent
-
-        if (!cur_stmt->swap_node(rov_selectcore_ir, prev_selectcore_ir)) {
-            prev_selectcore_ir->deep_drop();
-            cerr << "swap_node failed: Func: IRWrapper::remove_selectcore_clause_at_idx_and_free(); \n";
-            return false;
-        }
-
-        rov_selectcore_ir->deep_drop(); // Remove all the child nodes. Including the original prev_selectcore_ir. 
-        return true;
-    }
-}
-
-int IRWrapper::get_num_selectcore(IR* cur_stmt) {
-    return this->get_selectcore_vec(cur_stmt).size();
-}
-
 IR* IRWrapper::get_stmt_ir_from_child_ir(IR* cur_ir) {
-    while (cur_ir->type_ != kStatement && cur_ir->parent_ != nullptr) {
-        if (cur_ir->type_ == kProgram) {return nullptr;}
+    while (cur_ir->type_ != kCmd && cur_ir->parent_ != nullptr) {
+        if (cur_ir->type_ == kInput) {return nullptr;}
         cur_ir = cur_ir->parent_;
     }
 
-    if (cur_ir->type_ == kStatement) {return cur_ir->left_;}
+    if (cur_ir->type_ == kCmd) {return cur_ir->left_;}
     else {return nullptr;}
 }
 
@@ -1068,46 +792,4 @@ IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IDTYPE id_type_) {
     }
 
     return NULL;
-}
-
-vector<IR*> IRWrapper::get_common_table_expr_from_list(IR* cur_ir) {
-    vector<IR*> v_res_rev, v_res;
-    if (cur_ir ->type_ != kCommonTableExprList) {
-        cerr << "IRWrapper Error: not getting kCommonTableExprList in IRWrapper::get_common_table_expr_from_list();\n\n\n";
-        return v_res;
-    }
-
-    while (cur_ir->right_) {
-        v_res_rev.push_back(cur_ir->right_);
-        cur_ir = cur_ir->left_;
-    }
-
-    v_res_rev.push_back(cur_ir->left_);
-
-    /* Reverse the order. */
-    for (auto iter = v_res_rev.rbegin(); iter != v_res_rev.rend(); iter++) {
-        v_res.push_back(*iter);
-    }
-
-    return v_res;
-}
-
-vector<IR*> IRWrapper::get_table_ir_in_with_clause(IR* cur_ir) {
-    vector<IR*> v_res;
-    if (cur_ir ->type_ != kWithClause) {
-        cerr << "IRWrapper Error: not getting kWithClause in IRWrapper::get_table_ir_in_with_clause();\n\n\n";
-        return v_res;
-    }
-
-    IR* common_table_expr_list_ = cur_ir->right_;
-
-    vector<IR*> v_common_table_expr = this->get_common_table_expr_from_list(common_table_expr_list_);
-
-    for (auto common_table_expr : v_common_table_expr) {
-        IR* table_name_ir = common_table_expr->left_->left_;
-        v_res.push_back(table_name_ir);
-    }
-
-    return v_res;
-
 }

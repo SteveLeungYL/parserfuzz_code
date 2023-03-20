@@ -48,7 +48,7 @@ public:
     bool is_ir_before(IR* f, IR* l); // Check is IR f before IR l in query string.
     bool is_ir_after(IR* f, IR* l); // Check is IR f after IR l in query string.
 
-    vector<IRTYPE> get_all_ir_type();
+    vector<IRTYPE> get_all_stmt_ir_type();
     int get_stmt_num();
     int get_stmt_num(IR* cur_root);
     int get_stmt_idx(IR*);
@@ -92,27 +92,9 @@ public:
     bool is_exist_distinct(IR* cur_stmt);
 
     /*
-    ** Given a SELECT statement, get the knewexpr in the SELECT clause.  
-    */ 
-    IR* get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx);
-
-    /* 
     ** Given an IR node, return the statement IR that contains this certain cur_ir node. 
     */
     IR* get_stmt_ir_from_child_ir(IR* cur_ir);
-
-    /**/
-    int get_num_result_column_in_select_clause(IR* cur_stmt);
-
-    /**/
-    vector<IR*> get_result_column_list_in_select_clause(IR* cur_stmt);
-
-    /**/
-    bool add_without_rowid_to_stmt(IR* cur_stmt);
-    bool remove_without_rowid_to_stmt(IR* cur_stmt);
-
-    /**/
-    bool combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right);
 
     /**/
     IR* get_alias_iden_from_tablename_iden(IR* tablename_iden);
@@ -121,24 +103,8 @@ public:
     IRTYPE get_cur_stmt_type(IR* cur_ir);
 
     /**/
-    vector<IR*> get_selectcore_vec(IR* cur_stmt);
-
-    /**/
-    int get_num_selectcore(IR* cur_stmt);
-
-    /*If want to append on the beginning, use idx=-1; */
-    bool append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
-
-    /**/
-    bool remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx);
-
-    /**/
     IR* find_closest_node_exclude_child (IR* cur_node, IRTYPE type_);
     IR* find_closest_node_exclude_child (IR* cur_node, IDTYPE data_type_);
-
-    /**/
-    vector<IR*> get_common_table_expr_from_list(IR* cur_ir);
-    vector<IR*> get_table_ir_in_with_clause(IR* cur_ir);
 
 private:
     IR* ir_root = nullptr;

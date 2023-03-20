@@ -106,8 +106,6 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 
     if (
       old_ir->type_ == kCmdlist
-      // old_ir->type_ == kSelectCoreList ||
-      // old_ir->type_ == kSelectCore
     ) {
 
       if (old_ir->type_ == kCmdlist) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
@@ -326,7 +324,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
     if (!disable_rsg_generator && get_rand_int(2)) {
       // 1/2 chances, use RSG to generate new statement.
-      string tmp_stmt_str = rsg_generate_valid(kStatement);
+      string tmp_stmt_str = rsg_generate_valid(kCmd);
       vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
         // Parsing failed.
@@ -351,12 +349,12 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       }
     } else {
       // Old normal method to generate new_stmt_ir.
-      new_stmt_ir = get_from_libary_with_type(kStatement);
+      new_stmt_ir = get_from_libary_with_type(kCmd);
       if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
         cur_root->deep_drop();
         return res_vec;
       }
-      if (new_stmt_ir->left_->type_ == kSelectStatement) {
+      if (new_stmt_ir->left_->type_ == kCmdSelect) {
         new_stmt_ir->deep_drop();
         new_stmt_ir = NULL;
         continue;
@@ -389,7 +387,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
     if (!disable_rsg_generator && get_rand_int(2)) {
       // 1/2 chances, use RSG to generate new statement.
-      string tmp_stmt_str = rsg_generate_valid(kStatement);
+      string tmp_stmt_str = rsg_generate_valid(kCmd);
       vector<IR*> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
         // Parsing failed.
@@ -414,12 +412,12 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       }
     } else {
       // Old normal method to generate new_stmt_ir.
-      new_stmt_ir = get_from_libary_with_type(kStatement);
+      new_stmt_ir = get_from_libary_with_type(kCmd);
       if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
         cur_root->deep_drop();
         return res_vec;
       }
-      if (new_stmt_ir->left_->type_ == kSelectStatement) {
+      if (new_stmt_ir->left_->type_ == kCmdSelect) {
         new_stmt_ir->deep_drop();
         new_stmt_ir = NULL;
         continue;
@@ -444,75 +442,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   return res_vec;
 
 }
-
-vector<IR *> Mutator::mutate_selectcorelist(IR* ir_root, IR *old_ir) {
-  vector<IR*> res_vec;
-
-  IR* cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(old_ir);
-  vector<IR*> ori_stmt_vec = this->p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
-  int stmt_idx = 0;
-  for (IR* ori_stmt_ir : ori_stmt_vec) {
-    if (cur_stmt == ori_stmt_ir) break;
-    stmt_idx++;
-  }
-  if (stmt_idx >= ori_stmt_vec.size()) {
-    cerr << "Error: Cannot find the selectcore chosen stmt in the ir_root. Func: Mutator::mutate_selectcorelist(). \n";
-    vector<IR*> tmp; return tmp;
-  }
-
-  // For strategy_delete
-  IR* cur_root = ir_root->deep_copy();
-  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
-  int num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
-  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, get_rand_int(num_selectcore));
-  res_vec.push_back(cur_root);
-
-  // For strategy_replace
-  cur_root = ir_root->deep_copy();
-  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
-  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
-
-  IR* new_selectcore_ir = get_from_libary_with_type(kSelectCore);
-  if (new_selectcore_ir == nullptr) {
-    cur_root->deep_drop();
-    return res_vec;
-  }
-  string set_oper = "";
-  switch (get_rand_int(4)) {
-    case 0: set_oper = "UNION";
-    case 1: set_oper = "UNION ALL";
-    case 2: set_oper = "INTERSECT";
-    case 3: set_oper = "EXCEPT";
-  }
-  int rep_idx = get_rand_int(num_selectcore);
-  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, rep_idx);
-  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, rep_idx);
-  res_vec.push_back(cur_root);
-
-
-  // For strategy_insert
-  cur_root = ir_root->deep_copy();
-  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
-  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
-  new_selectcore_ir = get_from_libary_with_type(kSelectCore);
-  if (new_selectcore_ir == nullptr) {
-    cur_root->deep_drop();
-    return res_vec;
-  }
-  set_oper = "";
-  switch (get_rand_int(4)) {
-    case 0: set_oper = "UNION";
-    case 1: set_oper = "UNION ALL";
-    case 2: set_oper = "INTERSECT";
-    case 3: set_oper = "EXCEPT";
-  }
-  int ins_idx = get_rand_int(num_selectcore);
-  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, ins_idx);
-  res_vec.push_back(cur_root);
-
-  return res_vec;
-}
-
 
 vector<IR *> Mutator::mutate(IR *input) {
   vector<IR *> res;
@@ -739,7 +668,7 @@ static vector<IR*> search_mapped_ir_in_stmt(IR *ir, IDTYPE idtype) {
   // Find the root for the current statement.
   IR* cur_ir = ir;
   while (cur_ir->parent_ != nullptr) {
-    if (cur_ir->type_ == kStatement) {
+    if (cur_ir->type_ == kCmd) {
       break;
     }
     cur_ir = cur_ir->parent_;
@@ -880,7 +809,7 @@ vector<IR *> Mutator::extract_statement(IR *root) {
     auto node = bfs.front();
     bfs.pop_front();
 
-    if (node->type_ == kStatement)
+    if (node->type_ == kCmd)
       res.push_back(node);
     if (node->left_)
       bfs.push_back(node->left_);
@@ -901,11 +830,6 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
   vector<IR *> res;
   vector<IR *> v_statements{cur_stmt};
 
-  // Debug
-  // cerr << "In func: Mutator::cut_subquery, we have current v_statements: " << v_statements[0]->to_string() << "\n";
-  // cerr << "In func: Mutator::cut_subquery, after getting and reverse v_statements, we get v_statements.size(): "
-  //      << v_statements.size() << "\n";
-
   for (auto &stmt : v_statements) {
     deque<IR *> q_bfs = {stmt};
     res.push_back(stmt);
@@ -916,7 +840,7 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
 
       if (cur->left_) {
         q_bfs.push_back(cur->left_);
-        if (cur->left_->type_ == kSelectStatement) {
+        if (cur->left_->type_ == kSelect) {
           res.push_back(cur->left_);
           m_save[cur] = make_pair(0, cur->left_);
           cur->detach_node(cur->left_);
@@ -925,7 +849,7 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
 
       if (cur->right_) {
         q_bfs.push_back(cur->right_);
-        if (cur->right_->type_ == kSelectStatement) {
+        if (cur->right_->type_ == kSelect) {
           res.push_back(cur->right_);
           m_save[cur] = make_pair(1, cur->right_);
           cur->detach_node(cur->right_);
@@ -1029,11 +953,11 @@ IR *Mutator::strategy_insert(IR *cur) {
 
   assert(cur);
 
-  if (cur->type_ == kStatementList) {
-    auto new_right = get_from_libary_with_left_type(cur->type_);
+  if (cur->type_ == kCmdlist) {
+    auto new_right = get_from_libary_with_type(kEcmd);
     if (new_right != NULL) {
       auto res = cur->deep_copy();
-      auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
+      auto new_res = new IR(kCmdlist, OPMID(";"), res, new_right);
       return new_res;
     }
   }
@@ -1498,15 +1422,15 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   bool is_skip_saving_current_node = false; //
 
   NODETYPE p_type = ir->type_;
-  NODETYPE left_type = kEmpty, right_type = kEmpty;
+  NODETYPE left_type = kUnknown, right_type = kUnknown;
 
   unsigned long p_hash = hash(ir->to_string());
-  if (p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) !=
+  if (p_type != kInput && ir_libary_2D_hash_[p_type].find(p_hash) !=
                                 ir_libary_2D_hash_[p_type].end()) {
     /* current node not interesting enough. Ignore it and clean up. */
     return;
   }
-  if (p_type != kProgram)
+  if (p_type != kInput)
     ir_libary_2D_hash_[p_type].insert(p_hash);
 
   // Update with_lib.
@@ -1660,109 +1584,10 @@ void Mutator::debug(IR *root, unsigned level) {
 }
 
 Mutator::~Mutator() {
-  // cout << "HERE" << endl;
-
   for (auto iter : all_query_pstr_set) {
     delete iter;
   }
 }
-
-// void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
-//                       set<IR *> &visited) {
-//   if (fixed_key->id_type_ == id_create_table_name) {
-//     string tablename = fixed_key->str_val_;
-//     auto &colums = m_tables[tablename];
-//     auto &indices = m_table2index[tablename];
-//     for (auto &val : graph[fixed_key]) {
-//       if (val->id_type_ == id_create_column_name) {
-//         string new_column = gen_id_name();
-//         colums.push_back(new_column);
-//         val->str_val_ = new_column;
-//         visited.insert(val);
-//       } else if (val->id_type_ == id_top_table_name) {
-//         val->str_val_ = tablename;
-//         visited.insert(val);
-//         fix_one(graph, val, visited);
-//       }
-//     }
-//   } else if (fixed_key->id_type_ == id_top_table_name) {
-//     string tablename = fixed_key->str_val_;
-//     auto &colums = m_tables[tablename];
-//     auto &indices = m_table2index[tablename];
-//     auto &alias= m_table2alias_single[tablename];
-
-//     for (auto &val : graph[fixed_key]) {
-
-//       switch (val->id_type_) {
-//       case id_table_alias_name: {
-//         string new_alias = gen_alias_name();
-//         alias.push_back(new_alias);
-//         val->str_val_ = new_alias;
-//         visited.insert(val);
-//         break;
-//       }
-//       default: break;
-//       }
-
-//     }
-
-//     for (auto &val : graph[fixed_key]) {
-
-//       switch (val->id_type_) {
-
-//       case id_column_name: {
-//         // We created alias for every table name. So when we get top column name
-//         // from mappings, we need to prepend the corresponding alias to the
-//         // column name. for example:
-//         //  CREATE TABLE v0 ( v1 INT );
-//         //  SELECT * FROM v0 AS A, v0 AS B WHERE A.v1 = 1337;
-//         // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
-//         // name.
-
-//         // Changed it to IR only modifications.
-//         val->str_val_ = vector_rand_ele(colums);
-
-//         IR* opt_alias_ir = fixed_key->parent_->parent_->right_;  // identifier -> ktablename -> parent_ -> kOptTableAliasAs
-//         if (opt_alias_ir != nullptr &&
-//             opt_alias_ir->op_ != nullptr &&
-//             (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) &&
-//             opt_alias_ir->op_->prefix_ == "AS")
-//           {
-//             if(opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) {  // kOptTableAliasAs -> kTableAlias ->  identifier.
-//               val->str_val_ = opt_alias_ir->left_->left_->str_val_ + "." + val->str_val_;
-//             }
-//         }
-
-//         visited.insert(val);
-//         break;
-//       }
-
-//       case id_table_name: {
-//         val->str_val_ = tablename;
-//         visited.insert(val);
-//         break;
-//       }
-
-//       case id_create_index_name: {
-//         string new_index = gen_id_name();
-//         // cout << "index name: " << new_index << endl;
-//         indices.push_back(new_index);
-//         val->str_val_ = new_index;
-//         visited.insert(val);
-//         break;
-//       }
-
-//       case id_create_column_name: {
-//         string new_column = gen_id_name();
-//         colums.push_back(new_column);
-//         val->str_val_ = new_column;
-//         visited.insert(val);
-//         break;
-//       }
-//       }
-//     }
-//   }
-// }
 
 // relationmap[id_table_alias_name] = id_top_table_name;
 // relationmap[id_column_name] = id_top_table_name;
@@ -1848,29 +1673,11 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency: v_create_table_names_single_with_tmp.size() is: " << v_create_table_names_single_with_tmp.size() << "\n\n\n";
           }
-          if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 100) {
-            // IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
-            // if (is_debug_info) {
-            //   if (with_clause_ir != NULL) {
-            //     cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
-            //   }
-            // }
-            // vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
-            // if (is_debug_info) {
-            //   cerr << "Dependency: found all_with_table_name_declared: \n";
-            //   for (IR* cur_iter: all_with_table_name_declared) {
-            //     cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
-            //   }
-            // }
-            // if (all_with_table_name_declared.size() != 0) {
-            //   ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
-            // } else {
+          if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kCmdUpdate && get_rand_int(100) < 100) {
               if (is_debug_info) {
                 cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
               }
               ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
-            // }
-            // v_table_names_single.push_back(ir->str_val_);
             visited.insert(ir);
             if (is_debug_info) {
               cerr << "Dependency: In id_top_table_name, we used v_create_table_names_single: " << ir->str_val_ << ". \n\n\n";
@@ -1932,30 +1739,8 @@ bool Mutator::fix_dependency(IR *root,
         if (is_debug_info) {
           cerr << "Dependency: v_create_table_names_single_with_tmp.size() is: " << v_create_table_names_single_with_tmp.size() << "\n\n\n";
         }
-        if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 100) {
-          /* In 3/10 chances, we use the table name defined in the WITH clause. */
-          // IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
-          // if (is_debug_info) {
-          //   if (with_clause_ir != NULL) {
-          //     cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
-          //   }
-          // }
-          // vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
-          // if (is_debug_info) {
-          //     cerr << "Dependency: found all_with_table_name_declared: \n";
-          //     for (IR* cur_iter: all_with_table_name_declared) {
-          //       cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
-          //     }
-          //   }
-          // if (all_with_table_name_declared.size() != 0) {
-          //   ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
-          // } else {
-            // if (is_debug_info) {
-            //   cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
-            // }
-            ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
-          // }
-          // v_table_names_single.push_back(ir->str_val_);
+        if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kCmdUpdate && get_rand_int(100) < 100) {
+          ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
           visited.insert(ir);
           if (is_debug_info) {
             cerr << "Dependency: In id_table_name, we used v_create_table_names_single_with_tmp: " << ir->str_val_ << ". \n\n\n";
@@ -2133,7 +1918,7 @@ bool Mutator::fix_dependency(IR *root,
         ** Thus, we have to manually fetch which table_name we are referring to,
         ** and updates the column name based on the table_name mentioned.
         */
-        if (cur_stmt_type == kUpdateStatement) {
+        if (cur_stmt_type == kCmdUpdate) {
           IR* update_stmt_node = p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(ir);
           IR* qualified_table_name_ = update_stmt_node->left_->left_->left_->left_->right_;
 
@@ -2162,8 +1947,11 @@ bool Mutator::fix_dependency(IR *root,
         if (
               (
                 v_create_column_names_single_with_tmp.size() != 0 &&
-                cur_stmt_type != kAlterStatement &&
-                cur_stmt_type != kUpdateStatement &&
+                cur_stmt_type != kCmdAlterTableRename &&
+                cur_stmt_type != kCmdAlterTableRenameColumn &&
+                cur_stmt_type != kCmdAlterTableAddColumn &&
+                cur_stmt_type != kCmdAlterTableDropColumn &&
+                cur_stmt_type != kCmdUpdate &&
                 get_rand_int(100) < 30
               ) ||
               (
@@ -2182,8 +1970,8 @@ bool Mutator::fix_dependency(IR *root,
         }
 
         if (
-          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
-          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
+          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCmdCreateVTable ||
+          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCmdCreateTrigger
         ) {
           tablename_str = v_table_names[get_rand_int(v_table_names.size())];
         }
@@ -2197,12 +1985,8 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kSelectStatement) {
-            // if (get_rand_int(100) < 1) {
-            //   ir->str_val_ = aliasname_str + ".ROWID";
-            // } else {
-              ir->str_val_ = aliasname_str + "." + column_str;
-            // }
+          if (cur_stmt_type == kCmdSelect) {
+            ir->str_val_ = aliasname_str + "." + column_str;
           }
           else {
             {ir->str_val_ = column_str;}
@@ -2219,12 +2003,8 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
           /* If cannot find alias name for the table, directly add table_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kSelectStatement) {
-            // if (get_rand_int(100) < 1) {
-            //   ir->str_val_ = tablename_str + ".ROWID";
-            // } else {
-              ir->str_val_ = tablename_str + "." + column_str;
-            // }
+          if (cur_stmt_type == kCmdSelect) {
+            ir->str_val_ = tablename_str + "." + column_str;
           }
           else {
             {ir->str_val_ = column_str;}
@@ -2287,7 +2067,12 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
-          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement)
+          if (cur_stmt_type != kCmdUpdate &&
+              cur_stmt_type != kCmdAlterTableAddColumn &&
+              cur_stmt_type != kCmdAlterTableRenameColumn &&
+              cur_stmt_type != kCmdAlterTableRename &&
+              cur_stmt_type != kCmdAlterTableDropColumn
+              )
             {ir->str_val_ = aliasname_str + "." + index_str;}
           else {
             {ir->str_val_ = index_str;}
@@ -2301,7 +2086,12 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
-          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement)
+          if (cur_stmt_type != kCmdUpdate &&
+              cur_stmt_type != kCmdAlterTableAddColumn &&
+              cur_stmt_type != kCmdAlterTableRenameColumn &&
+              cur_stmt_type != kCmdAlterTableRename &&
+              cur_stmt_type != kCmdAlterTableDropColumn
+              )
             {ir->str_val_ = tablename_str + "." + index_str;}
           else {
             {ir->str_val_ = index_str;}
@@ -2375,10 +2165,10 @@ bool Mutator::fix_dependency(IR *root,
       IR* cur_ir = ir;
       bool is_in_create_view = false;
       while (cur_ir != nullptr) {
-        if (cur_ir->type_ == kStatement) {
+        if (cur_ir->type_ == kCmd) {
           break;
         }
-        if (cur_ir->type_ == kCreateViewStatement) {
+        if (cur_ir->type_ == kCmdCreateView) {
           is_in_create_view = true;
           break;
         }
@@ -2496,16 +2286,16 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
-  // TODO:: not being handled for now.
-  if (type_ == kPragmaStatement) {
-
+  // TODO:: not handle for now.
+  if (type_ == kCmdPragma) {
     string key = "";
     int lib_size = cmds_.size();
     if (lib_size != 0) {
       key = cmds_[get_rand_int(lib_size)];
       res += ("PRAGMA " + key);
-    } else
+    } else {
       return;
+    }
 
     int value_size = m_cmd_value_lib_[key].size();
     string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
@@ -2526,13 +2316,6 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
-  if (type_ == kFilePath || type_ == kOptOrderType || type_ == kColumnType ||
-      type_ == kSetOperator || type_ == kOptJoinType || type_ == kOptDistinct ||
-      type_ == kNullLiteral) {
-    res += str_val_;
-    return;
-  }
-
   if (type_ == kStringLiteral) {
     string s;
     /* 2/3 chances, uses already seen string. */
@@ -2546,7 +2329,7 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
-  if (type_ == kNumericLiteral) {
+  if (type_ == kIntegerLiteral || type_ == kFloatLiteral) {
     string s;
     /* 2/3 chances, uses already seen value. */
     if (used_value_libary.size() != 0 && get_rand_int(3) < 2) {
@@ -2555,13 +2338,6 @@ void Mutator::_fix(IR *root, string &res) {
         s = value_libary[get_rand_int(value_libary.size())];
     }
     used_value_libary.push_back(s);
-    res += s;
-    root->str_val_ = s;
-    return;
-  }
-
-  if (type_ == kconst_str) {
-    auto s = string_libary[get_rand_int(string_libary.size())];
     res += s;
     root->str_val_ = s;
     return;
@@ -2850,37 +2626,6 @@ void Mutator::_extract_struct(IR *root, string &res) {
   }
 
   return;
-}
-
-void Mutator::add_new_table(IR *root, string &table_name) {
-
-  if (root->left_ != NULL)
-    add_new_table(root->left_, table_name);
-
-  if (root->right_ != NULL)
-    add_new_table(root->right_, table_name);
-
-  // add to table_name_lib_
-  if (root->type_ == kTableName) {
-    if (root->operand_num_ == 1) {
-      table_name = root->left_->str_val_;
-    } else if (root->operand_num_ == 2) {
-      table_name = root->left_->str_val_ + "." + root->right_->str_val_;
-    }
-  }
-
-  // add to column_name_lib_
-  if (root->type_ == kColumnDef) {
-    auto tmp = root->left_;
-    if (tmp->type_ == kIdentifier) {
-      if (!table_name.empty() && !tmp->str_val_.empty())
-        ;
-      m_tables[table_name].push_back(tmp->str_val_);
-      if (find(v_table_names.begin(), v_table_names.end(), table_name) !=
-          v_table_names.end())
-        v_table_names.push_back(table_name);
-    }
-  }
 }
 
 void Mutator::reset_database() {

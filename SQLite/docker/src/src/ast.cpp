@@ -114,12 +114,10 @@ u32 GramCovMap::count_non_255_bytes(u8 *mem) {
 }
 
 string get_string_by_ir_type(IRTYPE type) {
-
 #define DECLARE_CASE(classname)                                                \
-  if (type == k##classname)                                                    \
+  if (type == classname)                                                    \
     return #classname;
-
-  ALLCLASS(DECLARE_CASE);
+  ALLTYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
   return "";
@@ -207,20 +205,6 @@ string IR::to_string() {
 
 // recursive function, frequently called. Must be very fast
 void IR::_to_string(string &res) {
-
-  if (type_ == kColumnName && str_val_ == "*") {
-    res += str_val_;
-    return;
-  }
-
-  if (type_ == kFilePath ||
-      type_ == kNumericLiteral || type_ == kIdentifier ||
-      type_ == kOptOrderType || type_ == kColumnType || type_ == kSetOperator ||
-      type_ == kOptJoinType || type_ == kOptDistinct || type_ == kNullLiteral ||
-      type_ == kconst_str) {
-    res += str_val_;
-    return;
-  }
 
   if (type_ == kStringLiteral) {
      res += str_val_;

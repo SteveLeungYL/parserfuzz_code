@@ -5622,7 +5622,6 @@ static u8 fuzz_one(char **argv) {
   u64 new_hit_cnt;
   u8 ret_val = 1;
 
-  Program *program_root;
   vector<IR *> ir_set;
   vector<string *> mutated_tree;
   vector<IR*> app_new_select_stmts;
@@ -5815,7 +5814,7 @@ static u8 fuzz_one(char **argv) {
 
     for (IR* cur_stmt: v_stmt) {
       /* Fill in concret values to the SQL. Instantiation step. */
-      if (cur_stmt->type_ == kPragmaStatement) {
+      if (cur_stmt->type_ == kCmdPragma) {
         // TODO::
         // Ignore PRAGMA statement for now. 
         continue;

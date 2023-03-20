@@ -58,9 +58,6 @@ enum CASEIDX {
 };
 
 enum NODETYPE {
-  kconst_str,
-  kconst_int,
-  kconst_float,
 #define DECLARE_TYPE(v) v,
   ALLTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE

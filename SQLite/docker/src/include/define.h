@@ -15,18 +15,18 @@
   V(kExplain)                                                                  \
   V(kCmdx)                                                                     \
   V(kCmd)                                                                      \
-  V(kCmdBegin)                                                                      \
-  V(kCmdCommit)                                                                      \
-  V(kCmdRollback)                                                                      \
-  V(kCmdSavepoint)                                                                      \
-  V(kCmdRelease)                                                                      \
-  V(kCmdCreateTable)                                                                      \
+  V(kCmdBegin)                                                                 \
+  V(kCmdCommit)                                                                \
+  V(kCmdRollback)                                                              \
+  V(kCmdSavepoint)                                                             \
+  V(kCmdRelease)                                                               \
+  V(kCmdCreateTable)                                                           \
   V(kCmdCreateView)                                                            \
   V(kCmdSelect)                                                                \
   V(kCmdDelete)                                                                \
   V(kCmdUpdate)                                                                \
-  V(kCmdInert)                                                                \
-  V(kCmdCreateIndex)                                                                \
+  V(kCmdInsert)                                                                \
+  V(kCmdCreateIndex)                                                           \
   V(kCmdVacuum)                                                                \
   V(kCmdPragma)                                                                \
   V(kCmdCreateTrigger)                                                         \
@@ -34,7 +34,7 @@
   V(kCmdDetach)                                                                \
   V(kCmdReindex)                                                               \
   V(kCmdAnalyze)                                                               \
-  V(kCmdCreateVTable)                                                               \
+  V(kCmdCreateVTable)                                                          \
   V(kCmdDropTable)                                                             \
   V(kCmdDropView)                                                              \
   V(kCmdDropIndex)                                                             \

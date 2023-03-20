@@ -7,8 +7,6 @@
 #include <vector>
 #include "parser_helper.h"
 #include "sqlite_lemon_parser.h"
-#include "bison_parser.h"
-#include "flex_lexer.h"
 
 
 /* Character classes for tokenizing

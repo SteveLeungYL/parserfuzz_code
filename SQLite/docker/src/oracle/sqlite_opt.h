@@ -16,7 +16,6 @@ public:
 
     unsigned get_mul_run_num() override { return 3; }
 
-  bool is_oracle_select_stmt(IR* cur_IR) override;
   virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
 
   string get_temp_select_stmts() override { return temp_select_stmts; };
