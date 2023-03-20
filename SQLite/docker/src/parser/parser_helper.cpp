@@ -764,6 +764,13 @@ IR* parser_helper(const string in_str, GramCovMap* p_gram) {
     lemon_parser_helper(in_str, &root_ir);
   }
 
+  if (root_ir == nullptr) {
+    return nullptr;
+  } else if (root_ir -> type_ != kInput) {
+    root_ir->deep_drop();
+    return nullptr;
+  }
+
   return root_ir;
 
 }
