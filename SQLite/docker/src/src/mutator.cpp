@@ -1326,7 +1326,11 @@ void Mutator::add_all_to_library(string whole_query_str,
       continue;
 
     IR *root = ir_set.back();
-    IR* cur_stmt = root->left_->left_->left_; // kProgram -> kStatementList -> kStatement -> specific_statement_type_
+    vector<IR*> v_tmp_cur_stmt = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kCmd, false);
+    if (v_tmp_cur_stmt.size() == 0) {
+      continue;
+    }
+    IR* cur_stmt = v_tmp_cur_stmt.front()->left_; // kCmd to kSpecificStmt.
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt)) {
 
