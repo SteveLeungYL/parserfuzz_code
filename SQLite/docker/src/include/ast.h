@@ -125,10 +125,10 @@ public:
     edge_prev_cov = 0;
   }
   ~GramCovMap() {
-    delete(this->block_cov_map);
-    delete(this->block_virgin_map);
-    delete(this->edge_cov_map);
-    delete(this->edge_virgin_map);
+    delete[](this->block_cov_map);
+    delete[](this->block_virgin_map);
+    delete[](this->edge_cov_map);
+    delete[](this->edge_virgin_map);
   }
 
   u8 has_new_grammar_bits(bool is_debug = false) {
