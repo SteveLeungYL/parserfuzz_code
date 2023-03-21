@@ -734,7 +734,7 @@ u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir, GramCovMap* p_gr
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
     IRParser(pEngine, tokenType, tmp_tmp_zSql, &v_ir);
-    ParserCov(pEngine, tokenType, tmp_tmp_zSql, p_gram);
+    ParserCov(pEngineCov, tokenType, tmp_tmp_zSql, p_gram);
     lastTokenParsed = tokenType;
     zSql += n;
   }
