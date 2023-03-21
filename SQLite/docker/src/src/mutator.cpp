@@ -1914,10 +1914,14 @@ bool Mutator::fix_dependency(IR *root,
         */
         if (cur_stmt_type == kCmdUpdate) {
           IR* update_stmt_node = p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(ir);
-          IR* qualified_table_name_ = update_stmt_node->left_->left_->left_->left_->right_;
+          // From kCmdUpdate to qualified_table_name.
+          IR* qualified_table_name_ = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(update_stmt_node, kXfullname, false).front();
+          string cur_choosen_table_name = qualified_table_name_->left_->str_val_;
+          vector<string> v_tmp_split = string_splitter(cur_choosen_table_name, ",");
+          if (v_tmp_split.size() > 1) {
+            cur_choosen_table_name = v_tmp_split.back();
+          }
 
-          IR* table_name_ir = qualified_table_name_->left_->left_;
-          string cur_choosen_table_name = table_name_ir->left_->str_val_;
           vector<string>& column_name_vec = m_tables[cur_choosen_table_name];
           if (column_name_vec.size() != 0) {
             ir->str_val_ = column_name_vec[get_rand_int(column_name_vec.size())];
