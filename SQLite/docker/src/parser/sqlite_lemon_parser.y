@@ -363,20 +363,16 @@ B->id_type_ = id_column_name;
 %nonassoc ON.
 %token_class id  ID|INDEXED.
 %token_class ids  ID|STRING.
+%token_class idj  ID|INDEXED|JOIN_KW.
 %type nm {IR*}
 
-nm(A) ::= id(B) . {
-A = new IR(kIdentifier, OP3(string(B), "", ""));
+nm(A) ::= idj(B) . {
+A = new IR(kIdentifier, string(B));
 v_ir->push_back(A);
 }
 
 nm(A) ::= STRING(B) . {
-A = new IR(kIdentifier, OP3(string(B), "", ""));
-v_ir->push_back(A);
-}
-
-nm(A) ::= JOIN_KW(B) . {
-A = new IR(kNm, OP3(string(B), "", ""));
+A = new IR(kIdentifier, string(B));
 v_ir->push_back(A);
 }
 
@@ -1528,13 +1524,8 @@ A = new IR(kExpr, OP3(string(B), string(D), ""), (IR*)C);
 v_ir->push_back(A);
 }
 
-expr(A) ::= id(B) .          {
+expr(A) ::= idj(B) .          {
 A = new IR(kIdentifier, string(B), id_column_name);
-v_ir->push_back(A);
-}
-
-expr(A) ::= JOIN_KW(B) .     {
-A = new IR(kExpr, OP3(string(B), "", ""));
 v_ir->push_back(A);
 }
 
@@ -1585,7 +1576,7 @@ A = new IR(kExpr, OP3(string(B) + " " + string(C), string(E), string(G)), (IR*)D
 v_ir->push_back(A);
 }
 
-expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) . {
+expr(A) ::= idj(B) LP(C) distinct(D) exprlist(E) RP(F) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
@@ -1596,7 +1587,7 @@ v_ir->push_back(A);
 
 }
 
-expr(A) ::= id(B) LP(C) STAR(D) RP(E) . {
+expr(A) ::= idj(B) LP(C) STAR(D) RP(E) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
@@ -1605,7 +1596,7 @@ v_ir->push_back(A);
 
 }
 
-expr(A) ::= id(B) LP(C) distinct(D) exprlist(E) RP(F) filter_over(G) . {
+expr(A) ::= idj(B) LP(C) distinct(D) exprlist(E) RP(F) filter_over(G) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
@@ -1617,7 +1608,7 @@ A = new IR(kExpr, OP3("", string(F), ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
 }
 
-expr(A) ::= id(B) LP(C) STAR(D) RP(E) filter_over(F) . {
+expr(A) ::= idj(B) LP(C) STAR(D) RP(E) filter_over(F) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
