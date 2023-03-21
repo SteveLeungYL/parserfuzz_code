@@ -2,8 +2,8 @@
 #include "../include/define.h"
 #include "../include/mutator.h"
 #include "../include/utils.h"
-#include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_opt.h"
+#include "../oracle/sqlite_oracle.h"
 
 #include <fstream>
 #include <iostream>
@@ -40,9 +40,9 @@ Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
 
 Mutator mutator;
-SQL_ORACLE* p_oracle;
+SQL_ORACLE *p_oracle;
 
-IR* test_parse(string &query) {
+IR *test_parse(string &query) {
 
   vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
   if (v_ir.size() <= 0) {
@@ -60,7 +60,8 @@ IR* test_parse(string &query) {
     root->deep_drop();
     return NULL;
   }
-  cout << "\n\n\ntostring: >" << tostring << "<" << "\n\n\n";
+  cout << "\n\n\ntostring: >" << tostring << "<"
+       << "\n\n\n";
 
   string structure = mutator.extract_struct(root);
   if (structure.size() <= 0) {
@@ -68,37 +69,39 @@ IR* test_parse(string &query) {
     root->deep_drop();
     return NULL;
   }
-  cout << "structur: >" << structure << "<" << "\n\n\n";
+  cout << "structur: >" << structure << "<"
+       << "\n\n\n";
 
-  IR* cur_root = root->deep_copy();
+  IR *cur_root = root->deep_copy();
   root->deep_drop();
   v_ir.clear();
 
   return cur_root;
 }
 
-bool try_validate(IR* cur_root) {
-  /* 
+bool try_validate(IR *cur_root) {
+  /*
   pre_transform, post_transform and validate()
   */
 
-  mutator.pre_validate(); // Reset global variables for query sequence. 
+  mutator.pre_validate(); // Reset global variables for query sequence.
 
   // cur_root = cur_root->deep_copy();
 
   p_oracle->init_ir_wrapper(cur_root);
-  vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  vector<IR *> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
   // vector<STMT_TYPE> dump_vec;
   // vector<IR*> all_stmt_vec = mutator.pre_fix_transform(cur_root, dump_vec);
 
-  for (IR* cur_trans_stmt : all_stmt_vec) {
-    if(!mutator.validate(cur_trans_stmt, true)) {  // is_debug_info == true; 
+  for (IR *cur_trans_stmt : all_stmt_vec) {
+    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
       cerr << "Error: g_mutator.validate returns errors. \n";
     }
   }
 
-  // Clean up allocated resource. 
-  // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+  // Clean up allocated resource.
+  // post_trans_vec are being appended to the IR tree. Free up cur_root should
+  // take care of them.
 
   string validity = cur_root->to_string();
   if (validity.size() <= 0) {
@@ -108,13 +111,12 @@ bool try_validate(IR* cur_root) {
   }
   vector<string> validity_vec = string_splitter(validity, ";");
   cout << "\n\n\nValidate string: \n";
-  for (string& cur_validity : validity_vec) {
+  for (string &cur_validity : validity_vec) {
     cout << cur_validity << "\n";
   }
   cout << "\n\n\n";
 
   return true;
-
 }
 
 int main(int argc, char *argv[]) {
@@ -138,7 +140,7 @@ int main(int argc, char *argv[]) {
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);
 
-  IR* root = NULL;
+  IR *root = NULL;
 
   while (getline(input_test, line)) {
 
@@ -153,16 +155,17 @@ int main(int argc, char *argv[]) {
     cout << "----------------------------------------" << endl;
     cout << ">>>>>>>>>>>" << line << "<\n";
 
-    IR* cur_root = test_parse(line);
+    IR *cur_root = test_parse(line);
 
     if (root == NULL && cur_root != NULL) {
       root = cur_root;
-    } else if (cur_root != NULL){
-      IR* cur_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root).front()->deep_copy();
+    } else if (cur_root != NULL) {
+      IR *cur_stmt =
+          p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root).front()->deep_copy();
       cur_root->deep_drop();
       p_oracle->ir_wrapper.set_ir_root(root);
       p_oracle->ir_wrapper.append_stmt_at_end(cur_stmt);
-//      mutator.debug(root, 0);
+      //      mutator.debug(root, 0);
     }
   }
 

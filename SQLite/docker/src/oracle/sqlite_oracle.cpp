@@ -1,16 +1,14 @@
 #include "./sqlite_oracle.h"
-#include "../include/ast.h"
 #include "../AFL/debug.h"
+#include "../include/ast.h"
 
-bool SQL_ORACLE::mark_node_valid(IR *root) {
-  return true;
-}
+bool SQL_ORACLE::mark_node_valid(IR *root) { return true; }
 
 void SQL_ORACLE::set_mutator(Mutator *mutator) { this->g_mutator = mutator; }
 
 // TODO:: This function is a bit too long.
 // guarantee to generate grammarly correct query
-IR* SQL_ORACLE::get_random_mutated_select_stmt() {
+IR *SQL_ORACLE::get_random_mutated_select_stmt() {
   /* Read from the previously seen norec compatible select stmt.
    * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the
    string of the new generated norec compatible SELECT query.
@@ -31,40 +29,39 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
 
-    if (ir_tree.size() == 0)
-      {
-        total_oracle_rand_valid_failed++;
-        continue;
-      }
+    if (ir_tree.size() == 0) {
+      total_oracle_rand_valid_failed++;
+      continue;
+    }
     if (ir_tree.back() == NULL) {
       total_oracle_rand_valid_failed++;
       continue;
     }
 
-    if (ir_tree.back()->left_ == nullptr || ir_tree.back()->left_->left_ == nullptr || ir_tree.back()->left_->left_->left_ == nullptr)
-      {
-        ir_tree.back()->deep_drop();
-        continue;
-      }
-
-    vector<IR*> v_ir_stmt = ir_wrapper.get_stmt_ir_vec(ir_tree.back());
-    if (v_ir_stmt.size() == 0) {
-        ir_tree.back()->deep_drop();
+    if (ir_tree.back()->left_ == nullptr ||
+        ir_tree.back()->left_->left_ == nullptr ||
+        ir_tree.back()->left_->left_->left_ == nullptr) {
+      ir_tree.back()->deep_drop();
+      continue;
     }
-    IR* cur_ir_stmt = v_ir_stmt.front()->left_;
 
-    if (!this->is_oracle_select_stmt(cur_ir_stmt))
-      {
-        ir_tree.back() -> deep_drop();
-        continue;
-      }
+    vector<IR *> v_ir_stmt = ir_wrapper.get_stmt_ir_vec(ir_tree.back());
+    if (v_ir_stmt.size() == 0) {
+      ir_tree.back()->deep_drop();
+    }
+    IR *cur_ir_stmt = v_ir_stmt.front()->left_;
+
+    if (!this->is_oracle_select_stmt(cur_ir_stmt)) {
+      ir_tree.back()->deep_drop();
+      continue;
+    }
 
     root = ir_tree.back();
     if (!g_mutator->check_node_num(root, 300)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
       this->ir_wrapper.set_ir_root(root);
-      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+      IR *returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
       root->deep_drop();
       return returned_stmt_ir;
     }
@@ -75,7 +72,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
      */
     if (!use_temp && get_rand_int(3) < 2) {
       this->ir_wrapper.set_ir_root(root);
-      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+      IR *returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
       root->deep_drop();
       return returned_stmt_ir;
     }
@@ -151,11 +148,10 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
       /* Final check and return string if compatible */
       vector<IR *> new_ir_verified =
           g_mutator->parse_query_str_get_ir_set(new_valid_select_str);
-      if (new_ir_verified.size() <= 0)
-        {
-          total_oracle_rand_valid_failed++;
-          continue;
-        }
+      if (new_ir_verified.size() <= 0) {
+        total_oracle_rand_valid_failed++;
+        continue;
+      }
 
       v_ir_stmt = ir_wrapper.get_stmt_ir_vec(new_ir_verified.back());
       if (v_ir_stmt.size() == 0) {
@@ -163,22 +159,22 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         total_oracle_rand_valid_failed++;
         continue;
       }
-      IR* new_ir_verified_stmt = v_ir_stmt.front()->left_;
+      IR *new_ir_verified_stmt = v_ir_stmt.front()->left_;
 
       // Make sure the mutated structure is different.
-      if (is_oracle_select_stmt(new_ir_verified_stmt) && new_valid_select_struct != ori_valid_select_struct) {
+      if (is_oracle_select_stmt(new_ir_verified_stmt) &&
+          new_valid_select_struct != ori_valid_select_struct) {
         root->deep_drop();
         is_success = true;
 
         if (use_temp)
           total_temp++;
-        
+
         this->ir_wrapper.set_ir_root(new_ir_verified.back());
-        IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+        IR *returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
         new_ir_verified.back()->deep_drop();
         return returned_stmt_ir;
-      }
-      else {
+      } else {
         new_ir_verified.back()->deep_drop();
         total_oracle_rand_valid_failed++;
       }
@@ -194,60 +190,68 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     root->deep_drop();
     root = NULL;
   }
-  FATAL("Unexpected code execution in '%s'", "SQL_ORACLE::get_random_mutated_valid_stmt()");
+  FATAL("Unexpected code execution in '%s'",
+        "SQL_ORACLE::get_random_mutated_valid_stmt()");
   return nullptr;
 }
 
-int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
+int SQL_ORACLE::count_oracle_select_stmts(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec();
 
   int oracle_stmt_num = 0;
-  for (IR* cur_stmt : stmt_vec){
-    if (this->is_oracle_select_stmt(cur_stmt)) {oracle_stmt_num++;}
+  for (IR *cur_stmt : stmt_vec) {
+    if (this->is_oracle_select_stmt(cur_stmt)) {
+      oracle_stmt_num++;
+    }
   }
   return oracle_stmt_num;
 }
 
-int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
+int SQL_ORACLE::count_oracle_normal_stmts(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec();
 
   int oracle_stmt_num = 0;
-  for (IR* cur_stmt : stmt_vec){
-    if (this->is_oracle_normal_stmt(cur_stmt)) {oracle_stmt_num++;}
+  for (IR *cur_stmt : stmt_vec) {
+    if (this->is_oracle_normal_stmt(cur_stmt)) {
+      oracle_stmt_num++;
+    }
   }
   return oracle_stmt_num;
 }
 
-bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
-  if (cur_IR->type_ == kCmdSelect || cur_IR ->type_ == kSelect) {
+bool SQL_ORACLE::is_oracle_select_stmt(IR *cur_IR) {
+  if (cur_IR->type_ == kCmdSelect || cur_IR->type_ == kSelect) {
     return true;
   }
   return false;
 }
 
-void SQL_ORACLE::remove_oracle_select_stmts_from_ir(IR* ir_root) {
+void SQL_ORACLE::remove_oracle_select_stmts_from_ir(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_stmt : stmt_vec) {
-    if (this->is_oracle_select_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR *cur_stmt : stmt_vec) {
+    if (this->is_oracle_select_stmt(cur_stmt))
+      ir_wrapper.remove_stmt_and_free(cur_stmt);
   }
 }
 
-void SQL_ORACLE::remove_oracle_normal_stmts_from_ir(IR* ir_root) {
+void SQL_ORACLE::remove_oracle_normal_stmts_from_ir(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_stmt : stmt_vec) {
-    if (this->is_oracle_normal_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR *cur_stmt : stmt_vec) {
+    if (this->is_oracle_normal_stmt(cur_stmt))
+      ir_wrapper.remove_stmt_and_free(cur_stmt);
   }
 }
 
-void SQL_ORACLE::remove_all_select_stmt_from_ir(IR* ir_root){
+void SQL_ORACLE::remove_all_select_stmt_from_ir(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_stmt : stmt_vec) {
-    if (this->is_select_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR *cur_stmt : stmt_vec) {
+    if (this->is_select_stmt(cur_stmt))
+      ir_wrapper.remove_stmt_and_free(cur_stmt);
   }
 }
 

@@ -12,7 +12,8 @@ using std::string;
 void rsg_initialize() {
 
   const string parser_file_str = "./sqlite_parse_rule_only.y";
-  GoString parser_file_gostr = {parser_file_str.c_str(), long(parser_file_str.size())};
+  GoString parser_file_gostr = {parser_file_str.c_str(),
+                                long(parser_file_str.size())};
 
   const string dbms_name = "sqlite";
   GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
@@ -21,16 +22,10 @@ void rsg_initialize() {
   return;
 }
 
-void rsg_clear_chosen_expr() {
-  RSGClearChosenExpr();
-}
+void rsg_clear_chosen_expr() { RSGClearChosenExpr(); }
 
-void rsg_exec_succeed() {
-  RSGExecSucceed();
-}
-void rsg_exec_failed() {
-  RSGExecFailed();
-}
+void rsg_exec_succeed() { RSGExecSucceed(); }
+void rsg_exec_failed() { RSGExecFailed(); }
 
 /*
  * From the RSG, generate one random query statement.
@@ -58,7 +53,8 @@ string rsg_generate(const IRTYPE type) {
     GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
 
     // Actual Parsing.
-    RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input, dbms_name_gostr);
+    RSGQueryGenerate_return gores =
+        RSGQueryGenerate(gostr_input, dbms_name_gostr);
     if (gores.r0 == NULL) {
       return "";
     }
@@ -73,4 +69,3 @@ string rsg_generate(const IRTYPE type) {
 
   return res_str;
 }
-

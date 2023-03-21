@@ -1,14 +1,14 @@
 #ifndef __MUTATOR_H__
 #define __MUTATOR_H__
 
+#include "../AFL/types.h"
+#include "../rsg/rsg.h"
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
-#include "../rsg/rsg.h"
-#include "../AFL/types.h"
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 #define LUCKY_NUMBER 500
 
@@ -16,16 +16,11 @@ using namespace std;
 
 class SQL_ORACLE;
 
-enum STMT_TYPE {
-  NOT_ORACLE = 0,
-  ORACLE_SELECT = 1,
-  ORACLE_NORMAL = 2
-};
+enum STMT_TYPE { NOT_ORACLE = 0, ORACLE_SELECT = 1, ORACLE_NORMAL = 2 };
 
 class Mutator {
 
 public:
-
   // simple setters
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
@@ -36,15 +31,16 @@ public:
     this->disable_dyn_instan = dis_dyn;
   }
 
-  void set_disable_rsg_generator(bool in) {
-    this->disable_rsg_generator = in;
-  }
+  void set_disable_rsg_generator(bool in) { this->disable_rsg_generator = in; }
 
   void set_disable_rsg_cov_feedback(bool in) {
     this->disable_rsg_cov_feedback = in;
   }
 
-  Mutator() { srand(time(nullptr)); rsg_initialize(); }
+  Mutator() {
+    srand(time(nullptr));
+    rsg_initialize();
+  }
 
   typedef map<IR *, pair<int, IR *>> TmpRecord;
 
@@ -52,11 +48,12 @@ public:
   unsigned long hash(IR *);
   unsigned long hash(const string &);
 
-  vector<string *> mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate_gen_num, u64& total_mutate_gen_failed);
+  vector<string *> mutate_all(vector<IR *> &v_ir_collector,
+                              u64 &total_mutate_gen_num,
+                              u64 &total_mutate_gen_failed);
 
   vector<IR *> mutate_stmtlist(IR *input);
-  vector<IR *> mutate_selectcorelist(IR* ir_root, IR *cur_ir);
-
+  vector<IR *> mutate_selectcorelist(IR *ir_root, IR *cur_ir);
 
   vector<IR *> mutate(IR *input);
   IR *strategy_delete(IR *cur);
@@ -64,15 +61,21 @@ public:
   IR *strategy_replace(IR *cur);
 
   void pre_validate();
-  vector<IR*> pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec);
+  vector<IR *> pre_fix_transform(IR *root, vector<STMT_TYPE> &stmt_type_vec);
 
-  bool validate(IR* cur_trans_stmt, bool is_debug_info = false);
+  bool validate(IR *cur_trans_stmt, bool is_debug_info = false);
 
-  vector<vector<vector<IR*>>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec);
-  vector<vector<IR*>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
-  
-  bool finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec);
-  pair<string, string> ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec);
+  vector<vector<vector<IR *>>>
+  post_fix_transform(vector<IR *> &all_pre_trans_vec,
+                     vector<STMT_TYPE> &stmt_type_vec);
+  vector<vector<IR *>> post_fix_transform(vector<IR *> &all_pre_trans_vec,
+                                          vector<STMT_TYPE> &stmt_type_vec,
+                                          int run_count);
+
+  bool finalize_transform(IR *root, vector<vector<IR *>> all_post_trans_vec);
+  pair<string, string> ir_to_string(IR *root,
+                                    vector<vector<IR *>> all_post_trans_vec,
+                                    const vector<STMT_TYPE> &stmt_type_vec);
 
   void minimize(vector<IR *> &);
   bool lucky_enough_to_be_mutated(unsigned int mutated_times);
@@ -81,12 +84,12 @@ public:
 
   vector<IR *> parse_query_str_get_ir_set(const string &query_str);
 
-  void add_all_to_library(IR *, const ALL_COMP_RES&);
+  void add_all_to_library(IR *, const ALL_COMP_RES &);
   void add_all_to_library(IR *ir) {
     ALL_COMP_RES dummy_all_comp_res;
     add_all_to_library(ir, dummy_all_comp_res);
   }
-  void add_all_to_library(string, const ALL_COMP_RES&);
+  void add_all_to_library(string, const ALL_COMP_RES &);
   void add_all_to_library(string whole_query_str) {
     ALL_COMP_RES dummy_all_comp_res;
     add_all_to_library(whole_query_str, dummy_all_comp_res);
@@ -115,11 +118,13 @@ public:
   unsigned int calc_node(IR *root);
 
   void fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
-                                vector<vector<IR*>> &ordered_ir);
+                         vector<vector<IR *>> &ordered_ir);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
-  // void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
-  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir, bool is_debug_info = false);
+  // void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *>
+  // &visited);
+  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir,
+                      bool is_debug_info = false);
 
   static vector<string> value_libary;
   static vector<string> used_value_libary;
@@ -143,31 +148,43 @@ public:
   void get_memory_usage();
   // int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
-
   void set_use_cri_val(const bool is_use) { this->use_cri_val = is_use; }
   bool get_is_use_cri_val() { return this->use_cri_val; }
 
-
   string remove_node_from_tree_by_index(string oracle_query, int remove_index);
   set<string> get_minimize_string_from_tree(string oracle_query);
-  void resolve_drop_statement(IR*, bool is_debug_info = false);
-  void resolve_alter_statement(IR*, bool is_debug_info = false);
+  void resolve_drop_statement(IR *, bool is_debug_info = false);
+  void resolve_alter_statement(IR *, bool is_debug_info = false);
 
   void rsg_exec_succeed_helper() {
-    if (!disable_rsg_cov_feedback && !disable_rsg_generator) {rsg_exec_succeed();}
-    else { rsg_clear_chosen_expr(); }
+    if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
+      rsg_exec_succeed();
+    } else {
+      rsg_clear_chosen_expr();
+    }
   }
   void rsg_exec_failed_helper() {
-    if (!disable_rsg_cov_feedback && !disable_rsg_generator) { rsg_exec_failed();}
-    else { rsg_clear_chosen_expr(); }
+    if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
+      rsg_exec_failed();
+    } else {
+      rsg_clear_chosen_expr();
+    }
   }
 
-  int get_num_rsg_gen() {return this->num_rsg_gen;}
+  int get_num_rsg_gen() { return this->num_rsg_gen; }
 
-  inline double get_gram_total_block_cov_size() {return this->gram_cov_map.get_total_block_cov_size();}
-  inline u32 get_gram_total_block_cov_size_num() {return this->gram_cov_map.get_total_block_cov_size_num();}
-  inline double get_gram_total_edge_cov_size() {return this->gram_cov_map.get_total_edge_cov_size();}
-  inline u32 get_gram_total_edge_cov_size_num() {return this->gram_cov_map.get_total_edge_cov_size_num();}
+  inline double get_gram_total_block_cov_size() {
+    return this->gram_cov_map.get_total_block_cov_size();
+  }
+  inline u32 get_gram_total_block_cov_size_num() {
+    return this->gram_cov_map.get_total_block_cov_size_num();
+  }
+  inline double get_gram_total_edge_cov_size() {
+    return this->gram_cov_map.get_total_edge_cov_size();
+  }
+  inline u32 get_gram_total_edge_cov_size_num() {
+    return this->gram_cov_map.get_total_edge_cov_size_num();
+  }
 
 private:
   void add_to_valid_lib(IR *, string &);
@@ -225,7 +242,6 @@ private:
   int num_rsg_gen = 0;
 
   GramCovMap gram_cov_map;
-
 };
 
 #endif

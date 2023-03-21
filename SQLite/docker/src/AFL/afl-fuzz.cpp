@@ -44,9 +44,9 @@
 
 #include "../include/ast.h"
 #include "../include/define.h"
+#include "../include/ir_wrapper.h"
 #include "../include/mutator.h"
 #include "../include/utils.h"
-#include "../include/ir_wrapper.h"
 
 #include <algorithm>
 #include <cassert>
@@ -55,8 +55,10 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <regex>
 #include <sched.h>
 #include <signal.h>
@@ -78,13 +80,11 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include <vector>
-#include <map>
 #include <utility>
-#include <filesystem>
+#include <vector>
 
-#include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_opt.h"
+#include "../oracle/sqlite_oracle.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -112,7 +112,7 @@
 #define INIT_LIB_PATH "./init_lib"
 double min_stab_radio;
 char *save_file_name = NULL;
-char *g_library_path = (char*)INIT_LIB_PATH;
+char *g_library_path = (char *)INIT_LIB_PATH;
 char *g_current_input = NULL;
 IR *g_current_ir = NULL;
 
@@ -130,7 +130,7 @@ u64 total_mutate_gen_failed = 0;
 u64 total_oracle_mutate = 0;
 u64 total_oracle_mutate_failed = 0;
 
-u64 num_parse =0;
+u64 num_parse = 0;
 u64 num_mutate_all = 0;
 u64 num_reparse = 0;
 u64 num_append = 0;
@@ -140,7 +140,7 @@ u64 num_common_fuzz = 0;
 u64 num_total_mutate_all_tree_size = 0;
 u64 num_total_mutate_all_before_ir_set_size = 0;
 
-vector<u64>num_mutate_all_vec;
+vector<u64> num_mutate_all_vec;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
@@ -151,7 +151,8 @@ int bind_to_core_id = -1;
 int map_file_id = 0;
 
 map<int, vector<string>> share_map_id;
-fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
+fstream map_id_out_f("./map_id_triggered.txt",
+                     std::ofstream::out | std::ofstream::trunc);
 
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
@@ -177,9 +178,8 @@ EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 disable_dyn_instan = false,
-/* Disable Dynamic Instantiation based on error messages.          */
-       disable_rsg_generator = false,
-       disable_rsg_cov_feedback = false;
+          /* Disable Dynamic Instantiation based on error messages.          */
+    disable_rsg_generator = false, disable_rsg_cov_feedback = false;
 
 /* Use RSG to generate new SQL statements          */
 
@@ -210,12 +210,13 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
-EXP_ST u8 disable_coverage_feedback = 0;  
-                              /* 0: not disabled, 
-                               * 1: Drop all queries. 
-                               * 2: Randomly save queries. 
-                               * 3: Save all queries. */
-static bool is_using_non_deter = 0; /* Is using non-deterministic queries. Default No. */
+EXP_ST u8 disable_coverage_feedback = 0;
+/* 0: not disabled,
+ * 1: Drop all queries.
+ * 2: Randomly save queries.
+ * 3: Save all queries. */
+static bool is_using_non_deter =
+    0; /* Is using non-deterministic queries. Default No. */
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -228,7 +229,7 @@ static s32 max_norec =
     10; /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str; /* String: query used to test sqlite   */
-//static string
+// static string
 //    program_output_str; /* String: query results output from sqlite   */
 
 int bug_output_id = 0;
@@ -290,9 +291,9 @@ EXP_ST u64 total_crashes, /* Total number of crashes          */
 
 static u32 subseq_tmouts; /* Number of timeouts in a row      */
 
-static u8 *stage_name = (u8*)"init", /* Name of the current fuzz stage   */
-    *stage_short,               /* Short stage name                 */
-    *syncing_party;             /* Currently syncing with...        */
+static u8 *stage_name = (u8 *)"init", /* Name of the current fuzz stage   */
+    *stage_short,                     /* Short stage name                 */
+    *syncing_party;                   /* Currently syncing with...        */
 
 static s32 stage_cur, stage_max; /* Stage progression                */
 static s32 splicing_with = -1;   /* Splicing with which test case?   */
@@ -414,7 +415,6 @@ enum {
   /* 01 */ STAGE_VAL_LE,
   /* 02 */ STAGE_VAL_BE
 };
-
 
 /* Get unix time in milliseconds */
 
@@ -970,10 +970,11 @@ EXP_ST void read_bitmap(u8 *fname) {
   close(fd);
 }
 
-vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir) {
   vector<u8> new_byte_v;
-  for (u8 i = 0; i < 8; i++){
-    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  for (u8 i = 0; i < 8; i++) {
+    if (cur[i] && vir[i] == 0xff)
+      new_byte_v.push_back(i);
   }
   return new_byte_v;
 }
@@ -986,7 +987,7 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
 
 // vector<u8> get_cur_new_bit(u8 map){
 //   vector<u8> new_bit_v;
-//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0); 
+//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0);
 //   if (judge_bit_is_one(map, 0x02)) new_bit_v.push_back(1);
 //   if (judge_bit_is_one(map, 0x04)) new_bit_v.push_back(2);
 //   if (judge_bit_is_one(map, 0x08)) new_bit_v.push_back(3);
@@ -997,33 +998,35 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
 //   return new_bit_v;
 // }
 
-void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
-  if (map_id_out_f.fail()){
+void log_map_id(u32 i, u8 byte, const string &cur_seed_str) {
+  if (map_id_out_f.fail()) {
     return;
   }
   if (cur_seed_str == "") {
     return;
   }
-  i = (MAP_SIZE >> 3) - i - 1 ;
+  i = (MAP_SIZE >> 3) - i - 1;
   u32 actual_idx = i * 8 + byte;
-  
+
   if (queue_cur) {
-    map_id_out_f << actual_idx << ",-1,-1" <<  endl;
+    map_id_out_f << actual_idx << ",-1,-1" << endl;
   } else {
     map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
   }
   map_id_out_f.flush();
 
   if (queue_cur && cur_seed_str != "123") {
-    if ( !filesystem::exists("./queue_coverage_id_core/")) {
+    if (!filesystem::exists("./queue_coverage_id_core/")) {
       filesystem::create_directory("./queue_coverage_id_core/");
     }
     fstream map_id_seed_output;
-    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    map_id_seed_output.open(
+        "./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +
+            to_string(map_file_id) + "_" + to_string(current_entry) + ".txt",
+        std::fstream::out | std::fstream::trunc);
     map_id_seed_output << cur_seed_str;
     map_id_seed_output.close();
   }
-
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -1066,7 +1069,8 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail() && cur_seed_str != "")) {
+      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail() &&
+                                      cur_seed_str != "")) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -1080,16 +1084,15 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
-              ret = 2;
-              if (dump_library && !map_id_out_f.fail() && cur_seed_str != ""){
-                vector<u8> byte = get_cur_new_byte(cur, vir);
-                for (const u8& cur_byte: byte){
-                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
-                  log_map_id(i, cur_byte, cur_seed_str);
-                }
-              }
+          ret = 2;
+          if (dump_library && !map_id_out_f.fail() && cur_seed_str != "") {
+            vector<u8> byte = get_cur_new_byte(cur, vir);
+            for (const u8 &cur_byte : byte) {
+              // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+              log_map_id(i, cur_byte, cur_seed_str);
             }
-        else
+          }
+        } else
           ret = 1;
 
 #else
@@ -2193,7 +2196,7 @@ EXP_ST void init_forkserver(char **argv) {
     } else {
 
       dup2(out_fd, 0);
-      //close(out_fd);
+      // close(out_fd);
     }
 
     /* Set up control and status pipes, close the unneeded original fds. */
@@ -2222,19 +2225,23 @@ EXP_ST void init_forkserver(char **argv) {
 
     /* Set sane defaults for ASAN if nothing else specified. */
 
-    setenv("ASAN_OPTIONS", "abort_on_error=1:"
-                           "detect_leaks=0:"
-                           "symbolize=0:"
-                           "allocator_may_return_null=1", 0);
+    setenv("ASAN_OPTIONS",
+           "abort_on_error=1:"
+           "detect_leaks=0:"
+           "symbolize=0:"
+           "allocator_may_return_null=1",
+           0);
 
     // /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
     //    point. So, we do this in a very hacky way. */
 
-    setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-                           "symbolize=0:"
-                           "abort_on_error=1:"
-                           "allocator_may_return_null=1:"
-                           "msan_track_origins=0", 0);
+    setenv("MSAN_OPTIONS",
+           "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                                              "symbolize=0:"
+                                              "abort_on_error=1:"
+                                              "allocator_may_return_null=1:"
+                                              "msan_track_origins=0",
+           0);
 
     execv(target_path, argv); // Used for start up sqlite3 ???
 
@@ -2445,7 +2452,7 @@ static string read_sqlite_output_and_reset_output_file() {
   while (1) {
 
     ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
-    if (num_bytes == 0 || output_buf[0] == '\0') 
+    if (num_bytes == 0 || output_buf[0] == '\0')
       break;
 
     output_buf[num_bytes] = '\0';
@@ -2529,7 +2536,7 @@ static u8 run_target(char **argv, u32 timeout) {
       } else {
 
         dup2(out_fd, 0);
-        //close(out_fd);
+        // close(out_fd);
       }
 
       /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
@@ -2542,14 +2549,18 @@ static u8 run_target(char **argv, u32 timeout) {
 
       /* Set sane defaults for ASAN if nothing else specified. */
 
-      setenv("ASAN_OPTIONS", "abort_on_error=1:"
-                             "detect_leaks=0:"
-                             "symbolize=0:"
-                             "allocator_may_return_null=1", 0);
+      setenv("ASAN_OPTIONS",
+             "abort_on_error=1:"
+             "detect_leaks=0:"
+             "symbolize=0:"
+             "allocator_may_return_null=1",
+             0);
 
-      setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-                             "symbolize=0:"
-                             "msan_track_origins=0", 0);
+      setenv("MSAN_OPTIONS",
+             "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                                                "symbolize=0:"
+                                                "msan_track_origins=0",
+             0);
 
       execv(target_path, argv);
 
@@ -2714,25 +2725,31 @@ inline void print_exec_debug_info(ostream &out) {
       << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
       << "total_mutate_failed:     " << total_mutate_failed << "\n"
       << "total_mutate_num:     " << total_mutate_num << "\n"
-      << "total_mutate_failed_rate:     " << float(total_mutate_failed) / float(total_mutate_num) << "\n"
-      << "total_oracle_mutate_failed:     " << total_oracle_mutate_failed << "\n"
+      << "total_mutate_failed_rate:     "
+      << float(total_mutate_failed) / float(total_mutate_num) << "\n"
+      << "total_oracle_mutate_failed:     " << total_oracle_mutate_failed
+      << "\n"
       << "total_oracle_mutate_num:     " << total_oracle_mutate << "\n"
-      << "total_oracle_mutate_failed_rate:     " << float(total_oracle_mutate_failed) / float(total_oracle_mutate) << "\n"
+      << "total_oracle_mutate_failed_rate:     "
+      << float(total_oracle_mutate_failed) / float(total_oracle_mutate) << "\n"
       << "total_append_failed:     " << total_append_failed << "\n"
       << "total_cri_valid_stmts:   "
       << g_mutator.get_cri_valid_collection_size() << "\n"
       << "total_valid_stmts:       " << g_mutator.get_valid_collection_size()
       << "\n"
-      << "total_num_rsg_generate:       " << g_mutator.get_num_rsg_gen()
-      << "\n"
+      << "total_num_rsg_generate:       " << g_mutator.get_num_rsg_gen() << "\n"
       << "total good queries:       " << debug_good << " / "
       << debug_error + debug_good << " ("
       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
       << "bug_samples reports num: " << bug_output_id << "\n"
-      << "gram block coverage size num: " << g_mutator.get_gram_total_block_cov_size_num() << "\n"
-      << "gram block coverage size: " << g_mutator.get_gram_total_block_cov_size() << "\n"
-      << "gram edge coverage size num: " << g_mutator.get_gram_total_edge_cov_size_num() << "\n"
-      << "gram edge coverage size: " << g_mutator.get_gram_total_edge_cov_size() << "\n";
+      << "gram block coverage size num: "
+      << g_mutator.get_gram_total_block_cov_size_num() << "\n"
+      << "gram block coverage size: "
+      << g_mutator.get_gram_total_block_cov_size() << "\n"
+      << "gram edge coverage size num: "
+      << g_mutator.get_gram_total_edge_cov_size_num() << "\n"
+      << "gram edge coverage size: " << g_mutator.get_gram_total_edge_cov_size()
+      << "\n";
 
   return;
 }
@@ -2796,8 +2813,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   int iter = 0;
   for (int j = 0; j < all_comp_res.v_res.size(); j++) {
     EXEC_RESULT_CODE res = all_comp_res.v_res[j];
-    out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res
-        << "\n";
+    out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res << "\n";
     out << "Str: " << all_comp_res.v_res_str[j] << " \n";
     iter++;
   }
@@ -2806,8 +2822,9 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   out << "\n\n\n\n";
 }
 
-u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res,
-                      char **argv, u32 tmout = exec_tmout) {
+u8 execute_cmd_string(vector<string> &cmd_string_vec,
+                      ALL_COMP_RES &all_comp_res, char **argv,
+                      u32 tmout = exec_tmout) {
 
   all_comp_res.final_res = FAULT_NONE;
 
@@ -2828,7 +2845,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
       cur_skipped_paths++;
       return fault;
     }
-    
+
     res_str = read_sqlite_output_and_reset_output_file();
 
     // TODO:: May not be the optimal way to calculate validity.
@@ -2855,10 +2872,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
 
     if (fault == FAULT_CRASH) {
       all_comp_res.final_res = FAULT_CRASH;
-    } else if (
-        fault != FAULT_NONE &&
-        all_comp_res.final_res != FAULT_CRASH
-    ) {
+    } else if (fault != FAULT_NONE && all_comp_res.final_res != FAULT_CRASH) {
       all_comp_res.final_res = fault;
     }
 
@@ -2867,9 +2881,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, ALL_COMP_RES& all_comp_res
   total_execs++;
   total_execute++;
 
-
   return all_comp_res.final_res;
-
 }
 
 /* The same, but with an adjustable gap. Used for trimming. */
@@ -2965,8 +2977,9 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     }
 
     ALL_COMP_RES dummy_all_comp_res;
-    vector<string> program_input_str_vec {program_input_str};
-    fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv, use_tmout);
+    vector<string> program_input_str_vec{program_input_str};
+    fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv,
+                               use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3321,12 +3334,12 @@ static void perform_dry_run(char **argv) {
       WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
-  if (dump_library){
-    // Added virgin_bits just perform_dry_run. 
+  if (dump_library) {
+    // Added virgin_bits just perform_dry_run.
     std::fstream vir_bits_fd;
     vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
-    u8 *cur_vir = (u8 *) virgin_bits;
-    for (int i = 0; i < MAP_SIZE; i++){
+    u8 *cur_vir = (u8 *)virgin_bits;
+    for (int i = 0; i < MAP_SIZE; i++) {
       if (cur_vir[i] != 0xff) {
         vir_bits_fd << i << endl;
       }
@@ -3565,7 +3578,8 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES& all_comp_res, u8 fault) {
+static u8 save_if_interesting(char **argv, string query_str,
+                              const ALL_COMP_RES &all_comp_res, u8 fault) {
 
   u8 *fn = "";
   u8 hnb;
@@ -3586,7 +3600,7 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
 
   string stripped_query_string = query_str;
 
-  if (is_str_empty(query_str)){
+  if (is_str_empty(query_str)) {
     g_mutator.rsg_exec_failed_helper();
     return keeping; // return 0; Empty string. Not added.
   }
@@ -3596,31 +3610,35 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
+    /* If no_new_bits, dropped. However, if disable_coverage_feedback is
+     * specified, ignore has_new_bits. */
+    if (!(hnb = has_new_bits(virgin_bits, query_str)) &&
+        !disable_coverage_feedback) {
       if (crash_mode)
         total_crashes++;
       g_mutator.rsg_exec_failed_helper();
       return 0;
     }
 
-    if (disable_coverage_feedback == 1)
-    { // Disable feedbacks. Drop all queries.
+    if (disable_coverage_feedback ==
+        1) { // Disable feedbacks. Drop all queries.
       g_mutator.rsg_exec_failed_helper();
       return keeping;
     }
 
-    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    /* For evaluation experiments, if we need to disable coverage feedback and
+    *randomly drop queries:
     **  1/10 of chances to save the interesting seed.
     **  9/10 of chances to throw away the seed.
     **/
-    if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
-      // Drop query. 
+    if ((disable_coverage_feedback == 2) && get_rand_int(10) < 9) {
+      // Drop query.
       g_mutator.rsg_exec_failed_helper();
       return keeping;
     }
 
-    /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
+    /* If disable_coverage_feedback == 3, always go through save_if_interesting.
+     */
 
     char *tmp_name = stage_name;
     //[modify] add
@@ -3629,10 +3647,8 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
-      g_mutator.add_all_to_library(
-          g_mutator.extract_struct(ir_tree.back()),
-          all_comp_res
-          );
+      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree.back()),
+                                   all_comp_res);
       p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
       stripped_query_string = ir_tree.back()->to_string();
       ir_tree.back()->deep_drop();
@@ -3663,7 +3679,8 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
 
 #endif /* ^!SIMPLE_FILES */
 
-    /* Do not save the whole queries with the appended oracle-select stmt back to
+    /* Do not save the whole queries with the appended oracle-select stmt back
+    *to
     ** the AFL queue. Since we will append new oracle-select stmt every time we
     ** retrive a new seed, we should delete all the oralce-stmts from the query
     ** before adding them to the query.
@@ -3728,8 +3745,7 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
     if (exec_tmout < hang_tmout) {
 
       u8 new_fault;
-      write_to_testcase(query_str.c_str(),
-                        query_str.size());
+      write_to_testcase(query_str.c_str(), query_str.size());
       new_fault = run_target(argv, hang_tmout);
       read_sqlite_output_and_reset_output_file();
 
@@ -3833,15 +3849,17 @@ static u8 save_if_interesting(char **argv, string query_str, const ALL_COMP_RES&
   if (fault == FAULT_CRASH) {
     ofstream outputfile;
     bug_output_id++;
-    if ( !filesystem::exists("../Bug_Analysis/")) {
+    if (!filesystem::exists("../Bug_Analysis/")) {
       filesystem::create_directory("../Bug_Analysis/");
     }
-    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+    if (!filesystem::exists("../Bug_Analysis/bug_samples")) {
       filesystem::create_directory("../Bug_Analysis/bug_samples");
     }
 
-    string bug_output_dir =
-        "../Bug_Analysis/bug_samples/bug_" + to_string(bug_output_id) + "_src_" + to_string(current_entry) + "_core_" + std::to_string(bind_to_core_id) + ".txt";
+    string bug_output_dir = "../Bug_Analysis/bug_samples/bug_" +
+                            to_string(bug_output_id) + "_src_" +
+                            to_string(current_entry) + "_core_" +
+                            std::to_string(bind_to_core_id) + ".txt";
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
     outputfile.close();
@@ -4062,25 +4080,31 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %0.02f%%\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, "
+          "%u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
+          "%0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
+          "%u, %0.02f%%, %u, %0.02f%%\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, 
-          total_input_failed, p_oracle->total_temp, p_oracle->total_rand_valid, (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
-          total_add_to_queue, total_mutate_all_failed, total_mutate_failed, total_mutate_num, 
-          total_oracle_mutate_failed, total_oracle_mutate, total_append_failed, 
-          g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
-          debug_error, debug_good, 
+          unique_hangs, max_depth, eps, total_input_failed,
+          p_oracle->total_temp, p_oracle->total_rand_valid,
+          (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
+          total_add_to_queue, total_mutate_all_failed, total_mutate_failed,
+          total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate,
+          total_append_failed, g_mutator.get_cri_valid_collection_size(),
+          g_mutator.get_valid_collection_size(), debug_error, debug_good,
           (float)debug_good / (float)(debug_error + debug_good) * 100.0,
-          bug_output_id, queued_with_cov,total_execs,
-          num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
-          num_total_mutate_all_tree_size / (num_mutate_all+1),
-          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed, num_total_mutate_all_before_ir_set_size / (num_mutate_all+1),
+          bug_output_id, queued_with_cov, total_execs, num_parse,
+          num_mutate_all, num_reparse, num_append, num_validate,
+          num_common_fuzz,
+          num_total_mutate_all_tree_size / (num_mutate_all + 1),
+          total_mutate_gen_num, total_mutate_gen_failed,
+          p_oracle->total_oracle_rand_valid_failed,
+          num_total_mutate_all_before_ir_set_size / (num_mutate_all + 1),
           g_mutator.get_gram_total_block_cov_size_num(),
           g_mutator.get_gram_total_block_cov_size(),
           g_mutator.get_gram_total_edge_cov_size_num(),
-          g_mutator.get_gram_total_edge_cov_size()
-          ); /* ignore errors */
+          g_mutator.get_gram_total_edge_cov_size()); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -5246,13 +5270,13 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
   fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
-  if (fault == FAULT_ERROR){
+  if (fault == FAULT_ERROR) {
     g_mutator.rsg_exec_failed_helper();
     return 0;
   }
-  
+
   queued_discovered +=
-    save_if_interesting(argv, v_query_str.front(), all_res, fault);
+      save_if_interesting(argv, v_query_str.front(), all_res, fault);
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -5584,7 +5608,7 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
   return 0;
 }
 
-void get_app_new_select_stmts(vector<IR*> &v_valid_stmts) {
+void get_app_new_select_stmts(vector<IR *> &v_valid_stmts) {
 
   int trial = 0;
   int num_oracle = 0;
@@ -5597,12 +5621,13 @@ void get_app_new_select_stmts(vector<IR*> &v_valid_stmts) {
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
 
-    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
-    if (new_oracle_select_stmts == nullptr){
+    IR *new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
+    if (new_oracle_select_stmts == nullptr) {
       total_oracle_mutate_failed++;
       continue;
     }
-    // cerr << "New generated random_mutated_valid_stmt is: " << new_oracle_select_stmts->to_string() << "\n\n\n";
+    // cerr << "New generated random_mutated_valid_stmt is: " <<
+    // new_oracle_select_stmts->to_string() << "\n\n\n";
     v_valid_stmts.push_back(new_oracle_select_stmts);
 
     num_oracle++;
@@ -5624,7 +5649,7 @@ static u8 fuzz_one(char **argv) {
 
   vector<IR *> ir_set;
   vector<string *> mutated_tree;
-  vector<IR*> app_new_select_stmts;
+  vector<IR *> app_new_select_stmts;
   char *tmp_name = stage_name;
   int skip_count;
   string input;
@@ -5742,11 +5767,13 @@ static u8 fuzz_one(char **argv) {
 
   num_parse++;
 
-  mutated_tree = g_mutator.mutate_all(ir_set, total_mutate_gen_num, total_mutate_gen_failed);
+  mutated_tree = g_mutator.mutate_all(ir_set, total_mutate_gen_num,
+                                      total_mutate_gen_failed);
   if (mutated_tree.size() == 0) {
     total_mutate_all_failed++;
     ir_set.back()->deep_drop();
-    // cerr << "The generated mutated_tree.size() is 0, going to abandon_entry(). \n\n\n";
+    // cerr << "The generated mutated_tree.size() is 0, going to
+    // abandon_entry(). \n\n\n";
     goto abandon_entry;
   }
 
@@ -5767,7 +5794,7 @@ static u8 fuzz_one(char **argv) {
     total_mutate_num++;
     stage_name = "query_fix";
 
-    if (ir_str == NULL){
+    if (ir_str == NULL) {
       total_mutate_failed++;
       continue;
     }
@@ -5778,11 +5805,10 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
-    /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
-     * consider appending anything 
+    /* Check whether the mutated normal (non-select) query makes sense, if not,
+     * do not even consider appending anything
      */
-    vector<IR *> cur_ir_tree =
-        g_mutator.parse_query_str_get_ir_set(*ir_str);
+    vector<IR *> cur_ir_tree = g_mutator.parse_query_str_get_ir_set(*ir_str);
     if (cur_ir_tree.size() == 0) {
       total_mutate_failed++;
       skip_count++;
@@ -5791,45 +5817,46 @@ static u8 fuzz_one(char **argv) {
 
     num_reparse++;
 
-    for (IR* app_IR_node : app_new_select_stmts) {
-        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
-        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT
-                          // stmts.
-        num_append++;
+    for (IR *app_IR_node : app_new_select_stmts) {
+      p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+      p_oracle->ir_wrapper.append_stmt_at_end(
+          app_IR_node->deep_copy()); // Append the already generated and cached
+                                     // SELECT stmts.
+      num_append++;
     }
 
-    /* 
-    ** Pre_Post_fix_transformation from the oracle across runs, build dependency, 
-    ** fix ir node, fill in concret values, 
-    ** and transform from IR to strings.  
+    /*
+    ** Pre_Post_fix_transformation from the oracle across runs, build
+    *dependency,
+    ** fix ir node, fill in concret values,
+    ** and transform from IR to strings.
     */
 
-    IR* cur_root = cur_ir_tree.back();
+    IR *cur_root = cur_ir_tree.back();
 
     g_mutator.pre_validate();
 
-    vector<IR*> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+    vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
 
     string query_str = "";
 
-    for (IR* cur_stmt: v_stmt) {
+    for (IR *cur_stmt : v_stmt) {
       /* Fill in concret values to the SQL. Instantiation step. */
       if (cur_stmt->type_ == kCmdPragma) {
         // TODO::
-        // Ignore PRAGMA statement for now. 
+        // Ignore PRAGMA statement for now.
         continue;
       }
-      if(!g_mutator.validate(cur_stmt, false)) {
+      if (!g_mutator.validate(cur_stmt, false)) {
         continue;
       }
 
       query_str += cur_stmt->to_string() + "; \n";
     }
 
-
     num_validate++;
-    
-    if (cur_ir_tree.size() > 0){
+
+    if (cur_ir_tree.size() > 0) {
       cur_ir_tree.back()->deep_drop();
     }
 
@@ -5844,8 +5871,10 @@ static u8 fuzz_one(char **argv) {
       skip_count++;
       continue;
     } else {
-      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str);
-      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str);
+      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
+                              query_str);
+      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
+                              query_str);
 
       show_stats();
       stage_name = "fuzz";
@@ -5871,7 +5900,7 @@ abandon_entry:
   for (auto ir : mutated_tree)
     delete ir;
 
-  for (IR* ori_valid : app_new_select_stmts) {
+  for (IR *ori_valid : app_new_select_stmts) {
     ori_valid->deep_drop();
   }
   app_new_select_stmts.clear();
@@ -6031,7 +6060,8 @@ static void sync_fuzzers(char **argv) {
         ALL_COMP_RES dummy_all_comp_res;
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, saved_str, dummy_all_comp_res, fault);
+        queued_imported +=
+            save_if_interesting(argv, saved_str, dummy_all_comp_res, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -6500,20 +6530,23 @@ EXP_ST void setup_dirs_fds(void) {
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-  fprintf(plot_file, "unix_time,cycles_done,cur_path,paths_total,"
-                     "pending_total,pending_favs,map_size,unique_crashes,"
-                     "unique_hangs,max_depth,execs_per_sec,total_input_failed,"
-                     "total_random_valid,total_random_temp,total_random_valid_rate,"
-                     "total_add_to_queue,total_mutate_all_failed,total_mutate_failed,"
-                     "total_mutate_num,total_oracle_mutate_failed,total_oracle_mutate,"
-                     "total_append_failed,total_cri_valid_stmts_lib,total_valid_stmts_lib,"
-                     "total_bad_statms,total_good_stmts,total_good_rate,but_output_id,new_edges_on,total_execs,"
-                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,"
-                     "avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed,"
-                     "total_oracle_rand_valid_failed,avg_ir_set_size,"
-                     "total_gram_block_cov_size_num,total_gram_block_cov_size_percent,"
-                     "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent"
-                     "\n");
+  fprintf(plot_file,
+          "unix_time,cycles_done,cur_path,paths_total,"
+          "pending_total,pending_favs,map_size,unique_crashes,"
+          "unique_hangs,max_depth,execs_per_sec,total_input_failed,"
+          "total_random_valid,total_random_temp,total_random_valid_rate,"
+          "total_add_to_queue,total_mutate_all_failed,total_mutate_failed,"
+          "total_mutate_num,total_oracle_mutate_failed,total_oracle_mutate,"
+          "total_append_failed,total_cri_valid_stmts_lib,total_valid_stmts_lib,"
+          "total_bad_statms,total_good_stmts,total_good_rate,but_output_id,new_"
+          "edges_on,total_execs,"
+          "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_"
+          "common_fuzz,"
+          "avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed,"
+          "total_oracle_rand_valid_failed,avg_ir_set_size,"
+          "total_gram_block_cov_size_num,total_gram_block_cov_size_percent,"
+          "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent"
+          "\n");
   /* ignore errors */
 }
 
@@ -7096,7 +7129,8 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:wXRr")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:wXRr")) >
+         0)
 
     switch (opt) {
 
@@ -7120,7 +7154,8 @@ int main(int argc, char **argv) {
 
     case 'w': /* Using non-deterministic query or not. Default No.  */
       is_using_non_deter = true;
-      cerr << "Attention: Using non-deterministic queries in the fuzzing. Will generate False Positives. \n";
+      cerr << "Attention: Using non-deterministic queries in the fuzzing. Will "
+              "generate False Positives. \n";
       break;
 
     case 's': /* number of oracle SELECT stmts. */
@@ -7273,19 +7308,22 @@ int main(int argc, char **argv) {
 
     case 'F': { /* coverage feedback */
       string arg = string(optarg);
-      if (arg == "drop_all"){
-        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+      if (arg == "drop_all") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated "
+                "queries. \033[0m \n\n\n";
         disable_coverage_feedback = 1;
       } else if (arg == "random_save") {
-        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved "
+                "mutated queries. \033[0m \n\n\n";
         disable_coverage_feedback = 2;
       } else if (arg == "save_all") {
-        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated "
+                "queries. \033[0m \n\n\n";
         disable_coverage_feedback = 3;
       } else {
         FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
       }
-      
+
     } break;
 
     case 'c': /* bind to specific CPU core num */
@@ -7460,7 +7498,7 @@ int main(int argc, char **argv) {
   if (!timeout_given) {
     exec_tmout = 2000;
     timeout_given = 1;
-    //find_timeout();
+    // find_timeout();
   }
 
   detect_file_args(argv + optind + 1);
@@ -7613,11 +7651,9 @@ stop_fuzzing:
   alloc_report();
 
   pid_t pid = getpid();
-  u8 * fn = alloc_printf("/.cur_input_%d", pid);
+  u8 *fn = alloc_printf("/.cur_input_%d", pid);
   shm_unlink(fn);
   ck_free(fn);
-
-
 
   OKF("We're done here. Have a nice day!\n");
 

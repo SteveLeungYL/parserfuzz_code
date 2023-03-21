@@ -38,8 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_opt.h"
+#include "../oracle/sqlite_oracle.h"
 
 /* Display usage hints. */
 

@@ -14,9 +14,10 @@ class SQL_OPT : public SQL_ORACLE {
 public:
   bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
 
-    unsigned get_mul_run_num() override { return 3; }
+  unsigned get_mul_run_num() override { return 3; }
 
-  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
+  virtual vector<IR *>
+  post_fix_transform_select_stmt(IR *cur_stmt, unsigned multi_run_id) override;
 
   string get_temp_select_stmts() override { return temp_select_stmts; };
 

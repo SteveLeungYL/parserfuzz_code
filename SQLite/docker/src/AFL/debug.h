@@ -185,7 +185,7 @@
 
 #define SSAY(x...)                                                             \
   do {                                                                         \
-    SAYF(cLBL "[SQLright] " cRST x);                                                  \
+    SAYF(cLBL "[SQLright] " cRST x);                                           \
     SAYF(cRST "\n");                                                           \
   } while (0)
 

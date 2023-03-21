@@ -156,8 +156,9 @@ void ensure_semicolon_at_query_end(string &stmt) {
     stmt += "; ";
 }
 
-// From https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-vector<string> string_splitter(const string& in, string delimiter) {
+// From
+// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+vector<string> string_splitter(const string &in, string delimiter) {
 
   vector<string> ret;
   string s = in;
@@ -184,7 +185,7 @@ bool is_str_empty(string input_str) {
 }
 
 int findStringCount(const std::string &strHaystack,
-                                      const std::string &strNeedle) {
+                    const std::string &strNeedle) {
   auto it = findStringIter(strHaystack, strNeedle);
   int res_count = 0;
   for (; it != strHaystack.end(); it++) {

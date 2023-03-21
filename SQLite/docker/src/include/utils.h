@@ -40,12 +40,12 @@ std::vector<string> get_all_files_in_dir(const char *dir_name);
 string magic_string_generator(string &s);
 void ensure_semicolon_at_query_end(string &);
 
-vector<string> string_splitter(const string& in, string delimiter);
+vector<string> string_splitter(const string &in, string delimiter);
 
 bool is_str_empty(string input_str);
 
 int findStringCount(const std::string &strHaystack,
-                                      const std::string &strNeedle);
+                    const std::string &strNeedle);
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);

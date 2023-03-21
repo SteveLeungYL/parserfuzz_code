@@ -7,7 +7,8 @@
 #include <sstream>
 #include <vector>
 
-u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map, bool is_debug) {
+u8 GramCovMap::has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
+                                    bool is_debug) {
 
 #if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
@@ -52,12 +53,11 @@ u8 GramCovMap::has_new_grammar_bits(u8* cur_cov_map, u8* cur_virgin_map, bool is
           ret = 2;
           if (unlikely(is_debug)) {
             vector<u8> byte = get_cur_new_byte(cur, vir);
-            for (const u8& cur_byte: byte){
-//              this->gram_log_map_id(i, cur_byte);
+            for (const u8 &cur_byte : byte) {
+              //              this->gram_log_map_id(i, cur_byte);
             }
           }
-        }
-        else if (unlikely(ret != 2))
+        } else if (unlikely(ret != 2))
           ret = 1;
 
 #else
@@ -115,7 +115,7 @@ u32 GramCovMap::count_non_255_bytes(u8 *mem) {
 
 string get_string_by_ir_type(IRTYPE type) {
 #define DECLARE_CASE(classname)                                                \
-  if (type == classname)                                                    \
+  if (type == classname)                                                       \
     return #classname;
   ALLTYPE(DECLARE_CASE);
 #undef DECLARE_CASE
@@ -207,9 +207,9 @@ string IR::to_string() {
 void IR::_to_string(string &res) {
 
   if (type_ == kStringLiteral) {
-     res += str_val_;
-     return;
-   }
+    res += str_val_;
+    return;
+  }
 
   if (!str_val_.empty()) {
     res += str_val_;
@@ -218,7 +218,7 @@ void IR::_to_string(string &res) {
 
   if (op_ && !(op_->prefix_.empty())) {
     res += op_->prefix_;
-    res +=  " ";
+    res += " ";
   }
 
   if (left_) {
@@ -250,10 +250,10 @@ bool IR::swap_node(IR *old_node, IR *new_node) {
   IR *parent = this->locate_parent(old_node);
 
   if (parent == NULL) {
-    // cerr << "Error: parent is null. Locate_parent error. In func: IR::swap_node(). \n";
+    // cerr << "Error: parent is null. Locate_parent error. In func:
+    // IR::swap_node(). \n";
     return false;
-  }
-  else if (parent->left_ == old_node)
+  } else if (parent->left_ == old_node)
     parent->update_left(new_node);
   else if (parent->right_ == old_node)
     parent->update_right(new_node);
@@ -286,10 +286,7 @@ IR *IR::get_root() {
   return node;
 }
 
-IR *IR::get_parent() {
-
-  return this->parent_;
-}
+IR *IR::get_parent() { return this->parent_; }
 
 void IR::update_left(IR *new_left) {
 
