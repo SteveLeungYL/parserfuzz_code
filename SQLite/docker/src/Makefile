@@ -1,6 +1,6 @@
 SUB_DIRS := oracle src AFL
 
-PARSER_SRCS := parser/parser_helper.o parser/sqlite_lemon_parser.o
+PARSER_SRCS := parser/parser_helper.o parser/sqlite_lemon_parser.o parser/sqlite_lemon_parser_cov.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 COMM_OBJS += rsg/rsg.o

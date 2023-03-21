@@ -660,12 +660,18 @@ static void custom_free(void* p) {
   delete[] (char*)p;
 }
 
-u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir) {
+u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir, GramCovMap* p_gram) {
 
   // Fuzzer internal lemon parsing engine.
   void* pEngine = IRParserAlloc(custom_malloc);
+  void* pEngineCov = ParserCovAlloc(malloc);
+
   if (pEngine == 0) {
     cerr << "\n\n\nERROR: Lemon parser initialization failed. \n\n\n";
+    exit(1);
+  }
+  if (pEngineCov == 0) {
+    cerr << "\n\n\nERROR: Lemon parser Cov initialization failed. \n\n\n";
     exit(1);
   }
 
@@ -728,49 +734,33 @@ u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir) {
     all_dup_zSql.push_back(tmp_tmp_zSql);
 
     IRParser(pEngine, tokenType, tmp_tmp_zSql, &v_ir);
+    ParserCov(pEngine, tokenType, tmp_tmp_zSql, p_gram);
     lastTokenParsed = tokenType;
     zSql += n;
   }
   IRParser(pEngine, 0, "", &v_ir);
+  ParserCov(pEngine, 0, "", p_gram);
+
   IRParserFree(pEngine, custom_free);
+  ParserCovFree(pEngineCov, free);
 
   for (char* cur_zSql : all_dup_zSql) {
     free(cur_zSql);
   }
-  return 0;
+
+  u8 res = p_gram->has_new_grammar_bits();
+  p_gram->reset_block_cov_map();
+  p_gram->reset_edge_cov_map();
+  return res;
 }
 
-//bool ori_sqlite_parser_helper(const string& in_str) {
-//    sqlite3 *db;
-//    sqlite3_stmt *pstmt;
-//    int rc;
-//
-//    rc = sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-//    if (rc) {
-//      cerr << "\n\n\nERROR: cannot open sqlite3 database in memory. \n\n\n";
-//      exit(1);
-//    }
-//
-//    rc = sqlite3_prepare_v2(db, in_str.c_str(), -1, &pstmt, NULL);
-//
-//    sqlite3_finalize(pstmt);
-//    sqlite3_close_v2(db);
-//
-//    if (pstmt == nullptr) {
-//      return nullptr;
-//    }
-//}
-
 vector<IR*> parser_helper(const string in_str, GramCovMap* p_gram) {
-
-  // First of all, try to parse the query with SQLite3 original interface.
-//  ori_sqlite_parser_helper(in_str);
 
   vector<IR*> v_ir;
 
   // And then, use the lemon parser to gather the grammar coverage.
   if (p_gram != nullptr) {
-    lemon_parser_helper(in_str, v_ir);
+    lemon_parser_helper(in_str, v_ir, p_gram);
   }
 
   if (v_ir.size() == 0) {
