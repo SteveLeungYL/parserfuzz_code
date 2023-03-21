@@ -17,11 +17,11 @@ current_workdir = os.getcwd()
 starting_core_id = 0
 parallel_num = 5
 
-timeout_ms = 2000 # not used.
+timeout_ms = 2000
 
 # Parse the command line arguments:
 output_dir_str = "/home/sqlite/fuzzing/fuzz_root/outputs"
-oracle_str = "NOREC"
+oracle_str = "OPT"
 feedback_str = ""
 explain_flag = False
 is_non_deter = False
@@ -90,7 +90,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "-i", "./inputs",
         "-o", cur_output_dir_str,
         "-c", str(cur_inst_id),
-        "-O", str(oracle_str)
+        "-O", str(oracle_str),
+        "-t", str(timeout_ms)
     ]
 
     if is_disable_rsg:
