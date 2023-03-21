@@ -1556,22 +1556,22 @@ F->id_type_ = id_column_name;
 }
 
 term(A) ::= NULL(B)|FLOAT(B)|BLOB(B) . {
-A = new IR(kFloatLiteral, OP3(string(B), "", ""));
+A = new IR(kFloatLiteral, string(B));
 v_ir->push_back(A);
 }
 
 term(A) ::= STRING(B) .          {
-A = new IR(kStringLiteral, OP3(string(B), "", ""));
+A = new IR(kStringLiteral, string(B));
 v_ir->push_back(A);
 }
 
 term(A) ::= INTEGER(B) . {
-A = new IR(kIntegerLiteral, OP3(string(B), "", ""));
+A = new IR(kIntegerLiteral, string(B));
 v_ir->push_back(A);
 }
 
 expr(A) ::= VARIABLE(B) .     {
-A = new IR(kExpr, OP3(string(B), "", ""));
+A = new IR(kExpr, string(B));
 v_ir->push_back(A);
 }
 

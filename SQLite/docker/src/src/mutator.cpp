@@ -243,7 +243,6 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
                                    std::to_string((unsigned long)FLT_MIN),
                                    std::to_string((unsigned long)DBL_MIN),
                                    std::to_string((unsigned long)LDBL_MIN),
-                                   "0",
                                    "10",
                                    "100"};
   value_libary.insert(value_libary.begin(), value_lib_init.begin(),
@@ -1569,7 +1568,8 @@ void Mutator::debug(IR *root, unsigned level) {
     cout << " ";
 
   cout << get_string_by_ir_type(root->type_) << ": "
-       << get_string_by_id_type(root->id_type_) << ": "<< root->to_string() << endl;
+       << get_string_by_id_type(root->id_type_) << ": str_val_: "<< root->str_val_
+       << ": to_str: " << root->to_string() << endl;
 
   if (root->left_)
     debug(root->left_, level + 1);
@@ -2129,6 +2129,9 @@ bool Mutator::fix_dependency(IR *root,
           if (!value.compare("_int_")) {
             if (value_libary.size() != 0) {
               ir->str_val_ = value_libary[get_rand_int(value_libary.size())];
+              if (ir->str_val_.empty()) {
+                ir->str_val_ = "0";
+              }
             } else {
               ir->str_val_ = to_string(get_rand_int(100));
             }
@@ -2253,6 +2256,7 @@ string Mutator::fix(IR *root) {
     error_output << "res: \n" << res << endl;
     error_output << "ir_to_string: \n" << ir_to_str << endl;
     error_output.close();
+    debug(root, 0);
     FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
           _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
   }
@@ -2266,8 +2270,6 @@ void Mutator::_fix(IR *root, string &res) {
   auto *op_ = root->op_;
   auto type_ = root->type_;
   auto str_val_ = root->str_val_;
-  auto f_val_ = root->f_val_;
-  auto int_val_ = root->int_val_;
   auto id_type_ = root->id_type_;
 
   if (type_ == kIdentifier && id_type_ == id_database_name) {
@@ -2298,7 +2300,9 @@ void Mutator::_fix(IR *root, string &res) {
     int value_size = m_cmd_value_lib_[key].size();
     string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
     if (!value.compare("_int_")) {
-      value = string("=") + value_libary[get_rand_int(value_libary.size())];
+      string tmp_value_lib = value_libary[get_rand_int(value_libary.size())];
+      if (tmp_value_lib.empty()) {tmp_value_lib = "0.0";}
+      value = string("=") + tmp_value_lib;
     } else if (!value.compare("_empty_")) {
       value = "";
     } else if (!value.compare("_boolean_")) {
@@ -2334,6 +2338,9 @@ void Mutator::_fix(IR *root, string &res) {
         s = used_value_libary[get_rand_int(used_value_libary.size())];
     } else {
         s = value_libary[get_rand_int(value_libary.size())];
+    }
+    if (s.empty()) {
+        s = "0.0";
     }
     used_value_libary.push_back(s);
     res += s;
@@ -2579,7 +2586,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
 
   if (type_ == kFloatLiteral || type_ == kIntegerLiteral) {
     unsigned long h = hash(root->str_val_);
-    if (value_library_hash_.find(h) == value_library_hash_.end()) {
+    if (value_library_hash_.find(h) == value_library_hash_.end() && !(root->str_val_.empty())) {
       value_libary.push_back(root->str_val_);
       value_library_hash_.insert(h);
     }
