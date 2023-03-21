@@ -6,15 +6,18 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN chmod 777 /tmp
 
-RUN apt -y upgrade && \
-apt -y update && \
+RUN apt -y update && \
+apt -y upgrade && \
 apt -y install bison  && \
 apt -y install flex  && \
 apt -y install git  && \
 apt -y install make  && \
 apt -y install cmake  && \
 apt -y install build-essential  && \
+apt -y install gcc-multilib && \
+apt -y install g++-multilib && \
 apt -y install clang && \
+apt -y install xinetd  && \
 apt -y install libreadline-dev  && \
 apt -y install zlib1g-dev  && \
 apt -y install gdb  && \
@@ -22,6 +25,12 @@ apt -y install vim  && \
 apt -y install tmux  && \
 apt -y install python3 && \
 apt -y install python3-pip && \
+apt -y install libxml2-dev  && \
+apt -y install libxslt-dev  && \
+apt -y install libssl-dev  && \
+apt -y install libxml2-utils  && \
+apt -y install xsltproc && \
+apt install -y libpq-dev && \
 apt -y install screen && \
 apt -y install watch && \
 apt -y install unzip && \
@@ -46,7 +55,7 @@ RUN git clone https://github.com/google/AFL.git
 
 WORKDIR /home/sqlite/AFL
 RUN sed -i  's/#define MAP_SIZE_POW2       16/#define MAP_SIZE_POW2       18/' config.h
-RUN AFL_NO_X86=1 make
+RUN make
 WORKDIR /home/sqlite/AFL/llvm_mode
 # ENV LLVM_CONFIG=llvm-config-6.0
 RUN make
@@ -78,8 +87,8 @@ RUN make -j$(nproc)
 
 # Setup the Golang compilation
 WORKDIR /home/sqlite/
-RUN wget https://go.dev/dl/go1.20.2.linux-arm64.tar.gz && \
-    tar -xf go1.20.2.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz && \
+    tar -xf go1.20.2.linux-amd64.tar.gz
 
 USER root
 RUN cp -r /home/sqlite/go /usr/local/go
