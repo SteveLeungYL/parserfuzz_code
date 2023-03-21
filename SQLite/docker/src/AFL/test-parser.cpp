@@ -158,12 +158,17 @@ int main(int argc, char *argv[]) {
     if (root == NULL && cur_root != NULL) {
       root = cur_root;
     } else if (cur_root != NULL){
+      IR* cur_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root).front()->deep_copy();
+      cur_root->deep_drop();
       p_oracle->ir_wrapper.set_ir_root(root);
-      p_oracle->ir_wrapper.append_stmt_at_end(cur_root);
+      p_oracle->ir_wrapper.append_stmt_at_end(cur_stmt);
+//      mutator.debug(root, 0);
     }
   }
 
   try_validate(root);
+
+  root->deep_drop();
 
   return 0;
 }

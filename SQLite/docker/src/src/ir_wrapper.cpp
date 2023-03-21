@@ -268,6 +268,7 @@ bool IRWrapper::append_stmt_after_idx(string app_str, int idx, Mutator& g_mutato
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
+//    std::cerr << "Debug: appending idx: " << idx << "size: " << stmt_list_v.size() << "\n\n\n";
     if (idx < -1 || idx >= int(stmt_list_v.size())){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
         return false;
@@ -323,21 +324,22 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
     
 }
 
-bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
+bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type.
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
+//    std::cerr << "Debug: appending idx: " << idx << "size: " << stmt_list_v.size() << "\n\n\n";
     if (idx < -1 || idx >= int(stmt_list_v.size())  ){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         return false;
     }
 
-    app_IR_node = new IR(kCmd, OP0(), app_IR_node);
+//    app_IR_node = new IR(kCmd, OP0(), app_IR_node);
 
     if (idx != -1) {
         IR* insert_pos_ir = stmt_list_v[idx];
 
-        auto new_res = new IR(kCmdlist, OPMID(";"), NULL, app_IR_node);
+        auto new_res = new IR(kCmdlist, OP3("", "", ";"), NULL, app_IR_node);
 
         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
             new_res->deep_drop();
@@ -372,12 +374,8 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please prov
 }
 
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
-
     int total_num = this->get_stmt_num();
     return this->append_stmt_after_idx(app_IR_node, total_num-1);
-
-    return false;
-
 }
 
 bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
