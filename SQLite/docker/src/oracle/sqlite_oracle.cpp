@@ -46,8 +46,12 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         ir_tree.back()->deep_drop();
         continue;
       }
-    // kProgram -> kStatementList -> kStatement -> specific_statement_type_
-    IR *cur_ir_stmt = ir_tree.back()->left_->left_->left_;
+
+    vector<IR*> v_ir_stmt = ir_wrapper.get_stmt_ir_vec(ir_tree.back());
+    if (v_ir_stmt.size() == 0) {
+        ir_tree.back()->deep_drop();
+    }
+    IR* cur_ir_stmt = v_ir_stmt.front()->left_;
 
     if (!this->is_oracle_select_stmt(cur_ir_stmt))
       {
@@ -153,9 +157,15 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
           continue;
         }
 
+      v_ir_stmt = ir_wrapper.get_stmt_ir_vec(new_ir_verified.back());
+      if (v_ir_stmt.size() == 0) {
+        new_ir_verified.back()->deep_drop();
+        total_oracle_rand_valid_failed++;
+        continue;
+      }
+      IR* new_ir_verified_stmt = v_ir_stmt.front()->left_;
+
       // Make sure the mutated structure is different.
-      // kProgram -> kStatementList -> kStatement -> specific_statement_type_
-      IR* new_ir_verified_stmt = new_ir_verified.back()->left_->left_->left_; 
       if (is_oracle_select_stmt(new_ir_verified_stmt) && new_valid_select_struct != ori_valid_select_struct) {
         root->deep_drop();
         is_success = true;
