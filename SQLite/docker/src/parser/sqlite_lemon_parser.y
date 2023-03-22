@@ -2093,6 +2093,9 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
+if (D->left_ != nullptr) {
+v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D->left_), v_ir->end());
+}
 C->deep_drop();
 D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
