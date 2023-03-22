@@ -2165,7 +2165,22 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kCmdSelect) {
-            ir->str_val_ = aliasname_str + "." + column_str;
+            bool is_table_node = false;
+            if (
+                ir->parent_ != nullptr
+                ) {
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              if (v_tmp_table_ir.size() > 0) {
+                IR* tmp_table_ir = v_tmp_table_ir.front();
+                tmp_table_ir->str_val_ = aliasname_str;
+                is_table_node = true;
+              }
+            }
+            if (is_table_node) {
+              ir->str_val_ = column_str;
+            } else {
+              ir->str_val_ = aliasname_str + "." + column_str;
+            }
           } else {
             { ir->str_val_ = column_str; }
           }
@@ -2186,7 +2201,22 @@ bool Mutator::fix_dependency(IR *root,
           /* If cannot find alias name for the table, directly add table_name
            * before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kCmdSelect) {
-            ir->str_val_ = tablename_str + "." + column_str;
+            bool is_table_node = false;
+            if (
+                ir->parent_ != nullptr
+            ) {
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              if (v_tmp_table_ir.size() > 0) {
+                IR* tmp_table_ir = v_tmp_table_ir.front();
+                tmp_table_ir->str_val_ = tablename_str;
+                is_table_node = true;
+              }
+            }
+            if (is_table_node) {
+              ir->str_val_ = column_str;
+            } else {
+              ir->str_val_ = tablename_str + "." + column_str;
+            }
           } else {
             { ir->str_val_ = column_str; }
           }
@@ -2264,7 +2294,22 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn) {
-            ir->str_val_ = aliasname_str + "." + index_str;
+            bool is_table_node = false;
+            if (
+                ir->parent_ != nullptr
+            ) {
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              if (v_tmp_table_ir.size() > 0) {
+                IR* tmp_table_ir = v_tmp_table_ir.front();
+                tmp_table_ir->str_val_ = aliasname_str;
+                is_table_node = true;
+              }
+            }
+            if (is_table_node) {
+              ir->str_val_ = index_str;
+            } else {
+              ir->str_val_ = aliasname_str + "." + index_str;
+            }
           } else {
             { ir->str_val_ = index_str; }
           }
@@ -2285,7 +2330,23 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn) {
-            ir->str_val_ = tablename_str + "." + index_str;
+            bool is_table_node = false;
+            if (
+                ir->parent_ != nullptr
+            ) {
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              if (v_tmp_table_ir.size() > 0) {
+                IR* tmp_table_ir = v_tmp_table_ir.front();
+                tmp_table_ir->str_val_ = tablename_str;
+                is_table_node = true;
+              }
+            }
+            if (is_table_node) {
+              ir->str_val_ = index_str;
+            } else {
+              ir->str_val_ = tablename_str + "." + index_str;
+            }
+
           } else {
             { ir->str_val_ = index_str; }
           }
@@ -2796,6 +2857,11 @@ void Mutator::_extract_struct(IR *root, string &res) {
   auto *op_ = root->op_;
   auto type_ = root->type_;
   auto str_val_ = root->str_val_;
+
+  if (root->id_type_ == id_function_name) {
+    res += str_val_;
+    return;
+  }
 
   if (root->id_type_ == id_pragma_name || root->id_type_ == id_pragma_value ||
       root->id_type_ == id_collation_name) {

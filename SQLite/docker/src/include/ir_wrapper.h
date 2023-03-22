@@ -27,6 +27,9 @@ public:
   vector<IR *> get_ir_node_in_stmt_with_type(IR *cur_stmt, IRTYPE ir_type,
                                              bool is_subquery = false,
                                              bool is_ignore_subquery = false);
+  vector<IR *> get_ir_node_in_stmt_with_type(IR *cur_stmt, IDTYPE ir_type,
+                                             bool is_subquery = false,
+                                             bool is_ignore_subquery = false);
 
   vector<IR *>
   get_ir_node_in_stmt_with_id_type(IR *cur_stmt, IDTYPE id_type,

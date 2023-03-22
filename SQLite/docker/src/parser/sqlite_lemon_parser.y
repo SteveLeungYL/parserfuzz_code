@@ -1024,6 +1024,14 @@ v_ir->push_back(A);
 if (!E->is_empty()) {
     E->left_->id_type_ = id_table_alias_name;
 }
+if (!(C->is_empty()) && !(D->is_empty())) {
+    if (D->left_ != nullptr) {
+        D->left_->id_type_ = id_top_table_name;
+    }
+    C->id_type_ = id_database_name;
+} else {
+    C->id_type_ = id_top_table_name;
+}
 }
 
 seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) indexed_by(F) on_using(G) . {
@@ -1040,6 +1048,14 @@ v_ir->push_back(A);
 if (!E->is_empty()) {
     E->left_->id_type_ = id_table_alias_name;
 }
+if (!(C->is_empty()) && !(D->is_empty())) {
+    if (D->left_ != nullptr) {
+        D->left_->id_type_ = id_top_table_name;
+    }
+    C->id_type_ = id_database_name;
+} else {
+    C->id_type_ = id_top_table_name;
+}
 }
 
 seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) LP(E) exprlist(F) RP(G) as(H) on_using(I) . {
@@ -1055,6 +1071,14 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)I);
 v_ir->push_back(A);
 if (!H->is_empty()) {
     H->left_->id_type_ = id_table_alias_name;
+}
+if (!(C->is_empty()) && !(D->is_empty())) {
+    if (D->left_ != nullptr) {
+        D->left_->id_type_ = id_top_table_name;
+    }
+    C->id_type_ = id_database_name;
+} else {
+    C->id_type_ = id_top_table_name;
 }
 }
 
