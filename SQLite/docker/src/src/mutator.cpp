@@ -193,7 +193,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   while (getline(input_test, line)) {
 
     vector<IR *> v_ir = parse_query_str_get_ir_set(line);
-    if (v_ir.size() <= 0) {
+    if (v_ir.size() == 0) {
       cerr << "failed to parse: " << line << endl;
       continue;
     }
@@ -321,12 +321,8 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       string tmp_stmt_str = rsg_generate_valid(kCmd);
       vector<IR *> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
-        // Parsing failed.
-        // cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str <<
-        // ", size: "<< tmp_stmt_str.size()
-        //<< ", gen num: " << num_rsg_gen
-        //<< "\n\n\n";
         new_stmt_ir = nullptr;
+        this->rsg_exec_failed_helper();
         continue;
       } else {
         // Parsing succeed.
@@ -387,11 +383,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       string tmp_stmt_str = rsg_generate_valid(kCmd);
       vector<IR *> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
       if (v_tmp_ir.size() == 0) {
-        // Parsing failed.
-        // cerr << "\n\n\nDEBUG: rsg stmt parsing failed: " << tmp_stmt_str <<
-        // ", size: "<< tmp_stmt_str.size()
-        //<< ", gen num: " << num_rsg_gen
-        //<< "\n\n\n";
+        rsg_exec_failed_helper();
         new_stmt_ir = nullptr;
         continue;
       } else {
@@ -2946,8 +2938,7 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
         // Debug purpose
         vector<IR *> v_tmp_check = this->parse_query_str_get_ir_set(select_str);
         if (v_tmp_check.size() == 0) {
-          // cerr << "\n\n\nError: Failed to parse RSG: " << select_str <<
-          // "\n\n\n";
+          this->rsg_exec_failed_helper();
         } else {
           v_tmp_check.back()->deep_drop();
         }
