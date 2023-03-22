@@ -1390,6 +1390,7 @@ void Mutator::add_all_to_library(string whole_query_str,
     vector<IR *> v_tmp_cur_stmt =
         p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kCmd, false);
     if (v_tmp_cur_stmt.size() == 0) {
+      root->deep_drop();
       continue;
     }
     IR *cur_stmt = v_tmp_cur_stmt.front()->left_; // kCmd to kSpecificStmt.

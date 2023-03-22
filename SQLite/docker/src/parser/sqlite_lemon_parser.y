@@ -1089,7 +1089,6 @@ v_ir->push_back(A);
 }
 
 dbnm(A) ::= DOT(B) nm(C) . {
-C->id_type_ = id_table_name;
 A = new IR(kDbnm, OP3(string(B), "", ""), (IR*)C);
 v_ir->push_back(A);
 C->id_type_ = id_table_name;
@@ -2016,8 +2015,11 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
-delete C;
-delete D;
+if (D->left_ != nullptr) {
+v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D->left_), v_ir->end());
+}
+C->deep_drop();
+D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 v_ir->push_back(cmd_name_ir);
 A = new IR(kCmdPragma, OP3(string(B), "", ""), (IR*)cmd_name_ir );
@@ -2031,8 +2033,11 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
-delete C;
-delete D;
+if (D->left_ != nullptr) {
+v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D->left_), v_ir->end());
+}
+C->deep_drop();
+D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 v_ir->push_back(cmd_name_ir);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
@@ -2048,8 +2053,11 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
-delete C;
-delete D;
+if (D->left_ != nullptr) {
+v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D->left_), v_ir->end());
+}
+C->deep_drop();
+D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 v_ir->push_back(cmd_name_ir);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
@@ -2065,8 +2073,11 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
-delete C;
-delete D;
+if (D->left_ != nullptr) {
+v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D->left_), v_ir->end());
+}
+C->deep_drop();
+D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 v_ir->push_back(cmd_name_ir);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
@@ -2082,8 +2093,8 @@ string nm_str = C->to_string();
 string dbnm_str = D->to_string();
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), C), v_ir->end());
 v_ir->erase(std::remove(v_ir->begin(), v_ir->end(), D), v_ir->end());
-delete C;
-delete D;
+C->deep_drop();
+D->deep_drop();
 IR* cmd_name_ir = new IR(kIdentifier, nm_str + dbnm_str, id_pragma_name);
 v_ir->push_back(cmd_name_ir);
 A = new IR(kUnknown, OP3(string(B), "", string(E)), cmd_name_ir);
