@@ -164,6 +164,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
 func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	for i := 0; i < 100000; i++ {
 		s := strings.Join(r.generate(root, dbmsName, depth, depth), " ")
+		//fmt.Printf("\n\n\nFrom root, %s, depth: %d, getting stmt: %s\n\n\n", root, depth, s)
 		if r.seen != nil {
 			if !r.seen[s] {
 				r.seen[s] = true
@@ -327,6 +328,8 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	prod := r.MABChooseArm(prods)
 	//prod := prods[r.Rnd.Intn(len(prods))]
 
+	//fmt.Printf("\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
+
 	if prod == nil {
 		return nil
 	}
@@ -482,20 +485,32 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				}
 
 				if depth == 0 {
-					////fmt.Printf("\nError: give up depth. \n\n\n")
-					//switch r.Rnd.Intn(2) {
-					//case 0:
-					//	ret = append(ret, "'abc'")
-					//case 1:
-					//	ret = append(ret, "v0")
-					//}
-					//return ret
-					return nil
+
+					isHandle := false
+					if root == "expr" {
+						ret = append(ret, "'abc'")
+						isHandle = true
+					} else if root == "nexprlist" {
+						ret = append(ret, "'abc'")
+						isHandle = true
+					} else if root == "sortlist" || root == "seltablist" {
+						ret = append(ret, "v0")
+						isHandle = true
+					} else if root == "selectnowith" || root == "select" || root == "oneselect" {
+						ret = append(ret, "select 'abc'")
+					}
+
+					if isHandle {
+						return ret
+					} else {
+						//fmt.Printf("\nroot: %s, error: give up depth. \n\n\n", root)
+						return nil
+					}
 				}
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
-				return nil
+				continue
 			}
 			ret = append(ret, v...)
 		default:

@@ -109,7 +109,7 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 	}
 
 	if dbmsName == "sqlite" {
-		tc.depth = 30
+		tc.depth = 9
 	}
 
 	var s = ""

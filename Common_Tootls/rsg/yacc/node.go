@@ -49,7 +49,7 @@ type ExpressionNode struct {
 
 func newExpression(pos Pos) *ExpressionNode {
 	// Use RewardScore initially as 1.0. Prioritize exploration first.
-	return &ExpressionNode{Pos: pos, HitCount: 0, RewardScore: 1.0}
+	return &ExpressionNode{Pos: pos, HitCount: 0, RewardScore: 0.0}
 }
 
 // Item hold an item.
