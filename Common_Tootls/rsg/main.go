@@ -108,6 +108,10 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 		repetitions: 1,
 	}
 
+	if dbmsName == "sqlite" {
+		tc.depth = 10
+	}
+
 	var s = ""
 	if strings.Contains(tc.root, "select_stmt") && dbmsName == "cockroachdb" {
 		s = generateCockroachDBSelect()
