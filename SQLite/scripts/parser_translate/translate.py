@@ -449,16 +449,53 @@ def calc_total_edge_num():
     for _, list_token_seq in all_rule_maps.items():
         print(list_token_seq)
         for token_seq in list_token_seq:
-            tmp = 0
+            all_token_enum = 0
+            pre_token_enum = 0
+            idx = 0
             for cur_token in token_seq:
                 if cur_token in all_rule_maps:
-                    # Add how many choices for one non-term token.
-                    if tmp == 0:
-                        tmp = 1
-                    print("for token: %s, len: %d" %(cur_token, len(all_rule_maps[cur_token])) )
-                    tmp *= len(all_rule_maps[cur_token])
-            print("for %s, getting edge: %d" % (token_seq, tmp))
-            total_edge_num += tmp
+                    idx += 1
+                    if pre_token_enum == 0:
+                        pre_token_enum = len(all_rule_maps[cur_token])
+                        continue
+                    all_token_enum += len(all_rule_maps[cur_token]) * pre_token_enum
+                    pre_token_enum = len(all_rule_maps[cur_token])
+
+            if idx == 1:
+                all_token_enum += pre_token_enum
+            if pre_token_enum == 0:
+                all_token_enum += 1
+
+            print("for %s, getting edge: %d" % (token_seq, all_token_enum))
+            total_edge_num += all_token_enum
+
+    # for _, list_token_seq in all_rule_maps.items():
+        # print(list_token_seq)
+        # is_prev_term = True
+        # for token_seq in list_token_seq:
+            # cur_rule_enum = 0
+            # tmp = 0
+            # for cur_token in token_seq:
+                # if cur_token in all_rule_maps:
+                    # if tmp == 0:
+                        # tmp = 1
+                    # # is non-term
+                    # if not is_prev_term:
+                        # # prev is NOT term
+                        # # multiply
+                        # tmp = tmp * len(all_rule_maps[cur_token])
+                    # else:
+                        # # prev is term
+                        # # reset prev
+                        # cur_rule_enum += len(all_rule_maps[cur_token])
+                        # tmp = 0
+                    # is_prev_term = True
+                # else:
+                    # is_prev_term = False
+            # cur_rule_enum += tmp
+
+            # print("for %s, getting edge: %d" % (token_seq, cur_rule_enum))
+            # total_edge_num += cur_rule_enum
 
 def run(output_fd, all_ir_type_fd):
     global total_block_num
