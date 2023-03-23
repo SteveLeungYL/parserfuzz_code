@@ -5275,6 +5275,11 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
     return 0;
   }
 
+  // Debug purpose:
+#ifdef DEBUG
+  stream_output_res(all_res, cerr);
+#endif
+
   queued_discovered +=
       save_if_interesting(argv, v_query_str.front(), all_res, fault);
 
@@ -5636,6 +5641,33 @@ void get_app_new_select_stmts(vector<IR *> &v_valid_stmts) {
   return;
 }
 
+string rsg_gen_stmt (string gen_type_str) {
+  return g_mutator.rsg_generate_valid(gen_type_str);
+}
+
+string rsg_gen_sql_seq () {
+
+  string res_str = "";
+  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
+  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
+  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
+  res_str += rsg_gen_stmt("cmdInsert") + "\n";
+  res_str += rsg_gen_stmt("cmdInsert") + "\n";
+  res_str += rsg_gen_stmt("cmdInsert") + "\n";
+  res_str += rsg_gen_stmt("cmdCreateIndex") + "\n";
+  res_str += rsg_gen_stmt("cmd") + "\n";
+  res_str += rsg_gen_stmt("cmd") + "\n";
+  res_str += rsg_gen_stmt("cmd") + "\n";
+  res_str += rsg_gen_stmt("cmd") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+
+#ifdef DEBUG
+  cerr << "\n\n\nDebug: Getting res_str: " << res_str << "\n\n\n";
+#endif
+
+  return res_str;
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -5654,185 +5686,23 @@ static u8 fuzz_one(char **argv) {
   int skip_count;
   string input;
 
-#ifdef IGNORE_FINDS
-
-  /* In IGNORE_FINDS mode, skip any entries that weren't in the
-     initial data set. */
-
-  if (queue_cur->depth > 1)
-    return 1;
-
-#else
-
-  if (pending_favored) {
-
-    /* If we have any favored, non-fuzzed new arrivals in the queue,
-       possibly skip to them at the expense of already-fuzzed or non-favored
-       cases. */
-
-    if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
-        UR(100) < SKIP_TO_NEW_PROB)
-      return 1;
-
-  } else if (!dumb_mode && !queue_cur->favored && queued_paths > 10) {
-
-    /* Otherwise, still possibly skip non-favored cases, albeit less often.
-       The odds of skipping stuff are higher for already-fuzzed inputs and
-       lower for never-fuzzed entries. */
-
-    if (queue_cycle > 1 && !queue_cur->was_fuzzed) {
-
-      if (UR(100) < SKIP_NFAV_NEW_PROB)
-        return 1;
-
-    } else {
-
-      if (UR(100) < SKIP_NFAV_OLD_PROB)
-        return 1;
-    }
-  }
-
-#endif /* ^IGNORE_FINDS */
-
-  if (not_on_tty) {
-    ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
-         current_entry, queued_paths, unique_crashes);
-    fflush(stdout);
-  }
-
-  /* Map the test case into memory. */
-
-  fd = open(queue_cur->fname, O_RDONLY);
-
-  if (fd < 0)
-    PFATAL("Unable to open '%s'", queue_cur->fname);
-
-  len = queue_cur->len;
-
-  orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-
-  if (orig_in == MAP_FAILED)
-    PFATAL("Unable to mmap '%s'", queue_cur->fname);
-
-  close(fd);
-
-  /* We could mmap() out_buf as MAP_PRIVATE, but we end up clobbering every
-     single byte anyway, so it wouldn't give us any performance or memory usage
-     benefits. */
-
-  out_buf = ck_alloc_nozero(len + 1);
-
-  subseq_tmouts = 0;
-
-  cur_depth = queue_cur->depth;
-
-  /*******************************************
-   * CALIBRATION (only if failed earlier on) *
-   *******************************************/
-
-  if (queue_cur->cal_failed) {
-
-    u8 res = FAULT_TMOUT;
-
-    if (queue_cur->cal_failed < CAL_CHANCES) {
-
-      res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
-
-      if (res == FAULT_ERROR)
-        goto abandon_entry;
-    }
-
-    if (stop_soon || res != crash_mode) {
-      cur_skipped_paths++;
-      goto abandon_entry;
-    }
-  }
-
-  memcpy(out_buf, in_buf, len);
-  out_buf[len] = '\0';
-
   //[modify] add
   stage_name = "mutate";
 
   skip_count = 0;
-  input = (const char *)out_buf;
 
-  // cerr << "Before parsing, the imported input is: \n" << input << "\n\n\n";
+  input = rsg_gen_sql_seq();
 
   ir_set = g_mutator.parse_query_str_get_ir_set(input);
   if (ir_set.size() == 0) {
     total_input_failed++;
-    goto abandon_entry;
+    return ret_val;
   }
 
   num_parse++;
 
-  mutated_tree = g_mutator.mutate_all(ir_set, total_mutate_gen_num,
-                                      total_mutate_gen_failed);
-  if (mutated_tree.size() == 0) {
-    total_mutate_all_failed++;
-    ir_set.back()->deep_drop();
-    // cerr << "The generated mutated_tree.size() is 0, going to
-    // abandon_entry(). \n\n\n";
-    goto abandon_entry;
-  }
-
-  num_mutate_all++;
-  num_total_mutate_all_tree_size += mutated_tree.size();
-  num_total_mutate_all_before_ir_set_size += ir_set.size();
-
-  ir_set.back()->deep_drop();
-
-  show_stats();
-  stage_max = mutated_tree.size();
-  stage_cur = 0;
-
-  app_new_select_stmts.clear();
-  get_app_new_select_stmts(app_new_select_stmts);
-
-  for (auto ir_str : mutated_tree) {
-    total_mutate_num++;
-    stage_name = "query_fix";
-
-    if (ir_str == NULL) {
-      total_mutate_failed++;
-      continue;
-    }
-
-    if (ir_str->size() == 0) {
-      total_mutate_failed++;
-      skip_count++;
-      continue;
-    }
-
-    /* Check whether the mutated normal (non-select) query makes sense, if not,
-     * do not even consider appending anything
-     */
-    vector<IR *> cur_ir_tree = g_mutator.parse_query_str_get_ir_set(*ir_str);
-    if (cur_ir_tree.size() == 0) {
-      total_mutate_failed++;
-      skip_count++;
-      continue;
-    }
-
-    num_reparse++;
-
-    for (IR *app_IR_node : app_new_select_stmts) {
-      p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
-      p_oracle->ir_wrapper.append_stmt_at_end(
-          app_IR_node->deep_copy()); // Append the already generated and cached
-                                     // SELECT stmts.
-      num_append++;
-    }
-
-    /*
-    ** Pre_Post_fix_transformation from the oracle across runs, build
-    *dependency,
-    ** fix ir node, fill in concret values,
-    ** and transform from IR to strings.
-    */
-
-    IR *cur_root = cur_ir_tree.back();
+  {
+    IR *cur_root = ir_set.back();
 
     g_mutator.pre_validate();
 
@@ -5843,8 +5713,6 @@ static u8 fuzz_one(char **argv) {
     for (IR *cur_stmt : v_stmt) {
       /* Fill in concret values to the SQL. Instantiation step. */
       if (cur_stmt->type_ == kCmdPragma) {
-        // TODO::
-        // Ignore PRAGMA statement for now.
         continue;
       }
       if (!g_mutator.validate(cur_stmt, false)) {
@@ -5856,12 +5724,8 @@ static u8 fuzz_one(char **argv) {
 
     num_validate++;
 
-    if (cur_ir_tree.size() > 0) {
-      cur_ir_tree.back()->deep_drop();
-    }
-
     if (stop_soon) {
-      goto abandon_entry;
+      return 0;
     }
 
     vector<string> query_str_vec;
@@ -5869,7 +5733,8 @@ static u8 fuzz_one(char **argv) {
     if (is_str_empty(query_str)) {
       total_append_failed++;
       skip_count++;
-      continue;
+      cur_root->deep_drop();
+      return ret_val;
     } else {
       query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
                               query_str);
@@ -5880,52 +5745,15 @@ static u8 fuzz_one(char **argv) {
       stage_name = "fuzz";
       num_common_fuzz++;
       if (common_fuzz_stuff(argv, query_str_vec)) {
-        continue;
+        cur_root->deep_drop();
       }
       stage_cur++;
       show_stats();
     }
+    ret_val = 0;
   }
-  stage_cur = stage_max = 0;
-  stage_finds[STAGE_FLIP1] += new_hit_cnt;
-  stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
-  stage_name = tmp_name;
-
-  new_hit_cnt = queued_paths + unique_crashes;
-
-  ret_val = 0;
-
-abandon_entry:
-
-  for (auto ir : mutated_tree)
-    delete ir;
-
-  for (IR *ori_valid : app_new_select_stmts) {
-    ori_valid->deep_drop();
-  }
-  app_new_select_stmts.clear();
-
-  splicing_with = -1;
-
-  /* Update pending_not_fuzzed count if we made it through the calibration
-     cycle and have not seen this entry before. */
-
-  if (!stop_soon && !queue_cur->cal_failed && !queue_cur->was_fuzzed) {
-    queue_cur->was_fuzzed = 1;
-    pending_not_fuzzed--;
-    if (queue_cur->favored)
-      pending_favored--;
-  }
-
-  munmap(orig_in, queue_cur->len);
-
-  if (in_buf != orig_in)
-    ck_free(in_buf);
-  ck_free(out_buf);
 
   return ret_val;
-
-#undef FLIP_BIT
 }
 
 /* Grab interesting test cases from other fuzzers. */

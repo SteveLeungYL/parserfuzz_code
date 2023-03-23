@@ -4,6 +4,7 @@
 #include "../include/ast.h"
 
 void rsg_initialize();
+string rsg_generate(const string type = "kCmd");
 string rsg_generate(const IRTYPE type = kUnknown);
 
 // Coverage feedback for the RSG module.

@@ -30,17 +30,9 @@ void rsg_exec_failed() { RSGExecFailed(); }
 /*
  * From the RSG, generate one random query statement.
  */
-string rsg_generate(const IRTYPE type) {
-
+string rsg_generate(const string input_str) {
   // Convert the test string to GoString format.
   // Only supporting TypeSelect and TypeStmt.
-  string input_str = "";
-  if (type == kCmdSelect) {
-    input_str = "select";
-  } else {
-    input_str = "cmd";
-  }
-
   string res_str = "";
   int gen_trial = 0;
   const int gen_trial_max = 100;
@@ -68,4 +60,18 @@ string rsg_generate(const IRTYPE type) {
   } while (res_str == "" && gen_trial++ < gen_trial_max);
 
   return res_str;
+}
+
+string rsg_generate(const IRTYPE type) {
+
+  // Convert the test string to GoString format.
+  // Only supporting TypeSelect and TypeStmt.
+  string input_str = "";
+  if (type == kCmdSelect) {
+    input_str = "select";
+  } else {
+    input_str = "cmd";
+  }
+
+  return rsg_generate(input_str);
 }

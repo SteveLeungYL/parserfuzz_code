@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include "cstdlib"
 #include "rsg_helper.h"
 
 using namespace std;
@@ -31,7 +32,7 @@ int main(int argc, char*argv[]) {
 
     RSGInitialize(fileName, dbmsName, 0.3);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
 
       auto gores = RSGQueryGenerate(genTypeInput, dbmsName);
 
@@ -48,10 +49,13 @@ int main(int argc, char*argv[]) {
 
       free(gores.r0);
 
-      RSGExecSucceed();
-//      RSGExecFailed();
+      if (rand() % 2) {
+          RSGExecSucceed();
+      } else {
+          RSGExecFailed();
+      }
 
-      cout << "In c++ code: generated idx: " << i << ": \n" << res_str << "\n\n\n";
+      cerr << "In c++ code: generated idx: " << i << ": \n" << res_str << "\n\n\n";
 
     }
     return 0;

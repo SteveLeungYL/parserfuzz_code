@@ -101,6 +101,7 @@ public:
   bool get_select_str_from_lib(string &);
 
   string rsg_generate_valid(const IRTYPE type);
+  string rsg_generate_valid(const string type);
 
   bool is_stripped_str_in_lib(string stripped_str);
 

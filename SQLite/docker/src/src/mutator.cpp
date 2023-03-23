@@ -3027,6 +3027,30 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
   abort();
 }
 
+string Mutator::rsg_generate_valid(const string type) {
+
+  for (int i = 0; i < 100; i++) {
+    string tmp_query_str = rsg_generate(type) + ";";
+#ifdef DEBUG
+    cerr << "\n\n\n" << type << "Getting tmp_query_str: " << tmp_query_str << "\n\n\n";
+#endif
+    vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
+    if (ir_vec.size() == 0) {
+#ifdef DEBUG
+      cerr << "\nRejected. \n\n\n";
+#endif
+      continue;
+    }
+    ir_vec.back()->deep_drop();
+#ifdef DEBUG
+    cerr << "\n\n\n" << type << "Returned tmp-query-str: " << tmp_query_str << "\n\n\n";
+#endif
+    return tmp_query_str;
+  }
+
+  return "";
+}
+
 string Mutator::rsg_generate_valid(const IRTYPE type) {
 
   for (int i = 0; i < 100; i++) {
