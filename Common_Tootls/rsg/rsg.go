@@ -162,13 +162,15 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
 // goroutines. If Generate is called more times than it can generate unique
 // output, it will block forever.
 func (r *RSG) Generate(root string, dbmsName string, depth int) string {
-	for i := 0; i < 100000; i++ {
-		s := strings.Join(r.generate(root, dbmsName, depth, depth), " ")
+	var s = ""
+	for i := 0; i < 100; i++ {
+		s = strings.Join(r.generate(root, dbmsName, depth, depth), " ")
 		//fmt.Printf("\n\n\nFrom root, %s, depth: %d, getting stmt: %s\n\n\n", root, depth, s)
 		if r.seen != nil {
 			if !r.seen[s] {
 				r.seen[s] = true
 			} else {
+				//fmt.Printf("\n\n\nGetting duplicated str: %s\n\n\n", s)
 				s = ""
 			}
 		}
@@ -178,7 +180,8 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 			return s
 		}
 	}
-	panic("couldn't find unique string")
+	fmt.Printf("\n\n\ncouldn't find unique string for root: %s\n\n\n", root)
+	return s
 }
 
 func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
