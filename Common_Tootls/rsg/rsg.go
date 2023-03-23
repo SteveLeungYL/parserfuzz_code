@@ -76,13 +76,12 @@ func (r *RSG) DumpParserRuleMap(outFile string) {
 	}
 
 	f, err := os.OpenFile(outFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	defer f.Close()
 
 	if err != nil {
 		fmt.Printf("\n\n\nError: Cannot write to parser_rule.json file. \n\n\n")
 	}
 	f.Write(resJsonStr)
-
-	defer f.Close()
 
 }
 
@@ -411,7 +410,17 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				ret = append(ret, "~")
 				continue
 			case "JOIN_KW":
-				ret = append(ret, " JOIN ")
+				switch r.Rnd.Intn(3) {
+				case 0:
+					ret = append(ret, " LEFT ")
+					break
+				case 1:
+					ret = append(ret, " RIGHT ")
+					break
+				case 2:
+					ret = append(ret, " FULL ")
+					break
+				}
 				continue
 			case "DOT":
 				ret = append(ret, ".")
@@ -431,8 +440,21 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 			case "id":
 				ret = append(ret, "v0")
 				continue
+			case "typename":
+				switch r.Rnd.Intn(3) {
+				case 0:
+					ret = append(ret, " INTEGER ")
+					break
+				case 1:
+					ret = append(ret, " FLOAT ")
+					break
+				case 2:
+					ret = append(ret, " STRING ")
+					break
+				}
+				continue
 			case "STRING":
-				ret = append(ret, "''")
+				ret = append(ret, "'abc'")
 				continue
 			case "FLOAT":
 				ret = append(ret, "0.0")
@@ -458,7 +480,14 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				}
 
 				if depth == 0 {
-					return nil
+					//fmt.Printf("\nError: give up depth. \n\n\n")
+					switch r.Rnd.Intn(2) {
+					case 0:
+						ret = append(ret, "'abc'")
+					case 1:
+						ret = append(ret, "v0")
+					}
+					return ret
 				}
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
 			}
