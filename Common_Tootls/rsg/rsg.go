@@ -76,12 +76,14 @@ func (r *RSG) DumpParserRuleMap(outFile string) {
 	}
 
 	f, err := os.OpenFile(outFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	defer f.Close()
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
 
 	if err != nil {
 		fmt.Printf("\n\n\nError: Cannot write to parser_rule.json file. \n\n\n")
 	}
-	f.Write(resJsonStr)
+	_, _ = f.Write(resJsonStr)
 
 }
 
