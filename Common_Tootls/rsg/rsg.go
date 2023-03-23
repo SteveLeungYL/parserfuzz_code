@@ -480,14 +480,15 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				}
 
 				if depth == 0 {
-					//fmt.Printf("\nError: give up depth. \n\n\n")
-					switch r.Rnd.Intn(2) {
-					case 0:
-						ret = append(ret, "'abc'")
-					case 1:
-						ret = append(ret, "v0")
-					}
-					return ret
+					////fmt.Printf("\nError: give up depth. \n\n\n")
+					//switch r.Rnd.Intn(2) {
+					//case 0:
+					//	ret = append(ret, "'abc'")
+					//case 1:
+					//	ret = append(ret, "v0")
+					//}
+					//return ret
+					return nil
 				}
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
 			}
