@@ -5722,6 +5722,8 @@ static u8 fuzz_one(char **argv) {
       query_str += cur_stmt->to_string() + "; \n";
     }
 
+    cur_root->deep_drop();
+
     num_validate++;
 
     if (stop_soon) {
@@ -5733,7 +5735,6 @@ static u8 fuzz_one(char **argv) {
     if (is_str_empty(query_str)) {
       total_append_failed++;
       skip_count++;
-      cur_root->deep_drop();
       return ret_val;
     } else {
       query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
@@ -5744,9 +5745,7 @@ static u8 fuzz_one(char **argv) {
       show_stats();
       stage_name = "fuzz";
       num_common_fuzz++;
-      if (common_fuzz_stuff(argv, query_str_vec)) {
-        cur_root->deep_drop();
-      }
+      common_fuzz_stuff(argv, query_str_vec);
       stage_cur++;
       show_stats();
     }
