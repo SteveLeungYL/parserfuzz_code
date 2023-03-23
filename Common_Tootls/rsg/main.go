@@ -28,7 +28,7 @@ type TestCase struct {
 
 func getRSG(yaccExample []byte, dbmsName string, epsilon float64) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
-	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, false, epsilon)
+	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, epsilon)
 	if err != nil {
 		os.Exit(1)
 	}

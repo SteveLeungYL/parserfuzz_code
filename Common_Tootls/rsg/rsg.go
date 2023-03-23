@@ -25,7 +25,6 @@ import (
 type RSG struct {
 	Rnd *rand.Rand
 
-	seen  map[string]bool
 	prods map[string][]*yacc.ExpressionNode
 
 	curChosenExpr map[*yacc.ExpressionNode]bool
@@ -34,7 +33,7 @@ type RSG struct {
 
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
-func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool, epsilon float64) (*RSG, error) {
+func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
 
 	// Default epsilon = 5.0
 	if epsilon == 0.0 {
@@ -50,9 +49,6 @@ func NewRSG(seed int64, y string, dbmsName string, allowDuplicates bool, epsilon
 		Rnd:     rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
 		prods:   make(map[string][]*yacc.ExpressionNode),
 		epsilon: epsilon,
-	}
-	if !allowDuplicates {
-		rsg.seen = make(map[string]bool)
 	}
 	for _, prod := range tree.Productions {
 		_, ok := rsg.prods[prod.Name]
@@ -168,14 +164,14 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	for i := 0; i < 100; i++ {
 		s = strings.Join(r.generate(root, dbmsName, depth, depth), " ")
 		//fmt.Printf("\n\n\nFrom root, %s, depth: %d, getting stmt: %s\n\n\n", root, depth, s)
-		if r.seen != nil {
-			if !r.seen[s] {
-				r.seen[s] = true
-			} else {
-				//fmt.Printf("\n\n\nGetting duplicated str: %s\n\n\n", s)
-				s = ""
-			}
-		}
+		//if r.seen != nil {
+		//	if !r.seen[s] {
+		//		r.seen[s] = true
+		//	} else {
+		//		//fmt.Printf("\n\n\nGetting duplicated str: %s\n\n\n", s)
+		//		s = ""
+		//	}
+		//}
 		if s != "" {
 			s = strings.Replace(s, "_LA", "", -1)
 			s = strings.Replace(s, " AS OF SYSTEM TIME \"string\"", "", -1)
