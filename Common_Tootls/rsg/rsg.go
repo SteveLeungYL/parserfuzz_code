@@ -112,20 +112,22 @@ func (r *RSG) IncrementFailed() {
 
 func (r *RSG) argMax(rewards []float64) int {
 
-	var maxIdx = 0
+	var maxIdx = []int{}
 	var maxReward = 0.0
 
 	for idx, reward := range rewards {
 		if reward > maxReward {
 			maxReward = reward
-			maxIdx = idx
+			maxIdx = []int{idx}
+		} else if reward == maxReward {
+			maxIdx = append(maxIdx, idx)
 		} else {
 			continue
 		}
 	}
 
-	return maxIdx
-
+	resIdx := r.Rnd.Intn(len(maxIdx))
+	return maxIdx[resIdx]
 }
 
 func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
