@@ -3103,7 +3103,7 @@ void Mutator::fix_common_rsg_errors(IR *root) {
       p_oracle->ir_wrapper.is_exist_without_rowid(root) &&
       !(p_oracle->ir_wrapper.is_exist_primary_key(root))
   ) {
-    vector<IR*> v_candidate_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kTypename, false);
+    vector<IR*> v_candidate_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kCarglist, false);
     if (v_candidate_node.size() != 0) {
       IR* candidate_node = v_candidate_node.front();
       candidate_node->str_val_ += " PRIMARY KEY ";
