@@ -305,12 +305,12 @@ A = new IR(kTableOption, OP3(string(B), "", ""), (IR*)C);
 v_ir->push_back(A);
 }
 
-table_option(A) ::= nm(B) . {
-// B->str_val_ = "STRICT"; // TODO::Ignore STRICT table for now.
-B->str_val_ = ""; // TODO::Ignore STRICT table for now.
-A = new IR(kTableOption, OP3("", "", ""), (IR*)B);
-v_ir->push_back(A);
-}
+//table_option(A) ::= nm(B) . {
+//// B->str_val_ = "STRICT"; // TODO::Ignore STRICT table for now.
+//B->str_val_ = ""; // TODO::Ignore STRICT table for now.
+//A = new IR(kTableOption, OP3("", "", ""), (IR*)B);
+//v_ir->push_back(A);
+//}
 
 columnlist(A) ::= columnlist(B) COMMA(C) columnname(D) carglist(E) . {
 A = new IR(kUnknown, OP3("", string(C), ""), (IR*)B, (IR*)D);
