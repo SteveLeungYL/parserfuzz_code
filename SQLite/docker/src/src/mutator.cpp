@@ -2441,7 +2441,6 @@ bool Mutator::fix_dependency(IR *root,
       }
 
       if (ir->id_type_ == id_function_name) {
-        cerr << "\n\n\nGetting node: " << ir->to_string() << "\n\n\n";
         if (ir->type_ != kExprFunc) {
           visited.insert(ir);
           continue;
