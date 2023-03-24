@@ -186,13 +186,13 @@ bool is_str_empty(string input_str) {
 
 int findStringCount(const std::string &strHaystack,
                     const std::string &strNeedle) {
-  auto it = findStringIter(strHaystack, strNeedle);
-  int res_count = 0;
-  for (; it != strHaystack.end(); it++) {
-    res_count++;
+  int occurrences = 0;
+  std::string::size_type pos = 0;
+  while ((pos = strHaystack.find(strNeedle, pos)) != std::string::npos) {
+    ++occurrences;
+    pos += strNeedle.length();
   }
-
-  return res_count;
+  return occurrences;
 }
 
 string::const_iterator findStringIter(const std::string &strHaystack,

@@ -2850,7 +2850,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     // TODO:: May not be the optimal way to calculate validity.
     debug_error += findStringCount(res_str, "error");
-    debug_good += findStringCount(cmd_string, ";");
+    debug_good += findStringCount(cmd_string, ";") - 1; // Remove the optimization statement.
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
