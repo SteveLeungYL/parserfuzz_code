@@ -5660,6 +5660,15 @@ string rsg_gen_sql_seq () {
   res_str += rsg_gen_stmt("cmd") + "\n";
   res_str += rsg_gen_stmt("cmd") + "\n";
   res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
+  res_str += rsg_gen_stmt("select") + "\n";
 
 #ifdef DEBUG
   cerr << "\n\n\nDebug: Getting res_str: " << res_str << "\n\n\n";
