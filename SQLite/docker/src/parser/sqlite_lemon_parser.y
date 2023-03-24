@@ -972,6 +972,7 @@ A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
 v_ir->push_back(A);
 A = new IR(kSelcollist, OP3("", "", string(E) + " " + string(F)), (IR*)A, (IR*)D);
 v_ir->push_back(A);
+D->id_type_ = id_table_name;
 }
 
 %type as {IR*}
