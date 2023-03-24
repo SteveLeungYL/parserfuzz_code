@@ -258,7 +258,8 @@ v_ir->push_back(A);
 
 %type temp {IR*}
 temp(A) ::= TEMP(B) .  {
-A = new IR(kTemp, OP3(string(B), "", ""));
+// A = new IR(kTemp, OP3(string(B), "", "")); // No need for CREATE TEMP
+A = new IR(kTemp, OP0());
 v_ir->push_back(A);
 }
 
