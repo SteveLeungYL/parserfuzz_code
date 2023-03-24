@@ -1608,18 +1608,22 @@ IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
 A = new IR(kUnknown, OP3("", string(C), ""), func_ir, (IR*)D );
 v_ir->push_back(A);
-A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
+A = new IR(kExprFunc, OP3("", "", string(F)), (IR*)A, (IR*)E);
+A->id_type_ = id_function_name;
 v_ir->push_back(A);
-
+A = new IR(kExpr, OP3("", "", ""), (IR*)A);
+v_ir->push_back(A);
 }
 
 expr(A) ::= idj(B) LP(C) STAR(D) RP(E) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
-A = new IR(kExpr, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir);
+A = new IR(kExprFunc, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir);
 v_ir->push_back(A);
-
+A->id_type_ = id_function_name;
+A = new IR(kExpr, OP3("", "", ""), (IR*)A);
+v_ir->push_back(A);
 }
 
 expr(A) ::= idj(B) LP(C) distinct(D) exprlist(E) RP(F) filter_over(G) . {
@@ -1630,7 +1634,10 @@ A = new IR(kUnknown, OP3("", string(C), ""), func_ir, (IR*)D);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
 v_ir->push_back(A);
-A = new IR(kExpr, OP3("", string(F), ""), (IR*)A, (IR*)G);
+A = new IR(kExprFunc, OP3("", string(F), ""), (IR*)A, (IR*)G);
+A->id_type_ = id_function_name;
+v_ir->push_back(A);
+A = new IR(kExpr, OP3("", "", ""), (IR*)A);
 v_ir->push_back(A);
 }
 
@@ -1638,9 +1645,11 @@ expr(A) ::= idj(B) LP(C) STAR(D) RP(E) filter_over(F) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
-A = new IR(kExpr, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir, (IR*)F);
+A = new IR(kExprFunc, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir, (IR*)F);
+A->id_type_ = id_function_name;
 v_ir->push_back(A);
-
+A = new IR(kExpr, OP3("", "", ""), (IR*)A);
+v_ir->push_back(A);
 }
 
 term(A) ::= CTIME_KW(B) . {

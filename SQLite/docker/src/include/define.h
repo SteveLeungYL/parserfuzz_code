@@ -114,6 +114,7 @@
   V(kIdlistOpt)                                                                \
   V(kIdlist)                                                                   \
   V(kExpr)                                                                     \
+  V(kExprFunc)                                                                 \
   V(kTerm)                                                                     \
   V(kLikeop)                                                                   \
   V(kBetweenOp)                                                                \

@@ -969,6 +969,8 @@ void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
     type_to_fix.insert(iter.second);
   }
 
+  type_to_fix.insert(id_function_name);
+
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /*
   ** The original order of the subqueries are from outer statement to inner
@@ -2431,6 +2433,29 @@ bool Mutator::fix_dependency(IR *root,
         }
       }
     }
+
+    /* Sixth loop, resolve id_function_name. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {
+        continue;
+      }
+
+      if (ir->id_type_ == id_function_name) {
+        cerr << "\n\n\nGetting node: " << ir->to_string() << "\n\n\n";
+        if (ir->type_ != kExprFunc) {
+          visited.insert(ir);
+          continue;
+        }
+
+        // got kExprFunc now.
+        FuncSig cur_func = vector_rand_ele(this->v_func_sig);
+        string func_str = cur_func.get_mutated_func_str();
+        ir->str_val_ = func_str;
+        visited.insert(ir);
+        continue;
+      }
+    }
+
   } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
 
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
