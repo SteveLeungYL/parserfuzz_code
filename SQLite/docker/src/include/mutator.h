@@ -192,6 +192,8 @@ private:
   void add_to_library(IR *, string &);
   void add_to_library_core(IR *, string *);
 
+  void fix_common_rsg_errors(IR*);
+
   bool dump_library = false;
   bool use_cri_val = false;
 

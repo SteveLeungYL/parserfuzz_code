@@ -306,7 +306,8 @@ v_ir->push_back(A);
 }
 
 table_option(A) ::= nm(B) . {
-B->str_val_ = "STRICT";
+// B->str_val_ = "STRICT"; // TODO::Ignore STRICT table for now.
+B->str_val_ = ""; // TODO::Ignore STRICT table for now.
 A = new IR(kTableOption, OP3("", "", ""), (IR*)B);
 v_ir->push_back(A);
 }
@@ -401,7 +402,7 @@ v_ir->push_back(A);
 
 %type typename {IR*}
 typename(A) ::= ids(B) . {
-A = new IR(kTypename, OP3(string(B), "", ""));
+A = new IR(kTypename, string(B));
 v_ir->push_back(A);
 }
 

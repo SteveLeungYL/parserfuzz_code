@@ -3051,6 +3051,20 @@ string Mutator::rsg_generate_valid(const string type) {
   return "";
 }
 
+void Mutator::fix_common_rsg_errors(IR *root) {
+  if (
+      p_oracle->ir_wrapper.is_exist_without_rowid(root) &&
+      !(p_oracle->ir_wrapper.is_exist_primary_key(root))
+  ) {
+    vector<IR*> v_candidate_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kTypename, false);
+    if (v_candidate_node.size() != 0) {
+      IR* candidate_node = v_candidate_node.front();
+      candidate_node->str_val_ += " PRIMARY KEY ";
+    }
+  }
+  return;
+}
+
 string Mutator::rsg_generate_valid(const IRTYPE type) {
 
   for (int i = 0; i < 100; i++) {
@@ -3059,6 +3073,8 @@ string Mutator::rsg_generate_valid(const IRTYPE type) {
     if (ir_vec.size() == 0) {
       continue;
     }
+    fix_common_rsg_errors(ir_vec.back());
+    tmp_query_str = ir_vec.back()->to_string();
     ir_vec.back()->deep_drop();
     return tmp_query_str;
   }

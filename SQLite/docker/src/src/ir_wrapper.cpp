@@ -870,6 +870,41 @@ IR *IRWrapper::find_closest_node_exclude_child(IR *cur_node, IRTYPE type_) {
   return NULL;
 }
 
+bool IRWrapper::is_exist_without_rowid(IR* root) {
+  vector<IR*> v_candidates = this->get_ir_node_in_stmt_with_type(root, kTableOption);
+  for (IR*& cur_ir: v_candidates) {
+    if(cur_ir->to_string() == "WITHOUT ROWID") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool IRWrapper::is_exist_primary_key(IR* root) {
+  vector<IR*> v_candidates = this->get_ir_node_in_stmt_with_type(root, kTcons);
+  for (IR*& cur_ir: v_candidates) {
+    if(
+        cur_ir->left_ != nullptr &&
+        findStringIn(cur_ir->left_->to_string(), "PRIMARY KEY")
+        ) {
+      return true;
+    }
+  }
+
+  v_candidates = this->get_ir_node_in_stmt_with_type(root, kCcons);
+  for (IR*& cur_ir: v_candidates) {
+    if(
+        cur_ir->left_ != nullptr &&
+        findStringIn(cur_ir->left_->to_string(), "PRIMARY KEY")
+        ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /* Not exactly accurate. */
 IR *IRWrapper::find_closest_node_exclude_child(IR *cur_node, IDTYPE id_type_) {
   IR *v_res;

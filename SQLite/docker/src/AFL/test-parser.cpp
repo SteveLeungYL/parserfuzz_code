@@ -42,6 +42,20 @@ Color::Modifier DEF(Color::FG_DEFAULT);
 Mutator mutator;
 SQL_ORACLE *p_oracle;
 
+void fix_common_rsg_errors(IR *root) {
+  if (
+      p_oracle->ir_wrapper.is_exist_without_rowid(root) &&
+      !(p_oracle->ir_wrapper.is_exist_primary_key(root))
+  ) {
+    vector<IR*> v_candidate_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root, kTypename, false);
+    if (v_candidate_node.size() != 0) {
+      IR* candidate_node = v_candidate_node.front();
+      candidate_node->str_val_ += " PRIMARY KEY ";
+    }
+  }
+  return;
+}
+
 IR *test_parse(string &query) {
 
   vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
@@ -51,6 +65,7 @@ IR *test_parse(string &query) {
   }
 
   IR *root = v_ir.back();
+  fix_common_rsg_errors(root);
 
   mutator.debug(root, 0);
 

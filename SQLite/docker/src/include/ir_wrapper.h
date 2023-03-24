@@ -117,6 +117,8 @@ public:
   bool is_exist_group_by(IR *cur_stmt);
   bool is_exist_having(IR *cur_stmt);
   bool is_exist_distinct(IR *cur_stmt);
+  bool is_exist_without_rowid(IR *cur_stmt);
+  bool is_exist_primary_key(IR *cur_stmt);
 
   /*
   ** Given an IR node, return the statement IR that contains this certain cur_ir
