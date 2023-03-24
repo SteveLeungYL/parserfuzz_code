@@ -65,7 +65,7 @@
         all_ir_node_vec.push_back(in);
 
         for (IR* cur_ir : all_ir_node_vec) {
-            if (cur_ir->type_ == kIdentifier) {
+            if (cur_ir->type_ == kIdentifier && !(cur_ir->is_node_struct_fixed) ) {
                 cur_ir->id_type_ = id_type;
             }
         }
@@ -513,7 +513,9 @@ v_ir->push_back(A);
 }
 
 ccons(A) ::= COLLATE(B) ids(C) .        {
-A = new IR(kCcons, OP3(string(B) + " " + string(C), "", ""));
+IR* tmp_ids = new IR(kIdentifier, string(C), id_collation_name);
+tmp_ids->is_node_struct_fixed = true;
+A = new IR(kCcons, OP3(string(B) + " ", "", ""), tmp_ids);
 v_ir->push_back(A);
 }
 
@@ -1974,6 +1976,7 @@ v_ir->push_back(A);
 A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 D->id_type_ = id_column_name;
+D->is_node_struct_fixed = true;
 }
 
 eidlist(A) ::= nm(B) collate(C) sortorder(D) . {
@@ -1982,6 +1985,7 @@ v_ir->push_back(A);
 A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)D);
 v_ir->push_back(A);
 B->id_type_ = id_column_name;
+B->is_node_struct_fixed = true;
 }
 
 %type collate {IR*}
@@ -1991,7 +1995,9 @@ v_ir->push_back(A);
 }
 
 collate(A) ::= COLLATE(B) ids(C) .   {
-A = new IR(kCollate, OP3(string(B) + " " + string(C), "", ""));
+IR* tmp_ids = new IR(kIdentifier, string(C), id_collation_name);
+tmp_ids->is_node_struct_fixed = true;
+A = new IR(kCollate, OP3(string(B) + " ", "", ""), tmp_ids);
 v_ir->push_back(A);
 }
 
