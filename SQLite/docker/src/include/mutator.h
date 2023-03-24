@@ -3,6 +3,8 @@
 
 #include "../AFL/types.h"
 #include "../rsg/rsg.h"
+#include "data_type_sig.h"
+#include "data_types.h"
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
@@ -245,6 +247,8 @@ private:
   int num_rsg_gen = 0;
 
   GramCovMap gram_cov_map;
+
+  vector<FuncSig> v_func_sig;
 };
 
 #endif

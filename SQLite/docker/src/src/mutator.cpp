@@ -8,6 +8,7 @@
 #include <sys/resource.h>
 
 #include <algorithm>
+#include <sstream>
 #include <assert.h>
 #include <cfloat>
 #include <climits>
@@ -286,6 +287,28 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   cross_map[id_top_table_name] = id_create_table_name;
   relationmap_alternate[id_create_column_name] = id_top_table_name;
   relationmap_alternate[id_create_index_name] = id_top_table_name;
+
+  std::ifstream t("./sqlite_func_json.json");
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  string func_sig_str = buffer.str();
+  json func_data = json::parse(func_sig_str);
+
+  vector<DATATYPE> all_supported_types  = {
+      kTYPEINT,
+      kTYPEREAL,
+      kTYPETEXT,
+      kTYPEJSON
+  };
+
+  this->v_func_sig.clear();
+  for (const json& cur_func_json : func_data) {
+    FuncSig cur_func_sig = FuncSig(cur_func_json, all_supported_types);
+    v_func_sig.push_back(cur_func_sig);
+  }
+
+  func_data.clear();
+
   return;
 }
 
