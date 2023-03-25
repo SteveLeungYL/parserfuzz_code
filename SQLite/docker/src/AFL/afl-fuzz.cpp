@@ -5691,6 +5691,8 @@ static u8 fuzz_one(char **argv) {
 
   skip_count = 0;
 
+  g_mutator.pre_validate();
+
   for (int stmt_idx = 0; stmt_idx < 23; stmt_idx++) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 
@@ -5708,7 +5710,6 @@ static u8 fuzz_one(char **argv) {
       {
         IR *cur_root = ir_set.back();
 
-        g_mutator.pre_validate();
 
         vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
 
