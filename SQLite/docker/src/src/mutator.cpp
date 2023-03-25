@@ -3131,7 +3131,7 @@ string Mutator::rsg_generate_valid(const string type) {
 #ifdef DEBUG
       cerr << "\nRejected. \n\n\n";
 #endif
-      rsg_exec_failed_helper();
+      rsg_clear_chosen_expr();
       continue;
     }
     fix_common_rsg_errors(ir_vec.back());
