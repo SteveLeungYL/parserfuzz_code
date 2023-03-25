@@ -5650,12 +5650,14 @@ string rsg_gen_sql_seq (int idx = 0) {
   string res_str = "";
 
   if (idx < 3) {
-    res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
+    res_str = rsg_gen_stmt("cmdPragma") + "\n";
   } else if (idx < 6) {
+    res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
+  } else if (idx < 9) {
     res_str = rsg_gen_stmt("cmdInsert") + "\n";
-  } else if (idx < 7) {
+  } else if (idx < 10) {
     res_str = rsg_gen_stmt("cmdCreateIndex") + "\n";
-  } else if (idx < 11) {
+  } else if (idx < 14) {
     res_str = rsg_gen_stmt("cmd") + "\n";
   } else {
     res_str = rsg_gen_stmt("select") + "\n";
