@@ -2850,7 +2850,6 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     // TODO:: May not be the optimal way to calculate validity.
     debug_error += findStringCount(res_str, "error");
-    debug_good += findStringCount(cmd_string, ";") - 1; // Remove the optimization statement.
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
@@ -5695,7 +5694,7 @@ static u8 fuzz_one(char **argv) {
 
   g_mutator.pre_validate();
 
-  for (int stmt_idx = 0; stmt_idx < 23; stmt_idx++) {
+  for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 
       u64 cur_debug_error = debug_error;
@@ -5760,6 +5759,8 @@ static u8 fuzz_one(char **argv) {
         }
         ret_val = 0;
       }
+
+      debug_good += stmt_idx+1;
 
       if (debug_error > cur_debug_error) {
         // Contains new errors. Give up the current stmt.
