@@ -5645,30 +5645,25 @@ string rsg_gen_stmt (string gen_type_str) {
   return g_mutator.rsg_generate_valid(gen_type_str);
 }
 
-string rsg_gen_sql_seq () {
+string rsg_gen_sql_seq (const string& input, int idx = 0) {
 
   string res_str = "";
-  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
-  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
-  res_str += rsg_gen_stmt("cmdCreateTable") + "\n";
-  res_str += rsg_gen_stmt("cmdInsert") + "\n";
-  res_str += rsg_gen_stmt("cmdInsert") + "\n";
-  res_str += rsg_gen_stmt("cmdInsert") + "\n";
-  res_str += rsg_gen_stmt("cmdCreateIndex") + "\n";
-  res_str += rsg_gen_stmt("cmd") + "\n";
-  res_str += rsg_gen_stmt("cmd") + "\n";
-  res_str += rsg_gen_stmt("cmd") + "\n";
-  res_str += rsg_gen_stmt("cmd") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
-  res_str += rsg_gen_stmt("select") + "\n";
+
+  if (idx < 3) {
+    res_str = input + rsg_gen_stmt("cmdCreateTable") + "\n";
+  } else if (idx < 6) {
+    res_str = input + rsg_gen_stmt("cmdInsert") + "\n";
+  } else if (idx < 7) {
+    res_str = input + rsg_gen_stmt("cmdCreateIndex") + "\n";
+  } else if (idx < 11) {
+    res_str = input + rsg_gen_stmt("cmd") + "\n";
+  } else {
+    res_str = input + rsg_gen_stmt("select") + "\n";
+  }
+
+  if (idx >= 3 && input == "") {
+    res_str = "CREATE TABLE v0 (v1, v2, v3); \n" + res_str;
+  }
 
 #ifdef DEBUG
   cerr << "\n\n\nDebug: Getting res_str: " << res_str << "\n\n\n";
@@ -5693,73 +5688,90 @@ static u8 fuzz_one(char **argv) {
   vector<IR *> app_new_select_stmts;
   char *tmp_name = stage_name;
   int skip_count;
-  string input;
+  string input = "";
 
   //[modify] add
   stage_name = "mutate";
 
   skip_count = 0;
 
-  input = rsg_gen_sql_seq();
+  for (int stmt_idx = 0; stmt_idx < 23; stmt_idx++) {
+    for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 
-  ir_set = g_mutator.parse_query_str_get_ir_set(input);
-  if (ir_set.size() == 0) {
-    total_input_failed++;
-    return ret_val;
-  }
+      u64 cur_debug_error = debug_error;
+      string cur_input = rsg_gen_sql_seq(input, stmt_idx);
 
-  num_parse++;
-
-  {
-    IR *cur_root = ir_set.back();
-
-    g_mutator.pre_validate();
-
-    vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
-
-    string query_str = "";
-
-    for (IR *cur_stmt : v_stmt) {
-      /* Fill in concret values to the SQL. Instantiation step. */
-      if (cur_stmt->type_ == kCmdPragma) {
-        continue;
-      }
-      if (!g_mutator.validate(cur_stmt, false)) {
-        continue;
+      ir_set = g_mutator.parse_query_str_get_ir_set(cur_input);
+      if (ir_set.size() == 0) {
+        total_input_failed++;
+        return ret_val;
       }
 
-      query_str += cur_stmt->to_string() + "; \n";
-    }
+      num_parse++;
 
-    cur_root->deep_drop();
+      {
+        IR *cur_root = ir_set.back();
 
-    num_validate++;
+        g_mutator.pre_validate();
 
-    if (stop_soon) {
-      return 0;
-    }
+        vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
 
-    vector<string> query_str_vec;
+        string query_str = "";
 
-    if (is_str_empty(query_str)) {
-      total_append_failed++;
-      skip_count++;
-      return ret_val;
-    } else {
-      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
-                              query_str);
-      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
-                              query_str);
+        for (IR *cur_stmt : v_stmt) {
+          /* Fill in concret values to the SQL. Instantiation step. */
+          if (cur_stmt->type_ == kCmdPragma) {
+            continue;
+          }
+          if (!g_mutator.validate(cur_stmt, false)) {
+            continue;
+          }
 
-      show_stats();
-      stage_name = "fuzz";
-      num_common_fuzz++;
-      common_fuzz_stuff(argv, query_str_vec);
-      stage_cur++;
-      show_stats();
-    }
-    ret_val = 0;
-  }
+          query_str += cur_stmt->to_string() + "; \n";
+        }
+
+        cur_root->deep_drop();
+
+        num_validate++;
+
+        if (stop_soon) {
+          return 0;
+        }
+
+        vector<string> query_str_vec;
+
+        if (is_str_empty(query_str)) {
+          total_append_failed++;
+          skip_count++;
+          return ret_val;
+        } else {
+          query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
+                                  query_str);
+          query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
+                                  query_str);
+
+          show_stats();
+          stage_name = "fuzz";
+          num_common_fuzz++;
+          common_fuzz_stuff(argv, query_str_vec);
+          stage_cur++;
+          show_stats();
+        }
+        ret_val = 0;
+      }
+
+      if (debug_error > cur_debug_error) {
+        // Contains new errors. Give up the current stmt.
+        continue;
+      } else {
+        // The new statement does not contain errors.
+        // Save it to input, and continue to the next stmt.
+        input = cur_input;
+        // Shift to the new stmt.
+        break;
+      }
+    } // stmt_trial
+  } // stmt_idx
 
   return ret_val;
 }
