@@ -2740,7 +2740,7 @@ inline void print_exec_debug_info(ostream &out) {
       << "total_num_rsg_generate:       " << g_mutator.get_num_rsg_gen() << "\n"
       << "total good queries:       " << debug_good << " / "
       << debug_error + debug_good << " ("
-      << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
+      << debug_good * 100.0 / (debug_error + debug_good) << "%)\n"
       << "bug_samples reports num: " << bug_output_id << "\n"
       << "gram block coverage size num: "
       << g_mutator.get_gram_total_block_cov_size_num() << "\n"
