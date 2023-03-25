@@ -115,6 +115,8 @@ public:
   string extract_struct(string);
   void reset_database();
   void reset_database_single_stmt();
+  void save_tmp_dependency();
+  void rollback_dependency();
 
   bool check_node_num(IR *root, unsigned int limit);
   vector<IR *> extract_statement(IR *root);
@@ -249,6 +251,15 @@ private:
   GramCovMap gram_cov_map;
 
   vector<FuncSig> v_func_sig;
+
+  vector<string> tmp_used_value_libary;
+  map<string, vector<string>> tmp_m_tables;
+  map<string, vector<string>> tmp_m_tables_with_tmp;
+  map<string, vector<string>> tmp_m_table2index;
+  // static map<string, vector<string>> m_table2alias;
+  vector<string> tmp_v_table_names;
+  vector<string> tmp_used_string_library;
+
 };
 
 #endif

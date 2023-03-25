@@ -5645,24 +5645,20 @@ string rsg_gen_stmt (string gen_type_str) {
   return g_mutator.rsg_generate_valid(gen_type_str);
 }
 
-string rsg_gen_sql_seq (const string& input, int idx = 0) {
+string rsg_gen_sql_seq (int idx = 0) {
 
   string res_str = "";
 
   if (idx < 3) {
-    res_str = input + rsg_gen_stmt("cmdCreateTable") + "\n";
+    res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
   } else if (idx < 6) {
-    res_str = input + rsg_gen_stmt("cmdInsert") + "\n";
+    res_str = rsg_gen_stmt("cmdInsert") + "\n";
   } else if (idx < 7) {
-    res_str = input + rsg_gen_stmt("cmdCreateIndex") + "\n";
+    res_str = rsg_gen_stmt("cmdCreateIndex") + "\n";
   } else if (idx < 11) {
-    res_str = input + rsg_gen_stmt("cmd") + "\n";
+    res_str = rsg_gen_stmt("cmd") + "\n";
   } else {
-    res_str = input + rsg_gen_stmt("select") + "\n";
-  }
-
-  if (idx >= 3 && input == "") {
-    res_str = "CREATE TABLE v0 (v1, v2, v3); \n" + res_str;
+    res_str = rsg_gen_stmt("select") + "\n";
   }
 
 #ifdef DEBUG
@@ -5699,7 +5695,7 @@ static u8 fuzz_one(char **argv) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 
       u64 cur_debug_error = debug_error;
-      string cur_input = rsg_gen_sql_seq(input, stmt_idx);
+      string cur_input = rsg_gen_sql_seq(stmt_idx);
 
       ir_set = g_mutator.parse_query_str_get_ir_set(cur_input);
       if (ir_set.size() == 0) {
@@ -5716,7 +5712,7 @@ static u8 fuzz_one(char **argv) {
 
         vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
 
-        string query_str = "";
+        cur_input.clear();
 
         for (IR *cur_stmt : v_stmt) {
           /* Fill in concret values to the SQL. Instantiation step. */
@@ -5727,7 +5723,7 @@ static u8 fuzz_one(char **argv) {
             continue;
           }
 
-          query_str += cur_stmt->to_string() + "; \n";
+          cur_input += cur_stmt->to_string() + "; \n";
         }
 
         cur_root->deep_drop();
@@ -5740,15 +5736,17 @@ static u8 fuzz_one(char **argv) {
 
         vector<string> query_str_vec;
 
-        if (is_str_empty(query_str)) {
+        if (is_str_empty(cur_input)) {
           total_append_failed++;
           skip_count++;
           return ret_val;
         } else {
-          query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
-                                  query_str);
-          query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
-                                  query_str);
+          query_str_vec.push_back(".testctrl optimization 0xffffffff; \n"
+                                  + input +
+                                  cur_input);
+          query_str_vec.push_back(".testctrl optimization 0x00000000; \n"
+                                  + input +
+                                  cur_input);
 
           show_stats();
           stage_name = "fuzz";
@@ -5762,11 +5760,12 @@ static u8 fuzz_one(char **argv) {
 
       if (debug_error > cur_debug_error) {
         // Contains new errors. Give up the current stmt.
+        g_mutator.rollback_dependency();
         continue;
       } else {
         // The new statement does not contain errors.
         // Save it to input, and continue to the next stmt.
-        input = cur_input;
+        input += cur_input;
         // Shift to the new stmt.
         break;
       }

@@ -1675,6 +1675,24 @@ Mutator::~Mutator() {
   }
 }
 
+void Mutator::save_tmp_dependency() {
+  tmp_m_tables = m_tables;
+  tmp_m_tables_with_tmp = m_tables_with_tmp;
+  tmp_m_table2index = m_table2index;
+  tmp_v_table_names = v_table_names;
+  tmp_used_string_library = used_string_library;
+  tmp_used_value_libary = used_value_libary;
+}
+
+void Mutator::rollback_dependency() {
+  m_tables = tmp_m_tables;
+  m_tables_with_tmp = tmp_m_tables_with_tmp;
+  m_table2index = tmp_m_table2index;
+  v_table_names = tmp_v_table_names;
+  used_string_library = tmp_used_string_library;
+  used_value_libary = tmp_used_value_libary;
+}
+
 // relationmap[id_table_alias_name] = id_top_table_name;
 // relationmap[id_column_name] = id_top_table_name;
 // relationmap[id_table_name] = id_top_table_name;
@@ -1691,6 +1709,7 @@ bool Mutator::fix_dependency(IR *root,
                              bool is_debug_info) {
   set<IR *> visited;
   reset_database_single_stmt();
+  save_tmp_dependency();
   string cur_pragma_key = "";
 
   if (is_debug_info) {
