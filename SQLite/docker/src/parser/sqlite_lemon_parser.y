@@ -31,6 +31,64 @@
     #include <string>
     #include <algorithm>
 
+    static vector<IR *> get_ir_node_in_stmt_with_type(IR *cur_stmt,
+                                                          IRTYPE ir_type) {
+      // Iterate IR binary tree, left depth prioritized.
+      bool is_finished_search = false;
+      std::vector<IR *> ir_vec_iter;
+      std::vector<IR *> ir_vec_matching_type;
+      IR *cur_IR = cur_stmt;
+      // Begin iterating.
+      while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->type_ == ir_type) {
+          ir_vec_matching_type.push_back(cur_IR);
+        }
+
+        if (cur_IR->left_ != nullptr) {
+          cur_IR = cur_IR->left_;
+          continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_
+                 // nodes.
+          cur_IR = nullptr;
+          while (cur_IR == nullptr) {
+            if (ir_vec_iter.size() == 0) {
+              is_finished_search = true;
+              break;
+            }
+            cur_IR = ir_vec_iter.back()->right_;
+            ir_vec_iter.pop_back();
+          }
+          continue;
+        }
+      }
+
+      return ir_vec_matching_type;
+    }
+
+    static void notate_column_name_in_columnlist(IR* in, IRTYPE set_type) {
+        vector<IR*> v_column_name = get_ir_node_in_stmt_with_type(in, kColumnname);
+        for (IR* cur_column: v_column_name) {
+            if (!(cur_column->is_node_struct_fixed)) {
+                cur_column->type_ = set_type;
+            }
+        }
+
+        return;
+    }
+
+     static void notate_column_name_in_columnlist(IR* in, IDTYPE set_type) {
+            vector<IR*> v_column_name = get_ir_node_in_stmt_with_type(in, kColumnname);
+            for (IR* cur_column: v_column_name) {
+                if (!(cur_column->is_node_struct_fixed)) {
+                    cur_column->id_type_ = set_type;
+                }
+            }
+
+            return;
+    }
+
+
     void iter_set_id_type(IR* in, IDTYPE id_type) {
         if (in == nullptr) {
             std::cerr << "Error: iter_set_id in parser is nullptr. Logic Error? \n";
@@ -274,7 +332,7 @@ v_ir->push_back(A);
 A = new IR(kCreateTableArgs, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 
-iter_set_id_type(C, id_create_column_name);
+notate_column_name_in_columnlist(C, id_create_column_name);
 
 }
 
@@ -538,10 +596,10 @@ v_ir->push_back(A);
 
 generated(A) ::= LP(B) expr(C) RP(D) ID(E) . {
 string id_str = E;
-if (findStringIn(id_str, "VIRTUAL") || findStringIn(id_str, "STORE")) {
+if (!findStringIn(id_str, "VIRTUAL") || !findStringIn(id_str, "STORE")) {
     id_str = "VIRTUAL";
 }
-A = new IR(kGenerated, OP3(string(B), string(D) + id_str, ""), (IR*)C);
+A = new IR(kGenerated, OP3(string(B), string(D) + " " + id_str, ""), (IR*)C);
 v_ir->push_back(A);
 }
 
@@ -2468,11 +2526,11 @@ A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (!(C->is_empty()) && !(D->is_empty())) {
     if (D->left_ != nullptr) {
-        D->left_->id_type_ = id_index_name;
+        D->left_->id_type_ = id_table_name;
     }
     C->id_type_ = id_database_name;
 } else {
-    C->id_type_ = id_index_name;
+    C->id_type_ = id_table_name;
 }
 }
 
