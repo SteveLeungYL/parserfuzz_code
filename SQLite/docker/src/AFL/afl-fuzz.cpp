@@ -5656,8 +5656,21 @@ string rsg_gen_sql_seq (int idx = 0) {
     res_str = rsg_gen_stmt("cmdInsert") + "\n";
   } else if (idx < 10) {
     res_str = rsg_gen_stmt("cmdCreateIndex") + "\n";
-  } else if (idx < 14) {
-    res_str = rsg_gen_stmt("cmd") + "\n";
+  } else if (idx < 15) {
+    switch (get_rand_int(4)) {
+    case 0:
+      res_str = rsg_gen_stmt("cmdUpdate") + "\n";
+      break;
+    case 1:
+      res_str = rsg_gen_stmt("cmdAlter") + "\n";
+      break;
+    case 2:
+      res_str = rsg_gen_stmt("cmdCreateView") + "\n";
+      break;
+    case 3:
+      res_str = rsg_gen_stmt("cmd") + "\n";
+      break;
+    }
   } else {
     res_str = rsg_gen_stmt("select") + "\n";
   }
