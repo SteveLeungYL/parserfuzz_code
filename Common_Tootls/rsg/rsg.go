@@ -128,27 +128,48 @@ func (r *RSG) argMax(rewards []float64) int {
 	return maxIdx[resIdx]
 }
 
-func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
+func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.ExpressionNode {
 
 	resIdx := 0
-	if r.Rnd.Float64() > r.epsilon {
-		var rewards []float64
-		for _, prod := range prods {
-			rewards = append(rewards, prod.RewardScore)
+	for trial := 0; trial < 10; trial++ {
+		if r.Rnd.Float64() > r.epsilon {
+			var rewards []float64
+			for _, prod := range prods {
+				rewards = append(rewards, prod.RewardScore)
+			}
+			resIdx = r.argMax(rewards)
+		} else {
+			// Random choice.
+			resIdx = r.Rnd.Intn(len(prods))
 		}
-		resIdx = r.argMax(rewards)
-	} else {
-		// Random choice.
-		resIdx = r.Rnd.Intn(len(prods))
-	}
 
-	resProd := prods[resIdx]
-	resProd.HitCount++
+		resProd := prods[resIdx]
+		resProd.HitCount++
 
-	// Save to curChosenExpr if not seen before.
-	_, ok := r.curChosenExpr[resProd]
-	if !ok {
-		r.curChosenExpr[resProd] = true
+		// Save to curChosenExpr if not seen before.
+		_, ok := r.curChosenExpr[resProd]
+		if !ok {
+			r.curChosenExpr[resProd] = true
+		} else {
+			// resProd used in the current stmt.
+			if r.Rnd.Intn(5) != 0 {
+				// 80% chances, do not use already used stmt.
+				continue
+			}
+		}
+
+		isRetry := false
+		for _, childProd := range resProd.Items {
+			if childProd.Value == root {
+				if r.Rnd.Intn(10) != 0 {
+					// 2/3 chances, do not use nested token.
+					isRetry = true
+				}
+			}
+		}
+		if isRetry {
+			continue
+		}
 	}
 
 	return prods[resIdx]
@@ -191,7 +212,7 @@ func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods)
+	prod := r.MABChooseArm(prods, root)
 
 	if prod == nil {
 		return nil
@@ -245,7 +266,7 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods)
+	prod := r.MABChooseArm(prods, root)
 
 	if prod == nil {
 		return nil
@@ -326,8 +347,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods)
-	//prod := prods[r.Rnd.Intn(len(prods))]
+	prod := r.MABChooseArm(prods, root)
 
 	//fmt.Printf("\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
@@ -500,6 +520,12 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					} else if root == "selectnowith" || root == "select" || root == "oneselect" {
 						ret = append(ret, "select 'abc'")
 						isHandle = true
+					} else if root == "frame_bound_s" {
+						ret = append(ret, "UNBOUNDED PRECEDING")
+						isHandle = true
+					} else if root == "frame_bound_e" {
+						ret = append(ret, "UNBOUNDED FOLLOWING")
+						isHandle = true
 					}
 
 					if isHandle {
@@ -538,7 +564,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		// Check whether the chosen prod contains unimplemented or error related
 		// rule. If yes, do not choose this path.
 
-		tmpProd := r.MABChooseArm(prods)
+		tmpProd := r.MABChooseArm(prods, root)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
 			continue
