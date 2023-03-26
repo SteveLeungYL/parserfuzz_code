@@ -503,10 +503,12 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					}
 
 					if isHandle {
-						return ret
+						//return ret
+						continue
 					} else {
 						//fmt.Printf("\nroot: %s, error: give up depth. \n\n\n", root)
-						return nil
+						//ret = append(ret, item.Value)
+						continue
 					}
 				}
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
