@@ -499,6 +499,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 						isHandle = true
 					} else if root == "selectnowith" || root == "select" || root == "oneselect" {
 						ret = append(ret, "select 'abc'")
+						isHandle = true
 					}
 
 					if isHandle {
