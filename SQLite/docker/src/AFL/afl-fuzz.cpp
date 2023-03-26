@@ -3600,7 +3600,7 @@ static u8 save_if_interesting(char **argv, string query_str,
   string stripped_query_string = query_str;
 
   if (is_str_empty(query_str)) {
-    g_mutator.rsg_exec_failed_helper();
+    g_mutator.rsg_exec_clear_chosen_expr();
     return keeping; // return 0; Empty string. Not added.
   }
 
@@ -3621,7 +3621,7 @@ static u8 save_if_interesting(char **argv, string query_str,
 
     if (disable_coverage_feedback ==
         1) { // Disable feedbacks. Drop all queries.
-      g_mutator.rsg_exec_failed_helper();
+      g_mutator.rsg_exec_clear_chosen_expr();
       return keeping;
     }
 
@@ -3632,7 +3632,7 @@ static u8 save_if_interesting(char **argv, string query_str,
     **/
     if ((disable_coverage_feedback == 2) && get_rand_int(10) < 9) {
       // Drop query.
-      g_mutator.rsg_exec_failed_helper();
+      g_mutator.rsg_exec_clear_chosen_expr();
       return keeping;
     }
 
@@ -3654,7 +3654,7 @@ static u8 save_if_interesting(char **argv, string query_str,
       g_mutator.rsg_exec_succeed_helper();
     } else {
       // cerr << "query_str parse failed: " << query_str << endl;
-      g_mutator.rsg_exec_failed_helper();
+      g_mutator.rsg_exec_clear_chosen_expr();
       return keeping; // keep = 0, meaning nothing added to the queue.
     }
 
@@ -3663,7 +3663,7 @@ static u8 save_if_interesting(char **argv, string query_str,
     //[modify] end
 
     if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) {
-      g_mutator.rsg_exec_failed_helper();
+      g_mutator.rsg_exec_clear_chosen_expr();
       return keeping;
     }
 
@@ -3731,8 +3731,10 @@ static u8 save_if_interesting(char **argv, string query_str,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_tmout))
+      if (!has_new_bits(virgin_tmout)) {
+        g_mutator.rsg_exec_clear_chosen_expr();
         return keeping;
+      }
     }
 
     unique_tmouts++;
@@ -3755,8 +3757,10 @@ static u8 save_if_interesting(char **argv, string query_str,
       if (!stop_soon && new_fault == FAULT_CRASH)
         goto keep_as_crash;
 
-      if (stop_soon || new_fault != FAULT_TMOUT)
+      if (stop_soon || new_fault != FAULT_TMOUT) {
+        g_mutator.rsg_exec_clear_chosen_expr();
         return keeping;
+      }
     }
 
 #ifndef SIMPLE_FILES
@@ -3827,6 +3831,7 @@ static u8 save_if_interesting(char **argv, string query_str,
     FATAL("Unable to execute target application");
 
   default:
+    g_mutator.rsg_exec_clear_chosen_expr();
     return keeping;
   }
 
@@ -3846,6 +3851,7 @@ static u8 save_if_interesting(char **argv, string query_str,
   ck_free(fn);
 
   if (fault == FAULT_CRASH) {
+    g_mutator.rsg_exec_succeed_helper();
     ofstream outputfile;
     bug_output_id++;
     if (!filesystem::exists("../Bug_Analysis/")) {
@@ -5270,7 +5276,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR) {
-    g_mutator.rsg_exec_failed_helper();
+    g_mutator.rsg_exec_clear_chosen_expr();
     return 0;
   }
 

@@ -175,6 +175,9 @@ public:
       rsg_clear_chosen_expr();
     }
   }
+  void rsg_exec_clear_chosen_expr() {
+    rsg_clear_chosen_expr();
+  }
 
   int get_num_rsg_gen() { return this->num_rsg_gen; }
 
