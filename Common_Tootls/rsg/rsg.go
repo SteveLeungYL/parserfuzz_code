@@ -163,7 +163,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		for _, childProd := range resProd.Items {
 			if childProd.Value == root {
 				if r.Rnd.Intn(10) != 0 {
-					// 2/3 chances, do not use nested token.
+					// 9/10 chances, do not use nested token.
 					isRetry = true
 				}
 			}
@@ -333,6 +333,62 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 				v = r.generatePostgres(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := r.MABChooseArm(prods, root)
+
+	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+
+			var v []string
+
+			switch item.Value {
+
+			case "IDENTIFIER":
+				{
+					v = []string{"v0"}
+				}
+			case "STRING":
+				{
+					v = []string{`'string'`}
+				}
+
+			default:
+				if depth == 0 {
+					return ret
+				}
+				v = r.generateSqliteBison(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				fmt.Printf("\n\n\nFor root %s, item,Value: %s, reaching depth\n\n\n", root, item.Value)
 				return nil
 			}
 			ret = append(ret, v...)
@@ -513,28 +569,40 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				if depth == 0 {
 
 					isHandle := false
-					if root == "expr" {
+					if item.Value == "expr" {
 						ret = append(ret, "'abc'")
 						isHandle = true
-					} else if root == "nexprlist" {
+					} else if item.Value == "nexprlist" {
 						ret = append(ret, "'abc'")
 						isHandle = true
-					} else if root == "sortlist" || root == "seltablist" {
+					} else if item.Value == "sortlist" || item.Value == "seltablist" {
 						ret = append(ret, "v0")
 						isHandle = true
-					} else if root == "selectnowith" || root == "select" || root == "oneselect" {
+					} else if item.Value == "selectnowith" || item.Value == "select" || item.Value == "oneselect" {
 						ret = append(ret, "select 'abc'")
 						isHandle = true
-					} else if root == "frame_bound_s" {
+					} else if item.Value == "frame_bound_s" {
 						ret = append(ret, "UNBOUNDED PRECEDING")
 						isHandle = true
-					} else if root == "frame_bound_e" {
+					} else if item.Value == "frame_bound_e" {
 						ret = append(ret, "UNBOUNDED FOLLOWING")
 						isHandle = true
-					} else if root == "selcollist" {
+					} else if item.Value == "selcollist" {
 						ret = append(ret, " * ")
 						isHandle = true
-					} else if root == "nm" {
+					} else if item.Value == "nm" {
+						ret = append(ret, " v0 ")
+						isHandle = true
+					} else if item.Value == "term" {
+						ret = append(ret, " 0.0 ")
+						isHandle = true
+					} else if item.Value == "window" {
+						ret = append(ret, " v0 ")
+						isHandle = true
+					} else if item.Value == "frame_bound" {
+						ret = append(ret, " CURRENT ROW ")
+						isHandle = true
+					} else if item.Value == "seltablist" {
 						ret = append(ret, " v0 ")
 						isHandle = true
 					}
@@ -543,7 +611,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 						//return ret
 						continue
 					} else {
-						//fmt.Printf("\nroot: %s, error: give up depth. \n\n\n", root)
+						fmt.Printf("\nroot: %s, item.Value: %s, error: give up depth.", root, item.Value)
 						//ret = append(ret, item.Value)
 						continue
 					}
@@ -558,6 +626,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 			panic("unknown item type")
 		}
 	}
+	fmt.Printf("\n%sLevel: %d, root: %s, prods: %v", strings.Repeat(" ", 9-depth), depth, root, prod.Items)
 	return ret
 }
 
@@ -692,6 +761,8 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 	if dbmsName == "sqlite" {
 		return r.generateSqlite(root, depth, rootDepth)
+	} else if dbmsName == "sqlite_bison" {
+		return r.generateSqliteBison(root, depth, rootDepth)
 	} else if dbmsName == "postgres" {
 		return r.generatePostgres(root, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {

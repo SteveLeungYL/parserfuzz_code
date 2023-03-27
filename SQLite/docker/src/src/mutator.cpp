@@ -1658,7 +1658,8 @@ void Mutator::debug(IR *root, unsigned level) {
   for (unsigned i = 0; i < level; i++)
     cout << " ";
 
-  cout << get_string_by_ir_type(root->type_) << ": "
+  cout << level << ": "
+       << get_string_by_ir_type(root->type_) << ": "
        << get_string_by_id_type(root->id_type_)
        << ": str_val_: " << root->str_val_ << ": to_str: " << root->to_string()
        << endl;
@@ -3121,6 +3122,7 @@ string Mutator::rsg_generate_valid(const IRTYPE type) {
 
 string Mutator::rsg_generate_valid(const string type) {
 
+#define DEBUG
   for (int i = 0; i < 100; i++) {
     string tmp_query_str = rsg_generate(type) + ";";
 #ifdef DEBUG
@@ -3142,6 +3144,8 @@ string Mutator::rsg_generate_valid(const string type) {
 #endif
     return tmp_query_str;
   }
+
+#undef DEBUG
 
   return "";
 }

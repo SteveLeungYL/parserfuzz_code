@@ -111,6 +111,9 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 	if dbmsName == "sqlite" {
 		tc.depth = 9
 	}
+	if dbmsName == "sqlite_bison" {
+		tc.depth = 12
+	}
 
 	var s = ""
 	if strings.Contains(tc.root, "select_stmt") && dbmsName == "cockroachdb" {

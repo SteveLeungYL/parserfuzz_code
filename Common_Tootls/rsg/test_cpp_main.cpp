@@ -20,8 +20,8 @@ int main(int argc, char*argv[]) {
         genType= argv[3];
     } else {
         cout << "Arg num: " << argc << ", using SQLite format, default sqlite_parse_rule_only.y file. \n\n\n";
-        dbmsNameStr = "sqlite";
-        fileNameStr = "sqlite_parse_rule_only.y";
+        dbmsNameStr = "sqlite_bison";
+        fileNameStr = "sqlite_bison_parser.y";
         genType= "select";
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char*argv[]) {
 
     RSGInitialize(fileName, dbmsName, 0.3);
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1; i++) {
 
       auto gores = RSGQueryGenerate(genTypeInput, dbmsName);
 
