@@ -127,7 +127,7 @@ bool try_validate(IR *cur_root) {
   vector<string> validity_vec = string_splitter(validity, ";");
   cout << "\n\n\nValidate string: \n";
   for (string &cur_validity : validity_vec) {
-    cout << cur_validity << "\n";
+    cout << cur_validity << ";\n";
   }
   cout << "\n\n\n";
 
