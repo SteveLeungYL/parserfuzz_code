@@ -144,7 +144,6 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 
 		resProd := prods[resIdx]
-		resProd.HitCount++
 
 		// Save to curChosenExpr if not seen before.
 		_, ok := r.curChosenExpr[resProd]
@@ -170,6 +169,9 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		if isRetry {
 			continue
 		} else {
+			// Decided to choose the current path.
+			// Return the resProd.
+			resProd.HitCount++
 			break
 		}
 	}
