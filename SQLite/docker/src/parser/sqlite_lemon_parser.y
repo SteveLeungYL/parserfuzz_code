@@ -565,6 +565,7 @@ v_ir->push_back(A);
 A = new IR(kCcons, OP3("", "", ""), (IR*)A, (IR*)E);
 v_ir->push_back(A);
 C->id_type_=id_top_table_name; // Referenced outer table.
+iter_set_id_type(D, id_top_column_name);
 }
 
 ccons(A) ::= defer_subclause(B) .    {
@@ -765,6 +766,8 @@ v_ir->push_back(A);
 A = new IR(kTcons, OP3("", "", ""), (IR*)A, (IR*)K);
 v_ir->push_back(A);
 H->id_type_ = id_column_name; // Not sure whether this is accurate.
+iter_set_id_type(E, id_create_column_name);
+iter_set_id_type(I, id_top_column_name);
 }
 
 %type defer_subclause_opt {IR*}
@@ -861,6 +864,7 @@ if (!(F->is_empty()) && !(G->is_empty())) {
 } else {
     F->id_type_ = id_create_view_name;
 }
+iter_set_id_type(H, id_create_column_name);
 }
 
 cmd(A) ::= DROP(B) VIEW(C) ifexists(D) fullname(E) . {
@@ -2045,8 +2049,7 @@ A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
 v_ir->push_back(A);
 A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-D->id_type_ = id_column_name;
-D->is_node_struct_fixed = true;
+D->id_type_ = id_top_column_name;
 }
 
 eidlist(A) ::= nm(B) collate(C) sortorder(D) . {
@@ -2054,8 +2057,7 @@ A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
 v_ir->push_back(A);
 A = new IR(kEidlist, OP3("", "", ""), (IR*)A, (IR*)D);
 v_ir->push_back(A);
-B->id_type_ = id_column_name;
-B->is_node_struct_fixed = true;
+B->id_type_ = id_top_column_name;
 }
 
 %type collate {IR*}

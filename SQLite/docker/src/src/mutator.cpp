@@ -274,20 +274,6 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     m_cmd_value_lib_[k].push_back(v);
   }
 
-  relationmap[id_table_alias_name] = id_top_table_name;
-  relationmap[id_column_name] = id_top_table_name;
-  relationmap[id_table_name] = id_top_table_name;
-  relationmap[id_index_name] = id_top_table_name;
-  relationmap[id_create_column_name] = id_create_table_name;
-  relationmap[id_pragma_value] = id_pragma_name;
-  relationmap[id_create_index_name] = id_create_table_name;
-  relationmap[id_create_column_name_with_tmp] = id_create_table_name_with_tmp;
-  relationmap[id_trigger_name] = id_top_table_name;
-  relationmap[id_top_column_name] = id_top_table_name;
-  cross_map[id_top_table_name] = id_create_table_name;
-  relationmap_alternate[id_create_column_name] = id_top_table_name;
-  relationmap_alternate[id_create_index_name] = id_top_table_name;
-
   std::ifstream t("./sqlite_func_json.json");
   std::stringstream buffer;
   buffer << t.rdbuf();
@@ -623,7 +609,7 @@ bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
   /* Fill in concret values into the query. */
   vector<vector<IR *>> ordered_all_subquery_ir;
 
-  fix_preprocessing(cur_trans_stmt, relationmap, ordered_all_subquery_ir);
+  fix_preprocessing(cur_trans_stmt, ordered_all_subquery_ir);
 
   // Debug
   // cerr << "After Mutator::fix_preprocessing, we have
@@ -952,25 +938,31 @@ bool Mutator::add_back(TmpRecord &m_save) {
 //
 // The result is a map, where the value is a set of IRs, which are dependents
 // of the key
-void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+void Mutator::fix_preprocessing(IR *root,
                                 vector<vector<IR *>> &ordered_all_subquery_ir) {
 
   map<IR *, set<IR *>> graph;
   TmpRecord m_save;
   set<IDTYPE> type_to_fix;
 
-  for (auto &iter : relationmap) {
-    type_to_fix.insert(iter.first);
-    type_to_fix.insert(iter.second);
-  }
-
-  for (auto &iter : relationmap_alternate) {
-    type_to_fix.insert(iter.first);
-    type_to_fix.insert(iter.second);
-  }
-
+  type_to_fix.insert(id_top_table_name);
+  type_to_fix.insert(id_top_column_name);
+  type_to_fix.insert(id_table_alias_name);
+  type_to_fix.insert(id_column_name);
+  type_to_fix.insert(id_table_name);
+  type_to_fix.insert(id_index_name);
+  type_to_fix.insert(id_create_table_name);
+  type_to_fix.insert(id_create_column_name);
+  type_to_fix.insert(id_pragma_name);
+  type_to_fix.insert(id_pragma_value);
+  type_to_fix.insert(id_create_index_name);
+  type_to_fix.insert(id_create_table_name_with_tmp);
+  type_to_fix.insert(id_create_column_name_with_tmp);
+  type_to_fix.insert(id_trigger_name);
   type_to_fix.insert(id_function_name);
   type_to_fix.insert(id_collation_name);
+  type_to_fix.insert(id_view_name);
+  type_to_fix.insert(id_create_view_name);
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /*
@@ -1734,7 +1726,10 @@ bool Mutator::fix_dependency(IR *root,
       *table name.
       ** Can be used in CREATE TABLE statement.
       */
-      if (ir->id_type_ == id_create_table_name) {
+      if (
+          ir->id_type_ == id_create_table_name ||
+          ir->id_type_ == id_create_view_name
+          ) {
         ir->str_val_ = gen_id_name();
         v_create_table_names_single.push_back(ir->str_val_);
         visited.insert(ir);

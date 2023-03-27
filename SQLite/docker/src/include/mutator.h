@@ -122,7 +122,7 @@ public:
   vector<IR *> extract_statement(IR *root);
   unsigned int calc_node(IR *root);
 
-  void fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+  void fix_preprocessing(IR *root,
                          vector<vector<IR *>> &ordered_ir);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
@@ -214,9 +214,6 @@ private:
   // map<NODETYPE, vector<IR *>> right_lib;
   vector<string> string_libary;
   vector<string> used_string_library;
-  map<IDTYPE, IDTYPE> relationmap;
-  map<IDTYPE, IDTYPE> relationmap_alternate;
-  map<IDTYPE, IDTYPE> cross_map;
   set<unsigned long> string_libary_hash_;
   set<unsigned long> value_library_hash_;
 
