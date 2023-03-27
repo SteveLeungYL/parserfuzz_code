@@ -970,6 +970,7 @@ void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
   }
 
   type_to_fix.insert(id_function_name);
+  type_to_fix.insert(id_collation_name);
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /*
@@ -2470,6 +2471,31 @@ bool Mutator::fix_dependency(IR *root,
         FuncSig cur_func = vector_rand_ele(this->v_func_sig);
         string func_str = cur_func.get_mutated_func_str();
         ir->str_val_ = func_str;
+        visited.insert(ir);
+        continue;
+      }
+    }
+
+    /* Seventh loop, resolve id_collation-anme. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {
+        continue;
+      }
+
+      if (ir->id_type_ == id_collation_name) {
+        string res_str;
+        switch (get_rand_int(3)) {
+        case 0:
+          res_str = " BINARY ";
+          break;
+        case 1:
+          res_str = " NOCASE ";
+          break;
+        case 2:
+          res_str = " RTRIM ";
+          break;
+        }
+        ir->str_val_ = res_str;
         visited.insert(ir);
         continue;
       }
