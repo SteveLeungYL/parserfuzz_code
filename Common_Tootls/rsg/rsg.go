@@ -111,7 +111,7 @@ func (r *RSG) IncrementFailed() {
 func (r *RSG) argMax(rewards []float64) int {
 
 	var maxIdx = []int{}
-	var maxReward = 0.0
+	var maxReward = -1.0
 
 	for idx, reward := range rewards {
 		if reward > maxReward {
@@ -525,6 +525,12 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 						isHandle = true
 					} else if root == "frame_bound_e" {
 						ret = append(ret, "UNBOUNDED FOLLOWING")
+						isHandle = true
+					} else if root == "selcollist" {
+						ret = append(ret, " * ")
+						isHandle = true
+					} else if root == "nm" {
+						ret = append(ret, " v0 ")
 						isHandle = true
 					}
 
