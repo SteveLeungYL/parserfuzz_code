@@ -550,6 +550,9 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 			case "STRING":
 				ret = append(ret, "'abc'")
 				continue
+			case "VARIABLE":
+				ret = append(ret, "0.0")
+				continue
 			case "FLOAT":
 				ret = append(ret, "0.0")
 				continue
@@ -615,6 +618,9 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					} else if item.Value == "seltablist" ||
 						item.Value == "seltablistnorecursive" {
 						ret = append(ret, " v0 ")
+						isHandle = true
+					} else if item.Value == "multiselect_op" {
+						ret = append(ret, " UNION ")
 						isHandle = true
 					}
 

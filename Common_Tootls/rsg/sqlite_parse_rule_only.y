@@ -411,7 +411,6 @@ expr ::= NOT exprnorecursive.
 expr ::= BITNOT exprnorecursive.
 expr ::= PLUS exprnorecursive.
 expr ::= MINUS expnorecursiver.
-expr ::= exprnorecursive PTR exprnorecursive.
 between_op ::= BETWEEN.
 between_op ::= NOT BETWEEN.
 expr ::= exprnorecursive between_op exprnorecursive AND exprnorecursive.
