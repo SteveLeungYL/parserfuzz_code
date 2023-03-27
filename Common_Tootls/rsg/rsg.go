@@ -169,6 +169,8 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 		if isRetry {
 			continue
+		} else {
+			break
 		}
 	}
 
