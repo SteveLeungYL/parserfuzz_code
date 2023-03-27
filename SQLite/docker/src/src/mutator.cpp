@@ -3122,7 +3122,6 @@ string Mutator::rsg_generate_valid(const IRTYPE type) {
 
 string Mutator::rsg_generate_valid(const string type) {
 
-#define DEBUG
   for (int i = 0; i < 100; i++) {
     string tmp_query_str = rsg_generate(type) + ";";
 #ifdef DEBUG
@@ -3131,7 +3130,8 @@ string Mutator::rsg_generate_valid(const string type) {
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
     if (ir_vec.size() == 0) {
 #ifdef DEBUG
-      cerr << "\nRejected. \n\n\n";
+      cerr << "\n\n\n" << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
+      cerr << "Rejected. \n\n\n";
 #endif
       rsg_clear_chosen_expr();
       continue;
@@ -3140,12 +3140,10 @@ string Mutator::rsg_generate_valid(const string type) {
     tmp_query_str = ir_vec.back()->to_string();
     ir_vec.back()->deep_drop();
 #ifdef DEBUG
-    cerr << "\n\n\n" << type << "Returned tmp-query-str: " << tmp_query_str << "\n\n\n";
+    cerr << "\n\n\n" << type << ", returned tmp-query-str: " << tmp_query_str << "\n\n\n";
 #endif
     return tmp_query_str;
   }
-
-#undef DEBUG
 
   return "";
 }

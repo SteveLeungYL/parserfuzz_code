@@ -628,7 +628,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 						//return ret
 						continue
 					} else {
-						fmt.Printf("\nroot: %s, item.Value: %s, error: give up depth.", root, item.Value)
+						//fmt.Printf("\nroot: %s, item.Value: %s, error: give up depth.", root, item.Value)
 						//ret = append(ret, item.Value)
 						continue
 					}
