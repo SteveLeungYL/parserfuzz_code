@@ -135,14 +135,18 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 	resIdx := 0
 	for trial := 0; trial < 10; trial++ {
 		if r.Rnd.Float64() > r.epsilon {
+			//fmt.Printf("\n\n\nUsing ArgMax. \n\n\n")
 			var rewards []float64
 			for _, prod := range prods {
 				rewards = append(rewards, prod.RewardScore)
 			}
 			resIdx = r.argMax(rewards)
+			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
 		} else {
 			// Random choice.
+			//fmt.Printf("\n\n\nUsing Random. \n\n\n")
 			resIdx = r.Rnd.Intn(len(prods))
+			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
 		}
 
 		resProd := prods[resIdx]
@@ -155,6 +159,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 			// resProd used in the current stmt.
 			if r.Rnd.Intn(5) != 0 {
 				// 80% chances, do not use already used stmt.
+				//fmt.Printf("\n\n\nSeem before\n\n\n")
 				continue
 			}
 		}
@@ -165,6 +170,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 				if r.Rnd.Intn(10) != 0 {
 					// 9/10 chances, do not use nested token.
 					isRetry = true
+					//fmt.Printf("\n\n\nFrom root:%s, getting recursive child: %v\n\n\n", root, resProd.Items)
 				}
 			}
 		}
@@ -177,6 +183,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 	}
 
+	//fmt.Printf("\n\n\nChossing resProd: %d. \n\n\n", resIdx)
 	return prods[resIdx]
 }
 
@@ -410,7 +417,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 
 	prod := r.MABChooseArm(prods, root)
 
-	//fmt.Printf("\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
+	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
 	if prod == nil {
 		return nil
@@ -569,13 +576,16 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				if depth == 0 {
 
 					isHandle := false
-					if item.Value == "expr" {
+					if item.Value == "expr" || item.Value == "exprnorecursive" {
 						ret = append(ret, "'abc'")
 						isHandle = true
-					} else if item.Value == "nexprlist" {
+					} else if item.Value == "nexprlist" || item.Value == "nexprlistnorecursive" {
 						ret = append(ret, "'abc'")
 						isHandle = true
-					} else if item.Value == "sortlist" || item.Value == "seltablist" {
+					} else if item.Value == "sortlist" ||
+						item.Value == "sortlistnorecursive" ||
+						item.Value == "seltablist" ||
+						item.Value == "seltablistnorecursive" {
 						ret = append(ret, "v0")
 						isHandle = true
 					} else if item.Value == "selectnowith" || item.Value == "select" || item.Value == "oneselect" {
@@ -602,7 +612,8 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					} else if item.Value == "frame_bound" {
 						ret = append(ret, " CURRENT ROW ")
 						isHandle = true
-					} else if item.Value == "seltablist" {
+					} else if item.Value == "seltablist" ||
+						item.Value == "seltablistnorecursive" {
 						ret = append(ret, " v0 ")
 						isHandle = true
 					}
@@ -626,7 +637,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 			panic("unknown item type")
 		}
 	}
-	fmt.Printf("\n%sLevel: %d, root: %s, prods: %v", strings.Repeat(" ", 9-depth), depth, root, prod.Items)
+	//fmt.Printf("\n%sLevel: %d, root: %s, prods: %v", strings.Repeat(" ", 9-depth), depth, root, prod.Items)
 	return ret
 }
 
