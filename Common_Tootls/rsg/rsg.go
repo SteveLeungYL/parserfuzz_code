@@ -90,6 +90,7 @@ func (r *RSG) ClearChosenExpr() {
 
 func (r *RSG) IncrementSucceed() {
 	for prod := range r.curChosenExpr {
+		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
@@ -100,6 +101,7 @@ func (r *RSG) IncrementSucceed() {
 
 func (r *RSG) IncrementFailed() {
 	for prod := range r.curChosenExpr {
+		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
@@ -171,7 +173,6 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		} else {
 			// Decided to choose the current path.
 			// Return the resProd.
-			resProd.HitCount++
 			break
 		}
 	}
