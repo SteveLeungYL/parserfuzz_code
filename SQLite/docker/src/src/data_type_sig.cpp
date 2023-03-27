@@ -204,6 +204,43 @@ vector<json> FuncSig::dump_success_types(const string& path) {
     return v_success_func_sig;
   }
 
+  {
+    // Insert one all args TYPEANY first.
+    json cur_func_json;
+    cur_func_json["func_name"] = this->get_func_name();
+
+    cur_func_json["arg_types"] = json::array();
+    int arg_size = this->get_tmp_infer_arg_types().size();
+    for (int arg_idx = 0; arg_idx < arg_size; arg_idx++) {
+      cur_func_json["arg_types"].push_back("TYPEANY");
+    }
+    cur_func_json["ret_type"] = "TYPEANY";
+
+    if (this->get_func_catalog() == Normal) {
+      cur_func_json["func_catalog"] = "Normal";
+    } else if (this->get_func_catalog() == Aggregate) {
+      cur_func_json["func_catalog"] = "Aggregate";
+    } else if (this->get_func_catalog() == AggregateOrder) {
+      cur_func_json["func_catalog"] = "AggregateOrder";
+    } else if (this->get_func_catalog() == Aggregatehypothetical) {
+      cur_func_json["func_catalog"] = "AggregateHypothetical";
+    } else if (this->get_func_catalog() == Window) {
+      cur_func_json["func_catalog"] = "Window";
+    } else {
+      cerr << "Logic Error: cannot find func_catalog type in dump_success_types function. \n\n\n";
+      assert (false);
+      exit(1);
+    }
+
+    cur_func_json["is_consist_type"] = this->get_is_consist_type();
+
+#ifdef DEBUG
+    cerr << all TYPEANY cur_func_json.dump() << "\n\n\n";
+#endif
+
+    v_success_func_sig.push_back(cur_func_json);
+  }
+
   for (int i = 0; i < this->get_saved_infer_arg_types().size(); i++) {
     json cur_func_json;
     cur_func_json["func_name"] = this->get_func_name();

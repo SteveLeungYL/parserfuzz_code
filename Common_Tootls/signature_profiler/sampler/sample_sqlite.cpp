@@ -115,7 +115,7 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig, json& array_func_json) 
   for (FuncSig &cur_func : v_func_sig) {
 
 
-    for (int trial = 0; trial < 100; trial++) {
+    for (int trial = 0; trial < 300; trial++) {
 
       string cmd_str = "create table v0 (c1 int); insert into v0 values (1); ";
       // Refresh the Database for every function only.
