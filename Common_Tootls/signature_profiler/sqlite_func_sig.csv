@@ -146,7 +146,6 @@ fts5,0,s,utf8,1,0
 fts3_tokenizer,0,s,utf8,2,524288
 fts3_tokenizer,0,s,utf8,1,524288
 bm25,0,s,utf8,-1,0
-usleep,0,s,utf8,1,0
 sqlar_compress,0,s,utf8,1,2097152
 geopoly_svg,0,s,utf8,-1,2099200
 decimal_cmp,0,s,utf8,2,2099200
