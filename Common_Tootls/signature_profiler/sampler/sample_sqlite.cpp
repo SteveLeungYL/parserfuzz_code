@@ -114,11 +114,10 @@ void do_func_sample_testing(vector<FuncSig> &v_func_sig, json& array_func_json) 
 
   for (FuncSig &cur_func : v_func_sig) {
 
+    cerr << "\nBegin to run func: " << cur_func.get_func_signature()
+         << "%\n";
 
     for (int trial = 0; trial < 300; trial++) {
-
-    cerr << "Begin to run func: " << cur_func.get_func_signature()
-         << "%\n\n\n";
 
       string cmd_str = "create table v0 (c1 int); insert into v0 values (1); ";
       // Refresh the Database for every function only.
