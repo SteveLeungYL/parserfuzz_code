@@ -100,8 +100,6 @@ page_count = _empty_
 page_size = _empty_
 page_size = _int_
 
-parser_trace = _boolean_
-
 pragma_list = _empty_
 
 query_only = _empty_
