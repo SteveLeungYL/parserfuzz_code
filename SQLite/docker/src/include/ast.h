@@ -100,7 +100,7 @@ enum IDTYPE {
   id_savepoint_name,
 
   id_schema_name,
-  id_module_name,
+  id_vtab_module_name,
   id_collation_name,
   id_database_name,
   id_alias_name,

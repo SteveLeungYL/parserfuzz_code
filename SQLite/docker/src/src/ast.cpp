@@ -170,8 +170,8 @@ string get_string_by_id_type(IDTYPE type) {
 
   case id_schema_name:
     return "id_schema_name";
-  case id_module_name:
-    return "id_moudle_name";
+  case id_vtab_module_name:
+    return "id_vtab_moudle_name";
   case id_collation_name:
     return "id_collation_name";
   case id_database_name:

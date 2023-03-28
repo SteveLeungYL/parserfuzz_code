@@ -27,6 +27,7 @@ map<string, vector<string>>
 map<string, vector<string>>
     Mutator::m_table2index;                   // Table name to index mapping.
 vector<string> Mutator::v_table_names;        // All saved table names
+vector<string> Mutator::v_fts_vtable_names;        // All saved table names
 vector<string> Mutator::v_table_names_single; // All used table names in one
                                               // query statement.
 vector<string>
@@ -967,6 +968,7 @@ void Mutator::fix_preprocessing(IR *root,
   type_to_fix.insert(id_create_view_name);
   type_to_fix.insert(id_create_window_name);
   type_to_fix.insert(id_window_name);
+  type_to_fix.insert(id_vtab_module_name);
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /*
@@ -2540,6 +2542,107 @@ bool Mutator::fix_dependency(IR *root,
       }
     }
 
+    /* Eighth loop, resolve id_vtab_module_name. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {
+        continue;
+      }
+
+      if (ir->id_type_ == id_vtab_module_name) {
+        string res_str;
+        vector<IR *> v_tmp_arg_list =
+            p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                root, kVtabarglist, false);
+        IR *arg_list_node = nullptr;
+        if (v_tmp_arg_list.size() > 0) {
+          arg_list_node = v_tmp_arg_list.front();
+        }
+
+#define write_arg(x)  do{ if (arg_list_node == nullptr) {res_str += " ( " + string(x) + ") "; } else {arg_list_node->str_val_ = string(x);} } while(0)
+        switch (get_rand_int(7)) {
+        case 0:
+          res_str = " csv ";
+          write_arg("'thecsvfile.csv'");
+          break;
+        case 1:
+          res_str = " dbstat ";
+          write_arg("main");
+          break;
+        case 2:
+          res_str = " fts5 ";
+          write_arg("sender, title, body");
+          if (v_create_table_names_single.size() != 0) {
+            m_tables[v_create_table_names_single.front()].push_back("sender");
+            m_tables[v_create_table_names_single.front()].push_back("title");
+            m_tables[v_create_table_names_single.front()].push_back("body");
+            v_fts_vtable_names.push_back(v_create_table_names_single.front());
+          }
+          break;
+        case 3:
+          res_str = " fts4 ";
+          write_arg("sender, title, body");
+          if (v_create_table_names_single.size() != 0) {
+            m_tables[v_create_table_names_single.front()].push_back("sender");
+            m_tables[v_create_table_names_single.front()].push_back("title");
+            m_tables[v_create_table_names_single.front()].push_back("body");
+            v_fts_vtable_names.push_back(v_create_table_names_single.front());
+          }
+          break;
+        case 4:
+          res_str = " rtree ";
+          if (get_rand_int(2)) {
+            write_arg("id, minX, maxX");
+            if (v_create_table_names_single.size() != 0) {
+              m_tables[v_create_table_names_single.front()].push_back("id");
+              m_tables[v_create_table_names_single.front()].push_back("minX");
+              m_tables[v_create_table_names_single.front()].push_back("maxX");
+            }
+          } else {
+            write_arg("id, minX, maxX, minY, maxY");
+            if (v_create_table_names_single.size() != 0) {
+              m_tables[v_create_table_names_single.front()].push_back("id");
+              m_tables[v_create_table_names_single.front()].push_back("minX");
+              m_tables[v_create_table_names_single.front()].push_back("maxX");
+              m_tables[v_create_table_names_single.front()].push_back("minY");
+              m_tables[v_create_table_names_single.front()].push_back("maxY");
+            }
+          }
+          break;
+        case 5:
+          res_str = " zipfile ";
+          if (get_rand_int(2)) {
+            write_arg("'name'");
+            if (v_create_table_names_single.size() != 0) {
+              m_tables[v_create_table_names_single.front()].push_back("unknown0");
+              m_tables[v_create_table_names_single.front()].push_back("unknown1");
+              m_tables[v_create_table_names_single.front()].push_back("unknown2");
+              m_tables[v_create_table_names_single.front()].push_back("unknown3");
+              m_tables[v_create_table_names_single.front()].push_back("unknown4");
+              m_tables[v_create_table_names_single.front()].push_back("unknown5");
+              m_tables[v_create_table_names_single.front()].push_back("unknown6");
+            }
+          }
+          break;
+        case 6:
+          res_str = " fts5vocab ";
+          string known_fts_table_name = "v0";
+          if (v_fts_vtable_names.size() > 0) {
+            known_fts_table_name = vector_rand_ele(v_fts_vtable_names);
+          }
+          write_arg(known_fts_table_name + ", 'instance'");
+          if (v_create_table_names_single.size() != 0) {
+            v_fts_vtable_names.push_back(v_create_table_names_single.front());
+          }
+          break;
+
+        }
+#undef write_arg
+        ir->str_val_ = res_str;
+        visited.insert(ir);
+        continue;
+      } // if id_vtab_module_name
+    } // ir:ordered_ir
+
   } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
 
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
@@ -3001,7 +3104,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     return;
   }
 
-  if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
+  if (root->id_type_ != id_whatever && root->id_type_ != id_vtab_module_name) {
     res += "y";
     root->str_val_ = "y";
     return;
@@ -3078,6 +3181,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
 void Mutator::reset_database() {
   m_tables.clear();
   v_table_names.clear();
+  v_fts_vtable_names.clear();
   m_table2index.clear();
   m_table2alias_single.clear();
   v_table_names_single.clear();

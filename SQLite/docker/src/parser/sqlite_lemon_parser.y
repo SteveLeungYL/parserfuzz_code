@@ -2671,6 +2671,7 @@ if (!(F->is_empty()) && !(G->is_empty())) {
 } else {
     F->id_type_ = id_create_table_name;
 }
+I->id_type_ = id_vtab_module_name;
 }
 
 vtabarglist(A) ::= vtabarg(B) . {
