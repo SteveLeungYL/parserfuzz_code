@@ -1002,31 +1002,30 @@ void log_map_id(u32 i, u8 byte, const string &cur_seed_str) {
   if (map_id_out_f.fail()) {
     return;
   }
-  if (cur_seed_str == "") {
-    return;
-  }
   i = (MAP_SIZE >> 3) - i - 1;
   u32 actual_idx = i * 8 + byte;
 
-  if (queue_cur) {
-    map_id_out_f << actual_idx << ",-1,-1" << endl;
-  } else {
-    map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
-  }
+  map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
   map_id_out_f.flush();
 
-  if (queue_cur && cur_seed_str != "123") {
-    if (!filesystem::exists("./queue_coverage_id_core/")) {
-      filesystem::create_directory("./queue_coverage_id_core/");
-    }
-    fstream map_id_seed_output;
+  if (!filesystem::exists("./queue_coverage_id_core/")) {
+    filesystem::create_directory("./queue_coverage_id_core/");
+  }
+  fstream map_id_seed_output;
+  if (queue_cur) {
     map_id_seed_output.open(
         "./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +
             to_string(map_file_id) + "_" + to_string(current_entry) + ".txt",
         std::fstream::out | std::fstream::trunc);
-    map_id_seed_output << cur_seed_str;
-    map_id_seed_output.close();
+  } else {
+    map_id_seed_output.open(
+        "./queue_coverage_id_core/1_" +
+        to_string(map_file_id) + "_" + to_string(current_entry) + ".txt",
+        std::fstream::out | std::fstream::trunc);
   }
+  map_id_seed_output << cur_seed_str;
+  map_id_seed_output.close();
+
 }
 
 /* Check if the current execution path brings anything new to the table.
