@@ -33,6 +33,7 @@ static string gen_table_name() { return "t" + to_string(g_id_counter++); }
 static string gen_column_name() { return "c" + to_string(g_id_counter++); }
 static string gen_index_name() { return "i" + to_string(g_id_counter++); }
 static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
+static string gen_window_name() { return "w" + to_string(g_id_counter++); }
 
 enum CASEIDX {
   CASE0,

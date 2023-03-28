@@ -32,6 +32,8 @@ vector<string> Mutator::v_table_names_single; // All used table names in one
 vector<string>
     Mutator::v_create_table_names_single;     // All created table names in the
                                               // current query statement.
+vector<string> Mutator::v_window_name_single; // All the window names used in the
+                                              // current query statement.
 vector<string> Mutator::v_alias_names_single; // All alias name local to one
                                               // query statement.
 map<string, vector<string>>
@@ -963,6 +965,8 @@ void Mutator::fix_preprocessing(IR *root,
   type_to_fix.insert(id_collation_name);
   type_to_fix.insert(id_view_name);
   type_to_fix.insert(id_create_view_name);
+  type_to_fix.insert(id_create_window_name);
+  type_to_fix.insert(id_window_name);
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /*
@@ -1752,6 +1756,15 @@ bool Mutator::fix_dependency(IR *root,
                  << new_alias_str << ". \n\n\n";
           }
         }
+      } else if (ir->id_type_ == id_create_window_name) {
+        ir->str_val_ = gen_window_name();
+        v_window_name_single.push_back(ir->str_val_);
+        visited.insert(ir);
+        if (is_debug_info) {
+          cerr << "Dependency: In id_create_window_name, we created "
+                  "window name: "
+               << ir->str_val_ << "\n\n\n";
+        }
       } else if (ir->id_type_ == id_create_table_name_with_tmp) {
         /* This is a newly created name used in the WITH clause.
         ** WITH clause defined tmp names, used by only the one statement.
@@ -2419,6 +2432,7 @@ bool Mutator::fix_dependency(IR *root,
           ir->str_val_ = cmds_[get_rand_int(lib_size)];
           cur_pragma_key = ir->str_val_;
         }
+        visited.insert(ir);
       }
 
       if (ir->id_type_ == id_pragma_value) {
@@ -2447,7 +2461,29 @@ bool Mutator::fix_dependency(IR *root,
         } else {
           ir->str_val_ = to_string(get_rand_int(10));
         }
+        visited.insert(ir);
       }
+
+      if (ir->id_type_ == id_window_name) {
+        if (this->v_window_name_single.size() != 0) {
+          ir->str_val_ = vector_rand_ele(this->v_window_name_single);
+          visited.insert(ir);
+          if (is_debug_info) {
+            cerr << "Dependency: In id_window_name, we use saved window name"
+                    ": "
+                 << ir->str_val_ << "\n\n\n";
+          }
+        } else {
+          ir->str_val_ = "y";
+          visited.insert(ir);
+          if (is_debug_info) {
+            cerr << "Error: In id_window_name, cannot find matching window name, "
+                    "using placeholder: "
+                 << ir->str_val_ << "\n\n\n";
+          }
+        }
+      }
+
     }
 
     /* Sixth loop, resolve id_function_name. */
@@ -3057,6 +3093,8 @@ void Mutator::reset_database_single_stmt() {
   m_tables_with_tmp.clear();
   v_create_table_names_single_with_tmp.clear();
   v_create_column_names_single_with_tmp.clear();
+
+  v_window_name_single.clear();
 }
 
 // Return use_temp or not.

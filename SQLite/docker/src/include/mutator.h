@@ -141,6 +141,7 @@ public:
   static vector<string> v_table_names_single;
   static vector<string> v_create_table_names_single;
   static vector<string> v_alias_names_single;
+  static vector<string> v_window_name_single;
   static map<string, vector<string>> m_table2alias_single;
 
   static vector<string> v_create_table_names_single_with_tmp;

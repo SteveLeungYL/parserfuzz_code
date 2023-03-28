@@ -2444,6 +2444,7 @@ v_ir->push_back(A);
 expr(A) ::= RAISE(B) LP(C) raisetype(D) COMMA(E) nm(F) RP(G) .  {
 A = new IR(kExpr, OP3(string(B) + " " + string(C), string(E), string(G)), (IR*)D, (IR*)F);
 v_ir->push_back(A);
+F->type_ = kStringLiteral;
 }
 
 %type raisetype {IR*}
@@ -2797,7 +2798,7 @@ v_ir->push_back(A);
 windowdefn(A) ::= nm(B) AS(C) LP(D) window(E) RP(F) . {
 A = new IR(kWindowdefn, OP3("", string(C) + " " + string(D), string(F)), (IR*)B, (IR*)E);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_create_window_name;
 }
 
 %type window {IR*}
@@ -2824,7 +2825,7 @@ A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_create_window_name;
 }
 
 window(A) ::= ORDER(B) BY(C) sortlist(D) frame_opt(E) . {
@@ -2837,7 +2838,7 @@ A = new IR(kUnknown, OP3("", string(C) + " " + string(D), ""), (IR*)B, (IR*)E);
 v_ir->push_back(A);
 A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_create_window_name;
 }
 
 window(A) ::= frame_opt(B) . {
@@ -2848,7 +2849,7 @@ v_ir->push_back(A);
 window(A) ::= nm(B) frame_opt(C) . {
 A = new IR(kWindow, OP3("", "", ""), (IR*)B, (IR*)C);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_create_window_name;
 }
 
 frame_opt(A) ::= .                             {
