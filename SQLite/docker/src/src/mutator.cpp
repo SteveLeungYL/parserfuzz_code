@@ -2111,6 +2111,14 @@ bool Mutator::fix_dependency(IR *root,
       IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
 
       if (ir->id_type_ == id_column_name) {
+
+        if (!(get_rand_int(10))) {
+          // 1/10 chances, use ROWID for the id_column_name.
+          ir->str_val_ = "rowid";
+          visited.insert(ir);
+          continue;
+        }
+
         if (v_table_names_single.size() == 0 &&
             v_create_table_names_single.size() == 0 &&
             v_create_column_names_single_with_tmp.size() == 0) {
