@@ -5784,8 +5784,6 @@ static u8 fuzz_one(char **argv) {
         ret_val = 0;
       }
 
-      debug_good += stmt_idx+1;
-
       if (debug_error > cur_debug_error) {
         // Contains new errors. Give up the current stmt.
         g_mutator.rollback_dependency();
