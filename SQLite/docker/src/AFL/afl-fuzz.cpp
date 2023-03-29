@@ -2847,8 +2847,11 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     res_str = read_sqlite_output_and_reset_output_file();
 
-    // TODO:: May not be the optimal way to calculate validity.
-    debug_error += findStringCount(res_str, "error");
+    if (findStringIn(res_str, "error")) {
+      debug_error++;
+    } else {
+      debug_good++;
+    }
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
