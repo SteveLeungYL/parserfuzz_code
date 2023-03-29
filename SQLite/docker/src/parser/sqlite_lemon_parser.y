@@ -576,6 +576,7 @@ v_ir->push_back(A);
 ccons(A) ::= COLLATE(B) ids(C) .        {
 IR* tmp_ids = new IR(kIdentifier, string(C), id_collation_name);
 tmp_ids->is_node_struct_fixed = true;
+v_ir->push_back(tmp_ids);
 A = new IR(kCcons, OP3(string(B) + " ", "", ""), tmp_ids);
 v_ir->push_back(A);
 }
@@ -1657,7 +1658,10 @@ v_ir->push_back(A);
 }
 
 expr(A) ::= expr(B) COLLATE(C) ids(D) . {
-A = new IR(kExpr, OP3("", string(C) + " " + string(D), ""), (IR*)B);
+IR* tmp_ir = new IR(kIdentifier, string(D), id_collation_name);
+tmp_ir->is_node_struct_fixed = true;
+v_ir->push_back(tmp_ir);
+A = new IR(kExpr, OP3("", " " + string(C) + " ", ""), (IR*)B, (IR*)tmp_ir);
 v_ir->push_back(A);
 }
 
@@ -2069,6 +2073,7 @@ v_ir->push_back(A);
 collate(A) ::= COLLATE(B) ids(C) .   {
 IR* tmp_ids = new IR(kIdentifier, string(C), id_collation_name);
 tmp_ids->is_node_struct_fixed = true;
+v_ir->push_back(tmp_ids);
 A = new IR(kCollate, OP3(string(B) + " ", "", ""), tmp_ids);
 v_ir->push_back(A);
 }

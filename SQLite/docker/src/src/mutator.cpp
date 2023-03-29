@@ -686,6 +686,7 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
   return new_func_expr_ir;
 }
 
+// Recursive function to generate and test function expressions.
 void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt) {
   /* Handle the function expression first. */
   vector<IR*> v_func_expr_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_trans_stmt, kExprFunc, false, true);
