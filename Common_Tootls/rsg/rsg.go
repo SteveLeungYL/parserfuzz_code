@@ -183,7 +183,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 	}
 
-	//fmt.Printf("\n\n\nChossing resProd: %d. \n\n\n", resIdx)
+	fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %d. \n\n\n", root, resIdx)
 	return prods[resIdx]
 }
 
@@ -410,20 +410,16 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
+	if root == "expr" && r.Rnd.Intn(3) == 0 {
+		root = "exprFunc"
+	}
+
 	prods := r.prods[root]
 	if len(prods) == 0 {
 		return []string{r.formatTokenValue(root)}
 	}
 
 	prod := r.MABChooseArm(prods, root)
-	if root == "expr" {
-		//&& r.Rnd.Intn(3) == 0
-		root = "exprFunc"
-		//fmt.Printf("\n\n\nUsing exprFunc\n\n\n")
-		prod = r.MABChooseArm(prods, root)
-	}
-
-	fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
 	if prod == nil {
 		return nil
