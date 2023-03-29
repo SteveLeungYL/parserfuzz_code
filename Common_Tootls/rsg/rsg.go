@@ -183,7 +183,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 	}
 
-	fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %d. \n\n\n", root, resIdx)
+	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %d. \n\n\n", root, resIdx)
 	return prods[resIdx]
 }
 
