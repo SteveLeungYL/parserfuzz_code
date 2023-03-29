@@ -1807,6 +1807,7 @@ void Mutator::rollback_dependency() {
   v_table_names = tmp_v_table_names;
   used_string_library = tmp_used_string_library;
   used_value_libary = tmp_used_value_libary;
+  reset_database_single_stmt();
 }
 
 // relationmap[id_table_alias_name] = id_top_table_name;
