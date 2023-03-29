@@ -416,8 +416,14 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	}
 
 	prod := r.MABChooseArm(prods, root)
+	if root == "expr" {
+		//&& r.Rnd.Intn(3) == 0
+		root = "exprFunc"
+		//fmt.Printf("\n\n\nUsing exprFunc\n\n\n")
+		prod = r.MABChooseArm(prods, root)
+	}
 
-	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
+	fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
 	if prod == nil {
 		return nil
@@ -561,6 +567,9 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				continue
 			case "INTEGER":
 				ret = append(ret, "0")
+				continue
+			case "FUNC":
+				ret = append(ret, "COUNT")
 				continue
 
 			default:
