@@ -686,16 +686,9 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
   return new_func_expr_ir;
 }
 
-/* Handle and fix one single query statement. */
-bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
-
-  if (cur_trans_stmt == nullptr) {
-    return false;
-  }
-  bool res = true;
-
+void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt) {
   /* Handle the function expression first. */
-  vector<IR*> v_func_expr_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_trans_stmt, kExprFunc);
+  vector<IR*> v_func_expr_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_trans_stmt, kExprFunc, false, true);
   vector<int> ignore_set;
   for (int i = 0; i < v_func_expr_node.size(); i++) {
     for (int j = 0; j < v_func_expr_node.size(); j++) {
@@ -708,11 +701,28 @@ bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
   for (int i = 0; i < v_func_expr_node.size(); i++) {
     if (find(ignore_set.begin(), ignore_set.end(), i) == ignore_set.end()) {
       IR* new_func_expr = instan_rand_func_expr();
-//      cerr << "\n\n\nGetting new func expr: " << new_func_expr->to_string() << "\n\n\n";
       cur_trans_stmt->swap_node(v_func_expr_node[i], new_func_expr);
       v_func_expr_node[i]->deep_drop();
+      if(new_func_expr->left_) {
+        this->instan_rand_func_expr_helper(new_func_expr->left_);
+      } else if (new_func_expr->right_) {
+        this->instan_rand_func_expr_helper(new_func_expr->right_);
+      }
     }
   }
+
+  return;
+}
+
+/* Handle and fix one single query statement. */
+bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
+
+  if (cur_trans_stmt == nullptr) {
+    return false;
+  }
+  bool res = true;
+
+  instan_rand_func_expr_helper(cur_trans_stmt);
 
   /* Fill in concret values into the query. */
   vector<vector<IR *>> ordered_all_subquery_ir;

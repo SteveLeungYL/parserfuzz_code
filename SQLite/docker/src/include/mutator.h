@@ -204,6 +204,7 @@ private:
   void fix_common_rsg_errors(IR*);
   IR* gen_rand_expr_node();
   IR* instan_rand_func_expr(DATATYPE req_ret_type = kTYPEUNKNOWN);
+  void instan_rand_func_expr_helper(IR* cur_node);
 
   bool dump_library = false;
   bool use_cri_val = false;
