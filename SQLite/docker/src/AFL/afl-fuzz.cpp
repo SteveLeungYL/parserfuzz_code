@@ -5716,6 +5716,7 @@ static u8 fuzz_one(char **argv) {
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
+//      cerr << "\n\n\n Stmt idx: " << stmt_idx << "\n\n\n";
 
       u64 cur_debug_error = debug_error;
       string cur_input = rsg_gen_sql_seq(stmt_idx);
@@ -5723,7 +5724,7 @@ static u8 fuzz_one(char **argv) {
       ir_set = g_mutator.parse_query_str_get_ir_set(cur_input);
       if (ir_set.size() == 0) {
         total_input_failed++;
-        return ret_val;
+        continue;
       }
 
       num_parse++;
@@ -5761,7 +5762,7 @@ static u8 fuzz_one(char **argv) {
         if (is_str_empty(cur_input)) {
           total_append_failed++;
           skip_count++;
-          return ret_val;
+          continue;
         } else {
           query_str_vec.push_back(".testctrl optimization 0xffffffff; \n"
                                   + input +
