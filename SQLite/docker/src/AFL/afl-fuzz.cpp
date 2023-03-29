@@ -5661,7 +5661,9 @@ string rsg_gen_sql_seq (int idx = 0) {
     res_str = rsg_gen_stmt("cmdInsert") + "\n";
   } else if (idx < 10) {
     res_str = rsg_gen_stmt("cmdCreateIndex") + "\n";
-  } else if (idx < 15) {
+  } else if (idx < 13) {
+    res_str = rsg_gen_stmt("cmdCreateVTable") + "\n";
+  } else if (idx < 20) {
     switch (get_rand_int(4)) {
     case 0:
       res_str = rsg_gen_stmt("cmdUpdate") + "\n";
