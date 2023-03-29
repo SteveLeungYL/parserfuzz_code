@@ -602,6 +602,90 @@ Mutator::post_fix_transform(vector<IR *> &all_pre_trans_vec,
   return all_post_trans_vec;
 }
 
+IR* Mutator::gen_rand_expr_node() {
+
+  for (int i = 0; i < 100; i++) {
+    string tmp_stmt = "SELECT " + rsg_generate("exprnorecursive") + ";";
+    vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_stmt);
+    if (ir_vec.size() == 0) {
+#ifdef DEBUG
+      cerr << "\n\n\n"
+           << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
+      cerr << "Rejected. \n\n\n";
+#endif
+      continue;
+    }
+    vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kExpr, false);
+    if (v_res_node.size() > 0) {
+      IR* res_node = v_res_node.front()->deep_copy();
+      v_res_node.back()->deep_drop();
+      return res_node;
+    } else {
+      ir_vec.back()->deep_drop();
+      continue;
+    }
+  }
+  return nullptr;
+}
+
+IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
+  // Ignore the req_ret_type for now.
+
+  FuncSig& cur_func_sig = vector_rand_ele(this->v_func_sig);
+  // Get all the arg types
+  vector<DataType> v_arg_types = cur_func_sig.get_arg_types();
+
+  IR* new_func_name_ir = new IR(kIdentifier, string(cur_func_sig.get_func_name()), id_function_name);
+  new_func_name_ir->is_node_struct_fixed = true;
+  IR* new_func_expr_ir = new IR(kExprFunc, OP3("", "(", ")"), new_func_name_ir, nullptr);
+  int idx = 0;
+  IR* tmp_arg_node = nullptr;
+  for (DataType cur_arg_type : v_arg_types) {
+    IR* arg_expr_node = nullptr;
+    switch(get_rand_int(12)) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      arg_expr_node = new IR(kIdentifier, string("v0"), id_column_name);
+      arg_expr_node->is_node_struct_fixed = true;
+      break;
+    case 5:
+    case 6:
+    case 7:
+      if (
+          cur_arg_type.get_data_type_enum() == kTYPEANY ||
+          cur_arg_type.get_data_type_enum() == kTYPEUNDEFINE ||
+          cur_arg_type.get_data_type_enum() == kTYPEUNKNOWN
+          ) {
+        DATATYPE rand_any_type = cur_arg_type.gen_rand_any_type(
+            cur_func_sig.get_supported_types());
+        cur_arg_type.set_data_type(rand_any_type);
+      }
+      arg_expr_node = new IR(kStringLiteral, string(cur_arg_type.mutate_type_entry()), id_whatever);
+      arg_expr_node->is_node_struct_fixed = true;
+      break;
+    case 8:
+    case 9:
+      arg_expr_node = this->gen_rand_expr_node();
+      break;
+    case 10:
+    case 11:
+      arg_expr_node = this->instan_rand_func_expr();
+      break;
+    }
+    if (tmp_arg_node == nullptr) {
+      tmp_arg_node = new IR(kUnknown, OP0(), arg_expr_node, nullptr);
+    } else {
+      tmp_arg_node = new IR(kUnknown, OP3("", ", ", ""), tmp_arg_node, arg_expr_node);
+    }
+  }
+  new_func_expr_ir->update_right(tmp_arg_node);
+
+  return new_func_expr_ir;
+}
+
 /* Handle and fix one single query statement. */
 bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
 
@@ -609,6 +693,27 @@ bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
     return false;
   }
   bool res = true;
+
+  /* Handle the function expression first. */
+  vector<IR*> v_func_expr_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_trans_stmt, kExprFunc);
+  vector<int> ignore_set;
+  for (int i = 0; i < v_func_expr_node.size(); i++) {
+    for (int j = 0; j < v_func_expr_node.size(); j++) {
+      if (i == j) {continue;}
+      else if (p_oracle->ir_wrapper.is_ir_in(v_func_expr_node[i], v_func_expr_node[j])) {
+        ignore_set.push_back(i);
+      }
+    }
+  }
+  for (int i = 0; i < v_func_expr_node.size(); i++) {
+    if (find(ignore_set.begin(), ignore_set.end(), i) == ignore_set.end()) {
+      IR* new_func_expr = instan_rand_func_expr();
+//      cerr << "\n\n\nGetting new func expr: " << new_func_expr->to_string() << "\n\n\n";
+      cur_trans_stmt->swap_node(v_func_expr_node[i], new_func_expr);
+      v_func_expr_node[i]->deep_drop();
+    }
+  }
+
   /* Fill in concret values into the query. */
   vector<vector<IR *>> ordered_all_subquery_ir;
 
@@ -2497,25 +2602,25 @@ bool Mutator::fix_dependency(IR *root,
     }
 
     /* Sixth loop, resolve id_function_name. */
-    for (auto ir : ordered_ir) {
-      if (visited.find(ir) != visited.end()) {
-        continue;
-      }
-
-      if (ir->id_type_ == id_function_name) {
-        if (ir->type_ != kExprFunc) {
-          visited.insert(ir);
-          continue;
-        }
-
-        // got kExprFunc now.
-        FuncSig cur_func = vector_rand_ele(this->v_func_sig);
-        string func_str = cur_func.get_mutated_func_str();
-        ir->str_val_ = func_str;
-        visited.insert(ir);
-        continue;
-      }
-    }
+//    for (auto ir : ordered_ir) {
+//      if (visited.find(ir) != visited.end()) {
+//        continue;
+//      }
+//
+//      if (ir->id_type_ == id_function_name) {
+//        if (ir->type_ != kExprFunc) {
+//          visited.insert(ir);
+//          continue;
+//        }
+//
+//        // got kExprFunc now.
+//        FuncSig cur_func = vector_rand_ele(this->v_func_sig);
+//        string func_str = cur_func.get_mutated_func_str();
+//        ir->str_val_ = func_str;
+//        visited.insert(ir);
+//        continue;
+//      }
+//    }
 
     /* Seventh loop, resolve id_collation-anme. */
     for (auto ir : ordered_ir) {

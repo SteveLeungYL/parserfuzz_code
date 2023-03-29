@@ -36,6 +36,19 @@ public:
                                    bool is_subquery = false,
                                    bool is_ignore_subquery = false);
 
+  inline bool is_ir_in(IR* child, IR* parent) {
+    if (child == parent) {
+      return true;
+    }
+    while (child->parent_ != nullptr) {
+      child = child->parent_;
+      if (child == parent) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool append_stmt_after_idx(string, int idx, Mutator &g_mutator);
   bool append_stmt_at_end(string, Mutator &g_mutator);
   bool
