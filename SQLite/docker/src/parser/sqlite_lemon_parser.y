@@ -2831,7 +2831,8 @@ A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_whatever;
+B->str_val_ = "";
 }
 
 window(A) ::= ORDER(B) BY(C) sortlist(D) frame_opt(E) . {
@@ -2844,7 +2845,8 @@ A = new IR(kUnknown, OP3("", string(C) + " " + string(D), ""), (IR*)B, (IR*)E);
 v_ir->push_back(A);
 A = new IR(kWindow, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_whatever;
+B->str_val_ = "";
 }
 
 window(A) ::= frame_opt(B) . {
@@ -2855,7 +2857,8 @@ v_ir->push_back(A);
 window(A) ::= nm(B) frame_opt(C) . {
 A = new IR(kWindow, OP3("", "", ""), (IR*)B, (IR*)C);
 v_ir->push_back(A);
-B->id_type_ = id_window_name;
+B->id_type_ = id_whatever;
+B->str_val_ = "";
 }
 
 frame_opt(A) ::= .                             {
@@ -2970,7 +2973,8 @@ v_ir->push_back(A);
 over_clause(A) ::= OVER(B) nm(C) . {
 A = new IR(kOverClause, OP3(string(B), "", ""), (IR*)C);
 v_ir->push_back(A);
-C->id_type_ = id_window_name;
+C->id_type_ = id_whatever;
+C->str_val_ = "";
 }
 
 filter_clause(A) ::= FILTER(B) LP(C) WHERE(D) expr(E) RP(F) .  {
