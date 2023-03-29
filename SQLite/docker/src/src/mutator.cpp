@@ -2349,7 +2349,12 @@ bool Mutator::fix_dependency(IR *root,
             if (
                 ir->parent_ != nullptr
                 ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false, true);
+#ifdef DEBUG
+              cerr << "\n\n\nDebug: dot dot dot: \n";
+              debug(ir->parent_, 0);
+              cerr << v_tmp_table_ir.size() << " \n\n\n";
+#endif
               if (v_tmp_table_ir.size() > 0) {
                 IR* tmp_table_ir = v_tmp_table_ir.front();
                 tmp_table_ir->str_val_ = aliasname_str;
@@ -2385,7 +2390,12 @@ bool Mutator::fix_dependency(IR *root,
             if (
                 ir->parent_ != nullptr
             ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
+              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false, true);
+#ifdef DEBUG
+              cerr << "\n\n\nDebug: dot dot dot: \n";
+              debug(ir->parent_, 0);
+              cerr << v_tmp_table_ir.size() << " \n\n\n";
+#endif
               if (v_tmp_table_ir.size() > 0) {
                 IR* tmp_table_ir = v_tmp_table_ir.front();
                 tmp_table_ir->str_val_ = tablename_str;
