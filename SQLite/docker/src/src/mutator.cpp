@@ -618,7 +618,7 @@ IR* Mutator::gen_rand_expr_node() {
     vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kExpr, false);
     if (v_res_node.size() > 0) {
       IR* res_node = v_res_node.front()->deep_copy();
-      v_res_node.back()->deep_drop();
+      ir_vec.back()->deep_drop();
       return res_node;
     } else {
       ir_vec.back()->deep_drop();
