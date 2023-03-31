@@ -1081,14 +1081,15 @@ v_ir->push_back(A);
 }
 
 seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) on_using(F) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)C, (IR*)D);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
 v_ir->push_back(A);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)F);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
+A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
+v_ir->push_back(A);
+
 if (!E->is_empty()) {
     E->left_->id_type_ = id_table_alias_name;
 }
@@ -1103,16 +1104,17 @@ if (!(C->is_empty()) && !(D->is_empty())) {
 }
 
 seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) indexed_by(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)C, (IR*)D);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
+A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
+v_ir->push_back(A);
+
 if (!E->is_empty()) {
     E->left_->id_type_ = id_table_alias_name;
 }
@@ -1127,16 +1129,17 @@ if (!(C->is_empty()) && !(D->is_empty())) {
 }
 
 seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) LP(E) exprlist(F) RP(G) as(H) on_using(I) . {
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)A, (IR*)D);
+A = new IR(kUnknown, OP3("", "", string(E)), (IR*)C, (IR*)D);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", string(G)), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)H);
 v_ir->push_back(A);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)I);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)I);
 v_ir->push_back(A);
+A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
+v_ir->push_back(A);
+
 if (!H->is_empty()) {
     H->left_->id_type_ = id_table_alias_name;
 }
@@ -1151,24 +1154,26 @@ if (!(C->is_empty()) && !(D->is_empty())) {
 }
 
 seltablist(A) ::= stl_prefix(B) LP(C) select(D) RP(E) as(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
+A = new IR(kUnknown, OP3(string(C), string(E), ""), (IR*)D, (IR*)F);
 v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
+A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
+
 if (!F->is_empty()) {
     F->left_->id_type_ = id_table_alias_name;
 }
 }
 
 seltablist(A) ::= stl_prefix(B) LP(C) seltablist(D) RP(E) as(F) on_using(G) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
+A = new IR(kUnknown, OP3(string(C), string(E), ""), (IR*)D, (IR*)F);
 v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)F);
+A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)G);
 v_ir->push_back(A);
-A = new IR(kSeltablist, OP3("", "", ""), (IR*)A, (IR*)G);
+A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
+
 if (!F->is_empty()) {
     F->left_->id_type_ = id_table_alias_name;
 }
