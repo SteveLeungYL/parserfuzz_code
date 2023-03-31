@@ -23,6 +23,9 @@ enum STMT_TYPE { NOT_ORACLE = 0, ORACLE_SELECT = 1, ORACLE_NORMAL = 2 };
 class Mutator {
 
 public:
+
+  int dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg);
+
   // simple setters
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
@@ -264,6 +267,8 @@ private:
   // static map<string, vector<string>> m_table2alias;
   vector<string> tmp_v_table_names;
   vector<string> tmp_used_string_library;
+
+  void handle_no_tables_specified_error(IR*& cur_stmt_root);
 
 };
 

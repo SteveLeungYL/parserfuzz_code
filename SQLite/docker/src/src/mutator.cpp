@@ -46,6 +46,22 @@ map<string, vector<string>>
 vector<string> Mutator::v_create_table_names_single_with_tmp;
 vector<string> Mutator::v_create_column_names_single_with_tmp;
 
+int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
+
+  if (findStringIn(error_msg, "no tables specified")) {
+    this->handle_no_tables_specified_error(cur_stmt_root);
+  }
+
+  return 0;
+}
+
+void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
+  // For every kFrom node, insert id_top_table_name to the statement.
+
+  return;
+
+}
+
 IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
 
   IR *left = NULL, *right = NULL, *copy_res;

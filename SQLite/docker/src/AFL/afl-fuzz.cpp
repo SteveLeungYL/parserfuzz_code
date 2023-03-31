@@ -231,6 +231,7 @@ static s32 max_norec =
 static string program_input_str; /* String: query used to test sqlite   */
 // static string
 //    program_output_str; /* String: query results output from sqlite   */
+static string program_output_res;
 
 int bug_output_id = 0;
 
@@ -2856,6 +2857,11 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
     all_comp_res.v_res.push_back(fault);
+
+    vector<string> v_tmp_cur_out = string_splitter(res_str, "--------------\n");
+    if (v_tmp_cur_out.size() > 1) {
+      program_output_res = v_tmp_cur_out.back();
+    }
 
     /* Users can hit us with SIGUSR1 to request the current input
          to be abandoned. */
@@ -5732,6 +5738,7 @@ static u8 fuzz_one(char **argv) {
 
       num_parse++;
 
+      bool is_succeed = false;
       {
         IR *cur_root = ir_set.back();
 
@@ -5742,17 +5749,12 @@ static u8 fuzz_one(char **argv) {
 
         for (IR *cur_stmt : v_stmt) {
           /* Fill in concret values to the SQL. Instantiation step. */
-          if (cur_stmt->type_ == kCmdPragma) {
-            continue;
-          }
           if (!g_mutator.validate(cur_stmt, false)) {
             continue;
           }
-
           cur_input += cur_stmt->to_string() + "; \n";
         }
 
-        cur_root->deep_drop();
 
         num_validate++;
 
@@ -5760,31 +5762,53 @@ static u8 fuzz_one(char **argv) {
           return 0;
         }
 
-        vector<string> query_str_vec;
+        for (int fix_trial = 0; fix_trial < 10; fix_trial++) {
+          vector<string> query_str_vec;
 
-        if (is_str_empty(cur_input)) {
-          total_append_failed++;
-          skip_count++;
-          continue;
-        } else {
-          query_str_vec.push_back(".testctrl optimization 0xffffffff; \n"
-                                  + input +
-                                  cur_input);
-          query_str_vec.push_back(".testctrl optimization 0x00000000; \n"
-                                  + input +
-                                  cur_input);
+          if (is_str_empty(cur_input)) {
+            total_append_failed++;
+            skip_count++;
+            break;
+          } else {
+            query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
+                                    input +
+                                    ".print '--------------'\n" +
+                                    cur_input);
+            query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
+                                    input +
+                                    ".print '--------------'\n" +
+                                    cur_input);
 
-          show_stats();
-          stage_name = "fuzz";
-          num_common_fuzz++;
-          common_fuzz_stuff(argv, query_str_vec);
-          stage_cur++;
-          show_stats();
+            show_stats();
+            stage_name = "fuzz";
+            num_common_fuzz++;
+            common_fuzz_stuff(argv, query_str_vec);
+            stage_cur++;
+            show_stats();
+
+            if (findStringIn(program_output_res, "error")) {
+//              cerr << "From stmt: " << cur_input << "\n";
+//              cerr << "Getting error: " << program_output_res << ", idx: " << fix_trial << "\n\n\n";
+              g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
+              v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+              cur_input.clear();
+              for (IR *cur_stmt : v_stmt) {
+                cur_input += cur_stmt->to_string() + "; \n";
+              }
+              continue;
+            } else {
+              // No errors. We can save the query and then continue to the next one.
+              is_succeed = true;
+              break;
+            }
+          }
         }
+
+        cur_root->deep_drop();
         ret_val = 0;
       }
 
-      if (debug_error > cur_debug_error) {
+      if (!is_succeed) {
         // Contains new errors. Give up the current stmt.
         g_mutator.rollback_dependency();
         continue;
