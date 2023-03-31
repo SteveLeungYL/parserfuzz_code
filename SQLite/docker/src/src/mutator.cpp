@@ -1807,20 +1807,8 @@ void Mutator::rollback_dependency() {
   v_table_names = tmp_v_table_names;
   used_string_library = tmp_used_string_library;
   used_value_libary = tmp_used_value_libary;
-  reset_database_single_stmt();
 }
 
-// relationmap[id_table_alias_name] = id_top_table_name;
-// relationmap[id_column_name] = id_top_table_name;
-// relationmap[id_table_name] = id_top_table_name;
-// relationmap[id_index_name] = id_top_table_name;
-// relationmap[id_create_column_name] = id_create_table_name;
-// relationmap[id_pragma_value] = id_pragma_name;
-// relationmap[id_create_index_name] = id_create_table_name;
-// cross_map[id_top_table_name] = id_create_table_name;
-// relationmap_alternate[id_create_column_name] = id_top_table_name;
-// relationmap_alternate[id_create_index_name] = id_top_table_name;
-//
 bool Mutator::fix_dependency(IR *root,
                              vector<vector<IR *>> &ordered_all_subquery_ir,
                              bool is_debug_info) {
@@ -2231,13 +2219,6 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_column_name) {
 
-        if (!(get_rand_int(10))) {
-          // 1/10 chances, use ROWID for the id_column_name.
-          ir->str_val_ = "rowid";
-          visited.insert(ir);
-          continue;
-        }
-
         if (v_table_names_single.size() == 0 &&
             v_create_table_names_single.size() == 0 &&
             v_create_column_names_single_with_tmp.size() == 0) {
@@ -2362,12 +2343,18 @@ bool Mutator::fix_dependency(IR *root,
                 is_table_node = true;
               }
             }
+            if (!(get_rand_int(10))) {
+              column_str = "rowid";
+            }
             if (is_table_node) {
               ir->str_val_ = column_str;
             } else {
               ir->str_val_ = aliasname_str + "." + column_str;
             }
           } else {
+            if (!(get_rand_int(10))) {
+              column_str = "rowid";
+            }
             { ir->str_val_ = column_str; }
           }
 
@@ -2403,12 +2390,18 @@ bool Mutator::fix_dependency(IR *root,
                 is_table_node = true;
               }
             }
+            if (!(get_rand_int(10))) {
+              column_str = "rowid";
+            }
             if (is_table_node) {
               ir->str_val_ = column_str;
             } else {
               ir->str_val_ = tablename_str + "." + column_str;
             }
           } else {
+            if (!(get_rand_int(10))) {
+              column_str = "rowid";
+            }
             { ir->str_val_ = column_str; }
           }
           if (is_debug_info) {
