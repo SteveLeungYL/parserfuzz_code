@@ -310,6 +310,11 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   for (const json& cur_func_json : func_data) {
     FuncSig cur_func_sig = FuncSig(cur_func_json, all_supported_types);
     v_func_sig.push_back(cur_func_sig);
+    if (cur_func_sig.get_func_catalog() != Window) {
+      v_func_sig_non_window.push_back(cur_func_sig);
+    } else {
+      v_func_sig_window.push_back(cur_func_sig);
+    }
   }
 
   func_data.clear();
@@ -644,6 +649,33 @@ IR* Mutator::gen_rand_expr_node() {
   return nullptr;
 }
 
+
+IR* Mutator::gen_rand_filter_over_clause() {
+
+  for (int i = 0; i < 100; i++) {
+    string tmp_stmt = "SELECT " + rsg_generate("exprFuncWindow") + ";";
+    vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_stmt);
+    if (ir_vec.size() == 0) {
+#ifdef DEBUG
+      cerr << "\n\n\n"
+           << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
+      cerr << "Rejected. \n\n\n";
+#endif
+      continue;
+    }
+    vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kFilterOver, false);
+    if (v_res_node.size() > 0) {
+      IR* res_node = v_res_node.front()->deep_copy();
+      ir_vec.back()->deep_drop();
+      return res_node;
+    } else {
+      ir_vec.back()->deep_drop();
+      continue;
+    }
+  }
+  return nullptr;
+}
+
 IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
   // Ignore the req_ret_type for now.
 
@@ -653,7 +685,7 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
 
   IR* new_func_name_ir = new IR(kIdentifier, string(cur_func_sig.get_func_name()), id_function_name);
   new_func_name_ir->is_node_struct_fixed = true;
-  IR* new_func_expr_ir = new IR(kExprFunc, OP3("", "(", ")"), new_func_name_ir, nullptr);
+  IR* new_func_expr_ir = new IR(kUnknown, OP3("", "(", ")"), new_func_name_ir, nullptr);
   int idx = 0;
   IR* tmp_arg_node = nullptr;
   for (DataType cur_arg_type : v_arg_types) {
@@ -698,6 +730,13 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
     }
   }
   new_func_expr_ir->update_right(tmp_arg_node);
+
+  if (cur_func_sig.get_func_catalog() == Window) {
+    IR* filter_over_clause = this->gen_rand_filter_over_clause();
+    new_func_expr_ir = new IR(kUnknown, OP3("", "", ""), new_func_expr_ir, filter_over_clause);
+  }
+
+  new_func_expr_ir->type_ = kExprFunc;
 
   return new_func_expr_ir;
 }
@@ -1094,7 +1133,6 @@ void Mutator::fix_preprocessing(IR *root,
   type_to_fix.insert(id_create_table_name_with_tmp);
   type_to_fix.insert(id_create_column_name_with_tmp);
   type_to_fix.insert(id_trigger_name);
-  type_to_fix.insert(id_function_name);
   type_to_fix.insert(id_collation_name);
   type_to_fix.insert(id_view_name);
   type_to_fix.insert(id_create_view_name);
@@ -2619,6 +2657,38 @@ bool Mutator::fix_dependency(IR *root,
                     ": "
                  << ir->str_val_ << "\n\n\n";
           }
+        } else if (this->v_table_names_single.size() != 0) {
+          string rand_chosen_table_name = vector_rand_ele(v_table_names_single);
+          string rand_chosen_column_name;
+          if (m_tables.find(rand_chosen_table_name) != m_tables.end()) {
+            vector<string> v_rand_chosen_column_name = m_tables.at(rand_chosen_table_name);
+            if (!v_rand_chosen_column_name.empty()) {
+              rand_chosen_column_name = vector_rand_ele(v_rand_chosen_column_name);
+            } else {
+              rand_chosen_column_name = "rowid";
+            }
+          } else {
+            rand_chosen_column_name = "rowid";
+          }
+          if (m_table2alias_single.find(rand_chosen_table_name) != m_table2alias_single.end()) {
+              vector<string> v_rand_chosen_table_name = m_table2alias_single.at(rand_chosen_table_name);
+              if (!v_rand_chosen_table_name.empty()) {
+                rand_chosen_table_name = vector_rand_ele(v_rand_chosen_table_name);
+              }
+          }
+
+          if (get_rand_int(2)) {
+              ir->str_val_ = "( ORDER BY ";
+          } else {
+              ir->str_val_ = "( PARTITION BY ";
+          }
+
+          if (!rand_chosen_table_name.empty()) {
+              ir->str_val_ += rand_chosen_table_name + ".";
+          }
+
+          ir->str_val_ += rand_chosen_column_name + ")";
+
         } else {
           ir->str_val_ = "y";
           visited.insert(ir);

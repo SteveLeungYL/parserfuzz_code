@@ -2952,8 +2952,7 @@ v_ir->push_back(A);
 over_clause(A) ::= OVER(B) nm(C) . {
 A = new IR(kOverClause, OP3(string(B), "", ""), (IR*)C);
 v_ir->push_back(A);
-C->id_type_ = id_whatever;
-C->str_val_ = "";
+C->id_type_ = id_window_name;
 }
 
 filter_clause(A) ::= FILTER(B) LP(C) WHERE(D) expr(E) RP(F) .  {

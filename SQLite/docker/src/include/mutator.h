@@ -206,6 +206,7 @@ private:
 
   void fix_common_rsg_errors(IR*);
   IR* gen_rand_expr_node();
+  IR* gen_rand_filter_over_clause();
   IR* instan_rand_func_expr(DATATYPE req_ret_type = kTYPEUNKNOWN);
   void instan_rand_func_expr_helper(IR* cur_node);
 
@@ -259,6 +260,8 @@ private:
   GramCovMap gram_cov_map;
 
   vector<FuncSig> v_func_sig;
+  vector<FuncSig> v_func_sig_non_window;
+  vector<FuncSig> v_func_sig_window;
 
   vector<string> tmp_used_value_libary;
   map<string, vector<string>> tmp_m_tables;
