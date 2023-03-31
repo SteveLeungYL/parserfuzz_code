@@ -1141,15 +1141,14 @@ void Mutator::fix_preprocessing(IR *root,
   type_to_fix.insert(id_vtab_module_name);
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
-  /*
-  ** The original order of the subqueries are from outer statement to inner
-  *statement.
-  ** We change the order so it should be from parent to child subqueries.
-  */
-  // reverse(subqueries.begin(), subqueries.end());
 
-  // cerr << "In Mutator::fix_preprocessing, we have subqueries.size(): " <<
-  // subqueries.size() << "\n";
+//  cerr << "Getting root: " << get_string_by_ir_type(root->type_) << "\n\n\n";
+//   cerr << "\n\nIn Mutator::fix_preprocessing, we have subqueries.size(): " <<
+//   subqueries.size() << "\nBEGIN:";
+//   for (IR* cur_q : subqueries) {
+//    cerr << cur_q->to_string() << "\n";
+//   }
+//   cerr << "END\n\n\n";
 
   for (IR *subquery : subqueries) {
     vector<IR *> ir_to_fix;
@@ -2032,6 +2031,18 @@ bool Mutator::fix_dependency(IR *root,
                    << ", we generate alias name: " << new_alias_str
                    << ". \n\n\n";
             }
+          } else if (cur_stmt_type == kCmdSelect) {
+            string new_alias_str = gen_alias_name();
+            m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+            ir->str_val_ += " AS " + new_alias_str;
+            v_alias_names_single.push_back(new_alias_str);
+
+            if (is_debug_info) {
+              cerr << "Dependency: In id_top_table_name, for table_name: "
+                   << ir->str_val_
+                   << ", we generate(create AS) alias name: " << new_alias_str
+                   << ". \n\n\n";
+            }
           }
         } else { // if (v_table_names.size() != 0 ||
                  // v_create_table_names_single.size() != 0 ||
@@ -2381,30 +2392,10 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kCmdSelect) {
-            bool is_table_node = false;
-            if (
-                ir->parent_ != nullptr
-                ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false, true);
-#ifdef DEBUG
-              cerr << "\n\n\nDebug: dot dot dot: \n";
-              debug(ir->parent_, 0);
-              cerr << v_tmp_table_ir.size() << " \n\n\n";
-#endif
-              if (v_tmp_table_ir.size() > 0) {
-                IR* tmp_table_ir = v_tmp_table_ir.front();
-                tmp_table_ir->str_val_ = aliasname_str;
-                is_table_node = true;
-              }
-            }
             if (!(get_rand_int(10))) {
               column_str = "rowid";
             }
-            if (is_table_node) {
-              ir->str_val_ = column_str;
-            } else {
-              ir->str_val_ = aliasname_str + "." + column_str;
-            }
+            ir->str_val_ = aliasname_str + "." + column_str;
           } else {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -2428,30 +2419,10 @@ bool Mutator::fix_dependency(IR *root,
           /* If cannot find alias name for the table, directly add table_name
            * before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kCmdSelect) {
-            bool is_table_node = false;
-            if (
-                ir->parent_ != nullptr
-            ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false, true);
-#ifdef DEBUG
-              cerr << "\n\n\nDebug: dot dot dot: \n";
-              debug(ir->parent_, 0);
-              cerr << v_tmp_table_ir.size() << " \n\n\n";
-#endif
-              if (v_tmp_table_ir.size() > 0) {
-                IR* tmp_table_ir = v_tmp_table_ir.front();
-                tmp_table_ir->str_val_ = tablename_str;
-                is_table_node = true;
-              }
-            }
             if (!(get_rand_int(10))) {
               column_str = "rowid";
             }
-            if (is_table_node) {
-              ir->str_val_ = column_str;
-            } else {
-              ir->str_val_ = tablename_str + "." + column_str;
-            }
+            ir->str_val_ = tablename_str + "." + column_str;
           } else {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -2532,22 +2503,7 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn) {
-            bool is_table_node = false;
-            if (
-                ir->parent_ != nullptr
-            ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
-              if (v_tmp_table_ir.size() > 0) {
-                IR* tmp_table_ir = v_tmp_table_ir.front();
-                tmp_table_ir->str_val_ = aliasname_str;
-                is_table_node = true;
-              }
-            }
-            if (is_table_node) {
-              ir->str_val_ = index_str;
-            } else {
-              ir->str_val_ = aliasname_str + "." + index_str;
-            }
+            ir->str_val_ = aliasname_str + "." + index_str;
           } else {
             { ir->str_val_ = index_str; }
           }
@@ -2568,23 +2524,7 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn) {
-            bool is_table_node = false;
-            if (
-                ir->parent_ != nullptr
-            ) {
-              vector<IR*> v_tmp_table_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir->parent_ ,id_table_name, false);
-              if (v_tmp_table_ir.size() > 0) {
-                IR* tmp_table_ir = v_tmp_table_ir.front();
-                tmp_table_ir->str_val_ = tablename_str;
-                is_table_node = true;
-              }
-            }
-            if (is_table_node) {
-              ir->str_val_ = index_str;
-            } else {
-              ir->str_val_ = tablename_str + "." + index_str;
-            }
-
+            ir->str_val_ = tablename_str + "." + index_str;
           } else {
             { ir->str_val_ = index_str; }
           }

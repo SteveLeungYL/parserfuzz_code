@@ -1039,14 +1039,15 @@ D->id_type_ = id_table_name;
 }
 
 %type as {IR*}
-as(A) ::= AS(B) nm(C) .    {
-A = new IR(kAs, OP3(string(B), "", ""), (IR*)C);
+as(A) ::= AS nm(C) .    {
+A = new IR(kAs, OP3("", "", ""), (IR*)C);
 v_ir->push_back(A);
-C->id_type_ = id_column_alias_name;
+C->id_type_ = id_whatever;
+C->str_val_ = "";
 }
 
-as(A) ::= ids(B) . {
-IR* tmp = new IR(kIdentifier, string(B), id_column_alias_name);
+as(A) ::= ids . {
+IR* tmp = new IR(kIdentifier, "", id_whatever);
 v_ir->push_back(tmp);
 A = new IR(kAs, OP3("", "", ""), tmp);
 v_ir->push_back(A);
@@ -1091,7 +1092,7 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
 
 if (!E->is_empty()) {
-    E->left_->id_type_ = id_table_alias_name;
+    E->left_->id_type_ = id_whatever;
 }
 if (!(C->is_empty()) && !(D->is_empty())) {
     if (D->left_ != nullptr) {
@@ -1116,7 +1117,7 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
 
 if (!E->is_empty()) {
-    E->left_->id_type_ = id_table_alias_name;
+    E->left_->id_type_ = id_whatever;
 }
 if (!(C->is_empty()) && !(D->is_empty())) {
     if (D->left_ != nullptr) {
@@ -1141,7 +1142,7 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
 
 if (!H->is_empty()) {
-    H->left_->id_type_ = id_table_alias_name;
+    H->left_->id_type_ = id_whatever;
 }
 if (!(C->is_empty()) && !(D->is_empty())) {
     if (D->left_ != nullptr) {
@@ -1162,7 +1163,7 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
 
 if (!F->is_empty()) {
-    F->left_->id_type_ = id_table_alias_name;
+    F->left_->id_type_ = id_whatever;
 }
 }
 
@@ -1175,7 +1176,7 @@ A = new IR(kSeltablist, OP3("", "", ""), (IR*)B, (IR*)A);
 v_ir->push_back(A);
 
 if (!F->is_empty()) {
-    F->left_->id_type_ = id_table_alias_name;
+    F->left_->id_type_ = id_whatever;
 }
 }
 
@@ -1219,24 +1220,27 @@ B->str_val_ = "";
 v_ir->push_back(A);
 B->id_type_ = id_whatever;
 D->id_type_ = id_top_table_name;
+D->str_val_ = "";
 }
 
-xfullname(A) ::= nm(B) DOT nm(D) AS(E) nm(F) .  {
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)B, (IR*)D);
+xfullname(A) ::= nm(B) DOT nm(D) AS nm(F) .  {
+A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)D);
 B->str_val_ = "";
 v_ir->push_back(A);
 A = new IR(kXfullname, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
 B->id_type_ = id_whatever;
 D->id_type_ = id_top_table_name;
-F->id_type_ = id_table_alias_name;
+F->id_type_ = id_whatever;
+F->str_val_ = "";
 }
 
-xfullname(A) ::= nm(B) AS(C) nm(D) . {
-A = new IR(kXfullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
+xfullname(A) ::= nm(B) AS nm(D) . {
+A = new IR(kXfullname, OP3("", "", ""), (IR*)B, (IR*)D);
 v_ir->push_back(A);
 B->id_type_ = id_top_table_name;
-D->id_type_ = id_table_alias_name;
+D->id_type_ = id_whatever;
+D->str_val_ = "";
 }
 
 %type joinop {IR*}
@@ -1628,21 +1632,23 @@ A = new IR(kIdentifier, string(B), id_column_name);
 v_ir->push_back(A);
 }
 
-expr(A) ::= nm(B) DOT(C) nm(D) . {
-A = new IR(kExpr, OP3("", string(C), ""), (IR*)B, (IR*)D);
+expr(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kExpr, OP3("", "", ""), (IR*)B, (IR*)D);
 v_ir->push_back(A);
-B->id_type_ = id_table_name;
+B->id_type_ = id_whatever;
+B->str_val_ = "";
 D->id_type_ = id_column_name;
 }
 
-expr(A) ::= nm(B) DOT nm(D) DOT(E) nm(F) . {
-A = new IR(kUnknown, OP3("", "", string(E)), (IR*)B, (IR*)D);
+expr(A) ::= nm(B) DOT nm(D) DOT nm(F) . {
+A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)D);
 v_ir->push_back(A);
 B->str_val_ = "";
 A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
+D->str_val_ = "";
 B->id_type_ = id_whatever;
-D->id_type_ = id_table_name;
+D->id_type_ = id_whatever;
 F->id_type_ = id_column_name;
 }
 
