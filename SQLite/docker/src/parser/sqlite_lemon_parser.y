@@ -1905,25 +1905,6 @@ A = new IR(kExpr, OP3("", "", string(F)), (IR*)A, (IR*)E);
 v_ir->push_back(A);
 }
 
-expr(A) ::= expr(B) in_op(C) nm(D) dbnm(E) paren_exprlist(F) .  [IN]{
-A = new IR(kUnknown, OP3("", "", ""), (IR*)B, (IR*)C);
-v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)D);
-v_ir->push_back(A);
-A = new IR(kUnknown, OP3("", "", ""), (IR*)A, (IR*)E);
-v_ir->push_back(A);
-A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
-v_ir->push_back(A);
-if (!(D->is_empty()) && !(E->is_empty())) {
-    if (E->left_ != nullptr) {
-        E->left_->id_type_ = id_table_name;
-    }
-    D->id_type_ = id_database_name;
-} else {
-    D->id_type_ = id_table_name;
-}
-}
-
 expr(A) ::= EXISTS(B) LP(C) select(D) RP(E) . {
 A = new IR(kExpr, OP3(string(B) + " " + string(C), string(E), ""), (IR*)D);
 v_ir->push_back(A);
@@ -1990,17 +1971,6 @@ v_ir->push_back(A);
 
 nexprlist(A) ::= expr(B) . {
 A = new IR(kNexprlist, OP3("", "", ""), (IR*)B);
-v_ir->push_back(A);
-}
-
-%type paren_exprlist {IR*}
-paren_exprlist(A) ::= .   {
-A = new IR(kParenExprlist, OP0());
-v_ir->push_back(A);
-}
-
-paren_exprlist(A) ::= LP(B) exprlist(C) RP(D) .  {
-A = new IR(kParenExprlist, OP3(string(B), string(D), ""), (IR*)C);
 v_ir->push_back(A);
 }
 
