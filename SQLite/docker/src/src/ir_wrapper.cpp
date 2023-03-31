@@ -795,7 +795,7 @@ bool IRWrapper::is_exist_distinct(IR *cur_stmt) {
 
 IR *IRWrapper::get_alias_iden_from_tablename_iden(IR *tablename_iden) {
   IR *opt_alias_ir =
-      find_closest_node_exclude_child(tablename_iden, id_alias_name);
+      find_closest_node_exclude_child(tablename_iden, id_table_alias_name);
   return opt_alias_ir;
 }
 
