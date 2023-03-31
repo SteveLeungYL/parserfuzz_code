@@ -826,7 +826,7 @@ v_ir->push_back(A);
 A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (E->right_ != nullptr) {
-    E->left_->id_type_ = id_database_name;
+    E->left_->id_type_ = id_whatever;
     E->right_->id_type_ = id_top_table_name;
 } else {
     E->left_->id_type_ = id_top_table_name;
@@ -874,7 +874,7 @@ v_ir->push_back(A);
 A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (E->right_ != nullptr) {
-    E->left_->id_type_ = id_database_name;
+    E->left_->id_type_ = id_whatever;
     E->right_->id_type_ = id_view_name;
 } else {
     E->left_->id_type_ = id_view_name;
@@ -1198,10 +1198,11 @@ v_ir->push_back(A);
 B->id_type_ = id_table_name;
 }
 
-fullname(A) ::= nm(B) DOT(C) nm(D) . {
-A = new IR(kFullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
+fullname(A) ::= nm(B) DOT nm(D) . {
+A = new IR(kFullname, OP3("", "", ""), (IR*)B, (IR*)D);
+B->str_val_ = "";
 v_ir->push_back(A);
-B->id_type_ = id_database_name;
+B->id_type_ = id_whatever;
 D->id_type_ = id_table_name;
 }
 
@@ -1212,19 +1213,21 @@ v_ir->push_back(A);
 B->id_type_ = id_top_table_name;
 }
 
-xfullname(A) ::= nm(B) DOT(C) nm(D) .  {
-A = new IR(kXfullname, OP3("", string(C), ""), (IR*)B, (IR*)D);
+xfullname(A) ::= nm(B) DOT nm(D) .  {
+A = new IR(kXfullname, OP3("", "", ""), (IR*)B, (IR*)D);
+B->str_val_ = "";
 v_ir->push_back(A);
-B->id_type_ = id_database_name;
+B->id_type_ = id_whatever;
 D->id_type_ = id_top_table_name;
 }
 
-xfullname(A) ::= nm(B) DOT(C) nm(D) AS(E) nm(F) .  {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
+xfullname(A) ::= nm(B) DOT nm(D) AS(E) nm(F) .  {
+A = new IR(kUnknown, OP3("", "", string(E)), (IR*)B, (IR*)D);
+B->str_val_ = "";
 v_ir->push_back(A);
 A = new IR(kXfullname, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-B->id_type_ = id_database_name;
+B->id_type_ = id_whatever;
 D->id_type_ = id_top_table_name;
 F->id_type_ = id_table_alias_name;
 }
@@ -1632,12 +1635,13 @@ B->id_type_ = id_table_name;
 D->id_type_ = id_column_name;
 }
 
-expr(A) ::= nm(B) DOT(C) nm(D) DOT(E) nm(F) . {
-A = new IR(kUnknown, OP3("", string(C), string(E)), (IR*)B, (IR*)D);
+expr(A) ::= nm(B) DOT nm(D) DOT(E) nm(F) . {
+A = new IR(kUnknown, OP3("", "", string(E)), (IR*)B, (IR*)D);
 v_ir->push_back(A);
+B->str_val_ = "";
 A = new IR(kExpr, OP3("", "", ""), (IR*)A, (IR*)F);
 v_ir->push_back(A);
-B->id_type_ = id_database_name;
+B->id_type_ = id_whatever;
 D->id_type_ = id_table_name;
 F->id_type_ = id_column_name;
 }
@@ -2089,7 +2093,7 @@ v_ir->push_back(A);
 A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (E->right_ != nullptr) {
-    E->left_->id_type_ = id_database_name;
+    E->left_->id_type_ = id_whatever;
     E->right_->id_type_ = id_index_name;
 } else {
     E->left_->id_type_ = id_index_name;
@@ -2297,7 +2301,7 @@ if (!(E->is_empty()) && !(F->is_empty())) {
     E->id_type_ = id_create_index_name;
 }
 if (J->right_ != nullptr) {
-    J->left_->id_type_ = id_database_name;
+    J->left_->id_type_ = id_whatever;
     J->right_->id_type_ = id_top_table_name;
 } else {
     J->left_->id_type_ = id_top_table_name;
@@ -2479,7 +2483,7 @@ v_ir->push_back(A);
 A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (E->right_ != nullptr) {
-    E->left_->id_type_ = id_database_name;
+    E->left_->id_type_ = id_whatever;
     E->right_->id_type_ = id_trigger_name;
 } else {
     E->left_->id_type_ = id_trigger_name;
@@ -2575,7 +2579,7 @@ v_ir->push_back(A);
 A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 if (D->right_ != nullptr) {
-    D->left_->id_type_ = id_database_name;
+    D->left_->id_type_ = id_whatever;
     D->right_->id_type_ = id_top_table_name;
 } else {
     D->left_->id_type_ = id_top_table_name;
@@ -2611,7 +2615,7 @@ add_column_fullname(A) ::= fullname(B) . {
 A = new IR(kAddColumnFullname, OP3("", "", ""), (IR*)B);
 v_ir->push_back(A);
 if (B->right_ != nullptr) {
-    B->left_->id_type_ = id_database_name;
+    B->left_->id_type_ = id_whatever;
     B->right_->id_type_ = id_top_table_name;
 } else {
     B->left_->id_type_ = id_top_table_name;
@@ -2629,7 +2633,7 @@ A = new IR(kCmd, OP0(), (IR*)(A));
 v_ir->push_back(A);
 
 if (D->right_ != nullptr) {
-    D->left_->id_type_ = id_database_name;
+    D->left_->id_type_ = id_whatever;
     D->right_->id_type_ = id_top_table_name;
 } else {
     D->left_->id_type_ = id_top_table_name;
