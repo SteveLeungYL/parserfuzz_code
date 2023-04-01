@@ -3095,7 +3095,7 @@ void Mutator::resolve_alter_statement(IR *cur_trans_stmt, bool is_debug_info) {
     }
 
     IR *columnname_ir =
-        cur_trans_stmt->get_parent()->left_->right_;        // TypeColumnName
+        cur_trans_stmt->left_->right_;        // TypeColumnName
     string columnname_str = columnname_ir->left_->str_val_; // TypeNm
 
     m_tables[tablename_str].push_back(columnname_str);
