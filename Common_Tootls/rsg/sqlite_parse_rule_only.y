@@ -281,7 +281,6 @@ selcollist ::= STAR.
 selcollist ::= nm DOT STAR.
 as ::= AS nm.
 as ::=.
-from ::=.
 from ::= FROM seltablist.
 stl_prefix ::= seltablistnorecursive joinop.
 stl_prefix ::=.

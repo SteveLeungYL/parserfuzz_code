@@ -49,6 +49,19 @@ public:
     return false;
   }
 
+  inline bool is_ir_in(IR* child, IRTYPE type) {
+    if (child->type_ == type) {
+      return true;
+    }
+    while (child->parent_ != nullptr) {
+      child = child->parent_;
+      if (child->type_ == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool append_stmt_after_idx(string, int idx, Mutator &g_mutator);
   bool append_stmt_at_end(string, Mutator &g_mutator);
   bool

@@ -2390,7 +2390,9 @@ bool Mutator::fix_dependency(IR *root,
                  << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kCmdSelect) {
+          if (cur_stmt_type == kCmdSelect &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
             }
@@ -2417,7 +2419,9 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* If cannot find alias name for the table, directly add table_name
            * before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kCmdSelect) {
+          if (cur_stmt_type == kCmdSelect &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
             }
@@ -2474,7 +2478,7 @@ bool Mutator::fix_dependency(IR *root,
               cerr << "Dependency: using index name: " << ir->str_val_ <<  ". \n\n\n";
             }
           } else {
-            ir->str_val_ = "1";
+            ir->str_val_ = "y";
             if (is_debug_info) {
               cerr << "Dependency: using index name: " << ir->str_val_ <<  ". \n\n\n";
             }
@@ -2500,7 +2504,9 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableAddColumn &&
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
-              cur_stmt_type != kCmdAlterTableDropColumn) {
+              cur_stmt_type != kCmdAlterTableDropColumn &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              ) {
             ir->str_val_ = aliasname_str + "." + index_str;
           } else {
             { ir->str_val_ = index_str; }
@@ -2521,7 +2527,9 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableAddColumn &&
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
-              cur_stmt_type != kCmdAlterTableDropColumn) {
+              cur_stmt_type != kCmdAlterTableDropColumn &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              ) {
             ir->str_val_ = tablename_str + "." + index_str;
           } else {
             { ir->str_val_ = index_str; }
@@ -2699,13 +2707,13 @@ bool Mutator::fix_dependency(IR *root,
 #define write_arg(x)  do{ if (arg_list_node == nullptr) {res_str += " ( " + string(x) + ") "; } else {arg_list_node->str_val_ = string(x);} } while(0)
         switch (get_rand_int(7)) {
         case 0:
-          res_str = " csv ";
-          write_arg("'thecsvfile.csv'");
-          break;
+//          res_str = " csv ";
+//          write_arg("'thecsvfile.csv'");
+//          break;
         case 1:
-          res_str = " dbstat ";
-          write_arg("main");
-          break;
+//          res_str = " dbstat ";
+//          write_arg("main");
+//          break;
         case 2:
           res_str = " fts5 ";
           write_arg("sender, title, body");

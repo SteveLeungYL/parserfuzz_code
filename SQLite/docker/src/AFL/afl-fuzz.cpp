@@ -5714,7 +5714,7 @@ static u8 fuzz_one(char **argv) {
   vector<IR *> app_new_select_stmts;
   char *tmp_name = stage_name;
   int skip_count;
-  string input = "";
+  string input = "CREATE TABLE v0 (v1 INTEGER, v2 TEXT, v3 FLOAT); \n";
 
   //[modify] add
   stage_name = "mutate";
