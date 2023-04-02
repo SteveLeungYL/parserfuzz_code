@@ -2293,12 +2293,9 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_column_name, couldn't find any "
                     "v_table_name_single saved. \n\n\n";
           }
-          string random_tablename_str = vector_rand_ele(v_table_names);
-          vector<string> random_column_vec = m_tables[random_tablename_str];
-          if (random_column_vec.size() != 0) {
-            ir->str_val_ = vector_rand_ele(random_column_vec);
-          } else {
-            ir->str_val_ = gen_column_name();
+          ir->str_val_ = "y";
+          if (is_debug_info) {
+            cerr << "Dependency: using column name: " << ir->str_val_ <<  ". \n\n\n";
           }
           continue;
         }
@@ -2442,13 +2439,7 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_column_name, couldn't find any "
                     "matched_columnname_vec saved. \n\n\n";
           }
-          string random_tablename_str = vector_rand_ele(v_table_names);
-          vector<string> random_column_vec = m_tables[random_tablename_str];
-          if (random_column_vec.size() != 0) {
-            ir->str_val_ = vector_rand_ele(random_column_vec);
-          } else {
-            ir->str_val_ = gen_column_name();
-          }
+          ir->str_val_ = "y";
           continue;
         }
       }
@@ -2459,13 +2450,11 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_index_name, couldn't find any "
                     "v_table_name_single saved. \n\n\n";
           }
-          string random_tablename_str = vector_rand_ele(v_table_names);
-          vector<string> random_index_vec = m_table2index[random_tablename_str];
-          if (random_index_vec.size() != 0) {
-            ir->str_val_ = vector_rand_ele(random_index_vec);
-          } else {
-            ir->str_val_ = gen_column_name();
+          ir->str_val_ = "y";
+          if (is_debug_info) {
+            cerr << "Dependency: using index name: " << ir->str_val_ <<  ". \n\n\n";
           }
+          visited.insert(ir);
           continue;
         }
 
@@ -2481,9 +2470,16 @@ bool Mutator::fix_dependency(IR *root,
           vector<string> random_index_vec = m_table2index[random_tablename_str];
           if (random_index_vec.size() != 0) {
             ir->str_val_ = vector_rand_ele(random_index_vec);
+            if (is_debug_info) {
+              cerr << "Dependency: using index name: " << ir->str_val_ <<  ". \n\n\n";
+            }
           } else {
-            ir->str_val_ = gen_column_name();
+            ir->str_val_ = "1";
+            if (is_debug_info) {
+              cerr << "Dependency: using index name: " << ir->str_val_ <<  ". \n\n\n";
+            }
           }
+          visited.insert(ir);
           continue;
         }
 
@@ -2540,13 +2536,7 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_index_name, couldn't find any "
                     "matched_indexname_vec saved. \n\n\n";
           }
-          string random_tablename_str = vector_rand_ele(v_table_names);
-          vector<string> random_index_vec = m_table2index[random_tablename_str];
-          if (random_index_vec.size() != 0) {
-            ir->str_val_ = vector_rand_ele(random_index_vec);
-          } else {
-            ir->str_val_ = gen_column_name();
-          }
+          ir->str_val_ = "y";
           continue;
         }
       }
@@ -2757,20 +2747,20 @@ bool Mutator::fix_dependency(IR *root,
           }
           break;
         case 5:
-          res_str = " zipfile ";
-          if (get_rand_int(2)) {
-            write_arg("'name'");
-            if (v_create_table_names_single.size() != 0) {
-              m_tables[v_create_table_names_single.front()].push_back("unknown0");
-              m_tables[v_create_table_names_single.front()].push_back("unknown1");
-              m_tables[v_create_table_names_single.front()].push_back("unknown2");
-              m_tables[v_create_table_names_single.front()].push_back("unknown3");
-              m_tables[v_create_table_names_single.front()].push_back("unknown4");
-              m_tables[v_create_table_names_single.front()].push_back("unknown5");
-              m_tables[v_create_table_names_single.front()].push_back("unknown6");
-            }
-          }
-          break;
+//          res_str = " zipfile ";
+//          if (get_rand_int(2)) {
+//            write_arg("'name'");
+//            if (v_create_table_names_single.size() != 0) {
+//              m_tables[v_create_table_names_single.front()].push_back("unknown0");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown1");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown2");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown3");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown4");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown5");
+//              m_tables[v_create_table_names_single.front()].push_back("unknown6");
+//            }
+//          }
+//          break;
         case 6:
           res_str = " fts5vocab ";
           string known_fts_table_name = "v0";
