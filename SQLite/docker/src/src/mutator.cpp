@@ -778,7 +778,9 @@ bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
   }
   bool res = true;
 
-  instan_rand_func_expr_helper(cur_trans_stmt);
+  if (!is_debug_info) {
+    instan_rand_func_expr_helper(cur_trans_stmt);
+  }
 
   /* Fill in concret values into the query. */
   vector<vector<IR *>> ordered_all_subquery_ir;
