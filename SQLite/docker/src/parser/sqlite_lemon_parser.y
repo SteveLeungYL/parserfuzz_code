@@ -1257,11 +1257,14 @@ v_ir->push_back(A);
 joinop(A) ::= JOIN_KW(B) nm(C) JOIN(D) . {
 A = new IR(kJoinop, OP3(string(B), string(D), ""), (IR*)C);
 v_ir->push_back(A);
+C->is_node_struct_fixed = true;
 }
 
 joinop(A) ::= JOIN_KW(B) nm(C) nm(D) JOIN(E) . {
 A = new IR(kJoinop, OP3(string(B), "", string(E)), (IR*)C, (IR*)D);
 v_ir->push_back(A);
+C->is_node_struct_fixed = true;
+D->is_node_struct_fixed = true;
 }
 
 %type on_using {IR*}
