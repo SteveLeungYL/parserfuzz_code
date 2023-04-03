@@ -5790,7 +5790,12 @@ static u8 fuzz_one(char **argv) {
 //            cerr << "From stmt: " << query_str_vec.front() << "\n";
 //            cerr << "Getting res: " << program_output_res << ", idx: " << fix_trial << "\n\n\n";
             if (findStringIn(program_output_res, "error")) {
-              g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
+              int fix_res = g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
+              if (fix_res) {
+                // cannot fix, early terminate.
+                is_succeed = false;
+                break;
+              }
               v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
               cur_input.clear();
               for (IR *cur_stmt : v_stmt) {

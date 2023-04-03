@@ -57,11 +57,17 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "unsupported use of NULLS")) {
     this->handle_nulls_syntax_error(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "no such column")) {
+    IR* err_node = locate_error_ir(cur_stmt_root, error_msg);
+    if (err_node == nullptr) {
+      handle_no_such_column_without_err_loc(cur_stmt_root, error_msg);
+    } else {
+      handle_no_such_column_with_err_loc(cur_stmt_root, err_node, error_msg);
+    }
+    return 0;
   }
 
-  locate_error_ir(cur_stmt_root, error_msg);
-
-  return 0;
+  return 1;
 }
 
 IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
@@ -168,14 +174,19 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
 void Mutator::handle_distinct_in_window_func_error(IR*& cur_stmt_root) {
 
-  vector<IR*> v_distinct_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kDistinct);
+//  cerr << "Handling distinct_in_window, before: " << cur_stmt_root->to_string() << "\n\n";
+
+  vector<IR*> v_distinct_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kDistinct, false, true);
 
   for (IR* cur_distinct: v_distinct_clause) {
     if (p_oracle->ir_wrapper.is_ir_in(cur_distinct, kExprFunc)) {
       cur_distinct->str_val_ = "";
       cur_distinct->op_->prefix_ = "";
+//      cerr << "Found one\n";
     }
   }
+
+//  cerr << "After: " << cur_stmt_root->to_string() << "\n\n\n\n";
 
   return;
 
@@ -183,7 +194,7 @@ void Mutator::handle_distinct_in_window_func_error(IR*& cur_stmt_root) {
 
 void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
   // For every kFrom node, insert id_top_table_name to the statement.
-  vector<IR*> v_stl_prefix = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kStlPrefix);
+  vector<IR*> v_stl_prefix = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kStlPrefix, false, true);
 
 //  cerr << "Fixing handle_no_tables_specified_error, before: " << cur_stmt_root->to_string() << "\n";
 
@@ -212,7 +223,7 @@ void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
 
 void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
 
-  vector<IR*> v_nulls_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kNulls);
+  vector<IR*> v_nulls_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kNulls, false, true);
 
   for (IR* nulls_node : v_nulls_node) {
     nulls_node->str_val_ = "";
@@ -221,6 +232,23 @@ void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
 
   return;
 
+}
+
+void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& err_str) {
+  if (findStringIn(err_str, "rowid")) {
+    // Using the unsupported rowid in the context. Just re-instantiat should be fine.
+    rollback_dependency();
+    validate(cur_stmt_root, false, false);
+    return;
+  } else if (findStringIn(err_str, "no such column: y")) {
+    // Using the unsupported rowid in the context. Just re-instantiat should be fine.
+    handle_no_tables_specified_error(cur_stmt_root);
+    return;
+  }
+}
+
+void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str) {
+  return;
 }
 
 IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
