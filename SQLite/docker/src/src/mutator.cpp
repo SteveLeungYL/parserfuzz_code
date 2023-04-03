@@ -50,6 +50,10 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
 
   if (findStringIn(error_msg, "no tables specified")) {
     this->handle_no_tables_specified_error(cur_stmt_root);
+    return 0;
+  } else if (findStringIn(error_msg, "DISTINCT is not supported for window functions")) {
+    this->handle_distinct_in_window_func_error(cur_stmt_root);
+    return 0;
   }
 
   locate_error_ir(cur_stmt_root, error_msg);
@@ -159,8 +163,45 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
 }
 
+void Mutator::handle_distinct_in_window_func_error(IR*& cur_stmt_root) {
+
+  vector<IR*> v_distinct_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kDistinct);
+
+  for (IR* cur_distinct: v_distinct_clause) {
+    if (p_oracle->ir_wrapper.is_ir_in(cur_distinct, kExprFunc)) {
+      cur_distinct->str_val_ = "";
+      cur_distinct->op_->prefix_ = "";
+    }
+  }
+
+  return;
+
+}
+
 void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
   // For every kFrom node, insert id_top_table_name to the statement.
+  vector<IR*> v_stl_prefix = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kStlPrefix);
+
+//  cerr << "Fixing handle_no_tables_specified_error, before: " << cur_stmt_root->to_string() << "\n";
+
+  for (IR* cur_stl_prefix: v_stl_prefix) {
+    if (!(cur_stl_prefix->is_empty())) {
+      continue;
+    }
+    // Getting an empty stl_prefix, always exist in one statement.
+    // No need to worry about nested situations, because the target
+    // stl_prefix is empty.
+    IR* new_top_table_node = new IR(kIdentifier, string("v0"), id_top_table_name);
+    IR* new_join_op = new IR(kJoinop, OP3(",", "", ""), nullptr, nullptr);
+    IR* new_stl_prefix = new IR(kStlPrefix, OP0(), new_top_table_node, new_join_op);
+    cur_stmt_root->swap_node(cur_stl_prefix, new_stl_prefix);
+    cur_stl_prefix->deep_drop();
+  }
+
+  rollback_dependency();
+  this->validate(cur_stmt_root, false, false);
+
+//  cerr << "After: " << cur_stmt_root->to_string() << "\n\n\n";
 
   return;
 
@@ -875,14 +916,14 @@ void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt) {
 }
 
 /* Handle and fix one single query statement. */
-bool Mutator::validate(IR *cur_trans_stmt, bool is_debug_info) {
+bool Mutator::validate(IR *cur_trans_stmt, bool is_rewrite_func, bool is_debug_info) {
 
   if (cur_trans_stmt == nullptr) {
     return false;
   }
   bool res = true;
 
-  if (!is_debug_info) {
+  if (is_rewrite_func) {
     instan_rand_func_expr_helper(cur_trans_stmt);
   }
 

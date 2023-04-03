@@ -5747,9 +5747,10 @@ static u8 fuzz_one(char **argv) {
 
         cur_input.clear();
 
+        // Should be only one statement.
         for (IR *cur_stmt : v_stmt) {
           /* Fill in concret values to the SQL. Instantiation step. */
-          if (!g_mutator.validate(cur_stmt->left_, false)) {
+          if (!g_mutator.validate(cur_stmt->left_, true, false)) {
             continue;
           }
           cur_input += cur_stmt->to_string() + "; \n";
@@ -5786,9 +5787,9 @@ static u8 fuzz_one(char **argv) {
             stage_cur++;
             show_stats();
 
+//            cerr << "From stmt: " << query_str_vec.front() << "\n";
+//            cerr << "Getting res: " << program_output_res << ", idx: " << fix_trial << "\n\n\n";
             if (findStringIn(program_output_res, "error")) {
-//              cerr << "From stmt: " << cur_input << "\n";
-//              cerr << "Getting error: " << program_output_res << ", idx: " << fix_trial << "\n\n\n";
               g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
               v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
               cur_input.clear();

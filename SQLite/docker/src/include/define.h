@@ -85,6 +85,7 @@
   V(kOneselect)                                                                \
   V(kValues)                                                                   \
   V(kDistinct)                                                                 \
+  V(kStar)                                                                     \
   V(kSclp)                                                                     \
   V(kSelcollist)                                                               \
   V(kAs)                                                                       \

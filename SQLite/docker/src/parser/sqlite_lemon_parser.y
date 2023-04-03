@@ -1704,11 +1704,13 @@ A = new IR(kExpr, OP3("", "", ""), (IR*)A);
 v_ir->push_back(A);
 }
 
-expr(A) ::= idj(B) LP(C) STAR(D) RP(E) . {
+expr(A) ::= idj(B) LP(C) STAR RP(E) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
-A = new IR(kExprFunc, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir);
+IR* star_expr = new IR(kStar, string("*"), id_whatever);
+v_ir->push_back(star_expr);
+A = new IR(kExprFunc, OP3("", string(C) , string(E)), func_ir, star_expr);
 v_ir->push_back(A);
 A->id_type_ = id_function_name;
 A = new IR(kExpr, OP3("", "", ""), (IR*)A);
@@ -1730,11 +1732,15 @@ A = new IR(kExpr, OP3("", "", ""), (IR*)A);
 v_ir->push_back(A);
 }
 
-expr(A) ::= idj(B) LP(C) STAR(D) RP(E) filter_over(F) . {
+expr(A) ::= idj(B) LP(C) STAR RP(E) filter_over(F) . {
 
 IR* func_ir = new IR(kIdentifier, string(B), id_function_name);
 v_ir->push_back(func_ir);
-A = new IR(kExprFunc, OP3("", string(C) + " " + string(D) + " " + string(E), ""), func_ir, (IR*)F);
+IR* star_expr = new IR(kStar, string("*"), id_whatever);
+v_ir->push_back(star_expr);
+A = new IR(kUnknown, OP3("", string(C), string(E)), func_ir, star_expr);
+v_ir->push_back(A);
+A = new IR(kExprFunc, OP3("", "", ""), (IR*)A, (IR*)F);
 A->id_type_ = id_function_name;
 v_ir->push_back(A);
 A = new IR(kExpr, OP3("", "", ""), (IR*)A);

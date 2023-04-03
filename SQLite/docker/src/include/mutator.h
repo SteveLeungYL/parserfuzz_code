@@ -69,7 +69,7 @@ public:
   void pre_validate();
   vector<IR *> pre_fix_transform(IR *root, vector<STMT_TYPE> &stmt_type_vec);
 
-  bool validate(IR *cur_trans_stmt, bool is_debug_info = false);
+  bool validate(IR *cur_trans_stmt, bool is_rewrite_func = true, bool is_debug_info = false);
 
   vector<vector<vector<IR *>>>
   post_fix_transform(vector<IR *> &all_pre_trans_vec,
@@ -273,6 +273,7 @@ private:
   vector<string> tmp_used_string_library;
 
   void handle_no_tables_specified_error(IR*& cur_stmt_root);
+  void handle_distinct_in_window_func_error(IR*& cur_stmt_root);
 
 };
 
