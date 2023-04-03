@@ -54,6 +54,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "DISTINCT is not supported for window functions")) {
     this->handle_distinct_in_window_func_error(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "unsupported use of NULLS")) {
+    this->handle_nulls_syntax_error(cur_stmt_root);
+    return 0;
   }
 
   locate_error_ir(cur_stmt_root, error_msg);
@@ -202,6 +205,19 @@ void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
   this->validate(cur_stmt_root, false, false);
 
 //  cerr << "After: " << cur_stmt_root->to_string() << "\n\n\n";
+
+  return;
+
+}
+
+void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
+
+  vector<IR*> v_nulls_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kNulls);
+
+  for (IR* nulls_node : v_nulls_node) {
+    nulls_node->str_val_ = "";
+    nulls_node->op_->prefix_ = "";
+  }
 
   return;
 

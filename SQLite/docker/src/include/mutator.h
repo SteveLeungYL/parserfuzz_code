@@ -274,6 +274,7 @@ private:
 
   void handle_no_tables_specified_error(IR*& cur_stmt_root);
   void handle_distinct_in_window_func_error(IR*& cur_stmt_root);
+  void handle_nulls_syntax_error(IR*& cur_stmt_root);
 
 };
 
