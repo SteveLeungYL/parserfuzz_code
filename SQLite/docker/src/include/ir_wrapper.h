@@ -162,6 +162,9 @@ public:
   IR *find_closest_node_exclude_child(IR *cur_node, IRTYPE type_);
   IR *find_closest_node_exclude_child(IR *cur_node, IDTYPE data_type_);
 
+  /* Given one string, find the least child node that containing the string */
+  IR *find_least_child_node_contain_str(IR* cur_node, const string& str);
+
 private:
   IR *ir_root = nullptr;
 };

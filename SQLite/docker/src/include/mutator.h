@@ -25,6 +25,7 @@ class Mutator {
 public:
 
   int dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg);
+  IR* locate_error_ir(IR* cur_stmt_root, string& error_msg);
 
   // simple setters
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }

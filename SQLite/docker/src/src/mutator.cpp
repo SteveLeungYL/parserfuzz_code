@@ -52,7 +52,111 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     this->handle_no_tables_specified_error(cur_stmt_root);
   }
 
+  locate_error_ir(cur_stmt_root, error_msg);
+
   return 0;
+}
+
+IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
+
+  vector<string> v_err_split = string_splitter(error_msg, "\n");
+  if (v_err_split.size() < 3) {
+    return nullptr;
+  }
+  v_err_split.pop_back(); // The very last line is empty.
+
+  string& err_loc_line = v_err_split.back();
+  if (!(findStringIn(err_loc_line, "error here"))) {
+    return nullptr;
+  }
+
+  string::const_iterator match_iter = findStringIter(err_loc_line, "^");
+  if (match_iter == err_loc_line.end()) {
+    // Cannot find the ^ symbol at the line.
+    return nullptr;
+  }
+
+  string err_loc_str = v_err_split[v_err_split.size() - 2];
+  if ((match_iter-err_loc_line.begin()) >= err_loc_line.size()) {
+    return nullptr;
+  }
+
+  /* Debug logging */
+//  cerr << "begin\n";
+//  for (auto& err: v_err_split) {
+//    cerr << "err: " << err << "\n";
+//  }
+//  cerr << "end\n";
+
+  err_loc_str = err_loc_str.substr(match_iter-err_loc_line.begin());
+  string tmp_err_loc_str;
+  tmp_err_loc_str.reserve(err_loc_str.size());
+  for (auto iter = 0; iter < err_loc_str.size(); iter++) {
+    if (iter == 0) {
+      tmp_err_loc_str += err_loc_str[iter];
+      continue;
+    }
+    if (err_loc_str[iter] != ' ' && err_loc_str[iter] != ';' && err_loc_str[iter] != '(' && err_loc_str[iter] != ')' && err_loc_str[iter] != ',') {
+      tmp_err_loc_str += err_loc_str[iter];
+      continue;
+    } else {
+      break;
+    }
+  }
+  err_loc_str = tmp_err_loc_str;
+//  cerr << "Getting err_loc_str: " << err_loc_str << "\n\n";
+
+  string err_extend_str = v_err_split[v_err_split.size() - 2];
+  string::const_iterator ext_begin, ext_end;
+
+  if ((match_iter - 10) <= err_loc_line.begin()) {
+    ext_begin = err_loc_line.begin();
+  } else {
+    ext_begin = match_iter - 10;
+  }
+
+  if ((match_iter + int(err_loc_str.size()) + 10 - err_loc_line.begin()) >= err_extend_str.size()) {
+    ext_end = err_loc_line.begin() + int(err_extend_str.size());
+  } else {
+    ext_end = match_iter + int(err_loc_str.size()) + 10;
+  }
+
+  if (ext_begin - err_loc_line.begin() > err_extend_str.size() ||
+      ext_end - err_loc_line.begin() > err_extend_str.size()
+      ) {
+    cerr << "Logic Error: ext_begin or ext_end overflow!\n\n\n";
+  }
+
+  err_extend_str = err_extend_str.substr(ext_begin - err_loc_line.begin(), (ext_end - ext_begin));
+  trim_string(err_extend_str);
+
+  if (findStringIn(err_loc_str, ";")) {
+    err_loc_str = err_loc_str.substr(0, err_loc_str.size() - 1);
+  }
+  if (findStringIn(err_extend_str, ";")) {
+    err_extend_str = err_extend_str.substr(0, err_extend_str.size() - 1);
+  }
+
+  IR* err_extend_node = p_oracle->ir_wrapper.find_least_child_node_contain_str(cur_stmt_root, err_extend_str);
+
+  /* Debug logging */
+//  cerr << "For err_extend_str: " << err_extend_str << "\n\n";
+//  debug(err_extend_node, 0);
+//  cerr << "\n\n";
+
+  if (err_extend_node == nullptr) {
+    cerr << "Error: Getting NULL pointer on err_extend_node. \n\n\n";
+    return nullptr;
+  }
+
+  IR* err_loc_node = p_oracle->ir_wrapper.find_least_child_node_contain_str(err_extend_node, err_loc_str);
+
+  /* Debug logging. */
+//  debug(err_loc_node, 0);
+//  cerr << "\n\n\n\n\n";
+
+  return nullptr;
+
 }
 
 void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {

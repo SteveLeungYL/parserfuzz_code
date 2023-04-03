@@ -950,3 +950,35 @@ IR *IRWrapper::find_closest_node_exclude_child(IR *cur_node, IDTYPE id_type_) {
 
   return NULL;
 }
+
+IR *IRWrapper::find_least_child_node_contain_str(IR* cur_node, const string& str) {
+  // Recursive function.
+  // Given an input string, find the least child node that completely contain the
+  //  input string
+
+  if (cur_node == nullptr) {
+    return nullptr;
+  }
+
+  string cur_str = cur_node->to_string();
+  if (!findStringIn(cur_str, str)) {
+    return nullptr;
+  }
+  // else, contain the string.
+  // Check left node.
+  IR* left_sub_ret = find_least_child_node_contain_str(cur_node->left_, str);
+  if (left_sub_ret != nullptr) {
+    return left_sub_ret;
+  }
+
+  // Check right node.
+  IR* right_sub_ret = find_least_child_node_contain_str(cur_node->right_, str);
+  if (right_sub_ret != nullptr) {
+    return right_sub_ret;
+  }
+
+  // If both left_ and right_ cannot contain whole input str, the current node
+  // is the least child node.
+  return cur_node;
+
+}
