@@ -3296,6 +3296,11 @@ void Mutator::resolve_alter_statement(IR *cur_trans_stmt, bool is_debug_info) {
       }
     }
     m_table2index[new_table_str] = tmp_saved;
+
+    v_table_names.erase(std::remove(v_table_names.begin(),
+                                    v_table_names.end(),
+                                    ori_table_str),
+                        v_table_names.end());
   }
 
   return;
