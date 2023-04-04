@@ -78,6 +78,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
       handle_no_such_column_with_err_loc(cur_stmt_root, err_node, error_msg);
     }
     return 0;
+  } else if (findStringIn(error_msg, "cannot join using column")) {
+    handle_cannot_join_using_column(cur_stmt_root, error_msg);
+    return 0;
   } else if (findStringIn(error_msg, "no such index: y")) {
     handle_no_such_index_y_err_without_loc(cur_stmt_root);
     return 0;
@@ -200,6 +203,31 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
 }
 
+void Mutator::handle_cannot_join_using_column(IR*& cur_stmt_root, string& err_str) {
+
+  string shorten_str = string_splitter(err_str, "cannot join using column ").back();
+  shorten_str = string_splitter(shorten_str, " ").front();
+  vector<IR*> v_match_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, shorten_str, false, true);
+
+  if (v_match_node.size() == 0) {
+    return;
+  }
+
+  for (IR* cur_match_node: v_match_node) {
+    if (
+        !(p_oracle->ir_wrapper.is_ir_in(cur_match_node, kOnUsing))
+        ) {
+      continue;
+    }
+
+    IR* on_using_node = p_oracle->ir_wrapper.get_parent_matching_type(cur_match_node, kOnUsing);
+    on_using_node->str_val_ = " ";
+    continue;
+  }
+
+  return;
+
+}
 void Mutator::handle_natural_join_err(IR*& cur_stmt_root) {
 
   vector<IR*> v_join_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kJoinop, false, true);
