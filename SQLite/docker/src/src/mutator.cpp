@@ -3479,17 +3479,19 @@ void Mutator::resolve_alter_statement(IR *cur_trans_stmt, bool is_debug_info) {
                            table2column_vec.end());
 
     if (is_debug_info) {
-      cerr << "Dependency: In resolve_alter_statement, adding column_name: "
+      cerr << "Dependency: In resolve_alter_statement, dropping column_name: "
            << rov_columnname_str << "\n\n\n";
     }
 
     IR *new_columnname_ir = cur_trans_stmt->right_;
-    string new_columnname_str = new_columnname_ir->str_val_;
+    string new_columnname_str = gen_column_name();
+    new_columnname_ir->str_val_ = new_columnname_str;
+    new_columnname_ir->id_type_ = id_create_column_name;
 
     m_tables[tablename_str].push_back(new_columnname_str);
 
     if (is_debug_info) {
-      cerr << "Dependency: In resolve_alter_statement, dropping column_name: "
+      cerr << "Dependency: In resolve_alter_statement, adding column_name: "
            << new_columnname_str << "\n\n\n";
     }
 

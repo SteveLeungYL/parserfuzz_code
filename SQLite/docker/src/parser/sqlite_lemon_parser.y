@@ -2628,7 +2628,7 @@ if (D->right_ != nullptr) {
 }
 
 G->id_type_ = id_column_name;
-I->id_type_ = id_create_column_name;
+I->id_type_ = id_whatever;
 
 }
 
