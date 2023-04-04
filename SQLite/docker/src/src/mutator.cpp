@@ -51,7 +51,10 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   if (findStringIn(error_msg, "no tables specified")) {
     this->handle_no_tables_specified_error(cur_stmt_root);
     return 0;
-  } else if (findStringIn(error_msg, "a JOIN clause is required before USING")) {
+  } else if (
+      findStringIn(error_msg, "a JOIN clause is required before USING") ||
+      findStringIn(error_msg, "a JOIN clause is required before ON")
+      ) {
     this->handle_using_no_join_error(cur_stmt_root);
     return 0;
   } else if (findStringIn(error_msg, "DISTINCT is not supported for window functions")) {
