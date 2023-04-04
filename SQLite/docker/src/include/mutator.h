@@ -273,6 +273,7 @@ private:
   vector<string> tmp_used_string_library;
 
   void handle_no_tables_specified_error(IR*& cur_stmt_root);
+  void handle_using_no_join_error(IR*& cur_stmt_root);
   void handle_distinct_in_window_func_error(IR*& cur_stmt_root);
   void handle_nulls_syntax_error(IR*& cur_stmt_root);
   void handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& err_str);

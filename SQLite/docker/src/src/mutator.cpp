@@ -51,6 +51,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   if (findStringIn(error_msg, "no tables specified")) {
     this->handle_no_tables_specified_error(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "a JOIN clause is required before USING")) {
+    this->handle_using_no_join_error(cur_stmt_root);
+    return 0;
   } else if (findStringIn(error_msg, "DISTINCT is not supported for window functions")) {
     this->handle_distinct_in_window_func_error(cur_stmt_root);
     return 0;
@@ -253,6 +256,48 @@ void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
   return;
 
 }
+
+void Mutator::handle_using_no_join_error(IR*& cur_stmt_root) {
+  // For every kFrom node, insert id_top_table_name to the statement.
+  vector<IR*> v_on_using = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kOnUsing, false, true);
+
+//  cerr << "Fixing handle_using_no_join_error, before: " << cur_stmt_root->to_string() << "\n";
+
+  for (IR* cur_on_using: v_on_using) {
+    if (cur_on_using->is_empty()) {
+      continue;
+    }
+    if (!(p_oracle->ir_wrapper.is_ir_in(cur_on_using, kSeltablist))) {
+      cerr << "Error: Found kOnUsing not inside the StlPrefix. Logic error. \n\n\n";
+    }
+
+    IR* cur_sel_tab_list = p_oracle->ir_wrapper.get_parent_matching_type(cur_on_using, kSeltablist);
+    vector<IR*> v_stl_prefix = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_sel_tab_list, kStlPrefix, false, true);
+
+    for (IR* cur_stl_prefix : v_stl_prefix) {
+      if (!(cur_stl_prefix->is_empty())) {
+        continue;
+      }
+      // Getting an empty stl_prefix, always exist in one statement.
+      // No need to worry about nested situations, because the target
+      // stl_prefix is empty.
+      IR* new_top_table_node = new IR(kIdentifier, string("v0"), id_top_table_name);
+      IR* new_join_op = new IR(kJoinop, OP3(",", "", ""), nullptr, nullptr);
+      IR* new_stl_prefix = new IR(kStlPrefix, OP0(), new_top_table_node, new_join_op);
+      cur_stmt_root->swap_node(cur_stl_prefix, new_stl_prefix);
+      cur_stl_prefix->deep_drop();
+    }
+  }
+
+  rollback_dependency();
+  this->validate(cur_stmt_root, false, false);
+
+//  cerr << "After: " << cur_stmt_root->to_string() << "\n\n\n";
+
+  return;
+
+}
+
 
 void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
 
