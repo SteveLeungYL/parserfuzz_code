@@ -81,6 +81,14 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "no such index: y")) {
     handle_no_such_index_y_err_without_loc(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "ORDER BY clause should come after UNION")) {
+    // Remove all the order by clause
+    handle_order_by_before_UNION_err(cur_stmt_root);
+    return 0;
+  } else if (findStringIn(error_msg, "LIMIT clause should come after UNION")) {
+    // Remove all the LIMIT clause
+    handle_limit_before_UNION_err(cur_stmt_root);
+    return 0;
   }
 
   return 1;
@@ -187,6 +195,27 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
   return nullptr;
 
 }
+
+void Mutator::handle_order_by_before_UNION_err(IR*& cur_stmt_root) {
+
+  vector<IR*> v_order_by_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kOrderbyOpt, false, true);
+  for (IR* cur_order_by : v_order_by_clause) {
+    cur_order_by->str_val_ = " ";
+  }
+
+  return;
+
+}
+
+void Mutator::handle_limit_before_UNION_err(IR*& cur_stmt_root) {
+  vector<IR*> v_limit_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kLimitOpt, false, true);
+  for (IR* cur_limit : v_limit_clause) {
+    cur_limit->str_val_ = " ";
+  }
+
+  return;
+}
+
 
 void Mutator::handle_syntax_error_after_column_name_without_loc(IR*& cur_stmt_root, const string& column_name_str ){
   // Remove all the COLLATE and SORTORDER constraints from the WITH clause handling.
