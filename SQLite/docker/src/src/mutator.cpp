@@ -89,6 +89,10 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     // Remove all the LIMIT clause
     handle_limit_before_UNION_err(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "a NATURAL join may not have an ON or USING clause")) {
+    // Remove all the NATURAL keywords from the NATURAL JOIN clause.
+    handle_natural_join_err(cur_stmt_root);
+    return 0;
   }
 
   return 1;
@@ -193,6 +197,18 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 //  cerr << "\n\n\n\n\n";
 
   return nullptr;
+
+}
+
+void Mutator::handle_natural_join_err(IR*& cur_stmt_root) {
+
+  vector<IR*> v_join_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kJoinop, false, true);
+  for (IR* cur_join : v_join_clause) {
+    // Omitted the NATURAL keyword from the JOIN clause.
+    cur_join->op_->prefix_ = " ";
+  }
+
+  return;
 
 }
 
