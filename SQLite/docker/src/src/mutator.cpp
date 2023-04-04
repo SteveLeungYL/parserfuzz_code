@@ -2760,7 +2760,14 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_column_name, couldn't find any "
                     "matched_columnname_vec saved. \n\n\n";
           }
-          ir->str_val_ = "y";
+//          ir->str_val_ = "y";
+          if(get_rand_int(2)) {
+            ir->type_ = kIntegerLiteral;
+          } else {
+            ir->type_ = kStringLiteral;
+          }
+          ir->id_type_ = id_whatever;
+          visited.insert(ir);
           continue;
         }
       }
