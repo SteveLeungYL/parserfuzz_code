@@ -2377,7 +2377,7 @@ bool Mutator::fix_dependency(IR *root,
                << v_create_table_names_single_with_tmp.size() << "\n\n\n";
         }
         if (v_create_table_names_single_with_tmp.size() != 0 &&
-            cur_stmt_type != kCmdUpdate && get_rand_int(100) < 100) {
+            cur_stmt_type != kCmdUpdate && get_rand_int(100) < 50) {
           ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(
               v_create_table_names_single_with_tmp.size())];
           visited.insert(ir);
@@ -2390,6 +2390,12 @@ bool Mutator::fix_dependency(IR *root,
           /* Check whether there are previous defined id_top_table_name. */
           string tablename_str =
               v_table_names_single[get_rand_int(v_table_names_single.size())];
+          if (m_table2alias_single.count(tablename_str) != 0) {
+            vector<string>& v_tmp_alias = m_table2alias_single[tablename_str];
+            if (v_tmp_alias.size()) {
+              tablename_str = vector_rand_ele(v_tmp_alias);
+            }
+          }
           ir->str_val_ = tablename_str;
           visited.insert(ir);
           if (is_debug_info) {
@@ -2404,6 +2410,12 @@ bool Mutator::fix_dependency(IR *root,
           */
           string tablename_str =
               v_table_names[get_rand_int(v_table_names.size())];
+          if (m_table2alias_single.count(tablename_str) != 0) {
+            vector<string>& v_tmp_alias = m_table2alias_single[tablename_str];
+            if (v_tmp_alias.size()) {
+              tablename_str = vector_rand_ele(v_tmp_alias);
+            }
+          }
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
           visited.insert(ir);
@@ -2419,6 +2431,12 @@ bool Mutator::fix_dependency(IR *root,
           */
           string tablename_str = v_create_table_names_single[get_rand_int(
               v_create_table_names_single.size())];
+          if (m_table2alias_single.count(tablename_str) != 0) {
+            vector<string>& v_tmp_alias = m_table2alias_single[tablename_str];
+            if (v_tmp_alias.size()) {
+              tablename_str = vector_rand_ele(v_tmp_alias);
+            }
+          }
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
           visited.insert(ir);
@@ -2435,7 +2453,7 @@ bool Mutator::fix_dependency(IR *root,
                     "v_table_names, v_table_name_single and "
                     "v_create_table_name_single saved. \n\n\n";
           }
-          ir->str_val_ = gen_table_name();
+          ir->str_val_ = "y";
           continue;
         }
       }
