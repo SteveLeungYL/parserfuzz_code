@@ -196,7 +196,7 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 //  debug(err_loc_node, 0);
 //  cerr << "\n\n\n\n\n";
 
-  return nullptr;
+  return err_loc_node;
 
 }
 
@@ -403,6 +403,20 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
 }
 
 void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str) {
+
+  cerr << "Inside handle_no_such_column_with_err_loc, getting err_node\n";
+  debug(err_node, 0);
+  cerr << "end\n\n\n";
+  if (err_node->type_ == kIdentifier) {
+    if(get_rand_int(2)) {
+      err_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
+      err_node->type_ = kStringLiteral;
+    } else {
+      err_node->str_val_ = to_string(get_rand_int(100));
+      err_node->type_ = kIntegerLiteral;
+    }
+  }
+
   return;
 }
 
