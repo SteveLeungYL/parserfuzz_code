@@ -2848,11 +2848,6 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     res_str = read_sqlite_output_and_reset_output_file();
 
-    if (findStringIn(res_str, "error")) {
-      debug_error++;
-    } else {
-      debug_good++;
-    }
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
@@ -5729,7 +5724,6 @@ static u8 fuzz_one(char **argv) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 //      cerr << "\n\n\n Stmt idx: " << stmt_idx << "\n\n\n";
 
-      u64 cur_debug_error = debug_error;
       string cur_input = rsg_gen_sql_seq(stmt_idx);
 
       ir_set = g_mutator.parse_query_str_get_ir_set(cur_input);
@@ -5743,7 +5737,6 @@ static u8 fuzz_one(char **argv) {
       bool is_succeed = false;
       {
         IR *cur_root = ir_set.back();
-
 
         vector<IR *> v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
 
@@ -5819,12 +5812,14 @@ static u8 fuzz_one(char **argv) {
       if (!is_succeed) {
         // Contains new errors. Give up the current stmt.
         g_mutator.rollback_dependency();
+        debug_error++;
         continue;
       } else {
         // The new statement does not contain errors.
         // Save it to input, and continue to the next stmt.
         input += cur_input;
         // Shift to the new stmt.
+        debug_good++;
         break;
       }
     } // stmt_trial
