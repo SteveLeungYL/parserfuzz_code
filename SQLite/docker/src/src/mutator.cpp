@@ -2639,11 +2639,18 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_column_name, couldn't find any "
                     "v_table_name_single saved. \n\n\n";
           }
-          ir->str_val_ = "y";
-          if (is_debug_info) {
-            cerr << "Dependency: using column name: " << ir->str_val_ <<  ". \n\n\n";
+//          ir->str_val_ = "y";
+          if(get_rand_int(2)) {
+            ir->type_ = kIntegerLiteral;
+          } else {
+            ir->type_ = kStringLiteral;
           }
+          ir->id_type_ = id_whatever;
+          visited.insert(ir);
           continue;
+//          if (is_debug_info) {
+//            cerr << "Dependency: using column name: " << ir->str_val_ <<  ". \n\n\n";
+//          }
         }
 
         /* Special handling for the UPDATE stmt.
