@@ -78,6 +78,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
       handle_no_such_column_with_err_loc(cur_stmt_root, err_node, error_msg);
     }
     return 0;
+  } else if (findStringIn(error_msg, "no such index: y")) {
+    handle_no_such_index_y_err_without_loc(cur_stmt_root);
+    return 0;
   }
 
   return 1;
@@ -310,6 +313,32 @@ void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
     nulls_node->str_val_ = "";
     nulls_node->op_->prefix_ = "";
   }
+
+  return;
+
+}
+
+void Mutator::handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root) {
+
+  cerr << "Fixing handle_no_such_index_y_err_without_loc, before: " << cur_stmt_root->to_string() << "\n";
+
+  vector<IR*> v_index_name = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, id_index_name, false, true);
+
+  for (IR* cur_index_name: v_index_name) {
+    if (
+        cur_index_name->str_val_ == "y" &&
+        cur_index_name->parent_ != nullptr &&
+        cur_index_name->parent_->type_ == kIndexedBy
+        ) {
+          IR* index_by_node = cur_index_name->parent_;
+          IR* new_index_by_node = new IR(kIndexedBy, OP0(), nullptr, nullptr);
+          cur_stmt_root->swap_node(index_by_node, new_index_by_node);
+          index_by_node->deep_drop();
+    }
+  }
+
+  cerr << "Fixing handle_no_such_index_y_err_without_loc, after: " << cur_stmt_root->to_string() << "\n";
+  cerr << "END\n\n\n";
 
   return;
 
