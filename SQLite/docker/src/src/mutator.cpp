@@ -320,7 +320,7 @@ void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
 
 void Mutator::handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root) {
 
-  cerr << "Fixing handle_no_such_index_y_err_without_loc, before: " << cur_stmt_root->to_string() << "\n";
+//  cerr << "Fixing handle_no_such_index_y_err_without_loc, before: " << cur_stmt_root->to_string() << "\n";
 
   vector<IR*> v_index_name = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, id_index_name, false, true);
 
@@ -337,8 +337,8 @@ void Mutator::handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root) {
     }
   }
 
-  cerr << "Fixing handle_no_such_index_y_err_without_loc, after: " << cur_stmt_root->to_string() << "\n";
-  cerr << "END\n\n\n";
+//  cerr << "Fixing handle_no_such_index_y_err_without_loc, after: " << cur_stmt_root->to_string() << "\n";
+//  cerr << "END\n\n\n";
 
   return;
 
@@ -3348,6 +3348,20 @@ void Mutator::resolve_drop_statement(IR *cur_trans_stmt, bool is_debug_info) {
       this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
   if (stmt_type == kCmdDropTable || stmt_type == kCmdDropView) {
     vector<IR *> drop_tablename_vec =
+        search_mapped_ir_in_stmt(cur_trans_stmt, id_top_table_name);
+    for (IR *drop_table_ir : drop_tablename_vec) {
+      string drop_table_str = drop_table_ir->str_val_;
+      m_tables.erase(drop_table_str);
+      m_table2index.erase(drop_table_str);
+      v_table_names.erase(std::remove(v_table_names.begin(),
+                                      v_table_names.end(), drop_table_str),
+                          v_table_names.end());
+      if (is_debug_info) {
+        cerr << "Dependency: In resolve_drop_statement, removing table_name: "
+             << drop_table_str << " from v_table_names. \n\n\n";
+      }
+    }
+    drop_tablename_vec =
         search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
     for (IR *drop_table_ir : drop_tablename_vec) {
       string drop_table_str = drop_table_ir->str_val_;
