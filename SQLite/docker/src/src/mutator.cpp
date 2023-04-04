@@ -57,6 +57,13 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "unsupported use of NULLS")) {
     this->handle_nulls_syntax_error(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "syntax error after column name \"")) {
+    // WITH RECURSIVE v81 ( c82 COLLATE NOCASE ASC, c83 COLLATE BINARY ) ...
+    // syntax error after column name "c82"
+    string column_name_str = string_splitter(error_msg, "syntax error after column name \"").back();
+    column_name_str = string_splitter(column_name_str, "\"").front();
+    handle_syntax_error_after_column_name_without_loc(cur_stmt_root, column_name_str);
+    return 0;
   } else if (findStringIn(error_msg, "no such column")) {
     IR* err_node = locate_error_ir(cur_stmt_root, error_msg);
     if (err_node == nullptr) {
@@ -169,6 +176,32 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 //  cerr << "\n\n\n\n\n";
 
   return nullptr;
+
+}
+
+void Mutator::handle_syntax_error_after_column_name_without_loc(IR*& cur_stmt_root, const string& column_name_str ){
+  // Remove all the COLLATE and SORTORDER constraints from the WITH clause handling.
+
+  vector<IR*> v_column_name_node = p_oracle
+    ->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, column_name_str, false, true);
+
+  for (IR* cur_col_name_node : v_column_name_node) {
+    if (p_oracle->ir_wrapper.is_ir_in(cur_col_name_node, kEidlist)) {
+      IR* eidlist_node = p_oracle->ir_wrapper.get_parent_matching_type(cur_col_name_node, kEidlist);
+      vector<IR*> v_collate_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(eidlist_node, kCollate, false, true);
+      for (IR* cur_collate_node: v_collate_node) {
+        IR* new_collate_node = new IR(kCollate, OP0(), nullptr, nullptr);
+        eidlist_node->swap_node(cur_collate_node, new_collate_node);
+        cur_collate_node->deep_drop();
+      }
+      vector<IR*> v_sortorder = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(eidlist_node, kSortorder, false, true);
+      for (IR* cur_sortorder: v_sortorder) {
+        cur_sortorder->op_->prefix_ = "";
+      }
+    }
+  }
+
+  return;
 
 }
 

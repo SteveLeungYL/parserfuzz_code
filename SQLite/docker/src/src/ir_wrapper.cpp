@@ -135,6 +135,57 @@ vector<IR *> IRWrapper::get_ir_node_in_stmt_with_type(IR *cur_stmt,
   return ir_vec_matching_type_depth;
 }
 
+vector<IR *> IRWrapper::get_ir_node_in_stmt_with_str(IR *cur_stmt,
+                                                      const string& in,
+                                                      bool is_subquery,
+                                                      bool is_ignore_subquery) {
+
+  // Iterate IR binary tree, left depth prioritized.
+  bool is_finished_search = false;
+  std::vector<IR *> ir_vec_iter;
+  std::vector<IR *> ir_vec_matching_type;
+  IR *cur_IR = cur_stmt;
+  // Begin iterating.
+  while (!is_finished_search) {
+    ir_vec_iter.push_back(cur_IR);
+    if (cur_IR->to_string() == in) {
+      ir_vec_matching_type.push_back(cur_IR);
+    }
+
+    if (cur_IR->left_ != nullptr) {
+      cur_IR = cur_IR->left_;
+      continue;
+    } else { // Reaching the most depth. Consulting ir_vec_iter for right_
+      // nodes.
+      cur_IR = nullptr;
+      while (cur_IR == nullptr) {
+        if (ir_vec_iter.size() == 0) {
+          is_finished_search = true;
+          break;
+        }
+        cur_IR = ir_vec_iter.back()->right_;
+        ir_vec_iter.pop_back();
+      }
+      continue;
+    }
+  }
+
+  if (is_ignore_subquery) {
+    return ir_vec_matching_type;
+  }
+
+  // Check whether IR node is in a SELECT subquery.
+  std::vector<IR *> ir_vec_matching_type_depth;
+  for (IR *ir_match : ir_vec_matching_type) {
+    if (this->is_in_subquery(cur_stmt, ir_match) == is_subquery) {
+      ir_vec_matching_type_depth.push_back(ir_match);
+    }
+    continue;
+  }
+
+  return ir_vec_matching_type_depth;
+}
+
 vector<IR *> IRWrapper::get_ir_node_in_stmt_with_id_type(
     IR *cur_stmt, IDTYPE id_type, bool is_subquery, bool is_ignore_subquery) {
 
@@ -676,6 +727,18 @@ IR *IRWrapper::get_parent_with_a_type(IR *cur_IR, int depth) {
       if (depth <= 0) {
         return cur_IR->parent_;
       }
+    }
+    cur_IR = cur_IR->parent_;
+  }
+  cerr << "Error: Find get_parent_type without parent_? \n";
+  return nullptr;
+}
+
+IR *IRWrapper::get_parent_matching_type(IR *cur_IR, IRTYPE type_) {
+  while (cur_IR->parent_ != nullptr) {
+    IRTYPE parent_type = cur_IR->parent_->type_;
+    if (parent_type == type_) {
+      return cur_IR->parent_;
     }
     cur_IR = cur_IR->parent_;
   }
