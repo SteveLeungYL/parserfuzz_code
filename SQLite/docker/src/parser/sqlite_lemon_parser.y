@@ -80,6 +80,11 @@
      static void notate_column_name_in_columnlist(IR* in, IDTYPE set_type) {
             vector<IR*> v_column_name = get_ir_node_in_stmt_with_type(in, kColumnname);
             for (IR* cur_column: v_column_name) {
+                if (cur_column->left_ != nullptr) {
+                    cur_column = cur_column->left_;
+                } else {
+                    continue;
+                }
                 if (!(cur_column->is_node_struct_fixed)) {
                     cur_column->id_type_ = set_type;
                 }
