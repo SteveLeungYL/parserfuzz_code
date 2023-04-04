@@ -2895,7 +2895,8 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn &&
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIndexedBy)) // indexed by does not allow dot
               ) {
             ir->str_val_ = aliasname_str + "." + index_str;
           } else {
