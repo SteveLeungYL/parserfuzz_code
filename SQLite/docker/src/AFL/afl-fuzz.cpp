@@ -5662,7 +5662,9 @@ string rsg_gen_sql_seq (int idx = 0) {
 
   string res_str = "";
 
-  if (idx < 3) {
+  if (idx ==0) {
+    res_str = "CREATE TABLE v0 (v1 INT, v2 STRING, v3 FLOAT); \n";
+  } else if (idx < 3) {
     res_str = rsg_gen_stmt("cmdPragma") + "\n";
   } else if (idx < 6) {
     res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
@@ -5714,7 +5716,7 @@ static u8 fuzz_one(char **argv) {
   vector<IR *> app_new_select_stmts;
   char *tmp_name = stage_name;
   int skip_count;
-  string input = "CREATE TABLE v0 (v1 INTEGER, v2 TEXT, v3 FLOAT); \n";
+  string input;
 
   //[modify] add
   stage_name = "mutate";
