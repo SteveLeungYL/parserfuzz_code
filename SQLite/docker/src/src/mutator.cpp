@@ -2466,7 +2466,7 @@ bool Mutator::fix_dependency(IR *root,
                  << v_create_table_names_single_with_tmp.size() << "\n\n\n";
           }
           if (v_create_table_names_single_with_tmp.size() != 0 &&
-              cur_stmt_type != kCmdUpdate && get_rand_int(100) < 100) {
+              cur_stmt_type != kCmdUpdate && get_rand_int(100) < 50) {
             if (is_debug_info) {
               cerr << "Dependency Error: Cannot find the "
                       "create_table_names_single_with_tmp inside the "
@@ -2910,7 +2910,8 @@ bool Mutator::fix_dependency(IR *root,
 //              cur_stmt_type == kCmdSelect &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) // kSetlist does not allow dot
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -2942,7 +2943,8 @@ bool Mutator::fix_dependency(IR *root,
 //              cur_stmt_type == kCmdSelect &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -3037,7 +3039,8 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kIndexedBy)) // indexed by does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIndexedBy)) && // indexed by does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
               ) {
             ir->str_val_ = aliasname_str + "." + index_str;
           } else {
@@ -3062,7 +3065,8 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableDropColumn &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
               ) {
             ir->str_val_ = tablename_str + "." + index_str;
           } else {
