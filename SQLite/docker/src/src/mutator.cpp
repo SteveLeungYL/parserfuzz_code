@@ -157,16 +157,16 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
   string err_extend_str = v_err_split[v_err_split.size() - 2];
   string::const_iterator ext_begin, ext_end;
 
-  if ((match_iter - 10) <= err_loc_line.begin()) {
+  if ((match_iter - 5) <= err_loc_line.begin()) {
     ext_begin = err_loc_line.begin();
   } else {
-    ext_begin = match_iter - 10;
+    ext_begin = match_iter - 5;
   }
 
-  if ((match_iter + int(err_loc_str.size()) + 10 - err_loc_line.begin()) >= err_extend_str.size()) {
+  if ((match_iter + int(err_loc_str.size()) + 5 - err_loc_line.begin()) >= err_extend_str.size()) {
     ext_end = err_loc_line.begin() + int(err_extend_str.size());
   } else {
-    ext_end = match_iter + int(err_loc_str.size()) + 10;
+    ext_end = match_iter + int(err_loc_str.size()) + 5;
   }
 
   if (ext_begin - err_loc_line.begin() > err_extend_str.size() ||
@@ -461,7 +461,24 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
     // Using the unsupported rowid in the context. Just re-instantiat should be fine.
     handle_no_tables_specified_error(cur_stmt_root);
     return;
+  } else {
+    string target_col = string_splitter(err_str, "no such column: ").back();
+    target_col = string_splitter(target_col, "\n").front();
+
+    vector<IR*> v_target_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, target_col, false, true);
+    for (IR* cur_target_node: v_target_node) {
+      if(get_rand_int(2)) {
+        cur_target_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
+        cur_target_node->type_ = kStringLiteral;
+      } else {
+        cur_target_node->str_val_ = to_string(get_rand_int(100));
+        cur_target_node->type_ = kIntegerLiteral;
+      }
+    }
+    return;
   }
+
+  return;
 }
 
 void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str) {
@@ -478,6 +495,8 @@ void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_nod
       err_node->type_ = kIntegerLiteral;
     }
   }
+//  debug(err_node, 0);
+//  cerr << "after\n\n\n";
 
   return;
 }
