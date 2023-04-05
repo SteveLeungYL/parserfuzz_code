@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <deque>
 #include <fstream>
+#include <list>
 
 using namespace std;
 
@@ -1529,11 +1530,12 @@ vector<IR *> Mutator::extract_statement(IR *root) {
 vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
 
   vector<IR *> res;
+  list<IR *> res_list;
   vector<IR *> v_statements{cur_stmt};
 
   for (auto &stmt : v_statements) {
     deque<IR *> q_bfs = {stmt};
-    res.push_back(stmt);
+    res_list.push_back(stmt);
 
     while (!q_bfs.empty()) {
       auto cur = q_bfs.front();
@@ -1542,7 +1544,11 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
       if (cur->left_) {
         q_bfs.push_back(cur->left_);
         if (cur->left_->type_ == kSelect) {
-          res.push_back(cur->left_);
+          if (p_oracle->ir_wrapper.is_ir_in(cur->left_, kWqitem)) {
+            res_list.push_front(cur->left_);
+          } else {
+            res_list.push_back(cur->left_);
+          }
           m_save[cur] = make_pair(0, cur->left_);
           cur->detach_node(cur->left_);
         }
@@ -1551,13 +1557,26 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
       if (cur->right_) {
         q_bfs.push_back(cur->right_);
         if (cur->right_->type_ == kSelect) {
-          res.push_back(cur->right_);
+          if (p_oracle->ir_wrapper.is_ir_in(cur->left_, kWqitem)) {
+            res_list.push_front(cur->right_);
+          } else {
+            res_list.push_back(cur->right_);
+          }
           m_save[cur] = make_pair(1, cur->right_);
           cur->detach_node(cur->right_);
         }
       }
     }
   }
+
+  res.clear();
+  res.reserve(res_list.size());
+  for (auto & iter : res_list) {
+    res.push_back(iter);
+  }
+
+  cerr << "Getting res.size()" << res.size() << "\n\n\n";
+
   return res;
 }
 
