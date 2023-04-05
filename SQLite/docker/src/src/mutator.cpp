@@ -82,8 +82,7 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "no such table")) {
     IR* err_node = locate_error_ir(cur_stmt_root, error_msg);
     if (err_node == nullptr) {
-      handle_no_such_table_without_err_loc(cur_stmt_root, error_msg);
-      return 0;
+      return handle_no_such_table_without_err_loc(cur_stmt_root, error_msg);
     } else {
       cerr << "TODO: not implemented. \n\n\n";
       return 1;
@@ -493,22 +492,55 @@ void Mutator::handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root) {
 
 }
 
-void Mutator::handle_no_such_table_without_err_loc(IR*& cur_stmt_root, string& err_str) {
+int Mutator::handle_no_such_table_without_err_loc(IR*& cur_stmt_root, string& err_str) {
 
   string target_col = string_splitter(err_str, "no such table: ").back();
   target_col = string_splitter(target_col, "\n").front();
 
+//  cerr << "in no such table handling, before: " << cur_stmt_root->to_string() << "\n\n\n";
+
   vector<IR*> v_target_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, target_col, false, true);
-  IR* cur_target_node = vector_rand_ele(v_target_node);
+  if (v_target_node.empty()) {
+    return 1;
+  }
+
+  // Find the target node that is not from CREATE_TABLE context.
+  IR* cur_target_node = nullptr;
+  bool is_succeed = false;
+  for (int trial = 0; trial < 5; trial++) {
+    cur_target_node = vector_rand_ele(v_target_node);
+    if (cur_target_node->id_type_ != id_create_table_name &&
+        cur_target_node->id_type_ != id_create_table_name_with_tmp
+        ) {
+          is_succeed = true;
+          break;
+    }
+  }
+  if (!is_succeed) {
+//    cerr << "From target_col:" << target_col << ", v_target_node size: " << v_target_node.size() << ", cannot find\n\n\n";
+//    debug(cur_stmt_root, 0);
+    return 1;
+  }
+
+  string ori_str = cur_target_node->to_string();
+  string tmp_as;
+  vector<string> v_tmp_split = string_splitter(ori_str, " AS");
+  if (v_tmp_split.size() > 1) {
+    tmp_as = " AS" + v_tmp_split.back();
+  }
+//  cerr << "ori_str: " << ori_str << ", tmp_as" << tmp_as << "\n\n\n";
+
   if (!(v_table_names_single.empty())) {
-    cur_target_node->str_val_ = vector_rand_ele(v_table_names_single);
+    cur_target_node->str_val_ = vector_rand_ele(v_table_names_single) + tmp_as;
   } else if (!(v_table_names.empty())) {
-    cur_target_node->str_val_ = vector_rand_ele(v_table_names);
+    cur_target_node->str_val_ = vector_rand_ele(v_table_names) + tmp_as;
   } else {
     cur_target_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
   }
 
-  return;
+//  cerr << "after: " << cur_stmt_root->to_string() << "\n\n\n";
+
+  return 0;
 }
 
 void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& err_str) {
@@ -1602,7 +1634,7 @@ vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
     res.push_back(iter);
   }
 
-  cerr << "Getting res.size()" << res.size() << "\n\n\n";
+//  cerr << "Getting res.size()" << res.size() << "\n\n\n";
 
   return res;
 }
@@ -2571,7 +2603,7 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: In id_top_table_name, couldn't find any "
                     "v_table_names saved. \n\n\n";
           }
-          ir->str_val_ = gen_table_name();
+          ir->str_val_ = "y";
           continue;
         }
       }

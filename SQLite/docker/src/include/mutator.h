@@ -278,7 +278,7 @@ private:
   void handle_nulls_syntax_error(IR*& cur_stmt_root);
   void handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& err_str);
   void handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str);
-  void handle_no_such_table_without_err_loc(IR*& cur_stmt_root, string& err_str);
+  int handle_no_such_table_without_err_loc(IR*& cur_stmt_root, string& err_str);
 
   void handle_syntax_error_after_column_name_without_loc(IR*& cur_stmt_root, const string& column_name_str);
   void handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root);

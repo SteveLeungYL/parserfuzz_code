@@ -148,7 +148,12 @@ vector<IR *> IRWrapper::get_ir_node_in_stmt_with_str(IR *cur_stmt,
   // Begin iterating.
   while (!is_finished_search) {
     ir_vec_iter.push_back(cur_IR);
-    if (cur_IR->to_string() == in) {
+    string to_str = cur_IR->to_string();
+    vector<string> v_tmp = string_splitter(to_str, " AS ");
+    if (v_tmp.size() > 1) {
+      to_str = v_tmp.front();
+    }
+    if (to_str == in) {
       ir_vec_matching_type.push_back(cur_IR);
     }
 
@@ -735,6 +740,9 @@ IR *IRWrapper::get_parent_with_a_type(IR *cur_IR, int depth) {
 }
 
 IR *IRWrapper::get_parent_matching_type(IR *cur_IR, IRTYPE type_) {
+//  if (cur_IR->type_ == type_) {
+//    return cur_IR;
+//  }
   while (cur_IR->parent_ != nullptr) {
     IRTYPE parent_type = cur_IR->parent_->type_;
     if (parent_type == type_) {
