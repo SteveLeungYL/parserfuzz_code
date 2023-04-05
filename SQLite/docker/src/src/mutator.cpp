@@ -2489,7 +2489,8 @@ bool Mutator::fix_dependency(IR *root,
                    << ", we generate alias name: " << new_alias_str
                    << ". \n\n\n";
             }
-          } else if (cur_stmt_type == kCmdSelect) {
+//          } else if (cur_stmt_type == kCmdSelect) {
+          } else {
             string new_alias_str = gen_alias_name();
             m_table2alias_single[ir->str_val_].push_back(new_alias_str);
             ir->str_val_ += " AS " + new_alias_str;
@@ -2871,8 +2872,11 @@ bool Mutator::fix_dependency(IR *root,
                  << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kCmdSelect &&
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+          if (
+//              cur_stmt_type == kCmdSelect &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -2900,8 +2904,11 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* If cannot find alias name for the table, directly add table_name
            * before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kCmdSelect &&
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+          if (
+//              cur_stmt_type == kCmdSelect &&
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -2994,6 +3001,8 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIndexedBy)) // indexed by does not allow dot
               ) {
             ir->str_val_ = aliasname_str + "." + index_str;
@@ -3017,7 +3026,9 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn &&
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) // kCcons does not allow dot
               ) {
             ir->str_val_ = tablename_str + "." + index_str;
           } else {
