@@ -584,7 +584,6 @@ columnlist ::= columnlistnorecursive COMMA columnname carglist.
 columnlistnorecursive ::= columnname carglist.
 columnlist ::= columnname carglist.
 nm ::= ID.
-nm ::= STRING.
 typetoken ::= typename.
 typename ::= ID|STRING.
 signed ::= plus_num.
