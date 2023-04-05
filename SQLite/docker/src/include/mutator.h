@@ -285,6 +285,7 @@ private:
   void handle_natural_join_err(IR*& cur_stmt_root);
   void handle_cannot_join_using_column(IR*& cur_stmt_root, string& err_str);
   void handle_unsupported_frame(IR*& cur_stmt_root);
+  void handle_unsupported_having_clause(IR*& cur_stmt_root);
 
 };
 

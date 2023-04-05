@@ -97,8 +97,12 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     handle_natural_join_err(cur_stmt_root);
     return 0;
   } else if (findStringIn(error_msg, "unsupported frame specification")) {
-    // Remove all the NATURAL keywords from the NATURAL JOIN clause.
+    // Reformat the FRAME specification.
     handle_unsupported_frame(cur_stmt_root);
+    return 0;
+  } else if (findStringIn(error_msg, "HAVING clause on a non-aggregate query")) {
+    // Remove the HAVING clause.
+    handle_unsupported_having_clause(cur_stmt_root);
     return 0;
   }
 
@@ -205,6 +209,17 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
   return err_loc_node;
 
+}
+
+void Mutator::handle_unsupported_having_clause(IR*& cur_stmt_root) {
+  // Remove the unsupported having clause.
+
+  vector<IR*> v_having_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kHavingOpt, false, true);
+  for (IR* cur_having_clause : v_having_clause) {
+    cur_having_clause->str_val_ = " ";
+  }
+
+  return;
 }
 
 void Mutator::handle_unsupported_frame(IR*& cur_stmt_root) {
