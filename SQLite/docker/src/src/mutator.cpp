@@ -79,6 +79,15 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
       handle_no_such_column_with_err_loc(cur_stmt_root, err_node, error_msg);
     }
     return 0;
+  } else if (findStringIn(error_msg, "no such table")) {
+    IR* err_node = locate_error_ir(cur_stmt_root, error_msg);
+    if (err_node == nullptr) {
+      handle_no_such_table_without_err_loc(cur_stmt_root, error_msg);
+      return 0;
+    } else {
+      cerr << "TODO: not implemented. \n\n\n";
+      return 1;
+    }
   } else if (findStringIn(error_msg, "cannot join using column")) {
     handle_cannot_join_using_column(cur_stmt_root, error_msg);
     return 0;
@@ -482,6 +491,24 @@ void Mutator::handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root) {
 
   return;
 
+}
+
+void Mutator::handle_no_such_table_without_err_loc(IR*& cur_stmt_root, string& err_str) {
+
+  string target_col = string_splitter(err_str, "no such table: ").back();
+  target_col = string_splitter(target_col, "\n").front();
+
+  vector<IR*> v_target_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, target_col, false, true);
+  IR* cur_target_node = vector_rand_ele(v_target_node);
+  if (!(v_table_names_single.empty())) {
+    cur_target_node->str_val_ = vector_rand_ele(v_table_names_single);
+  } else if (!(v_table_names.empty())) {
+    cur_target_node->str_val_ = vector_rand_ele(v_table_names);
+  } else {
+    cur_target_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
+  }
+
+  return;
 }
 
 void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& err_str) {
