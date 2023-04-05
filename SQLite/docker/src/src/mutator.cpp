@@ -361,6 +361,23 @@ void Mutator::handle_no_tables_specified_error(IR*& cur_stmt_root) {
     cur_stl_prefix->deep_drop();
   }
 
+  vector<IR*> v_from = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kFrom, false, true);
+
+  for (IR* cur_from: v_from) {
+    if (!(cur_from->is_empty())) {
+      continue;
+    }
+
+    // The kFrom is empty
+    IR* new_top_table_node = new IR(kIdentifier, string("v0"), id_top_table_name);
+    IR* new_stl_prefix = new IR(kStlPrefix, OP0(), new_top_table_node, nullptr);
+    IR* new_stl_list = new IR(kSeltablist, OP0(), new_stl_prefix, nullptr);
+    IR* new_from = new IR(kFrom, OP0(), new_stl_list, nullptr);
+
+    cur_stmt_root->swap_node(cur_from, new_from);
+    cur_from->deep_drop();
+  }
+
   rollback_dependency();
   this->validate(cur_stmt_root, false, false);
 
