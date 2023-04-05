@@ -96,6 +96,10 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     // Remove all the NATURAL keywords from the NATURAL JOIN clause.
     handle_natural_join_err(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "unsupported frame specification")) {
+    // Remove all the NATURAL keywords from the NATURAL JOIN clause.
+    handle_unsupported_frame(cur_stmt_root);
+    return 0;
   }
 
   return 1;
@@ -200,6 +204,36 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 //  cerr << "\n\n\n\n\n";
 
   return err_loc_node;
+
+}
+
+void Mutator::handle_unsupported_frame(IR*& cur_stmt_root) {
+
+  vector<IR*> v_frame_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kFrameOpt, false, true);
+
+  for (IR* cur_frame_node : v_frame_node) {
+    string res_str = "RANGE BETWEEN ";
+    switch (get_rand_int(2)) {
+    case 0:
+      res_str += "CURRENT ROW ";
+      break;
+    case 1:
+      res_str += "UNBOUNDED PRECEDING ";
+      break;
+    }
+    res_str += "AND ";
+    switch (get_rand_int(2)) {
+    case 0:
+      res_str += "CURRENT ROW ";
+      break;
+    case 1:
+      res_str += "UNBOUNDED FOLLOWING ";
+      break;
+    }
+    cur_frame_node->str_val_ = res_str;
+  }
+
+  return;
 
 }
 
@@ -432,9 +466,9 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
 
 void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str) {
 
-  cerr << "Inside handle_no_such_column_with_err_loc, getting err_node\n";
-  debug(err_node, 0);
-  cerr << "end\n\n\n";
+//  cerr << "Inside handle_no_such_column_with_err_loc, getting err_node\n";
+//  debug(err_node, 0);
+//  cerr << "end\n\n\n";
   if (err_node->type_ == kIdentifier) {
     if(get_rand_int(2)) {
       err_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
