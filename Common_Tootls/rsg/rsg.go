@@ -25,7 +25,8 @@ import (
 type RSG struct {
 	Rnd *rand.Rand
 
-	prods map[string][]*yacc.ExpressionNode
+	prods     map[string][]*yacc.ExpressionNode
+	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
 
 	curChosenExpr map[*yacc.ExpressionNode]bool
 	epsilon       float64
@@ -46,9 +47,10 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:     rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:   make(map[string][]*yacc.ExpressionNode),
-		epsilon: epsilon,
+		Rnd:       rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:     make(map[string][]*yacc.ExpressionNode),
+		termProds: make(map[string][]*yacc.ExpressionNode),
+		epsilon:   epsilon,
 	}
 	for _, prod := range tree.Productions {
 		_, ok := rsg.prods[prod.Name]
@@ -60,6 +62,63 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 			rsg.prods[prod.Name] = prod.Expressions
 		}
 	}
+
+	// Construct the terminating Productions
+	for rootName, rootProds := range rsg.prods {
+		for _, prod := range rootProds {
+			isTerm := true
+			for _, curNode := range prod.Items {
+				if !isTerm {
+					// If the current path is already
+					// classified as non-term
+					// Do not continue
+					break
+				}
+				childProds, ok := rsg.prods[curNode.Value]
+				if ok {
+					// this is not a terminating child node.
+					// search one more level.
+					// Thoroughly go through all the possible
+					// choices from the sub-node.
+					for _, childProd := range childProds {
+						if !isTerm {
+							// If the current path is already
+							// classified as non-term
+							// Do not continue
+							break
+						}
+						for _, childNode := range childProd.Items {
+							if !isTerm {
+								// If the current path is already
+								// classified as non-term
+								// Do not continue
+								break
+							}
+							_, childOk := rsg.prods[childNode.Value]
+							if childOk {
+								// Find the nested child node.
+								// Not a terminating node.
+								// Do not continue
+								isTerm = false
+								break
+							}
+						}
+					}
+				} // finished searching the one child node.
+				if !isTerm {
+					break
+				}
+			} // finished searching all the child node.
+			if isTerm {
+				prod.IsTermNode = true
+				rsg.termProds[rootName] = append(rsg.termProds[rootName], prod)
+				fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
+			} else {
+				prod.IsTermNode = false
+			}
+		}
+	}
+
 	return &rsg, nil
 }
 
@@ -411,72 +470,21 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
 
-	if depth == 0 {
-
-		isHandle := false
-		if root == "expr" || root == "exprnorecursive" {
-			ret = append(ret, "'abc'")
-			isHandle = true
-		} else if root == "nexprlist" || root == "nexprlistnorecursive" {
-			ret = append(ret, "'abc'")
-			isHandle = true
-		} else if root == "sortlist" ||
-			root == "sortlistnorecursive" ||
-			root == "seltablist" ||
-			root == "seltablistnorecursive" {
-			ret = append(ret, "v0")
-			isHandle = true
-		} else if root == "selectnowith" || root == "select" || root == "oneselect" {
-			ret = append(ret, "select 'abc'")
-			isHandle = true
-		} else if root == "frame_bound_s" {
-			ret = append(ret, "UNBOUNDED PRECEDING")
-			isHandle = true
-		} else if root == "frame_bound_e" {
-			ret = append(ret, "UNBOUNDED FOLLOWING")
-			isHandle = true
-		} else if root == "selcollist" {
-			ret = append(ret, " * ")
-			isHandle = true
-		} else if root == "nm" {
-			ret = append(ret, " v0 ")
-			isHandle = true
-		} else if root == "term" {
-			ret = append(ret, " 0.0 ")
-			isHandle = true
-		} else if root == "window" {
-			ret = append(ret, " ORDER BY v0 ")
-			isHandle = true
-		} else if root == "frame_bound" {
-			ret = append(ret, " CURRENT ROW ")
-			isHandle = true
-		} else if root == "seltablist" ||
-			root == "seltablistnorecursive" {
-			ret = append(ret, " v0 ")
-			isHandle = true
-		} else if root == "multiselect_op" {
-			ret = append(ret, " UNION ")
-			isHandle = true
-		} else if root == "sortorder" {
-			ret = append(ret, " ASC ")
-			isHandle = true
-		}
-
-		if isHandle {
-			return ret
-		} else {
-			fmt.Printf("\nroot: %s, error: give up depth.", root)
-			return ret
-		}
-	}
-
 	if root == "expr" && r.Rnd.Intn(3) == 0 {
 		root = "exprFunc"
 	}
 
-	prods := r.prods[root]
-	if len(prods) == 0 {
-		return []string{r.formatTokenValue(root)}
+	var prods []*yacc.ExpressionNode
+	if depth <= 0 {
+		var ok bool
+		prods, ok = r.termProds[root]
+		if !ok {
+			// fallback to the original non-term tokens
+			fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
+			prods = r.prods[root]
+		}
+	} else {
+		prods = r.prods[root]
 	}
 
 	prod := r.MABChooseArm(prods, root)
