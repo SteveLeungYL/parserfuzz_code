@@ -470,12 +470,16 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
 
+	if depth <= -3 {
+		return nil
+	}
+
 	if root == "expr" && r.Rnd.Intn(3) == 0 {
 		root = "exprFunc"
 	}
 
 	var prods []*yacc.ExpressionNode
-	if depth <= 0 {
+	if depth <= 0 && r.Rnd.Intn(100) < 95 {
 		var ok bool
 		prods, ok = r.termProds[root]
 		if !ok {
@@ -490,6 +494,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	prod := r.MABChooseArm(prods, root)
 
 	if prod == nil {
+		fmt.Printf("\n\n\nERROR: getting nil prod. \n\n\n")
 		return nil
 	}
 
@@ -652,7 +657,7 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
-				continue
+				return nil
 			}
 			ret = append(ret, v...)
 		default:
