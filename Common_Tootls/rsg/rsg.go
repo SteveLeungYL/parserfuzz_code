@@ -410,6 +410,66 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
+
+	if depth == 0 {
+
+		isHandle := false
+		if root == "expr" || root == "exprnorecursive" {
+			ret = append(ret, "'abc'")
+			isHandle = true
+		} else if root == "nexprlist" || root == "nexprlistnorecursive" {
+			ret = append(ret, "'abc'")
+			isHandle = true
+		} else if root == "sortlist" ||
+			root == "sortlistnorecursive" ||
+			root == "seltablist" ||
+			root == "seltablistnorecursive" {
+			ret = append(ret, "v0")
+			isHandle = true
+		} else if root == "selectnowith" || root == "select" || root == "oneselect" {
+			ret = append(ret, "select 'abc'")
+			isHandle = true
+		} else if root == "frame_bound_s" {
+			ret = append(ret, "UNBOUNDED PRECEDING")
+			isHandle = true
+		} else if root == "frame_bound_e" {
+			ret = append(ret, "UNBOUNDED FOLLOWING")
+			isHandle = true
+		} else if root == "selcollist" {
+			ret = append(ret, " * ")
+			isHandle = true
+		} else if root == "nm" {
+			ret = append(ret, " v0 ")
+			isHandle = true
+		} else if root == "term" {
+			ret = append(ret, " 0.0 ")
+			isHandle = true
+		} else if root == "window" {
+			ret = append(ret, " ORDER BY v0 ")
+			isHandle = true
+		} else if root == "frame_bound" {
+			ret = append(ret, " CURRENT ROW ")
+			isHandle = true
+		} else if root == "seltablist" ||
+			root == "seltablistnorecursive" {
+			ret = append(ret, " v0 ")
+			isHandle = true
+		} else if root == "multiselect_op" {
+			ret = append(ret, " UNION ")
+			isHandle = true
+		} else if root == "sortorder" {
+			ret = append(ret, " ASC ")
+			isHandle = true
+		}
+
+		if isHandle {
+			return ret
+		} else {
+			fmt.Printf("\nroot: %s, error: give up depth.", root)
+			return ret
+		}
+	}
+
 	if root == "expr" && r.Rnd.Intn(3) == 0 {
 		root = "exprFunc"
 	}
@@ -581,63 +641,6 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					continue
 				}
 
-				if depth == 0 {
-
-					isHandle := false
-					if item.Value == "expr" || item.Value == "exprnorecursive" {
-						ret = append(ret, "'abc'")
-						isHandle = true
-					} else if item.Value == "nexprlist" || item.Value == "nexprlistnorecursive" {
-						ret = append(ret, "'abc'")
-						isHandle = true
-					} else if item.Value == "sortlist" ||
-						item.Value == "sortlistnorecursive" ||
-						item.Value == "seltablist" ||
-						item.Value == "seltablistnorecursive" {
-						ret = append(ret, "v0")
-						isHandle = true
-					} else if item.Value == "selectnowith" || item.Value == "select" || item.Value == "oneselect" {
-						ret = append(ret, "select 'abc'")
-						isHandle = true
-					} else if item.Value == "frame_bound_s" {
-						ret = append(ret, "UNBOUNDED PRECEDING")
-						isHandle = true
-					} else if item.Value == "frame_bound_e" {
-						ret = append(ret, "UNBOUNDED FOLLOWING")
-						isHandle = true
-					} else if item.Value == "selcollist" {
-						ret = append(ret, " * ")
-						isHandle = true
-					} else if item.Value == "nm" {
-						ret = append(ret, " v0 ")
-						isHandle = true
-					} else if item.Value == "term" {
-						ret = append(ret, " 0.0 ")
-						isHandle = true
-					} else if item.Value == "window" {
-						ret = append(ret, " v0 ")
-						isHandle = true
-					} else if item.Value == "frame_bound" {
-						ret = append(ret, " CURRENT ROW ")
-						isHandle = true
-					} else if item.Value == "seltablist" ||
-						item.Value == "seltablistnorecursive" {
-						ret = append(ret, " v0 ")
-						isHandle = true
-					} else if item.Value == "multiselect_op" {
-						ret = append(ret, " UNION ")
-						isHandle = true
-					}
-
-					if isHandle {
-						//return ret
-						continue
-					} else {
-						//fmt.Printf("\nroot: %s, item.Value: %s, error: give up depth.", root, item.Value)
-						//ret = append(ret, item.Value)
-						continue
-					}
-				}
 				v = r.generateSqlite(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
