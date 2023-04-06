@@ -5715,7 +5715,7 @@ static u8 fuzz_one(char **argv) {
   g_mutator.pre_validate();
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
-    for (int single_stmt_trial = 0; single_stmt_trial < max_dyn_instan_trial; single_stmt_trial++) {
+    for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
 //      cerr << "\n\n\n Stmt idx: " << stmt_idx << "\n\n\n";
 
       string cur_input = rsg_gen_sql_seq(stmt_idx);
@@ -5752,7 +5752,7 @@ static u8 fuzz_one(char **argv) {
           return 0;
         }
 
-        for (int fix_trial = 0; fix_trial < 10; fix_trial++) {
+        for (int fix_trial = 0; fix_trial < max_dyn_instan_trial; fix_trial++) {
           vector<string> query_str_vec;
 
           if (is_str_empty(cur_input)) {
@@ -5801,7 +5801,7 @@ static u8 fuzz_one(char **argv) {
 
         cur_root->deep_drop();
         ret_val = 0;
-      }
+      } // dyn fix loop
 
       if (!is_succeed) {
         // Contains new errors. Give up the current stmt.
