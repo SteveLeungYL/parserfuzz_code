@@ -207,6 +207,8 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
   if (err_extend_node == nullptr) {
     cerr << "Error: Getting NULL pointer on err_extend_node. \n\n\n";
+    cerr << "Error message: " << error_msg << "\n\n\n";
+    debug(cur_stmt_root, 0);
     return nullptr;
   }
 
