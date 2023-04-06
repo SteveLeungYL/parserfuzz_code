@@ -149,7 +149,11 @@ IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 //  }
 //  cerr << "end\n";
 
-  err_loc_str = err_loc_str.substr(match_iter-err_loc_line.begin());
+  int iter_index = match_iter-err_loc_line.begin();
+  if (iter_index >= err_loc_str.size()) {
+    return nullptr;
+  }
+  err_loc_str = err_loc_str.substr(iter_index);
   string tmp_err_loc_str;
   tmp_err_loc_str.reserve(err_loc_str.size());
   for (auto iter = 0; iter < err_loc_str.size(); iter++) {
