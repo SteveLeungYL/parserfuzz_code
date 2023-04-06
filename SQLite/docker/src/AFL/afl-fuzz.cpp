@@ -180,6 +180,7 @@ static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 EXP_ST u8 disable_dyn_instan = false,
           /* Disable Dynamic Instantiation based on error messages.          */
     disable_rsg_generator = false, disable_rsg_cov_feedback = false;
+EXP_ST u32 max_dyn_instan_trial = 10;
 
 /* Use RSG to generate new SQL statements          */
 
@@ -5714,7 +5715,7 @@ static u8 fuzz_one(char **argv) {
   g_mutator.pre_validate();
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
-    for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
+    for (int single_stmt_trial = 0; single_stmt_trial < max_dyn_instan_trial; single_stmt_trial++) {
 //      cerr << "\n\n\n Stmt idx: " << stmt_idx << "\n\n\n";
 
       string cur_input = rsg_gen_sql_seq(stmt_idx);
@@ -6999,6 +7000,7 @@ int main(int argc, char **argv) {
   disable_dyn_instan = false;
   disable_rsg_generator = false;
   disable_rsg_cov_feedback = false;
+  max_dyn_instan_trial = 10;
 
   // hsql_debug = 1;   // For debugging parser.
 
@@ -7059,6 +7061,7 @@ int main(int argc, char **argv) {
 
     case 'X': {
       disable_dyn_instan = true;
+      max_dyn_instan_trial = 1;
       cout << "\033[1;31m Warning: Disabling query dynamic instantiation based "
               "on the query error messages. "
               "\033[0m \n\n\n";
