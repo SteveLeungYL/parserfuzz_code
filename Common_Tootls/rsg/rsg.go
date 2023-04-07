@@ -21,6 +21,17 @@ import (
 	"unicode"
 )
 
+// The PathNode is the data structure that used to save
+// the whole chosen query path for the RSG generated query.
+// The goal of this structure is to be memory efficient and
+// simple, and it should be mutable.
+type PathNode struct {
+	Id        int
+	Parent    *PathNode
+	ExprProds *yacc.ExpressionNode
+	Children  []*PathNode
+}
+
 // RSG is a random syntax generator.
 type RSG struct {
 	Rnd *rand.Rand
@@ -28,8 +39,12 @@ type RSG struct {
 	prods     map[string][]*yacc.ExpressionNode
 	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
 
-	curChosenExpr map[*yacc.ExpressionNode]bool
-	epsilon       float64
+	curChosenPath   []*PathNode
+	allSavedPath    map[string][][]*PathNode
+	curMutatingPath *PathNode
+	curMutatingType string
+	epsilon         float64
+	pathId          int
 }
 
 // NewRSG creates a random syntax generator from the given random seed and
@@ -47,11 +62,16 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:       rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:     make(map[string][]*yacc.ExpressionNode),
-		termProds: make(map[string][]*yacc.ExpressionNode),
-		epsilon:   epsilon,
+		Rnd:             rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:           make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		termProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		curChosenPath:   []*PathNode{},
+		allSavedPath:    make(map[string][][]*PathNode),
+		curMutatingPath: nil,
+		epsilon:         epsilon,
 	}
+
+	// Construct all the possible Productions (Grammar Edges)
 	for _, prod := range tree.Productions {
 		_, ok := rsg.prods[prod.Name]
 		if ok {
@@ -63,7 +83,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		}
 	}
 
-	// Construct the terminating Productions
+	// Construct the terminating Productions (Grammar Edges)
 	for rootName, rootProds := range rsg.prods {
 		for _, prod := range rootProds {
 			isTerm := true
@@ -112,7 +132,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 			if isTerm {
 				prod.IsTermNode = true
 				rsg.termProds[rootName] = append(rsg.termProds[rootName], prod)
-				fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
 			} else {
 				prod.IsTermNode = false
 			}
@@ -120,6 +140,22 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 	}
 
 	return &rsg, nil
+}
+
+func (r *RSG) GatherAllPathNodes(curPathNode *PathNode) []*PathNode {
+	// Recursive function. May not be optimal
+	var pathArray = []*PathNode{}
+	if curPathNode == nil {
+		// Return empty
+		return pathArray
+	}
+	pathArray = append(pathArray, curPathNode)
+	for _, curChild := range curPathNode.Children {
+		childPathArray := r.GatherAllPathNodes(curChild)
+		pathArray = append(pathArray, childPathArray...)
+	}
+
+	return pathArray
 }
 
 func (r *RSG) DumpParserRuleMap(outFile string) {
@@ -144,22 +180,28 @@ func (r *RSG) DumpParserRuleMap(outFile string) {
 
 func (r *RSG) ClearChosenExpr() {
 	// clear the map
-	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
+	r.curChosenPath = []*PathNode{}
+	r.pathId = 0
 }
 
 func (r *RSG) IncrementSucceed() {
-	for prod := range r.curChosenExpr {
+
+	for _, curPath := range r.curChosenPath {
+		prod := curPath.ExprProds
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
 
+	// Save the new nodes to the seed.
+	r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
 	r.ClearChosenExpr()
 }
 
 func (r *RSG) IncrementFailed() {
-	for prod := range r.curChosenExpr {
+	for _, curPath := range r.curChosenPath {
+		prod := curPath.ExprProds
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
@@ -171,7 +213,7 @@ func (r *RSG) IncrementFailed() {
 
 func (r *RSG) argMax(rewards []float64) int {
 
-	var maxIdx = []int{}
+	var maxIdx []int
 	var maxReward = -1.0
 
 	for idx, reward := range rewards {
@@ -209,19 +251,6 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 
 		resProd := prods[resIdx]
-
-		// Save to curChosenExpr if not seen before.
-		_, ok := r.curChosenExpr[resProd]
-		if !ok {
-			r.curChosenExpr[resProd] = true
-		} else {
-			// resProd used in the current stmt.
-			if r.Rnd.Intn(5) != 0 {
-				// 80% chances, do not use already used stmt.
-				//fmt.Printf("\n\n\nSeem before\n\n\n")
-				continue
-			}
-		}
 
 		isRetry := false
 		for _, childProd := range resProd.Items {
@@ -465,39 +494,57 @@ func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []strin
 	return ret
 }
 
-func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
+func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
+
+	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
+	replayingMode := false
+
+	if parentPathNode == nil {
+		fmt.Printf("\n\n\nError: parentPathNode is nil. \n\n\n")
+		return nil
+	}
+
 	ret := make([]string, 0)
 
 	if depth <= -3 {
 		return nil
 	}
 
-	if root == "expr" && r.Rnd.Intn(3) == 0 {
-		root = "exprFunc"
-	}
+	//fmt.Printf("\n\n\n From root: %s, getting prods size: %d \n\n\n", root, len(prods))
+	var prod *yacc.ExpressionNode
+	if parentPathNode.ExprProds == nil {
+		// Not in the replaying mode, randomly choose one node and proceed.
 
-	var prods []*yacc.ExpressionNode
-	if depth <= 0 && r.Rnd.Intn(100) < 95 {
-		var ok bool
-		prods, ok = r.termProds[root]
-		if !ok {
-			// fallback to the original non-term tokens
-			fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
+		// Choose terminating node, if depth reached.
+		var prods []*yacc.ExpressionNode
+		if depth <= 0 && r.Rnd.Intn(100) < 95 {
+			var ok bool
+			prods, ok = r.termProds[root]
+			if !ok {
+				// fallback to the original non-term tokens
+				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
+				prods = r.prods[root]
+			}
+		} else {
 			prods = r.prods[root]
 		}
+		prod = r.MABChooseArm(prods, root)
 	} else {
-		prods = r.prods[root]
+		// Replay mode, directly reuse the previous chosen expressions.
+		replayingMode = true
+		prod = parentPathNode.ExprProds
 	}
-
-	prod := r.MABChooseArm(prods, root)
 
 	if prod == nil {
 		fmt.Printf("\n\n\nERROR: getting nil prod. \n\n\n")
 		return nil
 	}
 
+	parentPathNode.ExprProds = prod
+
+	replayExprIdx := 0
 	for _, item := range prod.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
@@ -654,7 +701,26 @@ func (r *RSG) generateSqlite(root string, depth int, rootDepth int) []string {
 					continue
 				}
 
-				v = r.generateSqlite(item.Value, depth-1, rootDepth)
+				var newChildPathNode *PathNode
+				if !replayingMode {
+					newChildPathNode = &PathNode{
+						Id:        r.pathId,
+						Parent:    parentPathNode,
+						ExprProds: nil,
+						Children:  []*PathNode{},
+					}
+					r.pathId += 1
+					parentPathNode.Children = append(parentPathNode.Children, newChildPathNode)
+				} else {
+					if replayExprIdx >= len(parentPathNode.Children) {
+						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+						return nil
+					}
+					newChildPathNode = parentPathNode.Children[replayExprIdx]
+				}
+
+				//fmt.Printf("\n\n\nFor root: %s, getting child node: %s\n\n\n", root, item.Value)
+				v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
 			}
 			if v == nil {
 				return nil
@@ -795,21 +861,33 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
-	r.curChosenExpr = make(map[*yacc.ExpressionNode]bool)
+	r.ClearChosenExpr()
+	rootPathNode := &PathNode{
+		Id:        r.pathId,
+		Parent:    nil,
+		ExprProds: nil,
+		Children:  []*PathNode{},
+	}
+
+	var resStr []string
 
 	if dbmsName == "sqlite" {
-		return r.generateSqlite(root, depth, rootDepth)
+		resStr = r.generateSqlite(root, rootPathNode, depth, rootDepth)
 	} else if dbmsName == "sqlite_bison" {
-		return r.generateSqliteBison(root, depth, rootDepth)
+		resStr = r.generateSqliteBison(root, rootPathNode, depth, rootDepth)
 	} else if dbmsName == "postgres" {
-		return r.generatePostgres(root, depth, rootDepth)
+		resStr = r.generatePostgres(root, rootPathNode, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {
-		return r.generateCockroach(root, depth, rootDepth)
+		resStr = r.generateCockroach(root, rootPathNode, depth, rootDepth)
 	} else if dbmsName == "mysql" {
-		return r.generateMySQL(root, depth, rootDepth)
+		resStr = r.generateMySQL(root, rootPathNode, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
 	}
+
+	r.curChosenPath = r.GatherAllPathNodes(rootPathNode)
+
+	return resStr
 }
 
 func (r *RSG) formatTokenValue(in string) string {
