@@ -41,7 +41,6 @@ type RSG struct {
 
 	curChosenPath   []*PathNode
 	allSavedPath    map[string][][]*PathNode
-	curMutatingPath *PathNode
 	curMutatingType string
 	epsilon         float64
 	pathId          int
@@ -62,13 +61,12 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:             rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:           make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
-		termProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
-		curChosenPath:   []*PathNode{},
-		allSavedPath:    make(map[string][][]*PathNode),
-		curMutatingPath: nil,
-		epsilon:         epsilon,
+		Rnd:           rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:         make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		termProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		curChosenPath: []*PathNode{},
+		allSavedPath:  make(map[string][][]*PathNode),
+		epsilon:       epsilon,
 	}
 
 	// Construct all the possible Productions (Grammar Edges)
@@ -282,17 +280,14 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 // output, it will block forever.
 func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	var s = ""
-	for i := 0; i < 100; i++ {
+	// Mark the current mutating types
+	// The successfully generated and executed queries would be saved
+	// based on the root type.
+	r.curMutatingType = root
+	for i := 0; i < 1000; i++ {
 		s = strings.Join(r.generate(root, dbmsName, depth, depth), " ")
 		//fmt.Printf("\n\n\nFrom root, %s, depth: %d, getting stmt: %s\n\n\n", root, depth, s)
-		//if r.seen != nil {
-		//	if !r.seen[s] {
-		//		r.seen[s] = true
-		//	} else {
-		//		//fmt.Printf("\n\n\nGetting duplicated str: %s\n\n\n", s)
-		//		s = ""
-		//	}
-		//}
+
 		if s != "" {
 			s = strings.Replace(s, "_LA", "", -1)
 			s = strings.Replace(s, " AS OF SYSTEM TIME \"string\"", "", -1)
@@ -503,12 +498,15 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	if parentPathNode == nil {
 		fmt.Printf("\n\n\nError: parentPathNode is nil. \n\n\n")
+		// Return nil is different from return an empty array.
+		// Return nil represent error.
 		return nil
 	}
 
 	ret := make([]string, 0)
 
 	if depth <= -3 {
+		// Return nil represent error.
 		return nil
 	}
 
@@ -516,6 +514,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 	var prod *yacc.ExpressionNode
 	if parentPathNode.ExprProds == nil {
 		// Not in the replaying mode, randomly choose one node and proceed.
+		replayingMode = false
 
 		// Choose terminating node, if depth reached.
 		var prods []*yacc.ExpressionNode
@@ -531,6 +530,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 			prods = r.prods[root]
 		}
 		prod = r.MABChooseArm(prods, root)
+		parentPathNode.ExprProds = prod
 	} else {
 		// Replay mode, directly reuse the previous chosen expressions.
 		replayingMode = true
@@ -542,12 +542,12 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 		return nil
 	}
 
-	parentPathNode.ExprProds = prod
-
 	replayExprIdx := 0
 	for _, item := range prod.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
+			// Single quoted characters
+			// remove the quote, directly paste the string.
 			v := item.Value[1 : len(item.Value)-1]
 			ret = append(ret, v)
 			continue
@@ -859,14 +859,95 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 	return ret
 }
 
+func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *PathNode {
+
+	// Recursive function. May not be optimal
+	if srcNode == nil {
+		// Return empty
+		fmt.Printf("\n\n\nError: In deepCopyPathNode, getting srcNode is nil. \n\n\n")
+		os.Exit(1)
+	}
+
+	newDestPathNode := &PathNode{
+		Id:        srcNode.Id,
+		Parent:    destParentNode,
+		ExprProds: srcNode.ExprProds,
+		Children:  []*PathNode{},
+	}
+
+	for _, curChild := range srcNode.Children {
+		newDestChild := r.deepCopyPathNode(curChild, newDestPathNode)
+		newDestPathNode.Children = append(newDestPathNode.Children, newDestChild)
+	}
+
+	return newDestPathNode
+}
+
+func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
+
+	_, pathExisted := r.allSavedPath[root]
+	if !pathExisted {
+		fmt.Printf("Fatal Error. Cannot find the PathNode with %s\n\n\n", root)
+		os.Exit(1)
+	}
+
+	srcPath := r.allSavedPath[root][r.Rnd.Intn(len(r.allSavedPath[root]))]
+	if len(srcPath) == 0 {
+		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
+			"Root: %s"+
+			"\n\n\n", root)
+	}
+
+	// Deep Copy the source path from root
+	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
+
+	targetPath := r.GatherAllPathNodes(targetPathRoot)
+
+	if len(targetPath) <= 1 {
+		fmt.Printf("\n\n\n Error, getting targetPath len == 0 or 1 in the retrieveExistingPathNode. \n\n\n")
+		os.Exit(1)
+	}
+
+	return targetPath
+}
+
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
 	r.ClearChosenExpr()
-	rootPathNode := &PathNode{
-		Id:        r.pathId,
-		Parent:    nil,
-		ExprProds: nil,
-		Children:  []*PathNode{},
+
+	var rootPathNode *PathNode
+	_, pathExisted := r.allSavedPath[root]
+
+	if pathExisted &&
+		len(r.allSavedPath[root]) != 0 &&
+		r.Rnd.Intn(2) == 1 {
+		// Replaying mode.
+
+		// Retrieve a deep copied from the existing seed.
+		newPath := r.retrieveExistingPathNode(root)
+
+		// Choose a random node to mutate.
+		// Do not choose the root to mutate
+		mutateNode := newPath[r.Rnd.Intn(len(newPath)-1)+1]
+
+		// Remove the ExprProds and the Children,
+		// so the generate function would be required to
+		// randomly generate any nodes.
+		// This operation could free some not-used PathNode
+		// from the newPath.
+		mutateNode.ExprProds = nil
+		mutateNode.Children = []*PathNode{}
+
+		rootPathNode = newPath[0]
+
+	} else {
+		// Construct a new statement.
+		rootPathNode = &PathNode{
+			Id:        r.pathId,
+			Parent:    nil,
+			ExprProds: nil,
+			Children:  []*PathNode{},
+		}
 	}
 
 	var resStr []string
@@ -874,13 +955,17 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 	if dbmsName == "sqlite" {
 		resStr = r.generateSqlite(root, rootPathNode, depth, rootDepth)
 	} else if dbmsName == "sqlite_bison" {
-		resStr = r.generateSqliteBison(root, rootPathNode, depth, rootDepth)
+		// TODO: Implement replaying mode.
+		resStr = r.generateSqliteBison(root, depth, rootDepth)
 	} else if dbmsName == "postgres" {
-		resStr = r.generatePostgres(root, rootPathNode, depth, rootDepth)
+		// TODO: Implement replaying mode.
+		resStr = r.generatePostgres(root, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {
-		resStr = r.generateCockroach(root, rootPathNode, depth, rootDepth)
+		// TODO: Implement replaying mode.
+		resStr = r.generateCockroach(root, depth, rootDepth)
 	} else if dbmsName == "mysql" {
-		resStr = r.generateMySQL(root, rootPathNode, depth, rootDepth)
+		// TODO: Implement replaying mode.
+		resStr = r.generateMySQL(root, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
 	}
