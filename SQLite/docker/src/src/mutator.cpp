@@ -2611,7 +2611,13 @@ bool Mutator::fix_dependency(IR *root,
                    << ". \n\n\n";
             }
 //          } else if (cur_stmt_type == kCmdSelect) {
-          } else if (cur_stmt_type != kCmdCreateIndex)
+          } else if (
+                  cur_stmt_type != kCmdCreateIndex &&
+                  cur_stmt_type != kCmdAlterTableAddColumn &&
+                  cur_stmt_type != kCmdAlterTableDropColumn &&
+                  cur_stmt_type != kCmdAlterTableRename &&
+                  cur_stmt_type != kCmdAlterTableRenameColumn
+                  )
           {
             string new_alias_str = gen_alias_name();
             m_table2alias_single[ir->str_val_].push_back(new_alias_str);
@@ -2999,7 +3005,8 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) // kSetlist does not allow dot
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) && // kSetlist does not allow dot
+              cur_stmt_type != kCmdCreateIndex
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
@@ -3032,14 +3039,15 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) &&
+              cur_stmt_type != kCmdCreateIndex
               ) {
             if (!(get_rand_int(10))) {
               column_str = "rowid";
             }
             ir->str_val_ = tablename_str + "." + column_str;
           } else {
-            if (!(get_rand_int(10))) {
+            if (!(get_rand_int(10)) && cur_stmt_type != kCmdCreateIndex) {
               column_str = "rowid";
             }
             { ir->str_val_ = column_str; }
@@ -3128,7 +3136,8 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIndexedBy)) && // indexed by does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) &&
+              cur_stmt_type != kCmdCreateIndex
               ) {
             ir->str_val_ = aliasname_str + "." + index_str;
           } else {
@@ -3154,7 +3163,8 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
-              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist))
+              !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) &&
+              cur_stmt_type != kCmdCreateIndex
               ) {
             ir->str_val_ = tablename_str + "." + index_str;
           } else {
