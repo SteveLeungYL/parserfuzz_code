@@ -185,10 +185,10 @@ func (r *RSG) ClearChosenExpr() {
 
 func (r *RSG) IncrementSucceed() {
 
-	fmt.Printf("\nSaving r.curChosenPath size: %d, root: %v\n\n\n", len(r.curChosenPath), r.curChosenPath[0].ExprProds)
+	//fmt.Printf("\nSaving r.curChosenPath size: %d, root: %v\n\n\n", len(r.curChosenPath), r.curChosenPath[0].ExprProds)
 	for _, curPath := range r.curChosenPath {
 		prod := curPath.ExprProds
-		fmt.Printf("\nGetting ExprProds: %v\n", prod)
+		//fmt.Printf("\nGetting ExprProds: %v\n", prod)
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
@@ -196,9 +196,9 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	// Save the new nodes to the seed.
-	fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
+	//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
 	r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
-	fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
+	//fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
 	r.ClearChosenExpr()
 
 }
@@ -729,8 +729,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 					v = r.generateSqlite(item.Value, newChildPathNode, depth, rootDepth)
 				}
 
-				v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
-				fmt.Printf("\n\n\nFor root: %s, getting child node: %s, child Node: %v\n\n\n", root, item.Value, newChildPathNode.ExprProds)
+				//fmt.Printf("\n\n\nFor root: %s, getting child node: %s, child Node: %v\n\n\n", root, item.Value, newChildPathNode.ExprProds)
 			}
 			if v == nil {
 				return nil
@@ -911,7 +910,7 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 	// Debug
 	for _, curPath := range srcPath {
 		prod := curPath.ExprProds
-		fmt.Printf("\nGetting srcPath ExprProds: %v\n", prod)
+		//fmt.Printf("\nGetting srcPath ExprProds: %v\n", prod)
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
@@ -961,6 +960,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		// randomly generate any nodes.
 		// This operation could free some not-used PathNode
 		// from the newPath.
+		//fmt.Printf("\n\n\nDebug: Choosing mutate node: %v\n\n\n", mutateNode.ExprProds)
 		mutateNode.ExprProds = nil
 		mutateNode.Children = []*PathNode{}
 
