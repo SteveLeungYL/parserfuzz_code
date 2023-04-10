@@ -199,9 +199,11 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	// Save the new nodes to the seed.
-	//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
-	r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
-	//fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
+	if len(r.curChosenPath) != 0 {
+		//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
+		r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
+		//fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
+	}
 	r.ClearChosenExpr()
 
 }
