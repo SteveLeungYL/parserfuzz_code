@@ -4066,7 +4066,7 @@ string Mutator::rsg_generate_valid(const string type) {
   for (int i = 0; i < 100; i++) {
     string tmp_query_str = rsg_generate(type) + ";";
 #ifdef DEBUG
-    cerr << "\n\n\n" << type << "Getting tmp_query_str: " << tmp_query_str << "\n\n\n";
+    cerr << "\n\n\n" << type << ", Getting tmp_query_str: " << tmp_query_str << "\n\n\n";
 #endif
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
     if (ir_vec.size() == 0) {

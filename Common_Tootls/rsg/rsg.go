@@ -50,9 +50,9 @@ type RSG struct {
 // yacc file.
 func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
 
-	// Default epsilon = 5.0
+	// Default epsilon = 0.3
 	if epsilon == 0.0 {
-		epsilon = 5.0
+		epsilon = 0.3
 	}
 
 	tree, err := yacc.Parse("sql", y, dbmsName)
@@ -511,7 +511,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	ret := make([]string, 0)
 
-	if depth <= -3 {
+	if depth <= -6 {
 		// Return nil represent error.
 		return nil
 	}
