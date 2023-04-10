@@ -2589,7 +2589,8 @@ bool Mutator::fix_dependency(IR *root,
                    << ". \n\n\n";
             }
 //          } else if (cur_stmt_type == kCmdSelect) {
-          } else {
+          } else if (cur_stmt_type != kCmdCreateIndex)
+          {
             string new_alias_str = gen_alias_name();
             m_table2alias_single[ir->str_val_].push_back(new_alias_str);
             ir->str_val_ += " AS " + new_alias_str;
