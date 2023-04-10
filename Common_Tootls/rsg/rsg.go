@@ -717,6 +717,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 					}
 					r.pathId += 1
 					parentPathNode.Children = append(parentPathNode.Children, newChildPathNode)
+					v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
 				} else {
 					if replayExprIdx >= len(parentPathNode.Children) {
 						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
@@ -724,6 +725,8 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 					}
 					newChildPathNode = parentPathNode.Children[replayExprIdx]
 					replayExprIdx += 1
+					// We won't decrease depth number in replaying mode.
+					v = r.generateSqlite(item.Value, newChildPathNode, depth, rootDepth)
 				}
 
 				v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
@@ -937,7 +940,8 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 	if pathExisted &&
 		len(r.allSavedPath[root]) != 0 &&
-		r.Rnd.Intn(2) == 1 {
+		r.Rnd.Intn(3) != 0 {
+		// 2/3 chances.
 		// Replaying mode.
 
 		// Retrieve a deep copied from the existing seed.
