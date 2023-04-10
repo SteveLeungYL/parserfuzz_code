@@ -189,6 +189,9 @@ func (r *RSG) IncrementSucceed() {
 	for _, curPath := range r.curChosenPath {
 		prod := curPath.ExprProds
 		//fmt.Printf("\nGetting ExprProds: %v\n", prod)
+		if prod == nil {
+			continue
+		}
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
@@ -206,6 +209,9 @@ func (r *RSG) IncrementSucceed() {
 func (r *RSG) IncrementFailed() {
 	for _, curPath := range r.curChosenPath {
 		prod := curPath.ExprProds
+		if prod == nil {
+			continue
+		}
 		prod.HitCount++
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
