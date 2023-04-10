@@ -545,6 +545,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 		}
 		prod = r.MABChooseArm(prods, root)
 		parentPathNode.ExprProds = prod
+		parentPathNode.Children = []*PathNode{}
 	} else {
 		// Replay mode, directly reuse the previous chosen expressions.
 		replayingMode = true
@@ -913,16 +914,6 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
 			"Root: %s"+
 			"\n\n\n", root)
-	}
-
-	// Debug
-	for _, curPath := range srcPath {
-		prod := curPath.ExprProds
-		//fmt.Printf("\nGetting srcPath ExprProds: %v\n", prod)
-		prod.HitCount++
-		prod.RewardScore =
-			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
-		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
 	}
 
 	// Deep Copy the source path from root
