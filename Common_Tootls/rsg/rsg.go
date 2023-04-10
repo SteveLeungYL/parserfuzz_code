@@ -519,8 +519,22 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	ret := make([]string, 0)
 
-	if depth <= -6 {
+	if depth <= -5 {
 		// Return nil represent error.
+		//fmt.Printf("\n\n\nDebug: reaching depth: %s\n\n\n", root)
+		if root == "stl_prefix" ||
+			root == "distinct" {
+			ret = append(ret, "")
+			return ret
+		} else if root == "selectnowith" ||
+			root == "oneselect" ||
+			root == "select" {
+			ret = append(ret, "select 'abc'")
+			return ret
+		} else if root == "nm" {
+			ret = append(ret, "v0")
+			return ret
+		}
 		return nil
 	}
 
