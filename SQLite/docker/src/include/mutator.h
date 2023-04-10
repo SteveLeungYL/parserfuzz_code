@@ -282,6 +282,7 @@ private:
 
   void handle_syntax_error_after_column_name_without_loc(IR*& cur_stmt_root, const string& column_name_str);
   void handle_no_such_index_y_err_without_loc(IR*& cur_stmt_root);
+  void handle_no_such_index_err_without_loc(IR*& cur_stmt_root);
   void handle_order_by_before_UNION_err(IR*& cur_stmt_root);
   void handle_limit_before_UNION_err(IR*& cur_stmt_root);
   void handle_natural_join_err(IR*& cur_stmt_root);

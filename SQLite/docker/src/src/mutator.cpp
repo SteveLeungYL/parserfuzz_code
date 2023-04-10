@@ -93,6 +93,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "no such index: y")) {
     handle_no_such_index_y_err_without_loc(cur_stmt_root);
     return 0;
+  } else if (findStringIn(error_msg, "no such index")) {
+      handle_no_such_index_err_without_loc(cur_stmt_root);
+      return 0;
   } else if (findStringIn(error_msg, "ORDER BY clause should come after UNION")) {
     // Remove all the order by clause
     handle_order_by_before_UNION_err(cur_stmt_root);
@@ -469,6 +472,25 @@ void Mutator::handle_nulls_syntax_error(IR*& cur_stmt_root) {
   }
 
   return;
+
+}
+
+void Mutator::handle_no_such_index_err_without_loc(IR*& cur_stmt_root) {
+
+//  cerr << "Fixing handle_no_such_index_y_err_without_loc, before: " << cur_stmt_root->to_string() << "\n";
+
+    vector<IR*> v_index_by = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kIndexedBy, false, true);
+
+    for (IR* cur_index_by: v_index_by) {
+        IR* new_index_by_node = new IR(kIndexedBy, OP0(), nullptr, nullptr);
+        cur_stmt_root->swap_node(cur_index_by, new_index_by_node);
+        cur_index_by->deep_drop();
+    }
+
+//  cerr << "Fixing handle_no_such_index_y_err_without_loc, after: " << cur_stmt_root->to_string() << "\n";
+//  cerr << "END\n\n\n";
+
+    return;
 
 }
 
