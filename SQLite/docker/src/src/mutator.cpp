@@ -117,8 +117,7 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     handle_unsupported_having_clause(cur_stmt_root);
     return 0;
   } else if (findStringIn(error_msg, "GROUP BY term out of range - should be between")) {
-    handle_group_by_value_error(cur_stmt_root, error_msg);
-    return 0;
+    return handle_group_by_value_error(cur_stmt_root, error_msg);
   }
 
   return 1;
@@ -243,7 +242,7 @@ void Mutator::handle_unsupported_having_clause(IR*& cur_stmt_root) {
   return;
 }
 
-void Mutator::handle_group_by_value_error(IR*& cur_stmt_root, string& error_msg) {
+int Mutator::handle_group_by_value_error(IR*& cur_stmt_root, string& error_msg) {
   string min_val_str = string_splitter(error_msg, "GROUP BY term out of range - should be between ").back();
   string max_val_str;
   vector<string> v_tmp_split = string_splitter(min_val_str, " and ");
@@ -255,18 +254,25 @@ void Mutator::handle_group_by_value_error(IR*& cur_stmt_root, string& error_msg)
 
   int rand_new_num = get_rand_int(min_val, max_val);
 
+  bool is_found = false;
+
   vector<IR*> v_group_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kGroupbyOpt, false, true);
   for (auto cur_group : v_group_clause) {
-    if (cur_group->is_empty() || cur_group->left_ == nullptr) {
+    if (cur_group->is_empty()) {
+      debug(cur_group, 0);
+      cerr << "Trigger is_empty(); \n\n\n";
       continue;
     }
-    IR* old_group = cur_group->left_;
-    IR* new_int_literal = new IR(kIntegerLiteral, to_string(rand_new_num), id_whatever);
-    cur_stmt_root->swap_node(old_group, new_int_literal);
-    old_group->deep_drop();
+    cur_group->str_val_ = " GROUP BY " + to_string(rand_new_num);
+    is_found = true;
   }
 
-  return;
+  if (is_found) {
+    return 0;
+  } else {
+    // The group by problem could due to an error in the CREATE VIEW statement.
+    return 1;
+  }
 
 }
 
