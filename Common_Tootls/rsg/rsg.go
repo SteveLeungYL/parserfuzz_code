@@ -946,8 +946,6 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
-	r.ClearChosenExpr()
-
 	var rootPathNode *PathNode
 	_, pathExisted := r.allSavedPath[root]
 

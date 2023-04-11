@@ -171,14 +171,14 @@ public:
     if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
       rsg_exec_succeed();
     } else {
-      rsg_clear_chosen_expr();
+      rsg_exec_clear_chosen_expr();
     }
   }
   void rsg_exec_failed_helper() {
     if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
       rsg_exec_failed();
     } else {
-      rsg_clear_chosen_expr();
+      rsg_exec_clear_chosen_expr();
     }
   }
   void rsg_exec_clear_chosen_expr() {

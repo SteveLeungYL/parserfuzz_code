@@ -4145,7 +4145,8 @@ string Mutator::rsg_generate_valid(const string type) {
       cerr << "\n\n\n" << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
       cerr << "Rejected. \n\n\n";
 #endif
-      rsg_clear_chosen_expr();
+//      cerr << "\n\n\nrsg_generate_valid empty. \n\n\n";
+      this->rsg_exec_clear_chosen_expr();
       continue;
     }
     fix_common_rsg_errors(ir_vec.back());
