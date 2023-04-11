@@ -835,6 +835,8 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
 
   // init value_libary
   vector<string> value_lib_init = {std::to_string(0),
+                                   std::to_string(1),
+                                   std::to_string(2),
                                    std::to_string((unsigned long)LONG_MAX),
                                    std::to_string((unsigned long)ULONG_MAX),
                                    std::to_string((unsigned long)CHAR_BIT),
@@ -862,8 +864,10 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
                       value_lib_init.end());
 
   string_libary.push_back("x");
-  string_libary.push_back("v0");
-  string_libary.push_back("v1");
+  string_libary.push_back("xxx");
+  string_libary.push_back("yyy");
+  string_libary.push_back("test");
+  string_libary.push_back("rrrr");
 
   ifstream input_pragma("./pragma");
   string s;
@@ -3705,11 +3709,13 @@ void Mutator::_fix(IR *root, string &res) {
     /* 2/3 chances, uses already seen value. */
     if (used_value_libary.size() != 0 && get_rand_int(3) < 2) {
       s = used_value_libary[get_rand_int(used_value_libary.size())];
-    } else {
+    } else if (get_rand_int(3) == 1){
       s = value_libary[get_rand_int(value_libary.size())];
+    } else {
+      s = to_string(get_rand_int(100));
     }
     if (s.empty()) {
-      s = "0.0";
+      s = to_string(get_rand_int(100));
     }
     used_value_libary.push_back(s);
     res += s;
