@@ -3508,7 +3508,8 @@ bool Mutator::fix_dependency(IR *root,
 
     /* First loop: Resolve column mappings for kCreateViewStatement. */
     for (auto ir : ordered_ir) {
-      if (ir->id_type_ != id_create_table_name) {
+      if (ir->id_type_ != id_create_view_name
+          ) {
         continue;
       }
       /* Check whether we are in the CreateViewStatement. If yes, save the
