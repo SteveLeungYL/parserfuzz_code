@@ -866,6 +866,8 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   };
 
   this->v_func_sig.clear();
+  this->v_func_sig_non_window.clear();
+  this->v_func_sig_window.clear();
   for (const json& cur_func_json : func_data) {
     FuncSig cur_func_sig = FuncSig(cur_func_json, all_supported_types);
     v_func_sig.push_back(cur_func_sig);
@@ -1182,12 +1184,12 @@ Mutator::post_fix_transform(vector<IR *> &all_pre_trans_vec,
   return all_post_trans_vec;
 }
 
-IR* Mutator::gen_rand_expr_node() {
+IR* Mutator::gen_rand_expr_node_no_exprfunc() {
 
   for (int i = 0; i < 100; i++) {
-    string tmp_stmt = "SELECT " + rsg_generate("exprnorecursive") + ";";
+    string tmp_stmt = "SELECT " + rsg_generate("expr") + ";";
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_stmt);
-    if (ir_vec.size() == 0) {
+    if (ir_vec.empty()) {
 #ifdef DEBUG
       cerr << "\n\n\n"
            << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
@@ -1195,7 +1197,13 @@ IR* Mutator::gen_rand_expr_node() {
 #endif
       continue;
     }
-    vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kExpr, false);
+    vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kExprFunc, false);
+    if (!v_res_node.empty()) {
+      // Do not use kExprFunc.
+      ir_vec.back()->deep_drop();
+      continue;
+    }
+    v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kExpr, false);
     if (v_res_node.size() > 0) {
       IR* res_node = v_res_node.front()->deep_copy();
       ir_vec.back()->deep_drop();
@@ -1205,40 +1213,65 @@ IR* Mutator::gen_rand_expr_node() {
       continue;
     }
   }
-  return nullptr;
+  IR* ret_node = new IR(kIdentifier, string("v0"), id_column_name);
+  return ret_node;
 }
 
 
 IR* Mutator::gen_rand_filter_over_clause() {
 
+  // Enforce the OVER clause.
   for (int i = 0; i < 100; i++) {
-    string tmp_stmt = "SELECT " + rsg_generate("exprFuncWindow") + ";";
+    string tmp_stmt = "SELECT SUM(v0) ";
+
+    // Optional FILTER clause
+    if (get_rand_int(2)) {
+      tmp_stmt += " FILTER ( WHERE " + rsg_generate("expr") + ") ";
+    }
+
+    // Required OVER clause.
+    tmp_stmt += "OVER (";
+
+    if (get_rand_int(2)) {
+      tmp_stmt += "PARTITION BY v0";
+    } else {
+      tmp_stmt += "ORDER BY v0";
+    }
+
+    tmp_stmt += ") FROM v0; ";
+
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_stmt);
+//    cerr << "\n\n\n"
+//         << "Getting filter_over query str: " << tmp_stmt << "\n\n\n";
     if (ir_vec.size() == 0) {
-#ifdef DEBUG
-      cerr << "\n\n\n"
-           << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
-      cerr << "Rejected. \n\n\n";
-#endif
+//      cerr << "Rejected. \n\n\n";
       continue;
     }
     vector<IR*> v_res_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(ir_vec.back(), kFilterOver, false);
     if (v_res_node.size() > 0) {
       IR* res_node = v_res_node.front()->deep_copy();
       ir_vec.back()->deep_drop();
+//      cerr << "return: \n" << res_node->to_string() << "\n\n\n";
       return res_node;
     } else {
       ir_vec.back()->deep_drop();
+//      cerr << "Cannot find kFilterOver \n\n\n";
       continue;
     }
   }
+
   return nullptr;
 }
 
-IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
+IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type, bool is_avoid_window) {
   // Ignore the req_ret_type for now.
 
-  FuncSig& cur_func_sig = vector_rand_ele(this->v_func_sig);
+  FuncSig cur_func_sig;
+  if (is_avoid_window) {
+    cur_func_sig = vector_rand_ele(this->v_func_sig_non_window);
+  } else {
+    cur_func_sig = vector_rand_ele(this->v_func_sig);
+  }
   // Get all the arg types
   vector<DataType> v_arg_types = cur_func_sig.get_arg_types();
 
@@ -1249,18 +1282,17 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
   IR* tmp_arg_node = nullptr;
   for (DataType cur_arg_type : v_arg_types) {
     IR* arg_expr_node = nullptr;
-    switch(get_rand_int(12)) {
+    switch(get_rand_int(14)) {
     case 0:
     case 1:
     case 2:
     case 3:
-    case 4:
       arg_expr_node = new IR(kIdentifier, string("v0"), id_column_name);
       arg_expr_node->is_node_struct_fixed = true;
       break;
+    case 4:
     case 5:
     case 6:
-    case 7:
       if (
           cur_arg_type.get_data_type_enum() == kTYPEANY ||
           cur_arg_type.get_data_type_enum() == kTYPEUNDEFINE ||
@@ -1273,15 +1305,21 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
       arg_expr_node = new IR(kStringLiteral, string(cur_arg_type.mutate_type_entry()), id_whatever);
       arg_expr_node->is_node_struct_fixed = true;
       break;
+    case 7:
     case 8:
     case 9:
-      arg_expr_node = this->gen_rand_expr_node();
-      break;
     case 10:
+      arg_expr_node = this->gen_rand_expr_node_no_exprfunc();
+      break;
     case 11:
-      arg_expr_node = this->instan_rand_func_expr();
+    case 12:
+    case 13:
+      // Avoid using window
+      arg_expr_node = this->instan_rand_func_expr(kTYPEUNKNOWN, true);
       break;
     }
+
+    // Finished the arg_expr_node, fill in to the func expression.
     if (tmp_arg_node == nullptr) {
       tmp_arg_node = new IR(kUnknown, OP0(), arg_expr_node, nullptr);
     } else {
@@ -1301,7 +1339,7 @@ IR* Mutator::instan_rand_func_expr(DATATYPE req_ret_type) {
 }
 
 // Recursive function to generate and test function expressions.
-void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt) {
+void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt, bool is_avoid_window) {
   /* Handle the function expression first. */
   vector<IR*> v_func_expr_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_trans_stmt, kExprFunc, false, true);
   vector<int> ignore_set;
@@ -1315,13 +1353,13 @@ void Mutator::instan_rand_func_expr_helper(IR* cur_trans_stmt) {
   }
   for (int i = 0; i < v_func_expr_node.size(); i++) {
     if (find(ignore_set.begin(), ignore_set.end(), i) == ignore_set.end()) {
-      IR* new_func_expr = instan_rand_func_expr();
+      IR* new_func_expr = instan_rand_func_expr(kTYPEUNKNOWN, is_avoid_window);
       cur_trans_stmt->swap_node(v_func_expr_node[i], new_func_expr);
       v_func_expr_node[i]->deep_drop();
       if(new_func_expr->left_) {
-        this->instan_rand_func_expr_helper(new_func_expr->left_);
+        this->instan_rand_func_expr_helper(new_func_expr->left_, true);
       } else if (new_func_expr->right_) {
-        this->instan_rand_func_expr_helper(new_func_expr->right_);
+        this->instan_rand_func_expr_helper(new_func_expr->right_, true);
       }
     }
   }

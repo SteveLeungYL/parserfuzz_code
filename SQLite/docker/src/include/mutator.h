@@ -206,10 +206,10 @@ private:
   void add_to_library_core(IR *, string *);
 
   void fix_common_rsg_errors(IR*);
-  IR* gen_rand_expr_node();
+  IR* gen_rand_expr_node_no_exprfunc();
   IR* gen_rand_filter_over_clause();
-  IR* instan_rand_func_expr(DATATYPE req_ret_type = kTYPEUNKNOWN);
-  void instan_rand_func_expr_helper(IR* cur_node);
+  IR* instan_rand_func_expr(DATATYPE req_ret_type = kTYPEUNKNOWN, bool is_avoid_window = false);
+  void instan_rand_func_expr_helper(IR* cur_node, bool is_avoid_window = false);
 
   bool dump_library = false;
   bool use_cri_val = false;

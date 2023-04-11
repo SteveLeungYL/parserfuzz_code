@@ -714,7 +714,8 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 				ret = append(ret, "0")
 				continue
 			case "FUNC":
-				ret = append(ret, "COUNT")
+				// Use unknown function.
+				ret = append(ret, "UNKNOWN")
 				continue
 
 			default:
