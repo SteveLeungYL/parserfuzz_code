@@ -289,6 +289,7 @@ private:
   void handle_cannot_join_using_column(IR*& cur_stmt_root, string& err_str);
   void handle_unsupported_frame(IR*& cur_stmt_root);
   void handle_unsupported_having_clause(IR*& cur_stmt_root);
+  void handle_group_by_value_error(IR*& cur_stmt_root, string& err_msg);
 
 };
 
