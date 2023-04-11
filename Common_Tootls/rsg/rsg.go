@@ -185,7 +185,11 @@ func (r *RSG) ClearChosenExpr() {
 
 func (r *RSG) IncrementSucceed() {
 
-	//fmt.Printf("\nSaving r.curChosenPath size: %d, root: %v\n\n\n", len(r.curChosenPath), r.curChosenPath[0].ExprProds)
+	//fmt.Printf("\nSaving r.curChosenPath size: %d", len(r.curChosenPath))
+	//if len(r.curChosenPath) != 0 && r.curChosenPath[0].ExprProds != nil {
+	//	fmt.Printf("exprNode: %v\n\n\n", r.curChosenPath[0].ExprProds)
+	//}
+
 	for _, curPath := range r.curChosenPath {
 		prod := curPath.ExprProds
 		//fmt.Printf("\nGetting ExprProds: %v\n", prod)

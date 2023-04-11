@@ -5776,8 +5776,8 @@ static u8 fuzz_one(char **argv) {
             stage_cur++;
             show_stats();
 
-//            cerr << "From stmt: " << query_str_vec.front() << "\n";
-//            cerr << "Getting res: " << program_output_res << ", idx: " << fix_trial << "\n\n\n";
+//            cerr << "From stmt: " << input + "\n" + cur_input << "\n";
+//            cerr << "Getting res: " << program_output_res << "\n\n\n";
             if (findStringIn(program_output_res, "error")) {
               int fix_res = g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
               if (fix_res) {
@@ -5788,7 +5788,7 @@ static u8 fuzz_one(char **argv) {
               v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
               cur_input.clear();
               for (IR *cur_stmt : v_stmt) {
-                cur_input += cur_stmt->to_string() + "; \n";
+                cur_input = cur_stmt->to_string() + "; \n";
               }
               continue;
             } else {
@@ -5804,7 +5804,9 @@ static u8 fuzz_one(char **argv) {
       } // dyn fix loop
 
       if (!is_succeed) {
-        // Contains new errors. Give up the current stmt.
+        // Contains errors. Give up the current stmt.
+//        cerr << "\n\n\nFinal statment, from stmt: " << input + "\n" + cur_input << "\n";
+//        cerr << "Getting res: " << program_output_res << "\n\n\n";
         g_mutator.rollback_dependency();
         g_mutator.rsg_exec_failed_helper();
         debug_error++;
