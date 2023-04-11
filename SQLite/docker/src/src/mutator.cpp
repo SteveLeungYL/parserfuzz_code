@@ -3080,12 +3080,12 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) && // kSetlist does not allow dot
               cur_stmt_type != kCmdCreateIndex
               ) {
-            if (!(get_rand_int(10))) {
+            if ((get_rand_int(20) == 0)) {
               column_str = "rowid";
             }
             ir->str_val_ = aliasname_str + "." + column_str;
           } else {
-            if (!(get_rand_int(10))) {
+            if ((get_rand_int(20)) == 0) {
               column_str = "rowid";
             }
             { ir->str_val_ = column_str; }
@@ -3114,12 +3114,12 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) &&
               cur_stmt_type != kCmdCreateIndex
               ) {
-            if (!(get_rand_int(10))) {
+            if ((get_rand_int(20) == 0)) {
               column_str = "rowid";
             }
             ir->str_val_ = tablename_str + "." + column_str;
           } else {
-            if (!(get_rand_int(10)) && cur_stmt_type != kCmdCreateIndex) {
+            if ((get_rand_int(20)) == 0 && cur_stmt_type != kCmdCreateIndex) {
               column_str = "rowid";
             }
             { ir->str_val_ = column_str; }
