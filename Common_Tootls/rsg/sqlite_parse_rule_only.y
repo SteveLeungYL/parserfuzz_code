@@ -364,7 +364,6 @@ idlist_opt ::= LP idlist RP.
 idlist ::= idlist COMMA nm.
 idlist ::= nm.
 expr ::= LP expr RP.
-exprnorecursive ::= LP expr RP.
 expr ::= ID.
 exprnorecursive ::= ID.
 expr ::= nm DOT nm.
