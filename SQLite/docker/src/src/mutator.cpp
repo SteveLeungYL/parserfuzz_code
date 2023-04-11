@@ -259,8 +259,6 @@ int Mutator::handle_group_by_value_error(IR*& cur_stmt_root, string& error_msg) 
   vector<IR*> v_group_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kGroupbyOpt, false, true);
   for (auto cur_group : v_group_clause) {
     if (cur_group->is_empty()) {
-      debug(cur_group, 0);
-      cerr << "Trigger is_empty(); \n\n\n";
       continue;
     }
     cur_group->str_val_ = " GROUP BY " + to_string(rand_new_num);
