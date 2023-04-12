@@ -1782,8 +1782,8 @@ void Mutator::fix_preprocessing(IR *root,
   type_to_fix.insert(id_index_name);
   type_to_fix.insert(id_create_table_name);
   type_to_fix.insert(id_create_column_name);
-  type_to_fix.insert(id_pragma_name);
-  type_to_fix.insert(id_pragma_value);
+//  type_to_fix.insert(id_pragma_name);
+//  type_to_fix.insert(id_pragma_value);
   type_to_fix.insert(id_create_index_name);
   type_to_fix.insert(id_create_table_name_with_tmp);
   type_to_fix.insert(id_create_column_name_with_tmp);
@@ -3261,45 +3261,6 @@ bool Mutator::fix_dependency(IR *root,
         }
       }
 
-      /* Fixing for the id_pragma_name. */
-      if (ir->id_type_ == id_pragma_name) {
-        int lib_size = cmds_.size();
-        if (lib_size != 0) {
-          ir->str_val_ = cmds_[get_rand_int(lib_size)];
-          cur_pragma_key = ir->str_val_;
-        }
-        visited.insert(ir);
-      }
-
-      if (ir->id_type_ == id_pragma_value) {
-        if (m_cmd_value_lib_[cur_pragma_key].size() != 0) {
-          string value = vector_rand_ele(m_cmd_value_lib_[cur_pragma_key]);
-          if (!value.compare("_int_")) {
-            if (value_libary.size() != 0) {
-              ir->str_val_ = value_libary[get_rand_int(value_libary.size())];
-              if (ir->str_val_.empty()) {
-                ir->str_val_ = "0";
-              }
-            } else {
-              ir->str_val_ = to_string(get_rand_int(100));
-            }
-          } else if (!value.compare("_empty_")) {
-            ir->str_val_ = "";
-          } else if (!value.compare("_boolean_")) {
-            if (get_rand_int(2) == 0) {
-              ir->str_val_ = "false";
-            } else {
-              ir->str_val_ = "true";
-            }
-          } else {
-            ir->str_val_ = value;
-          }
-        } else {
-          ir->str_val_ = to_string(get_rand_int(10));
-        }
-        visited.insert(ir);
-      }
-
       if (ir->id_type_ == id_window_name) {
         if (this->v_window_name_single.size() != 0) {
           ir->str_val_ = vector_rand_ele(this->v_window_name_single);
@@ -4200,4 +4161,46 @@ string Mutator::rsg_generate_valid(const string type) {
   }
 
   return "";
+}
+
+string Mutator::construct_rand_pragma_stmt() {
+  string res_str = "PRAGMA ";
+  string cur_pragma_key;
+
+  int lib_size = cmds_.size();
+  if (lib_size != 0) {
+    cur_pragma_key = cmds_[get_rand_int(lib_size)];
+    res_str += cur_pragma_key;
+  } else {
+    return "";
+  }
+
+  if (m_cmd_value_lib_[cur_pragma_key].size() != 0) {
+    string value = vector_rand_ele(m_cmd_value_lib_[cur_pragma_key]);
+    if (value == "_int_") {
+      if (value_libary.size() != 0) {
+        res_str += "=" + value_libary[get_rand_int(value_libary.size())];
+      } else {
+        res_str += "=" + to_string(get_rand_int(100));
+      }
+    } else if (value == "_empty_") {
+      res_str += "";
+    } else if (value == "_boolean_") {
+      if (get_rand_int(2) == 0) {
+        res_str += "=false";
+      } else {
+        res_str += "=true";
+      }
+    } else {
+      res_str += "=" + value;
+    }
+  } else {
+    // No value
+    res_str += "";
+  }
+
+  res_str += ";";
+
+  return res_str;
+
 }

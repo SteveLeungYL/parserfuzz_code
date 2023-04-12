@@ -5651,10 +5651,10 @@ string rsg_gen_sql_seq (int idx = 0) {
 
   string res_str = "";
 
-  if (idx ==0) {
+  if (idx < 3) {
+    res_str = g_mutator.construct_rand_pragma_stmt() + "\n";
+  } else if (idx < 4) {
     res_str = "CREATE TABLE v0 (v1 INT, v2 STRING, v3 FLOAT); \n";
-  } else if (idx < 3) {
-    res_str = rsg_gen_stmt("cmdPragma") + "\n";
   } else if (idx < 6) {
     res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
   } else if (idx < 9) {
