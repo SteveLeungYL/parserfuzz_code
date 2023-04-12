@@ -167,6 +167,8 @@ public:
   void resolve_drop_statement(IR *, bool is_debug_info = false);
   void resolve_alter_statement(IR *, bool is_debug_info = false);
 
+  string construct_rand_pragma_stmt();
+
   void rsg_exec_succeed_helper() {
     if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
       rsg_exec_succeed();
