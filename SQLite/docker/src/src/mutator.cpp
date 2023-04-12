@@ -3389,45 +3389,47 @@ bool Mutator::fix_dependency(IR *root,
 //          break;
         case 2:
           res_str = " fts5 ";
-          write_arg("sender, title, body");
+          write_arg("sender");
           if (v_create_table_names_single.size() != 0) {
             m_tables[v_create_table_names_single.front()].push_back("sender");
-            m_tables[v_create_table_names_single.front()].push_back("title");
-            m_tables[v_create_table_names_single.front()].push_back("body");
+//            m_tables[v_create_table_names_single.front()].push_back("title");
+//            m_tables[v_create_table_names_single.front()].push_back("body");
             v_fts_vtable_names.push_back(v_create_table_names_single.front());
           }
           break;
         case 3:
           res_str = " fts4 ";
-          write_arg("sender, title, body");
+          write_arg("sender");
           if (v_create_table_names_single.size() != 0) {
             m_tables[v_create_table_names_single.front()].push_back("sender");
-            m_tables[v_create_table_names_single.front()].push_back("title");
-            m_tables[v_create_table_names_single.front()].push_back("body");
+//            m_tables[v_create_table_names_single.front()].push_back("title");
+//            m_tables[v_create_table_names_single.front()].push_back("body");
             v_fts_vtable_names.push_back(v_create_table_names_single.front());
           }
           break;
         case 4:
+        case 5:
+        case 6:
           res_str = " rtree ";
-          if (get_rand_int(2)) {
+//          if (get_rand_int(2)) {
             write_arg("id, minX, maxX");
             if (v_create_table_names_single.size() != 0) {
               m_tables[v_create_table_names_single.front()].push_back("id");
               m_tables[v_create_table_names_single.front()].push_back("minX");
               m_tables[v_create_table_names_single.front()].push_back("maxX");
             }
-          } else {
-            write_arg("id, minX, maxX, minY, maxY");
-            if (v_create_table_names_single.size() != 0) {
-              m_tables[v_create_table_names_single.front()].push_back("id");
-              m_tables[v_create_table_names_single.front()].push_back("minX");
-              m_tables[v_create_table_names_single.front()].push_back("maxX");
-              m_tables[v_create_table_names_single.front()].push_back("minY");
-              m_tables[v_create_table_names_single.front()].push_back("maxY");
-            }
-          }
+//          } else {
+//            write_arg("id");
+//            if (v_create_table_names_single.size() != 0) {
+//              m_tables[v_create_table_names_single.front()].push_back("id");
+////              m_tables[v_create_table_names_single.front()].push_back("minX");
+////              m_tables[v_create_table_names_single.front()].push_back("maxX");
+////              m_tables[v_create_table_names_single.front()].push_back("minY");
+////              m_tables[v_create_table_names_single.front()].push_back("maxY");
+//            }
+//          }
           break;
-        case 5:
+//        case 5:
 //          res_str = " zipfile ";
 //          if (get_rand_int(2)) {
 //            write_arg("'name'");
@@ -3442,17 +3444,17 @@ bool Mutator::fix_dependency(IR *root,
 //            }
 //          }
 //          break;
-        case 6:
-          res_str = " fts5vocab ";
-          string known_fts_table_name = "v0";
-          if (v_fts_vtable_names.size() > 0) {
-            known_fts_table_name = vector_rand_ele(v_fts_vtable_names);
-          }
-          write_arg(known_fts_table_name + ", 'instance'");
-          if (v_create_table_names_single.size() != 0) {
-            v_fts_vtable_names.push_back(v_create_table_names_single.front());
-          }
-          break;
+//        case 6:
+//          res_str = " fts5vocab ";
+//          string known_fts_table_name = "v0";
+//          if (v_fts_vtable_names.size() > 0) {
+//            known_fts_table_name = vector_rand_ele(v_fts_vtable_names);
+//          }
+//          write_arg(known_fts_table_name + ", 'instance'");
+//          if (v_create_table_names_single.size() != 0) {
+//            v_fts_vtable_names.push_back(v_create_table_names_single.front());
+//          }
+//          break;
 
         }
 #undef write_arg
