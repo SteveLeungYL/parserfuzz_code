@@ -50,6 +50,14 @@ RUN pip3 install libtmux
 
 WORKDIR /home/sqlite
 
+# Setup the Docker helper scripts
+USER root
+WORKDIR /home/sqlite
+COPY scripts /home/sqlite/scripts
+RUN chown -R sqlite:sqlite /home/sqlite/scripts
+
+USER sqlite
+
 # Build AFL. 
 RUN git clone https://github.com/google/AFL.git
 
@@ -74,6 +82,8 @@ RUN git checkout master
 ENV CXX=/home/sqlite/AFL/afl-clang-fast++
 ENV CC=/home/sqlite/AFL/afl-clang-fast
 RUN ./configure --enable-debug --enable-all
+RUN make -j$(nproc)
+RUN python3 /home/sqlite/scripts/modify_sqlite_shell.py
 RUN make -j$(nproc)
 
 ## Build uninstrumented SQLite3
@@ -153,13 +163,8 @@ RUN mkdir -p Bug_Analysis
 #WORKDIR /home/sqlite/sqlite_bisecting_binary
 #RUN mkdir -p bld
 
-# At last, setup the Docker helper scripts
-USER root
-WORKDIR /home/sqlite
-COPY scripts /home/sqlite/scripts
-RUN chown -R sqlite:sqlite /home/sqlite/scripts
-
 # Entry workdir.
+USER root
 WORKDIR /home/sqlite/fuzzing/fuzz_root
 
 
