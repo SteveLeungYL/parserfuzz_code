@@ -11,7 +11,7 @@ TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 MINIMIZER_OBJS := AFL/query-minimizer.o $(COMM_OBJS)
 
 export CC = g++
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS) -thread
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS) -pthread
 LDFLAGS = -ldl
 
 
