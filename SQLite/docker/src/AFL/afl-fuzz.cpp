@@ -254,6 +254,7 @@ static s32 shm_id; /* ID of the SHM region             */
 
 static volatile u8 stop_soon, /* Ctrl-C pressed?                  */
     clear_screen = 1,         /* Window resized?                  */
+    child_forced_stop = 0,
     child_timed_out;          /* Traced process timed out?        */
 
 EXP_ST u32 queued_paths, /* Total number of queued testcases */
@@ -2447,19 +2448,44 @@ EXP_ST void init_forkserver(char **argv) {
 
 static string read_sqlite_output_and_reset_output_file() {
 
-  string program_output_str = "";
+  string program_output_str;
+  program_output_str.reserve(300);
   char output_buf[1024 + 1];
 
-  lseek(program_output_fd, 0, SEEK_SET);
+  bool finished_reading = false;
+  while (!finished_reading) {
 
-  while (1) {
-
-    ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
-    if (num_bytes == 0 || output_buf[0] == '\0')
+    if (child_timed_out || child_forced_stop) {
+      // Do not wait timeout queries.
+      program_output_str.clear();
       break;
+    }
 
-    output_buf[num_bytes] = '\0';
-    program_output_str += output_buf;
+    lseek(program_output_fd, 0, SEEK_SET);
+
+    while (1) {
+      // Read all characters from the output file.
+      ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
+      if (num_bytes == 0 || output_buf[0] == '\0')
+        break;
+
+      output_buf[num_bytes] = '\0';
+      program_output_str += output_buf;
+    }
+
+    if (findStringIn(program_output_str, "EOF")) {
+      // Found the ending signal. Remove it from the output stream.
+      finished_reading = true;
+      vector<string> tmp_split = string_splitter(program_output_str, "\n");
+      program_output_str.clear();
+      for (int i = 0; i < tmp_split.size() - 1; i++) {
+       program_output_str += tmp_split[i] + "\n";
+      }
+      break;
+    } else {
+      finished_reading = false;
+      continue;
+    }
   }
   // lseek(program_output_fd, 0, SEEK_SET);
   ftruncate(program_output_fd, 0);
@@ -2481,6 +2507,7 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   u32 tb4;
 
   child_timed_out = 0;
+  child_forced_stop = 0;
 
   /* After this memset, trace_bits[] are effectively volatile, so we
      must prevent any earlier operations from venturing into that
@@ -2621,12 +2648,6 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     char tmp_buf[200];
     // Monitor the file changes.
     int num_read = read(file_inotify_fd, tmp_buf, 200);
-    //if (num_read <= 0) {
-      //[>printf("num_read is smaller than 0\\n\\n\\n");<]
-      //continue;
-    //} else {
-      //[>printf("Successfully notify file changes..\\n\\n\\n");<]
-    //}
 
     if ( is_restart && (res = read(fsrv_st_fd, &status, 4)) != 4) {
       if (stop_soon)
@@ -2640,10 +2661,12 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     // If the child_pid is not 0, meaning that the SQLite process is
     // still running, 0 otherwise.
     child_pid = 0;
+    child_forced_stop = 1;
   }
   if (is_restart && child_pid > 0) {
     kill(child_pid, SIGKILL);
     child_pid = 0;
+    child_forced_stop = 1;
   }
 
   getitimer(ITIMER_REAL, &it);
@@ -2857,6 +2880,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     trim_string(cmd_string);
 
     /* The trace_bits[] are effectively volatile after calling run_target */
+    cmd_string += "\n.print EOF";
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout, is_restart);
 
@@ -5786,9 +5810,7 @@ static u8 fuzz_one(char **argv) {
             skip_count++;
             break;
           } else {
-            query_str_vec.push_back(cur_input +
-                                    ".print 'FinishedOutput'\n"
-                                    );
+            query_str_vec.push_back(cur_input);
 
             show_stats();
             stage_name = "fuzz";
