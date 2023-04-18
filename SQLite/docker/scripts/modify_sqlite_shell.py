@@ -1,17 +1,20 @@
 import os
 import sys
 
-fd = open("/home/sqlite/sqlite/shell.c", "r")
+fd = open("/home/sqlite/sqlite/src/shell.c.in", "r")
 all_lines = fd.readlines()
 all_modified_lines = "#include <sys/inotify.h>\n"
 
 tmp_prev_line = ""
+ignore_lines = 0
 for i in range(len(all_lines)):
     cur_line = all_lines[i]
     if "data.in = stdin;" in cur_line and i+1 < len(all_lines) and "rc = process_input(&data);" in all_lines[i+1]:
+        ignore_lines = 2
+
         all_modified_lines += """
       // stdin is not interactive.
-#define MAX_BUF_LEN 100
+#define MAX_BUF_LEN 300
       int file_inotify_fd = inotify_init();
       ssize_t num_read;
       char buf[MAX_BUF_LEN];
@@ -30,7 +33,9 @@ for i in range(len(all_lines)):
       //remove("/home/sqlite/fuzzing/fuzz_root/input_path");
 
       // Remove the appending new line symbol from the fread.
-      // file_path[strlen(file_path) - 1] = '\\0';
+      if (file_path[strlen(file_path) - 1] == '\\n') {
+        file_path[strlen(file_path) - 1] = '\\0';
+      }
 
       int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY | IN_CREATE);
       if (wd == -1) {
@@ -112,9 +117,13 @@ for i in range(len(all_lines)):
 #undef MAX_BUF_LEN
 """
 
-    all_modified_lines += cur_line
+    if ignore_lines == 0:
+       all_modified_lines += cur_line
+    else:
+       # Ignore the following "data.in = stdin;" and "rc = process_input(&data);" line
+       ignore_lines -= 1
 
 fd.close()
-fd = open("/home/sqlite/sqlite/shell.c", "wt")
+fd = open("/home/sqlite/sqlite/src/shell.c.in", "wt")
 fd.write(all_modified_lines)
 fd.close()

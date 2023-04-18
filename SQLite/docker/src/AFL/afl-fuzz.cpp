@@ -2641,6 +2641,10 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     // still running, 0 otherwise.
     child_pid = 0;
   }
+  if (is_restart && child_pid > 0) {
+    kill(child_pid, SIGKILL);
+    child_pid = 0;
+  }
 
   getitimer(ITIMER_REAL, &it);
   exec_ms =
@@ -2932,6 +2936,7 @@ static void write_with_gap(void *mem, u32 len, u32 skip_at, u32 skip_len) {
 }
 
 static void show_stats(void);
+void restart_sqlite(char **argv);
 
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
@@ -2990,6 +2995,10 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
 
     ALL_COMP_RES dummy_all_comp_res;
     vector<string> program_input_str_vec{program_input_str};
+
+    // Cannot run restart_sqlite here, because the queue is not setting up
+    // correctly yet, the show_stats function would crash the process.
+    //restart_sqlite(argv);
     fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv,
                                use_tmout, false);
     
