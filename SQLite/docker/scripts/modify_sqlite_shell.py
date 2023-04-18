@@ -49,10 +49,13 @@ for i in range(len(all_lines)):
       buf[5] = '\\0';
       if (strcmp(buf, ".quit") == 0) {
         is_skip_loop = 0;
+        fprintf(stdout, "EOF");
+        fflush(stdout);
       } else {
         fseek(stdin, 0, SEEK_SET);
         data.in = stdin;
         rc = process_input(&data);
+        fprintf(stdout, "EOF");
         fflush(stdout);
       } 
 
@@ -105,6 +108,8 @@ for i in range(len(all_lines)):
         buf[5] = '\\0';
         
         if (strcmp(buf, ".quit") == 0) {
+          fprintf(stdout, "EOF");
+          fflush(stdout);
           break;
         } else {
           /*printf("read buf: %s\\n\\n\\n", buf);*/
@@ -112,6 +117,7 @@ for i in range(len(all_lines)):
         fseek(stdin, 0, SEEK_SET);
         data.in = stdin;
         rc = process_input(&data);
+        fprintf(stdout, "EOF");
         fflush(stdout);
       }
 #undef MAX_BUF_LEN

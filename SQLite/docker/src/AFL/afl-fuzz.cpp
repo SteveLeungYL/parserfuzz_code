@@ -49,6 +49,8 @@
 #include "../include/utils.h"
 
 #include <sys/inotify.h>
+#include <future>
+
 #include <algorithm>
 #include <cassert>
 #include <ctype.h>
@@ -130,6 +132,8 @@ u64 total_mutate_gen_num = 0;
 u64 total_mutate_gen_failed = 0;
 u64 total_oracle_mutate = 0;
 u64 total_oracle_mutate_failed = 0;
+
+static std::future<int> fut;
 
 u64 num_parse = 0;
 u64 num_mutate_all = 0;
@@ -254,8 +258,10 @@ static s32 shm_id; /* ID of the SHM region             */
 
 static volatile u8 stop_soon, /* Ctrl-C pressed?                  */
     clear_screen = 1,         /* Window resized?                  */
-    child_forced_stop = 0,
+    child_has_stop = 0,
     child_timed_out;          /* Traced process timed out?        */
+
+static volatile EXEC_RESULT_CODE child_fault_code;
 
 EXP_ST u32 queued_paths, /* Total number of queued testcases */
     queued_variable,     /* Testcases with variable behavior */
@@ -2120,6 +2126,9 @@ static void destroy_extras(void) {
   ck_free(a_extras);
 }
 
+// Forward declare
+int handle_sqlite_server_return();
+
 /* Spin up fork server (instrumented mode only). The idea is explained here:
 
    http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html
@@ -2284,6 +2293,10 @@ EXP_ST void init_forkserver(char **argv) {
      Otherwise, try to figure out what went wrong. */
 
   if (rlen == 4) {
+
+    // Start the SQLite child process.
+    fut = async(handle_sqlite_server_return);
+
     OKF("All right - fork server is up.");
     return;
   }
@@ -2455,7 +2468,7 @@ static string read_sqlite_output_and_reset_output_file() {
   bool finished_reading = false;
   while (!finished_reading) {
 
-    if (child_timed_out || child_forced_stop) {
+    if (child_timed_out || child_has_stop) {
       // Do not wait timeout queries.
       program_output_str.clear();
       break;
@@ -2471,7 +2484,7 @@ static string read_sqlite_output_and_reset_output_file() {
 
       output_buf[num_bytes] = '\0';
       program_output_str += output_buf;
-    }
+    } // Infinite loop to read contents.
 
     if (findStringIn(program_output_str, "EOF")) {
       // Found the ending signal. Remove it from the output stream.
@@ -2494,141 +2507,112 @@ static string read_sqlite_output_and_reset_output_file() {
   return program_output_str;
 }
 
-/* Execute target application, monitoring for timeouts. Return status
-   information. The called program will update trace_bits[]. */
-
-static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
-
-  static struct itimerval it;
-  static u32 prev_timed_out = 0;
-  static u64 exec_ms = 0;
-
+int handle_sqlite_server_return() {
+  // Communicate with the fork server, and then reboot the SQLite if needed.
   int status = 0;
-  u32 tb4;
+  static u32 prev_timed_out = 0;
+  s32 res;
 
-  child_timed_out = 0;
-  child_forced_stop = 0;
+  // Launch the initial server first.
+  if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
 
-  /* After this memset, trace_bits[] are effectively volatile, so we
-     must prevent any earlier operations from venturing into that
-     territory. */
+    if (stop_soon)
+      return 0;
+    RPFATAL(res, "Unable to request new process from fork server (OOM?)");
+  }
 
-  memset(trace_bits, 0, MAP_SIZE);
-  MEM_BARRIER();
+  if ((res = read(fsrv_st_fd, &child_pid, 4)) != 4) {
 
-  /* If we're running in "dumb" mode, we can't rely on the fork server
-     logic compiled into the target program, so we will just keep calling
-     execve(). There is a bit of code duplication between here and
-     init_forkserver(), but c'est la vie. */
+    if (stop_soon)
+      return 0;
+    RPFATAL(res, "Unable to request new process from fork server (OOM?)");
+  }
 
-  if (dumb_mode == 1 || no_forkserver) {
+  if (child_pid <= 0)
+    FATAL("Fork server is misbehaving (OOM?)");
 
-    child_pid = fork();
+  do {
 
-    if (child_pid < 0)
-      PFATAL("fork() failed");
-
-    if (!child_pid) {
-
-      struct rlimit r;
-
-      if (mem_limit) {
-
-        r.rlim_max = r.rlim_cur = ((rlim_t)mem_limit) << 20;
-
-#ifdef RLIMIT_AS
-
-        setrlimit(RLIMIT_AS, &r); /* Ignore errors */
-
-#else
-
-        setrlimit(RLIMIT_DATA, &r); /* Ignore errors */
-
-#endif /* ^RLIMIT_AS */
+    if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
+      if (stop_soon) {
+       return 0;
       }
-
-      r.rlim_max = r.rlim_cur = 0;
-
-      setrlimit(RLIMIT_CORE, &r); /* Ignore errors */
-
-      /* Isolate the process and configure standard descriptors. If out_file is
-         specified, stdin is /dev/null; otherwise, out_fd is cloned instead. */
-
-      setsid();
-
-      dup2(program_output_fd, 1);
-      dup2(dev_null_fd, 2);
-
-      if (out_file) {
-
-        dup2(dev_null_fd, 0);
-
-      } else {
-
-        dup2(out_fd, 0);
-        // close(out_fd);
-      }
-
-      /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
-
-      close(dev_null_fd);
-      close(out_dir_fd);
-      close(program_output_fd);
-      close(dev_urandom_fd);
-      close(fileno(plot_file));
-
-      /* Set sane defaults for ASAN if nothing else specified. */
-
-      setenv("ASAN_OPTIONS",
-             "abort_on_error=1:"
-             "detect_leaks=0:"
-             "symbolize=0:"
-             "allocator_may_return_null=1",
-             0);
-
-      setenv("MSAN_OPTIONS",
-             "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-                                                "symbolize=0:"
-                                                "msan_track_origins=0",
-             0);
-
-      execv(target_path, argv);
-
-      /* Use a distinctive bitmap value to tell the parent about execv()
-         falling through. */
-
-      *(u32 *)trace_bits = EXEC_FAIL_SIG;
-      exit(0);
+      RPFATAL(res, "Unable to communicate with fork server (OOM?)");
     }
 
-  } else if (child_pid == 0) {
+    // Modify the global variable to notify the main process.
+    child_has_stop = 1;
 
-    s32 res;
+    // Report the program return outcome.
+    /* Report outcome to caller. */
+    if (WIFSIGNALED(status) && !stop_soon) {
 
-    /* In non-dumb mode, we have the fork server up and running, so simply
-       tell it to have at it, and then read back PID. */
+      kill_signal = WTERMSIG(status);
 
+      if (child_timed_out && kill_signal == SIGKILL)
+       return FAULT_TMOUT;
+
+      return FAULT_CRASH;
+    }
+
+    // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
+    //    must use a special exit code. */
+    u32 tb4 = *(u32 *)trace_bits;
+
+    if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
+      kill_signal = 0;
+      child_fault_code = FAULT_CRASH;
+    }
+    else if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
+      child_fault_code = FAULT_ERROR;
+    else {
+      child_fault_code = FAULT_NONE;
+    }
+
+    // Resume the server.
     if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
 
       if (stop_soon)
-        return 0;
+       return 0;
       RPFATAL(res, "Unable to request new process from fork server (OOM?)");
     }
 
     if ((res = read(fsrv_st_fd, &child_pid, 4)) != 4) {
 
       if (stop_soon)
-        return 0;
+       return 0;
       RPFATAL(res, "Unable to request new process from fork server (OOM?)");
     }
 
     if (child_pid <= 0)
       FATAL("Fork server is misbehaving (OOM?)");
-  }
+
+  } while (true); // Infinite loop. Exit unless killed.
+
+  FATAL("Unexpected logic from handle_sqlite_server_return(). \n");
+  exit(1);
+
+}
+
+/* Execute target application, monitoring for timeouts. Return status
+   information. The called program will update trace_bits[]. */
+
+static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
+
+  static struct itimerval it;
+  static u64 exec_ms = 0;
+
+  // child_timed_out, child_has_stop, referenced by handle_sqlite_server_return function.
+  // Recover them to the default value.
+  // The SQLite DBMS will be resumed by the async handle_sqlite_server_return function.
+  child_timed_out = 0;
+  child_has_stop = 0;
+
+  int status = 0;
+  u32 tb4;
 
   /* Configure timeout, as requested by user, then wait for child to terminate.
    */
-
   it.it_value.tv_sec = (timeout / 1000);
   it.it_value.tv_usec = (timeout % 1000) * 1000;
 
@@ -2641,34 +2625,23 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     if (waitpid(child_pid, &status, 0) <= 0)
       PFATAL("waitpid() failed");
 
-  } else if (!is_restart) {
-
-    s32 res;
-
-    char tmp_buf[200];
-    // Monitor the file changes.
-    int num_read = read(file_inotify_fd, tmp_buf, 200);
-
-    if ( is_restart && (res = read(fsrv_st_fd, &status, 4)) != 4) {
-      if (stop_soon)
-        return 0;
-      RPFATAL(res, "Unable to communicate with fork server (OOM?)");
-    }
   }
 
-  if (WIFSTOPPED(status)) {
-    // The logic is changed here!!!
-    // If the child_pid is not 0, meaning that the SQLite process is
-    // still running, 0 otherwise.
-    child_pid = 0;
-    child_forced_stop = 1;
-  }
+  // Monitor the file changes.
+  // The output file should always has changes,
+  // even if it is stopped by .quit, it should always
+  // output EOF
+  char tmp_buf[200];
+  int num_read = read(file_inotify_fd, tmp_buf, 200);
+
   if (is_restart && child_pid > 0) {
     kill(child_pid, SIGKILL);
-    child_pid = 0;
-    child_forced_stop = 1;
+    // No need to set child_pid, avoid race conditions.
+    // child_pid is handled by handle_sqlite_server_return function.
+    child_has_stop = 1;
   }
 
+  // Disable the timeout handler.
   getitimer(ITIMER_REAL, &it);
   exec_ms =
       (u64)timeout - (it.it_value.tv_sec * 1000 + it.it_value.tv_usec / 1000);
@@ -2692,37 +2665,6 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   classify_counts((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-  prev_timed_out = child_timed_out;
-
-  /* Report outcome to caller. */
-
-  if (WIFSIGNALED(status) && !stop_soon) {
-
-    kill_signal = WTERMSIG(status);
-
-    if (child_timed_out && kill_signal == SIGKILL)
-      return FAULT_TMOUT;
-
-    return FAULT_CRASH;
-  }
-
-  // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
-  //    must use a special exit code. */
-
-  if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
-    kill_signal = 0;
-    return FAULT_CRASH;
-  }
-
-  if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
-    return FAULT_ERROR;
-
-  /* It makes sense to account for the slowest units only if the testcase was
-  run under the user defined timeout. */
-  if (!(timeout > exec_tmout) && (slowest_exec_ms < exec_ms)) {
-    slowest_exec_ms = exec_ms;
-  }
-
   return FAULT_NONE;
 }
 
@@ -2731,6 +2673,12 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
    truncated. */
 
 static void write_to_testcase(const char *mem, u32 len) {
+
+  /* After this memset, trace_bits[] are effectively volatile, so we
+     must prevent any earlier operations from venturing into that
+     territory. */
+  memset(trace_bits, 0, MAP_SIZE);
+  MEM_BARRIER();
 
   s32 fd = out_fd;
 
