@@ -48,6 +48,7 @@
 #include "../include/mutator.h"
 #include "../include/utils.h"
 
+#include <sys/inotify.h>
 #include <algorithm>
 #include <cassert>
 #include <ctype.h>
@@ -224,6 +225,7 @@ static s32 out_fd, /* Persistent fd for out_file       */
     dev_urandom_fd = -1, /* Persistent fd for /dev/urandom   */
     dev_null_fd = -1,    /* Persistent fd for /dev/null      */
     fsrv_ctl_fd,         /* Fork server control pipe (write) */
+    file_inotify_fd,
     fsrv_st_fd;          /* Fork server status pipe (read)   */
 
 static s32 max_norec =
@@ -2612,66 +2614,33 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     if (waitpid(child_pid, &status, 0) <= 0)
       PFATAL("waitpid() failed");
 
-  } else {
+  } else if (!is_restart) {
 
     s32 res;
 
-    int wait_trial = 3;
-    do {
-
-      if (is_restart) {
-        // Do not read output from is_restart loop.
-        break;
-      }
-
-      fd_set rfds;
-      struct timeval tv;
-      int retval;
-
-      /* Watch stdin (fd 0) to see when it has input. */
-      FD_ZERO(&rfds);
-      FD_SET(program_output_fd, &rfds);
-
-      /* Wait up to five seconds. */
-      tv.tv_sec = 0;
-      tv.tv_usec = timeout * 1000;
-
-      retval = select(program_output_fd+1, &rfds, NULL, NULL, &tv);
-
-      if (retval == -1) {
-        break;
-      }
-      else if (retval == 0) {
-        continue;
-      }
-
-      if (fseek(program_output_fd, 3, -15) != 0) {
-        continue;
-      }
-
-      char finished_sign[16];
-      fread(finished_sign, 15, 1, program_output_fd);
-      if (strcmp(finished_sign, "FinishedOutput") == 0) {
-        break;
-      }
-      if (wait_trial <= 0) {
-        //break;
-      }
-      wait_trial--;
-    } while (true);
-
-    lseek(program_output_fd, 0, SEEK_SET);
+    char tmp_buf[200];
+    // Monitor the file changes.
+    int num_read = read(file_inotify_fd, tmp_buf, 200);
+    //if (num_read <= 0) {
+      //[>printf("num_read is smaller than 0\\n\\n\\n");<]
+      //continue;
+    //} else {
+      //[>printf("Successfully notify file changes..\\n\\n\\n");<]
+    //}
 
     if ( is_restart && (res = read(fsrv_st_fd, &status, 4)) != 4) {
-
       if (stop_soon)
         return 0;
       RPFATAL(res, "Unable to communicate with fork server (OOM?)");
     }
   }
 
-  if (is_restart && !WIFSTOPPED(status))
+  if (WIFSTOPPED(status)) {
+    // The logic is changed here!!!
+    // If the child_pid is not 0, meaning that the SQLite process is
+    // still running, 0 otherwise.
     child_pid = 0;
+  }
 
   getitimer(ITIMER_REAL, &it);
   exec_ms =
@@ -2923,9 +2892,6 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     }
 
   } // End for run_id loop.
-
-  total_execs++;
-  total_execute++;
 
   return all_comp_res.final_res;
 }
@@ -5868,6 +5834,9 @@ static u8 fuzz_one(char **argv) {
       }
     } // stmt_trial
   } // stmt_idx
+  
+  total_execs++;
+  total_execute++;
 
   return ret_val;
 }
@@ -6514,13 +6483,24 @@ EXP_ST void setup_stdio_file(void) {
   if (program_output_fd < 0)
     PFATAL("Unable to create '%s'", fn2);
 
-  ck_free(fn);
-  ck_free(fn2);
 
   // Write the ./.cur_in file path to the local file system.
   FILE* input_path_fd = fopen("./input_path", "w");
   fprintf(input_path_fd, "/dev/shm/.cur_input_%d", pid);
   fclose(input_path_fd);
+
+  file_inotify_fd = inotify_init();
+  // Use inotify to watch file modification.
+  if (file_inotify_fd < 0) {
+    exit(1);
+  }
+  int wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
+  if (wd == -1) {
+    exit(1);
+  }
+
+  ck_free(fn);
+  ck_free(fn2);
 }
 
 /* Make sure that core dumps don't go to a program. */
