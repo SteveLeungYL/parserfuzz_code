@@ -2469,7 +2469,7 @@ static string read_sqlite_output_and_reset_output_file() {
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(char **argv, u32 timeout) {
+static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
@@ -2572,7 +2572,7 @@ static u8 run_target(char **argv, u32 timeout) {
       exit(0);
     }
 
-  } else {
+  } else if (child_pid == 0) {
 
     s32 res;
 
@@ -2616,7 +2616,53 @@ static u8 run_target(char **argv, u32 timeout) {
 
     s32 res;
 
-    if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
+    int wait_trial = 3;
+    do {
+
+      if (is_restart) {
+        // Do not read output from is_restart loop.
+        break;
+      }
+
+      fd_set rfds;
+      struct timeval tv;
+      int retval;
+
+      /* Watch stdin (fd 0) to see when it has input. */
+      FD_ZERO(&rfds);
+      FD_SET(program_output_fd, &rfds);
+
+      /* Wait up to five seconds. */
+      tv.tv_sec = 0;
+      tv.tv_usec = timeout * 1000;
+
+      retval = select(program_output_fd+1, &rfds, NULL, NULL, &tv);
+
+      if (retval == -1) {
+        break;
+      }
+      else if (retval == 0) {
+        continue;
+      }
+
+      if (fseek(program_output_fd, 3, -15) != 0) {
+        continue;
+      }
+
+      char finished_sign[16];
+      fread(finished_sign, 15, 1, program_output_fd);
+      if (strcmp(finished_sign, "FinishedOutput") == 0) {
+        break;
+      }
+      if (wait_trial <= 0) {
+        //break;
+      }
+      wait_trial--;
+    } while (true);
+
+    lseek(program_output_fd, 0, SEEK_SET);
+
+    if ( is_restart && (res = read(fsrv_st_fd, &status, 4)) != 4) {
 
       if (stop_soon)
         return 0;
@@ -2624,7 +2670,7 @@ static u8 run_target(char **argv, u32 timeout) {
     }
   }
 
-  if (!WIFSTOPPED(status))
+  if (is_restart && !WIFSTOPPED(status))
     child_pid = 0;
 
   getitimer(ITIMER_REAL, &it);
@@ -2825,7 +2871,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
 
 u8 execute_cmd_string(vector<string> &cmd_string_vec,
                       ALL_COMP_RES &all_comp_res, char **argv,
-                      u32 tmout = exec_tmout) {
+                      u32 tmout = exec_tmout, bool is_restart = false) {
 
   all_comp_res.final_res = FAULT_NONE;
 
@@ -2839,7 +2885,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     /* The trace_bits[] are effectively volatile after calling run_target */
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
-    fault = run_target(argv, tmout);
+    fault = run_target(argv, tmout, is_restart);
 
     if (skip_requested) {
       skip_requested = 0;
@@ -2854,10 +2900,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     all_comp_res.v_res_str.push_back(res_str);
     all_comp_res.v_res.push_back(fault);
 
-    vector<string> v_tmp_cur_out = string_splitter(res_str, "--------------\n");
-    if (v_tmp_cur_out.size() > 1) {
-      program_output_res = v_tmp_cur_out.back();
-    }
+    program_output_res = res_str;
 
     /* Users can hit us with SIGUSR1 to request the current input
          to be abandoned. */
@@ -2982,7 +3025,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     ALL_COMP_RES dummy_all_comp_res;
     vector<string> program_input_str_vec{program_input_str};
     fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv,
-                               use_tmout);
+                               use_tmout, false);
+    
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3745,21 +3789,21 @@ static u8 save_if_interesting(char **argv, string query_str,
 
     if (exec_tmout < hang_tmout) {
 
-      u8 new_fault;
-      write_to_testcase(query_str.c_str(), query_str.size());
-      new_fault = run_target(argv, hang_tmout);
-      read_sqlite_output_and_reset_output_file();
-
-      /* A corner case that one user reported bumping into: increasing the
-         timeout actually uncovers a crash. Make sure we don't discard it if
-         so. */
-
-      if (!stop_soon && new_fault == FAULT_CRASH)
-        goto keep_as_crash;
-
-      if (stop_soon || new_fault != FAULT_TMOUT) {
+//      u8 new_fault;
+//      write_to_testcase(query_str.c_str(), query_str.size());
+//      new_fault = run_target(argv, hang_tmout);
+//      read_sqlite_output_and_reset_output_file();
+//
+//      /* A corner case that one user reported bumping into: increasing the
+//         timeout actually uncovers a crash. Make sure we don't discard it if
+//         so. */
+//
+//      if (!stop_soon && new_fault == FAULT_CRASH)
+//        goto keep_as_crash;
+//
+//      if (stop_soon || new_fault != FAULT_TMOUT) {
         return keeping;
-      }
+//      }
     }
 
 #ifndef SIMPLE_FILES
@@ -5264,13 +5308,13 @@ static u32 next_p2(u32 val) {
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str, bool is_restart = false) {
 
   u8 fault;
 
   ALL_COMP_RES all_res;
 
-  fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout);
+  fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout, is_restart);
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR) {
@@ -5689,6 +5733,12 @@ string rsg_gen_sql_seq (int idx = 0) {
   return res_str;
 }
 
+void restart_sqlite(char **argv) {
+  vector<string> tmp_vec = {".quit"};
+  common_fuzz_stuff(argv, tmp_vec, true);
+  return;
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -5714,9 +5764,10 @@ static u8 fuzz_one(char **argv) {
 
   g_mutator.pre_validate();
 
+  restart_sqlite(argv);
+
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
     for (int single_stmt_trial = 0; single_stmt_trial < 10; single_stmt_trial++) {
-//      cerr << "\n\n\n Stmt idx: " << stmt_idx << "\n\n\n";
 
       string cur_input = rsg_gen_sql_seq(stmt_idx);
 
@@ -5760,19 +5811,14 @@ static u8 fuzz_one(char **argv) {
             skip_count++;
             break;
           } else {
-            query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" +
-                                    input +
-                                    ".print '--------------'\n" +
-                                    cur_input);
-            query_str_vec.push_back(".testctrl optimization 0x00000000; \n" +
-                                    input +
-                                    ".print '--------------'\n" +
-                                    cur_input);
+            query_str_vec.push_back(cur_input +
+                                    ".print 'FinishedOutput'\n"
+                                    );
 
             show_stats();
             stage_name = "fuzz";
             num_common_fuzz++;
-            common_fuzz_stuff(argv, query_str_vec);
+            common_fuzz_stuff(argv, query_str_vec, false);
             stage_cur++;
             show_stats();
 
@@ -6470,6 +6516,11 @@ EXP_ST void setup_stdio_file(void) {
 
   ck_free(fn);
   ck_free(fn2);
+
+  // Write the ./.cur_in file path to the local file system.
+  FILE* input_path_fd = fopen("./input_path", "w");
+  fprintf(input_path_fd, "/dev/shm/.cur_input_%d", pid);
+  fclose(input_path_fd);
 }
 
 /* Make sure that core dumps don't go to a program. */
