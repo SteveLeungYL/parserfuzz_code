@@ -2549,10 +2549,12 @@ int handle_sqlite_server_return() {
 
       kill_signal = WTERMSIG(status);
 
-      if (child_timed_out && kill_signal == SIGKILL)
-       return FAULT_TMOUT;
-
-      return FAULT_CRASH;
+      if (child_timed_out && kill_signal == SIGKILL) {
+       child_fault_code = FAULT_TMOUT;
+      }
+      else {
+       child_fault_code = FAULT_CRASH;
+      }
     }
 
     // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
