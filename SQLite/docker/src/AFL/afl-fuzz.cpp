@@ -2828,7 +2828,6 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     trim_string(cmd_string);
 
     /* The trace_bits[] are effectively volatile after calling run_target */
-    cmd_string += "\n.print EOF";
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout, is_restart);
 
@@ -2840,6 +2839,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     res_str = read_sqlite_output_and_reset_output_file();
 
+    fault = child_fault_code;
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
     all_comp_res.v_res_str.push_back(res_str);
