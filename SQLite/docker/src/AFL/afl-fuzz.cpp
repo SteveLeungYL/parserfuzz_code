@@ -2654,7 +2654,7 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
 
   program_output_res = read_sqlite_output_and_reset_output_file();
 
-  u8 *fn2 = alloc_printf("/.cur_output_%d", getpid());
+  u8 *fn2 = alloc_printf("/dev/shm/.cur_output_%d", getpid());
   file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
   ck_free(fn2);
   if (file_inotify_wd == -1) {
@@ -6475,8 +6475,8 @@ EXP_ST void setup_stdio_file(void) {
 
   u8 *fn2 = alloc_printf("/.cur_output_%d", pid);
 
-  unlink(fn2); /* Ignore errors */
-  program_output_fd = shm_open(fn2, O_RDWR | O_CREAT | O_EXCL | O_TRUNC, 0640);
+  shm_unlink(fn2); /* Ignore errors */
+  program_output_fd = shm_open(fn2, O_RDWR | O_CREAT | O_EXCL, 0640);
 
   if (out_fd < 0)
     PFATAL("Unable to create '%s'", fn);
@@ -6494,6 +6494,9 @@ EXP_ST void setup_stdio_file(void) {
   if (file_inotify_fd < 0) {
     exit(1);
   }
+
+  ck_free(fn2);
+  fn2 = alloc_printf("/dev/shm/.cur_output_%d", pid);
   file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
   if (file_inotify_wd == -1) {
     exit(1);
@@ -7471,8 +7474,6 @@ int main(int argc, char **argv) {
     if (stop_soon)
       goto stop_fuzzing;
   }
-
-  total_execs = 1;
 
   while (1) {
 
