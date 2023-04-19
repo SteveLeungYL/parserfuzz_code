@@ -37,25 +37,26 @@ for i in range(len(all_lines)):
         file_path[strlen(file_path) - 1] = '\\0';
       }
 
-      int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY | IN_CREATE);
-      if (wd == -1) {
-        exit(1);
-      }
+
 
       // Simply read the current file first.
       int is_skip_loop = 0;
       fseek(stdin, 0, SEEK_SET);
       int size_t = fread(buf, sizeof(buf), 5, stdin);
       buf[5] = '\\0';
-      if (strcmp(buf, ".quit") == 0) {
+      if (strlen(buf) == 0) {
+        is_skip_loop = 0;
+      } else if (strcmp(buf, ".quit") == 0) {
         is_skip_loop = 0;
         fprintf(stdout, "EOF");
+        ftruncate(fileno(stdin), 0);
         fflush(stdout);
       } else {
         fseek(stdin, 0, SEEK_SET);
         data.in = stdin;
         rc = process_input(&data);
         fprintf(stdout, "EOF");
+        ftruncate(fileno(stdin), 0);
         fflush(stdout);
       } 
 
@@ -63,6 +64,10 @@ for i in range(len(all_lines)):
         is_skip_loop = 1;
       }
 
+      int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY);
+      if (wd == -1) {
+        exit(1);
+      }
 
       while (!is_skip_loop) {
          
@@ -78,6 +83,8 @@ for i in range(len(all_lines)):
         } else {
           /*printf("Successfully notify file changes..\\n\\n\\n");*/
         }
+
+        inotify_rm_watch(file_inotify_fd, wd);
 
 //        fd_set rfds;
 //        struct timeval tv;
@@ -107,8 +114,11 @@ for i in range(len(all_lines)):
         int size_t = fread(buf, sizeof(buf), 5, stdin);
         buf[5] = '\\0';
         
-        if (strcmp(buf, ".quit") == 0) {
+        if (strlen(buf) == 0) {
+          continue;
+        } else if (strcmp(buf, ".quit") == 0) {
           fprintf(stdout, "EOF");
+          ftruncate(fileno(stdin), 0);
           fflush(stdout);
           break;
         } else {
@@ -118,7 +128,13 @@ for i in range(len(all_lines)):
         data.in = stdin;
         rc = process_input(&data);
         fprintf(stdout, "EOF");
+        ftruncate(fileno(stdin), 0);
         fflush(stdout);
+
+        int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY);
+        if (wd == -1) {
+          exit(1);
+        }
       }
 #undef MAX_BUF_LEN
 """

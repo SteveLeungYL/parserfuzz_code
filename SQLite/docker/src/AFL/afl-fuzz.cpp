@@ -230,6 +230,7 @@ static s32 out_fd, /* Persistent fd for out_file       */
     dev_null_fd = -1,    /* Persistent fd for /dev/null      */
     fsrv_ctl_fd,         /* Fork server control pipe (write) */
     file_inotify_fd,
+    file_inotify_wd,
     fsrv_st_fd;          /* Fork server status pipe (read)   */
 
 static s32 max_norec =
@@ -2613,6 +2614,10 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   int status = 0;
   u32 tb4;
 
+  if (stop_soon) {
+    return FAULT_NONE;
+  }
+
   /* Configure timeout, as requested by user, then wait for child to terminate.
    */
   it.it_value.tv_sec = (timeout / 1000);
@@ -2636,11 +2641,22 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   char tmp_buf[200];
   int num_read = read(file_inotify_fd, tmp_buf, 200);
 
+  inotify_rm_watch(file_inotify_fd, file_inotify_wd);
+
   if (is_restart && child_pid > 0) {
     kill(child_pid, SIGKILL);
     // No need to set child_pid, avoid race conditions.
     // child_pid is handled by handle_sqlite_server_return function.
     child_has_stop = 1;
+  }
+
+  program_output_res = read_sqlite_output_and_reset_output_file();
+
+  u8 *fn2 = alloc_printf("%s/.cur_output", out_dir);
+  file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
+  ck_free(fn2);
+  if (file_inotify_wd == -1) {
+    exit(1);
   }
 
   // Disable the timeout handler.
@@ -2839,15 +2855,11 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
       return fault;
     }
 
-    res_str = read_sqlite_output_and_reset_output_file();
-
     fault = child_fault_code;
 
     all_comp_res.v_cmd_str.push_back(cmd_string);
-    all_comp_res.v_res_str.push_back(res_str);
+    all_comp_res.v_res_str.push_back(program_output_res);
     all_comp_res.v_res.push_back(fault);
-
-    program_output_res = res_str;
 
     /* Users can hit us with SIGUSR1 to request the current input
          to be abandoned. */
@@ -6475,8 +6487,8 @@ EXP_ST void setup_stdio_file(void) {
   if (file_inotify_fd < 0) {
     exit(1);
   }
-  int wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
-  if (wd == -1) {
+  file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
+  if (file_inotify_wd == -1) {
     exit(1);
   }
 
