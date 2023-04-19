@@ -2654,7 +2654,7 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
 
   program_output_res = read_sqlite_output_and_reset_output_file();
 
-  u8 *fn2 = alloc_printf("%s/.cur_output", out_dir);
+  u8 *fn2 = alloc_printf("/.cur_output_%d", getpid());
   file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
   ck_free(fn2);
   if (file_inotify_wd == -1) {
@@ -6473,10 +6473,10 @@ EXP_ST void setup_stdio_file(void) {
   shm_unlink(fn); /* ignore errors */
   out_fd = shm_open(fn, O_RDWR | O_CREAT | O_EXCL, 0640);
 
-  u8 *fn2 = alloc_printf("%s/.cur_output", out_dir);
+  u8 *fn2 = alloc_printf("/.cur_output_%d", pid);
 
   unlink(fn2); /* Ignore errors */
-  program_output_fd = open(fn2, O_RDWR | O_CREAT | O_EXCL | O_TRUNC, 0640);
+  program_output_fd = shm_open(fn2, O_RDWR | O_CREAT | O_EXCL | O_TRUNC, 0640);
 
   if (out_fd < 0)
     PFATAL("Unable to create '%s'", fn);
