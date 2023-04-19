@@ -260,6 +260,7 @@ static s32 shm_id; /* ID of the SHM region             */
 static volatile u8 stop_soon, /* Ctrl-C pressed?                  */
     clear_screen = 1,         /* Window resized?                  */
     child_has_stop = 0,
+    child_forced_killed = 0,
     child_timed_out;          /* Traced process timed out?        */
 
 static volatile EXEC_RESULT_CODE child_fault_code;
@@ -2553,8 +2554,9 @@ int handle_sqlite_server_return() {
       if (child_timed_out && kill_signal == SIGKILL) {
        child_fault_code = FAULT_TMOUT;
       }
-      else {
+      else if (!child_forced_killed){
        child_fault_code = FAULT_CRASH;
+       child_forced_killed = 0;
       }
     } else {
       child_fault_code = FAULT_NONE;
@@ -2647,6 +2649,7 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     // No need to set child_pid, avoid race conditions.
     // child_pid is handled by handle_sqlite_server_return function.
     child_has_stop = 1;
+    child_forced_killed = 1;
   }
 
   program_output_res = read_sqlite_output_and_reset_output_file();
