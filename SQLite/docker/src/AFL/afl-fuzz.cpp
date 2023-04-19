@@ -2556,6 +2556,8 @@ int handle_sqlite_server_return() {
       else {
        child_fault_code = FAULT_CRASH;
       }
+    } else {
+      child_fault_code = FAULT_NONE;
     }
 
     // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
@@ -2568,9 +2570,6 @@ int handle_sqlite_server_return() {
     }
     else if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
       child_fault_code = FAULT_ERROR;
-    else {
-      child_fault_code = FAULT_NONE;
-    }
 
     // Resume the server.
     if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
@@ -2837,51 +2836,48 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
   all_comp_res.final_res = FAULT_NONE;
 
-  for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
-    EXEC_RESULT_CODE fault;
-    string res_str = "";
+  EXEC_RESULT_CODE fault;
+  string res_str = "";
 
-    string cmd_string = cmd_string_vec[idx];
+  string cmd_string = cmd_string_vec.front();
 
-    trim_string(cmd_string);
+  trim_string(cmd_string);
 
-    /* The trace_bits[] are effectively volatile after calling run_target */
-    write_to_testcase(cmd_string.c_str(), cmd_string.size());
-    fault = run_target(argv, tmout, is_restart);
+  /* The trace_bits[] are effectively volatile after calling run_target */
+  write_to_testcase(cmd_string.c_str(), cmd_string.size());
+  fault = run_target(argv, tmout, is_restart);
 
-    if (skip_requested) {
-      skip_requested = 0;
+  if (skip_requested) {
+    skip_requested = 0;
+    cur_skipped_paths++;
+    return fault;
+  }
+
+  fault = child_fault_code;
+
+  all_comp_res.v_cmd_str.push_back(cmd_string);
+  all_comp_res.v_res_str.push_back(program_output_res);
+  all_comp_res.v_res.push_back(fault);
+
+  /* Users can hit us with SIGUSR1 to request the current input
+       to be abandoned. */
+  if (stop_soon) {
+    return fault;
+  }
+  if (fault == FAULT_TMOUT) {
+    if (subseq_tmouts++ > TMOUT_LIMIT) {
       cur_skipped_paths++;
       return fault;
     }
+  } else {
+    subseq_tmouts = 0;
+  }
 
-    fault = child_fault_code;
-
-    all_comp_res.v_cmd_str.push_back(cmd_string);
-    all_comp_res.v_res_str.push_back(program_output_res);
-    all_comp_res.v_res.push_back(fault);
-
-    /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-    if (stop_soon) {
-      return fault;
-    }
-    if (fault == FAULT_TMOUT) {
-      if (subseq_tmouts++ > TMOUT_LIMIT) {
-        cur_skipped_paths++;
-        return fault;
-      }
-    } else {
-      subseq_tmouts = 0;
-    }
-
-    if (fault == FAULT_CRASH) {
-      all_comp_res.final_res = FAULT_CRASH;
-    } else if (fault != FAULT_NONE && all_comp_res.final_res != FAULT_CRASH) {
-      all_comp_res.final_res = fault;
-    }
-
-  } // End for run_id loop.
+  if (fault == FAULT_CRASH) {
+    all_comp_res.final_res = FAULT_CRASH;
+  } else if (fault != FAULT_NONE && all_comp_res.final_res != FAULT_CRASH) {
+    all_comp_res.final_res = fault;
+  }
 
   return all_comp_res.final_res;
 }
@@ -5288,7 +5284,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str, bool is_re
 #endif
 
   queued_discovered +=
-      save_if_interesting(argv, v_query_str.front(), all_res, fault);
+      save_if_interesting(argv, v_query_str.back(), all_res, fault);
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -5716,7 +5712,7 @@ static u8 fuzz_one(char **argv) {
   vector<IR *> app_new_select_stmts;
   char *tmp_name = stage_name;
   int skip_count;
-  string input;
+  string all_valid_inputs, all_inputs;
 
   //[modify] add
   stage_name = "mutate";
@@ -5772,7 +5768,15 @@ static u8 fuzz_one(char **argv) {
             skip_count++;
             break;
           } else {
-            query_str_vec.push_back(cur_input);
+            if (child_has_stop || child_timed_out) {
+              query_str_vec.push_back(all_valid_inputs + "\n" + cur_input);
+            } else {
+              query_str_vec.push_back(cur_input);
+            }
+            all_inputs += cur_input + "\n";
+
+            // Save the all inputs for logging purpose.
+            query_str_vec.push_back(all_inputs);
 
             show_stats();
             stage_name = "fuzz";
@@ -5781,7 +5785,7 @@ static u8 fuzz_one(char **argv) {
             stage_cur++;
             show_stats();
 
-//            cerr << "From stmt: " << input + "\n" + cur_input << "\n";
+//            cerr << "From stmt: " << all_valid_inputs + "\n" + cur_input << "\n";
 //            cerr << "Getting res: " << program_output_res << "\n\n\n";
             if (findStringIn(program_output_res, "error")) {
               int fix_res = g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
@@ -5810,7 +5814,7 @@ static u8 fuzz_one(char **argv) {
 
       if (!is_succeed) {
         // Contains errors. Give up the current stmt.
-//        cerr << "\n\n\nFinal statment, from stmt: " << input + "\n" + cur_input << "\n";
+//        cerr << "\n\n\nFinal statment, from stmt: " << all_valid_inputs + "\n" + cur_input << "\n";
 //        cerr << "Getting res: " << program_output_res << "\n\n\n";
         g_mutator.rollback_dependency();
         g_mutator.rsg_exec_failed_helper();
@@ -5818,8 +5822,8 @@ static u8 fuzz_one(char **argv) {
         continue;
       } else {
         // The new statement does not contain errors.
-        // Save it to input, and continue to the next stmt.
-        input += cur_input;
+        // Save it to all_valid_inputs, and continue to the next stmt.
+        all_valid_inputs += cur_input;
         // Shift to the new stmt.
         debug_good++;
         g_mutator.rsg_exec_clear_chosen_expr();
