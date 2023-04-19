@@ -44,6 +44,7 @@ for i in range(len(all_lines)):
       fseek(stdin, 0, SEEK_SET);
       int size_t = fread(buf, sizeof(buf), 5, stdin);
       buf[5] = '\\0';
+      fseek(stdout, 0, SEEK_SET);
       if (strlen(buf) == 0) {
         is_skip_loop = 0;
       } else if (strcmp(buf, ".quit") == 0) {
@@ -113,6 +114,7 @@ for i in range(len(all_lines)):
         memset(buf, 0, MAX_BUF_LEN);
         int size_t = fread(buf, sizeof(buf), 5, stdin);
         buf[5] = '\\0';
+        fseek(stdout, 0, SEEK_SET);
         
         if (strlen(buf) == 0) {
           continue;
