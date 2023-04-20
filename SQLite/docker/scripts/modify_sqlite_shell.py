@@ -37,30 +37,15 @@ for i in range(len(all_lines)):
         file_path[strlen(file_path) - 1] = '\\0';
       }
 
-
-
       // Simply read the current file first.
-      int is_skip_loop = 0;
       fseek(stdin, 0, SEEK_SET);
-      int size_t = fread(buf, sizeof(buf), 5, stdin);
-      buf[5] = '\\0';
-      fseek(stdout, 0, SEEK_SET);
-      if (strlen(buf) == 0) {
-        is_skip_loop = 0;
-      } else if (strcmp(buf, ".quit") == 0) {
-        is_skip_loop = 0;
-        fprintf(stdout, "EOF");
-        ftruncate(fileno(stdin), 0);
-        fflush(stdout);
-      } else {
-        fseek(stdin, 0, SEEK_SET);
-        data.in = stdin;
-        rc = process_input(&data);
-        fprintf(stdout, "EOF");
-        ftruncate(fileno(stdin), 0);
-        fflush(stdout);
-      } 
+      data.in = stdin;
+      rc = process_input(&data);
+      fprintf(stdout, "EOF");
+      ftruncate(fileno(stdin), 0);
+      fflush(stdout);
 
+      int is_skip_loop = 0;
       if (seenInterrupt) {
         is_skip_loop = 1;
       }
@@ -87,45 +72,6 @@ for i in range(len(all_lines)):
 
         inotify_rm_watch(file_inotify_fd, wd);
 
-//        fd_set rfds;
-//        struct timeval tv;
-//        int retval;
-//   
-//        /* Watch stdin (fd 0) to see when it has input. */
-//        FD_ZERO(&rfds);
-//        FD_SET(file_fd, &rfds);
-//   
-//        /* Wait up to five seconds. */
-//        tv.tv_sec = 0;
-//        tv.tv_usec = 2000000; // 2000 microsecond.
-//
-//        retval = select(file_fd+1, &rfds, NULL, NULL, &tv);
-//
-//        if (retval == -1) {
-//          /*printf("select error \\n\\n\\n");*/
-//          continue;
-//        }
-//        else if (retval == 0) {
-//          /*printf("select timtout \\n\\n\\n");*/
-//          continue;
-//        }
-
-        fseek(stdin, 0, SEEK_SET);
-        memset(buf, 0, MAX_BUF_LEN);
-        int size_t = fread(buf, sizeof(buf), 5, stdin);
-        buf[5] = '\\0';
-        fseek(stdout, 0, SEEK_SET);
-        
-        if (strlen(buf) == 0) {
-          continue;
-        } else if (strcmp(buf, ".quit") == 0) {
-          fprintf(stdout, "EOF");
-          ftruncate(fileno(stdin), 0);
-          fflush(stdout);
-          break;
-        } else {
-          /*printf("read buf: %s\\n\\n\\n", buf);*/
-        }
         fseek(stdin, 0, SEEK_SET);
         data.in = stdin;
         rc = process_input(&data);
