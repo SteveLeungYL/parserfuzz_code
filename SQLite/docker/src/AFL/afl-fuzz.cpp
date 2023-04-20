@@ -260,10 +260,7 @@ static s32 shm_id; /* ID of the SHM region             */
 static volatile u8 stop_soon, /* Ctrl-C pressed?                  */
     clear_screen = 1,         /* Window resized?                  */
     child_has_stop = 0,
-    child_forced_killed = 0,
     child_timed_out;          /* Traced process timed out?        */
-
-static volatile EXEC_RESULT_CODE child_fault_code;
 
 EXP_ST u32 queued_paths, /* Total number of queued testcases */
     queued_variable,     /* Testcases with variable behavior */
@@ -2128,9 +2125,6 @@ static void destroy_extras(void) {
   ck_free(a_extras);
 }
 
-// Forward declare
-int handle_sqlite_server_return();
-
 /* Spin up fork server (instrumented mode only). The idea is explained here:
 
    http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html
@@ -2297,8 +2291,6 @@ EXP_ST void init_forkserver(char **argv) {
   if (rlen == 4) {
 
     // Start the SQLite child process.
-    fut = async(handle_sqlite_server_return);
-
     OKF("All right - fork server is up.");
     return;
   }
@@ -2464,116 +2456,146 @@ EXP_ST void init_forkserver(char **argv) {
 static string read_sqlite_output_and_reset_output_file() {
 
   string program_output_str;
-  program_output_str.reserve(300);
+  program_output_str.reserve(100);
   char output_buf[1024 + 1];
 
-  bool finished_reading = false;
-  while (!finished_reading) {
+  if (child_has_stop || child_timed_out) {
+    program_output_str.clear();
+    return program_output_str;
+  }
 
-    if (child_timed_out || child_has_stop) {
-      // Do not wait timeout queries.
-      program_output_str.clear();
+  lseek(program_output_fd, 0, SEEK_SET);
+
+  while (1) {
+
+    ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
+    if (num_bytes == 0 || output_buf[0] == '\0')
       break;
-    }
 
-    lseek(program_output_fd, 0, SEEK_SET);
-
-    while (1) {
-      // Read all characters from the output file.
-      ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
-      if (num_bytes == 0 || output_buf[0] == '\0')
-        break;
-
-      output_buf[num_bytes] = '\0';
-      program_output_str += output_buf;
-    } // Infinite loop to read contents.
-
-    if (findStringIn(program_output_str, "EOF")) {
-      // Found the ending signal. Remove it from the output stream.
-      finished_reading = true;
-      vector<string> tmp_split = string_splitter(program_output_str, "\n");
-      program_output_str.clear();
-      for (int i = 0; i < tmp_split.size() - 1; i++) {
-       program_output_str += tmp_split[i] + "\n";
-      }
-      break;
-    } else {
-      finished_reading = false;
-      continue;
-    }
+    output_buf[num_bytes] = '\0';
+    program_output_str += output_buf;
   }
   // lseek(program_output_fd, 0, SEEK_SET);
   ftruncate(program_output_fd, 0);
   lseek(program_output_fd, 0, SEEK_SET);
 
   return program_output_str;
+
 }
 
-int handle_sqlite_server_return() {
-  // Communicate with the fork server, and then reboot the SQLite if needed.
-  int status = 0;
+/* Execute target application, monitoring for timeouts. Return status
+   information. The called program will update trace_bits[]. */
+
+static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
+  static struct itimerval it;
   static u32 prev_timed_out = 0;
-  s32 res;
+  static u64 exec_ms = 0;
 
-  // Launch the initial server first.
-  if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
+  int status = 0;
+  u32 tb4;
 
-    if (stop_soon)
-      return 0;
-    RPFATAL(res, "Unable to request new process from fork server (OOM?)");
-  }
+  child_timed_out = 0;
+  child_has_stop = 0;
 
-  if ((res = read(fsrv_st_fd, &child_pid, 4)) != 4) {
+  /* After this memset, trace_bits[] are effectively volatile, so we
+     must prevent any earlier operations from venturing into that
+     territory. */
 
-    if (stop_soon)
-      return 0;
-    RPFATAL(res, "Unable to request new process from fork server (OOM?)");
-  }
+  memset(trace_bits, 0, MAP_SIZE);
+  MEM_BARRIER();
 
-  if (child_pid <= 0)
-    FATAL("Fork server is misbehaving (OOM?)");
+  /* If we're running in "dumb" mode, we can't rely on the fork server
+     logic compiled into the target program, so we will just keep calling
+     execve(). There is a bit of code duplication between here and
+     init_forkserver(), but c'est la vie. */
 
-  do {
+  if (dumb_mode == 1 || no_forkserver) {
 
-    if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
-      if (stop_soon) {
-       return 0;
+    child_pid = fork();
+
+    if (child_pid < 0)
+      PFATAL("fork() failed");
+
+    if (!child_pid) {
+
+      struct rlimit r;
+
+      if (mem_limit) {
+
+       r.rlim_max = r.rlim_cur = ((rlim_t)mem_limit) << 20;
+
+#ifdef RLIMIT_AS
+
+       setrlimit(RLIMIT_AS, &r); /* Ignore errors */
+
+#else
+
+       setrlimit(RLIMIT_DATA, &r); /* Ignore errors */
+
+#endif /* ^RLIMIT_AS */
       }
-      RPFATAL(res, "Unable to communicate with fork server (OOM?)");
+
+      r.rlim_max = r.rlim_cur = 0;
+
+      setrlimit(RLIMIT_CORE, &r); /* Ignore errors */
+
+      /* Isolate the process and configure standard descriptors. If out_file is
+         specified, stdin is /dev/null; otherwise, out_fd is cloned instead. */
+
+      setsid();
+
+      dup2(program_output_fd, 1);
+      dup2(dev_null_fd, 2);
+
+      if (out_file) {
+
+       dup2(dev_null_fd, 0);
+
+      } else {
+
+       dup2(out_fd, 0);
+       // close(out_fd);
+      }
+
+      /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
+
+      close(dev_null_fd);
+      close(out_dir_fd);
+      close(program_output_fd);
+      close(dev_urandom_fd);
+      close(fileno(plot_file));
+
+      /* Set sane defaults for ASAN if nothing else specified. */
+
+      setenv("ASAN_OPTIONS",
+             "abort_on_error=1:"
+             "detect_leaks=0:"
+             "symbolize=0:"
+             "allocator_may_return_null=1",
+             0);
+
+      setenv("MSAN_OPTIONS",
+             "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                                                "symbolize=0:"
+                                                "msan_track_origins=0",
+             0);
+
+      execv(target_path, argv);
+
+      /* Use a distinctive bitmap value to tell the parent about execv()
+         falling through. */
+
+      *(u32 *)trace_bits = EXEC_FAIL_SIG;
+      exit(0);
     }
 
-    // Modify the global variable to notify the main process.
-    child_has_stop = 1;
+  } else {
 
-    // Report the program return outcome.
-    /* Report outcome to caller. */
-    if (WIFSIGNALED(status) && !stop_soon) {
+    s32 res;
 
-      kill_signal = WTERMSIG(status);
+    /* In non-dumb mode, we have the fork server up and running, so simply
+       tell it to have at it, and then read back PID. */
 
-      if (child_timed_out && kill_signal == SIGKILL) {
-       child_fault_code = FAULT_TMOUT;
-      }
-      else if (!child_forced_killed){
-       child_fault_code = FAULT_CRASH;
-       child_forced_killed = 0;
-      }
-    } else {
-      child_fault_code = FAULT_NONE;
-    }
-
-    // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
-    //    must use a special exit code. */
-    u32 tb4 = *(u32 *)trace_bits;
-
-    if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
-      kill_signal = 0;
-      child_fault_code = FAULT_CRASH;
-    }
-    else if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
-      child_fault_code = FAULT_ERROR;
-
-    // Resume the server.
     if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
 
       if (stop_soon)
@@ -2590,41 +2612,22 @@ int handle_sqlite_server_return() {
 
     if (child_pid <= 0)
       FATAL("Fork server is misbehaving (OOM?)");
-
-  } while (true); // Infinite loop. Exit unless killed.
-
-  FATAL("Unexpected logic from handle_sqlite_server_return(). \n");
-  exit(1);
-
-}
-
-/* Execute target application, monitoring for timeouts. Return status
-   information. The called program will update trace_bits[]. */
-
-static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
-
-  static struct itimerval it;
-  static u64 exec_ms = 0;
-
-  // child_timed_out, child_has_stop, referenced by handle_sqlite_server_return function.
-  // Recover them to the default value.
-  // The SQLite DBMS will be resumed by the async handle_sqlite_server_return function.
-  child_timed_out = 0;
-  child_has_stop = 0;
-
-  int status = 0;
-  u32 tb4;
-
-  if (stop_soon) {
-    return FAULT_NONE;
   }
 
   /* Configure timeout, as requested by user, then wait for child to terminate.
    */
+
   it.it_value.tv_sec = (timeout / 1000);
   it.it_value.tv_usec = (timeout % 1000) * 1000;
 
   setitimer(ITIMER_REAL, &it, NULL);
+
+  if (is_restart) {
+    kill(child_pid, SIGKILL);
+    prev_timed_out = 1;
+    child_has_stop = 1;
+    child_timed_out = 1;
+  }
 
   /* The SIGALRM handler simply kills the child_pid and sets child_timed_out. */
 
@@ -2633,35 +2636,23 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
     if (waitpid(child_pid, &status, 0) <= 0)
       PFATAL("waitpid() failed");
 
+  } else {
+
+    s32 res;
+
+    if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
+
+      if (stop_soon)
+       return 0;
+      RPFATAL(res, "Unable to communicate with fork server (OOM?)");
+    }
   }
 
-  // Monitor the file changes.
-  // The output file should always has changes,
-  // even if it is stopped by .quit, it should always
-  // output EOF
-  char tmp_buf[200];
-  int num_read = read(file_inotify_fd, tmp_buf, 200);
-
-  inotify_rm_watch(file_inotify_fd, file_inotify_wd);
-
-  if (is_restart && child_pid > 0) {
-    kill(child_pid, SIGKILL);
-    // No need to set child_pid, avoid race conditions.
-    // child_pid is handled by handle_sqlite_server_return function.
+  if (!WIFSTOPPED(status)) {
+    child_pid = 0;
     child_has_stop = 1;
-    child_forced_killed = 1;
   }
 
-  program_output_res = read_sqlite_output_and_reset_output_file();
-
-  u8 *fn2 = alloc_printf("/dev/shm/.cur_output_%d", getpid());
-  file_inotify_wd = inotify_add_watch(file_inotify_fd, fn2, IN_MODIFY | IN_CREATE);
-  ck_free(fn2);
-  if (file_inotify_wd == -1) {
-    exit(1);
-  }
-
-  // Disable the timeout handler.
   getitimer(ITIMER_REAL, &it);
   exec_ms =
       (u64)timeout - (it.it_value.tv_sec * 1000 + it.it_value.tv_usec / 1000);
@@ -2685,6 +2676,38 @@ static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   classify_counts((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
+  prev_timed_out = child_timed_out;
+
+  /* Report outcome to caller. */
+
+  if (WIFSIGNALED(status) && !stop_soon) {
+
+    kill_signal = WTERMSIG(status);
+
+    if (!is_restart) {
+      if (child_timed_out && kill_signal == SIGKILL)
+       return FAULT_TMOUT;
+      return FAULT_CRASH;
+    }
+  }
+
+  // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
+  //    must use a special exit code. */
+
+  if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
+    kill_signal = 0;
+    return FAULT_CRASH;
+  }
+
+  if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
+    return FAULT_ERROR;
+
+  /* It makes sense to account for the slowest units only if the testcase was
+  run under the user defined timeout. */
+  if (!(timeout > exec_tmout) && (slowest_exec_ms < exec_ms)) {
+    slowest_exec_ms = exec_ms;
+  }
+
   return FAULT_NONE;
 }
 
@@ -2697,8 +2720,6 @@ static void write_to_testcase(const char *mem, u32 len) {
   /* After this memset, trace_bits[] are effectively volatile, so we
      must prevent any earlier operations from venturing into that
      territory. */
-  memset(trace_bits, 0, MAP_SIZE);
-  MEM_BARRIER();
 
   s32 fd = out_fd;
 
@@ -2840,7 +2861,6 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
   all_comp_res.final_res = FAULT_NONE;
 
   EXEC_RESULT_CODE fault;
-  string res_str = "";
 
   string cmd_string = cmd_string_vec.front();
 
@@ -2856,7 +2876,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     return fault;
   }
 
-  fault = child_fault_code;
+  program_output_res = read_sqlite_output_and_reset_output_file();
 
   all_comp_res.v_cmd_str.push_back(cmd_string);
   all_comp_res.v_res_str.push_back(program_output_res);
@@ -2986,7 +3006,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     //restart_sqlite(argv);
     fault = execute_cmd_string(program_input_str_vec, dummy_all_comp_res, argv,
                                use_tmout, false);
-    
+
+    read_sqlite_output_and_reset_output_file();
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3653,10 +3674,10 @@ static u8 save_if_interesting(char **argv, string query_str,
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
-      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree.back()),
-                                   all_comp_res);
-      p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
-      stripped_query_string = ir_tree.back()->to_string();
+//      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree.back()),
+//                                   all_comp_res);
+//      p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
+//      stripped_query_string = ir_tree.back()->to_string();
       ir_tree.back()->deep_drop();
       g_mutator.rsg_exec_succeed_helper();
     } else {
@@ -5694,7 +5715,9 @@ string rsg_gen_sql_seq (int idx = 0) {
 }
 
 void restart_sqlite(char **argv) {
-  vector<string> tmp_vec = {".quit"};
+  // This is not a valid exit statement.
+  // The actual exit is handled by forced kill from run_target.
+  vector<string> tmp_vec = {".print EOF"};
   common_fuzz_stuff(argv, tmp_vec, true);
   return;
 }
@@ -5802,6 +5825,9 @@ static u8 fuzz_one(char **argv) {
               for (IR *cur_stmt : v_stmt) {
                 cur_input = cur_stmt->to_string() + "; \n";
               }
+              continue;
+            } else if (child_has_stop || child_timed_out) {
+              is_succeed = false;
               continue;
             } else {
               // No errors. We can save the query and then continue to the next one.

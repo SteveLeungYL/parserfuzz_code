@@ -312,7 +312,7 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 			return s
 		}
 	}
-	fmt.Printf("\n\n\ncouldn't find unique string for root: %s\n\n\n", root)
+	//fmt.Printf("\n\n\ncouldn't find unique string for root: %s\n\n\n", root)
 	return s
 }
 

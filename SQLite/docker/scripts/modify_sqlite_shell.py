@@ -13,78 +13,15 @@ for i in range(len(all_lines)):
         ignore_lines = 2
 
         all_modified_lines += """
-      // stdin is not interactive.
-#define MAX_BUF_LEN 300
-      int file_inotify_fd = inotify_init();
-      ssize_t num_read;
-      char buf[MAX_BUF_LEN];
-      memset(buf, 0, MAX_BUF_LEN);
-
-      // Use inotify to watch file modification.
-      if (file_inotify_fd < 0) {
-        exit(1);
-      }
-
-      char file_path[MAX_BUF_LEN];
-      memset(file_path, 0, MAX_BUF_LEN);
-      FILE* file_path_fd = fopen("/home/sqlite/fuzzing/fuzz_root/input_path", "r");
-      fread(file_path, 1, MAX_BUF_LEN, file_path_fd);
-      fclose(file_path_fd);
-      //remove("/home/sqlite/fuzzing/fuzz_root/input_path");
-
-      // Remove the appending new line symbol from the fread.
-      if (file_path[strlen(file_path) - 1] == '\\n') {
-        file_path[strlen(file_path) - 1] = '\\0';
-      }
-
-      // Simply read the current file first.
+    // stdin is not interactive.
+    while (__AFL_LOOP(1000)) {
       fseek(stdin, 0, SEEK_SET);
+      fseek(stdout, 0, SEEK_SET);
       data.in = stdin;
       rc = process_input(&data);
-      fprintf(stdout, "EOF");
       ftruncate(fileno(stdin), 0);
       fflush(stdout);
-
-      int is_skip_loop = 0;
-      if (seenInterrupt) {
-        is_skip_loop = 1;
-      }
-
-      int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY);
-      if (wd == -1) {
-        exit(1);
-      }
-
-      while (!is_skip_loop) {
-         
-        if (seenInterrupt) {
-          break;
-        }
-
-        // Monitor the file changes.
-        num_read = read(file_inotify_fd, buf, MAX_BUF_LEN);
-        if (num_read <= 0) {
-          /*printf("num_read is smaller than 0\\n\\n\\n");*/
-          continue;
-        } else {
-          /*printf("Successfully notify file changes..\\n\\n\\n");*/
-        }
-
-        inotify_rm_watch(file_inotify_fd, wd);
-
-        fseek(stdin, 0, SEEK_SET);
-        data.in = stdin;
-        rc = process_input(&data);
-        fprintf(stdout, "EOF");
-        ftruncate(fileno(stdin), 0);
-        fflush(stdout);
-
-        int wd = inotify_add_watch(file_inotify_fd, file_path, IN_MODIFY);
-        if (wd == -1) {
-          exit(1);
-        }
-      }
-#undef MAX_BUF_LEN
+    }
 """
 
     if ignore_lines == 0:
