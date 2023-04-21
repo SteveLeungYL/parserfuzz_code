@@ -3082,7 +3082,12 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) && // kSetlist does not allow dot
-              cur_stmt_type != kCmdCreateIndex
+              cur_stmt_type != kCmdCreateIndex &&
+              cur_stmt_type != kCmdUpdate &&
+              cur_stmt_type != kCmdAlterTableAddColumn &&
+              cur_stmt_type != kCmdAlterTableRenameColumn &&
+              cur_stmt_type != kCmdAlterTableRename &&
+              cur_stmt_type != kCmdAlterTableDropColumn
               ) {
             if ((get_rand_int(20) == 0)) {
               column_str = "rowid";
@@ -3116,7 +3121,12 @@ bool Mutator::fix_dependency(IR *root,
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kSetlist)) &&
-              cur_stmt_type != kCmdCreateIndex
+              cur_stmt_type != kCmdCreateIndex &&
+              cur_stmt_type != kCmdUpdate &&
+              cur_stmt_type != kCmdAlterTableAddColumn &&
+              cur_stmt_type != kCmdAlterTableRenameColumn &&
+              cur_stmt_type != kCmdAlterTableRename &&
+              cur_stmt_type != kCmdAlterTableDropColumn
               ) {
             if ((get_rand_int(20) == 0)) {
               column_str = "rowid";
