@@ -21,214 +21,88 @@ import (
 	"unicode"
 )
 
-// The PathNode is the data structure that used to save
-// the whole chosen query path for the RSG generated query.
-// The goal of this structure is to be memory efficient and
-// simple, and it should be mutable.
-type PathNode struct {
-	Id        int
-	Parent    *PathNode
-	ExprProds *yacc.ExpressionNode
-	Children  []*PathNode
+// Helper functions
+
+func (r *RSG) formatTokenValue(in string) string {
+
+	if strings.HasSuffix(in, "_P") {
+		in = in[:len(in)-2]
+	}
+
+	return in
+
 }
 
-// RSG is a random syntax generator.
-type RSG struct {
-	Rnd *rand.Rand
-
-	prods     map[string][]*yacc.ExpressionNode
-	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
-	normProds map[string][]*yacc.ExpressionNode // prods that cannot be defined.
-	compProds map[string][]*yacc.ExpressionNode // prods that doomed to lead to complex expressions.
-
-	curChosenPath   []*PathNode
-	allSavedPath    map[string][][]*PathNode
-	curMutatingType string
-	epsilon         float64
-	pathId          int
+// Intn returns a random int.
+func (r *RSG) Intn(n int) int {
+	return r.Rnd.Intn(n)
 }
 
-func (rsg *RSG) isSqliteCompNode(nodeValue string) bool {
-	switch nodeValue {
-	case "select":
-		fallthrough
-	case "expr":
-		fallthrough
-	case "nexprlist":
-		return true
-	}
-	return false
+// Int63 returns a random int64.
+func (r *RSG) Int63() int64 {
+	return r.Rnd.Int63()
 }
 
-func (rsg *RSG) ClassifyEdges(dbmsName string) {
-	// Construct the terminating or nested Productions (Grammar Edges)
-
-	// Set up the Complicated Node classification function.
-	var isCompNode func(nodeValue string) bool
-	if dbmsName == "sqlite" {
-		isCompNode = r.isSqliteCompNode
-	} else {
-		// Default placeholder.
-		isCompNode = func(in string) bool {
-			return false
-		}
+// Float64 returns a random float. It is sometimes +/-Inf, NaN, and attempts to
+// be distributed among very small, large, and normal scale numbers.
+func (r *RSG) Float64() float64 {
+	v := r.Rnd.Float64()*2 - 1
+	switch r.Rnd.Intn(10) {
+	case 0:
+		v = 0
+	case 1:
+		v = math.Inf(1)
+	case 2:
+		v = math.Inf(-1)
+	case 3:
+		v = math.NaN()
+	case 4, 5:
+		i := r.Rnd.Intn(50)
+		v *= math.Pow10(i)
+	case 6, 7:
+		i := r.Rnd.Intn(50)
+		v *= math.Pow10(-i)
 	}
-
-	for rootName, rootProds := range rsg.prods {
-
-		for _, prod := range rootProds {
-			// For each single rule.
-
-			// whether the node lead to terminating tokens.
-			// assume yes, if encountering non-terminating tokens,
-			// change to false.
-			isTerm := true
-			// whether the node lead to complex nested node.
-			// if found, switch to yes.
-			isComp := false
-
-			for _, curNode := range prod.Items {
-				if isComp {
-					// If the current path is already
-					// classified as non-term
-					// Do not continue
-					break
-				}
-				if isCompNode(curNode.Value) {
-					// If the current child node is a complicated node,
-					// do not continue the search. This is a complicated node.
-					isComp = true
-					isTerm = false
-					break
-				}
-
-				// See whether the current child node is terminating token.
-				childProds, ok := rsg.prods[curNode.Value]
-
-				if ok {
-					// this is not a terminating child node.
-					// search one more level.
-					// Thoroughly go through all the possible
-					// choices from the sub-node.
-
-					// If all children have complicated nodes, treat the current as comp
-					isAllGrandChildComp := true
-					for _, childProd := range childProds {
-						grandChildComp := false
-						if !isTerm {
-							// If the current path is already
-							// classified as non-term
-							// Do not continue
-							break
-						}
-						for _, childNode := range childProd.Items {
-							if !isTerm {
-								// If the current path is already
-								// classified as non-term
-								// Do not continue
-								break
-							}
-							if isCompNode(childNode.Value) {
-								// The grandchildren contains complicated nodes.
-								grandChildComp = true
-							}
-							_, childOk := rsg.prods[childNode.Value]
-							if childOk {
-								// Find the nested child node.
-								// Not a terminating node.
-								// Do not continue
-								isTerm = false
-							}
-						}
-						if !grandChildComp {
-							// In on the of the child,
-							// Not all grand child contains complicated nodes.
-							// The current choice of the subnode should be normal or term.
-							isAllGrandChildComp = false
-						}
-					}
-
-					if isAllGrandChildComp {
-						isComp = true
-						isTerm = false
-					}
-				} // finished searching the one child node.
-				if isComp {
-					break
-				}
-			} // finished searching all the child node.
-			if isTerm {
-				prod.NodeComp = 0
-				rsg.termProds[rootName] = append(rsg.termProds[rootName], prod)
-				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
-			} else if isComp {
-				prod.NodeComp = 2
-				rsg.compProds[rootName] = append(rsg.compProds[rootName], prod)
-			} else {
-				prod.NodeComp = 1
-				rsg.normProds[rootName] = append(rsg.normProds[rootName], prod)
-			}
-		} // loop: Each single rule.
-	} // loop: All rule in one token.
+	return v
 }
 
-// NewRSG creates a random syntax generator from the given random seed and
-// yacc file.
-func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
+// lockedSource is a thread safe math/rand.Source. See math/rand/rand.go.
+type lockedSource struct {
+	src rand.Source64
+}
 
-	// Default epsilon = 0.3
-	if epsilon == 0.0 {
-		epsilon = 0.3
-	}
+func (r *lockedSource) Int63() (n int64) {
+	n = r.src.Int63()
+	return
+}
 
-	tree, err := yacc.Parse("sql", y, dbmsName)
-	if err != nil {
-		fmt.Printf("\nGetting error: %v\n\n", err)
-		return nil, err
-	}
-	rsg := RSG{
-		Rnd:           rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:         make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
-		termProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
-		normProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
-		compProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
-		curChosenPath: []*PathNode{},
-		allSavedPath:  make(map[string][][]*PathNode),
-		epsilon:       epsilon,
-	}
+func (r *lockedSource) Uint64() (n uint64) {
+	n = r.src.Uint64()
+	return
+}
 
-	// Construct all the possible Productions (Grammar Edges)
-	for _, prod := range tree.Productions {
-		_, ok := rsg.prods[prod.Name]
-		if ok {
-			for _, curExpr := range prod.Expressions {
-				rsg.prods[prod.Name] = append(rsg.prods[prod.Name], curExpr)
-			}
+func (r *lockedSource) Seed(seed int64) {
+	r.src.Seed(seed)
+}
+
+func (r *RSG) argMax(rewards []float64) int {
+
+	var maxIdx []int
+	var maxReward = -1.0
+
+	for idx, reward := range rewards {
+		if reward > maxReward {
+			maxReward = reward
+			maxIdx = []int{idx}
+		} else if reward == maxReward {
+			maxIdx = append(maxIdx, idx)
 		} else {
-			rsg.prods[prod.Name] = prod.Expressions
+			continue
 		}
 	}
 
-	rsg.ClassifyEdges(dbmsName)
-
-	return &rsg, nil
-}
-
-func (r *RSG) GatherAllPathNodes(curPathNode *PathNode) []*PathNode {
-	// Recursive function. May not be optimal
-	var pathArray = []*PathNode{}
-	if curPathNode == nil {
-		// Return empty
-		fmt.Printf("\n\n\nError: Getting nil curPathNode from GatherAllPathNodes\n\n\n")
-		return pathArray
-	}
-	pathArray = append(pathArray, curPathNode)
-	for _, curChild := range curPathNode.Children {
-		childPathArray := r.GatherAllPathNodes(curChild)
-		pathArray = append(pathArray, childPathArray...)
-	}
-
-	return pathArray
+	resIdx := r.Rnd.Intn(len(maxIdx))
+	return maxIdx[resIdx]
 }
 
 func (r *RSG) DumpParserRuleMap(outFile string) {
@@ -301,24 +175,266 @@ func (r *RSG) IncrementFailed() {
 	r.ClearChosenExpr()
 }
 
-func (r *RSG) argMax(rewards []float64) int {
+func (r *RSG) isSqliteCompNode(nodeValue string) bool {
+	switch nodeValue {
+	case "select":
+		fallthrough
+	case "expr":
+		fallthrough
+	case "nexprlist":
+		return true
+	}
+	return false
+}
 
-	var maxIdx []int
-	var maxReward = -1.0
+// The PathNode is the data structure that used to save
+// the whole chosen query path for the RSG generated query.
+// The goal of this structure is to be memory efficient and
+// simple, and it should be mutable.
+type PathNode struct {
+	Id        int
+	Parent    *PathNode
+	ExprProds *yacc.ExpressionNode
+	Children  []*PathNode
+}
 
-	for idx, reward := range rewards {
-		if reward > maxReward {
-			maxReward = reward
-			maxIdx = []int{idx}
-		} else if reward == maxReward {
-			maxIdx = append(maxIdx, idx)
-		} else {
-			continue
+func (r *RSG) GatherAllPathNodes(curPathNode *PathNode) []*PathNode {
+	// Recursive function. May not be optimal
+	var pathArray = []*PathNode{}
+	if curPathNode == nil {
+		// Return empty
+		fmt.Printf("\n\n\nError: Getting nil curPathNode from GatherAllPathNodes\n\n\n")
+		return pathArray
+	}
+	pathArray = append(pathArray, curPathNode)
+	for _, curChild := range curPathNode.Children {
+		childPathArray := r.GatherAllPathNodes(curChild)
+		pathArray = append(pathArray, childPathArray...)
+	}
+
+	return pathArray
+}
+
+func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *PathNode {
+
+	// Recursive function. May not be optimal
+	if srcNode == nil {
+		// Return empty
+		fmt.Printf("\n\n\nError: In deepCopyPathNode, getting srcNode is nil. \n\n\n")
+		os.Exit(1)
+	}
+
+	newDestPathNode := &PathNode{
+		Id:        srcNode.Id,
+		Parent:    destParentNode,
+		ExprProds: srcNode.ExprProds,
+		Children:  []*PathNode{},
+	}
+
+	for _, curChild := range srcNode.Children {
+		newDestChild := r.deepCopyPathNode(curChild, newDestPathNode)
+		newDestPathNode.Children = append(newDestPathNode.Children, newDestChild)
+	}
+
+	return newDestPathNode
+}
+
+func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
+
+	_, pathExisted := r.allSavedPath[root]
+	if !pathExisted {
+		fmt.Printf("Fatal Error. Cannot find the PathNode with %s\n\n\n", root)
+		os.Exit(1)
+	}
+
+	srcPath := r.allSavedPath[root][r.Rnd.Intn(len(r.allSavedPath[root]))]
+	if len(srcPath) == 0 {
+		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
+			"Root: %s"+
+			"\n\n\n", root)
+	}
+
+	// Deep Copy the source path from root
+	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
+
+	targetPath := r.GatherAllPathNodes(targetPathRoot)
+
+	if len(targetPath) == 0 {
+		fmt.Printf("\n\n\n Error, getting targetPath len == 0 in the retrieveExistingPathNode. \n\n\n")
+		os.Exit(1)
+	}
+
+	return targetPath
+}
+
+// RSG is a random syntax generator.
+type RSG struct {
+	Rnd *rand.Rand
+
+	prods     map[string][]*yacc.ExpressionNode
+	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
+	normProds map[string][]*yacc.ExpressionNode // prods that cannot be defined.
+	compProds map[string][]*yacc.ExpressionNode // prods that doomed to lead to complex expressions.
+
+	curChosenPath   []*PathNode
+	allSavedPath    map[string][][]*PathNode
+	curMutatingType string
+	epsilon         float64
+	pathId          int
+}
+
+func (r *RSG) ClassifyEdges(dbmsName string) {
+	// Construct the terminating or nested Productions (Grammar Edges)
+
+	// Set up the Complicated Node classification function.
+	var isCompNode func(nodeValue string) bool
+	if dbmsName == "sqlite" {
+		isCompNode = r.isSqliteCompNode
+	} else {
+		// Default placeholder.
+		isCompNode = func(in string) bool {
+			return false
 		}
 	}
 
-	resIdx := r.Rnd.Intn(len(maxIdx))
-	return maxIdx[resIdx]
+	for rootName, rootProds := range r.prods {
+
+		for _, prod := range rootProds {
+			// For each single rule.
+
+			// whether the node lead to terminating tokens.
+			// assume yes, if encountering non-terminating tokens,
+			// change to false.
+			isTerm := true
+			// whether the node lead to complex nested node.
+			// if found, switch to yes.
+			isComp := false
+
+			for _, curNode := range prod.Items {
+				if isComp {
+					// If the current path is already
+					// classified as non-term
+					// Do not continue
+					break
+				}
+				if isCompNode(curNode.Value) {
+					// If the current child node is a complicated node,
+					// do not continue the search. This is a complicated node.
+					isComp = true
+					isTerm = false
+					break
+				}
+
+				// See whether the current child node is terminating token.
+				childProds, ok := r.prods[curNode.Value]
+
+				if ok {
+					// this is not a terminating child node.
+					// search one more level.
+					// Thoroughly go through all the possible
+					// choices from the sub-node.
+
+					// If all children have complicated nodes, treat the current as comp
+					isAllGrandChildComp := true
+					for _, childProd := range childProds {
+						grandChildComp := false
+						if !isTerm {
+							// If the current path is already
+							// classified as non-term
+							// Do not continue
+							break
+						}
+						for _, childNode := range childProd.Items {
+							if !isTerm {
+								// If the current path is already
+								// classified as non-term
+								// Do not continue
+								break
+							}
+							if isCompNode(childNode.Value) {
+								// The grandchildren contains complicated nodes.
+								grandChildComp = true
+							}
+							_, childOk := r.prods[childNode.Value]
+							if childOk {
+								// Find the nested child node.
+								// Not a terminating node.
+								// Do not continue
+								isTerm = false
+							}
+						}
+						if !grandChildComp {
+							// In on the of the child,
+							// Not all grand child contains complicated nodes.
+							// The current choice of the subnode should be normal or term.
+							isAllGrandChildComp = false
+						}
+					}
+
+					if isAllGrandChildComp {
+						isComp = true
+						isTerm = false
+					}
+				} // finished searching the one child node.
+				if isComp {
+					break
+				}
+			} // finished searching all the child node.
+			if isTerm {
+				prod.NodeComp = 0
+				r.termProds[rootName] = append(r.termProds[rootName], prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
+			} else if isComp {
+				prod.NodeComp = 2
+				r.compProds[rootName] = append(r.compProds[rootName], prod)
+			} else {
+				prod.NodeComp = 1
+				r.normProds[rootName] = append(r.normProds[rootName], prod)
+			}
+		} // loop: Each single rule.
+	} // loop: All rule in one token.
+}
+
+// NewRSG creates a random syntax generator from the given random seed and
+// yacc file.
+func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
+
+	// Default epsilon = 0.3
+	if epsilon == 0.0 {
+		epsilon = 0.3
+	}
+
+	tree, err := yacc.Parse("sql", y, dbmsName)
+	if err != nil {
+		fmt.Printf("\nGetting error: %v\n\n", err)
+		return nil, err
+	}
+	rsg := RSG{
+		Rnd:           rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:         make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		termProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		normProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
+		compProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		curChosenPath: []*PathNode{},
+		allSavedPath:  make(map[string][][]*PathNode),
+		epsilon:       epsilon,
+	}
+
+	// Construct all the possible Productions (Grammar Edges)
+	for _, prod := range tree.Productions {
+		_, ok := rsg.prods[prod.Name]
+		if ok {
+			for _, curExpr := range prod.Expressions {
+				rsg.prods[prod.Name] = append(rsg.prods[prod.Name], curExpr)
+			}
+		} else {
+			rsg.prods[prod.Name] = prod.Expressions
+		}
+	}
+
+	rsg.ClassifyEdges(dbmsName)
+
+	return &rsg, nil
 }
 
 func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.ExpressionNode {
@@ -388,6 +504,75 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	}
 	//fmt.Printf("\n\n\ncouldn't find unique string for root: %s\n\n\n", root)
 	return s
+}
+
+func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
+
+	var rootPathNode *PathNode
+	_, pathExisted := r.allSavedPath[root]
+
+	if pathExisted &&
+		len(r.allSavedPath[root]) != 0 &&
+		r.Rnd.Intn(3) != 0 {
+		// 2/3 chances.
+		// Replaying mode.
+
+		// Retrieve a deep copied from the existing seed.
+		newPath := r.retrieveExistingPathNode(root)
+
+		// Choose a random node to mutate.
+		// Do not choose the root to mutate
+		var mutateNode *PathNode
+		if len(newPath) == 1 {
+			mutateNode = newPath[0]
+		} else {
+			mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
+		}
+
+		// Remove the ExprProds and the Children,
+		// so the generate function would be required to
+		// randomly generate any nodes.
+		// This operation could free some not-used PathNode
+		// from the newPath.
+		//fmt.Printf("\n\n\nDebug: Choosing mutate node: %v\n\n\n", mutateNode.ExprProds)
+		mutateNode.ExprProds = nil
+		mutateNode.Children = []*PathNode{}
+
+		rootPathNode = newPath[0]
+
+	} else {
+		// Construct a new statement.
+		rootPathNode = &PathNode{
+			Id:        r.pathId,
+			Parent:    nil,
+			ExprProds: nil,
+			Children:  []*PathNode{},
+		}
+	}
+
+	var resStr []string
+
+	if dbmsName == "sqlite" {
+		resStr = r.generateSqlite(root, rootPathNode, depth, rootDepth)
+	} else if dbmsName == "sqlite_bison" {
+		// TODO: Implement replaying mode.
+		resStr = r.generateSqliteBison(root, depth, rootDepth)
+	} else if dbmsName == "postgres" {
+		// TODO: Implement replaying mode.
+		resStr = r.generatePostgres(root, depth, rootDepth)
+	} else if dbmsName == "cockroachdb" {
+		// TODO: Implement replaying mode.
+		resStr = r.generateCockroach(root, depth, rootDepth)
+	} else if dbmsName == "mysql" {
+		// TODO: Implement replaying mode.
+		resStr = r.generateMySQL(root, depth, rootDepth)
+	} else {
+		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
+	}
+
+	r.curChosenPath = r.GatherAllPathNodes(rootPathNode)
+
+	return resStr
 }
 
 func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
@@ -970,187 +1155,4 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		}
 	}
 	return ret
-}
-
-func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *PathNode {
-
-	// Recursive function. May not be optimal
-	if srcNode == nil {
-		// Return empty
-		fmt.Printf("\n\n\nError: In deepCopyPathNode, getting srcNode is nil. \n\n\n")
-		os.Exit(1)
-	}
-
-	newDestPathNode := &PathNode{
-		Id:        srcNode.Id,
-		Parent:    destParentNode,
-		ExprProds: srcNode.ExprProds,
-		Children:  []*PathNode{},
-	}
-
-	for _, curChild := range srcNode.Children {
-		newDestChild := r.deepCopyPathNode(curChild, newDestPathNode)
-		newDestPathNode.Children = append(newDestPathNode.Children, newDestChild)
-	}
-
-	return newDestPathNode
-}
-
-func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
-
-	_, pathExisted := r.allSavedPath[root]
-	if !pathExisted {
-		fmt.Printf("Fatal Error. Cannot find the PathNode with %s\n\n\n", root)
-		os.Exit(1)
-	}
-
-	srcPath := r.allSavedPath[root][r.Rnd.Intn(len(r.allSavedPath[root]))]
-	if len(srcPath) == 0 {
-		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
-			"Root: %s"+
-			"\n\n\n", root)
-	}
-
-	// Deep Copy the source path from root
-	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
-
-	targetPath := r.GatherAllPathNodes(targetPathRoot)
-
-	if len(targetPath) == 0 {
-		fmt.Printf("\n\n\n Error, getting targetPath len == 0 in the retrieveExistingPathNode. \n\n\n")
-		os.Exit(1)
-	}
-
-	return targetPath
-}
-
-func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
-
-	var rootPathNode *PathNode
-	_, pathExisted := r.allSavedPath[root]
-
-	if pathExisted &&
-		len(r.allSavedPath[root]) != 0 &&
-		r.Rnd.Intn(3) != 0 {
-		// 2/3 chances.
-		// Replaying mode.
-
-		// Retrieve a deep copied from the existing seed.
-		newPath := r.retrieveExistingPathNode(root)
-
-		// Choose a random node to mutate.
-		// Do not choose the root to mutate
-		var mutateNode *PathNode
-		if len(newPath) == 1 {
-			mutateNode = newPath[0]
-		} else {
-			mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
-		}
-
-		// Remove the ExprProds and the Children,
-		// so the generate function would be required to
-		// randomly generate any nodes.
-		// This operation could free some not-used PathNode
-		// from the newPath.
-		//fmt.Printf("\n\n\nDebug: Choosing mutate node: %v\n\n\n", mutateNode.ExprProds)
-		mutateNode.ExprProds = nil
-		mutateNode.Children = []*PathNode{}
-
-		rootPathNode = newPath[0]
-
-	} else {
-		// Construct a new statement.
-		rootPathNode = &PathNode{
-			Id:        r.pathId,
-			Parent:    nil,
-			ExprProds: nil,
-			Children:  []*PathNode{},
-		}
-	}
-
-	var resStr []string
-
-	if dbmsName == "sqlite" {
-		resStr = r.generateSqlite(root, rootPathNode, depth, rootDepth)
-	} else if dbmsName == "sqlite_bison" {
-		// TODO: Implement replaying mode.
-		resStr = r.generateSqliteBison(root, depth, rootDepth)
-	} else if dbmsName == "postgres" {
-		// TODO: Implement replaying mode.
-		resStr = r.generatePostgres(root, depth, rootDepth)
-	} else if dbmsName == "cockroachdb" {
-		// TODO: Implement replaying mode.
-		resStr = r.generateCockroach(root, depth, rootDepth)
-	} else if dbmsName == "mysql" {
-		// TODO: Implement replaying mode.
-		resStr = r.generateMySQL(root, depth, rootDepth)
-	} else {
-		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
-	}
-
-	r.curChosenPath = r.GatherAllPathNodes(rootPathNode)
-
-	return resStr
-}
-
-func (r *RSG) formatTokenValue(in string) string {
-
-	if strings.HasSuffix(in, "_P") {
-		in = in[:len(in)-2]
-	}
-
-	return in
-
-}
-
-// Intn returns a random int.
-func (r *RSG) Intn(n int) int {
-	return r.Rnd.Intn(n)
-}
-
-// Int63 returns a random int64.
-func (r *RSG) Int63() int64 {
-	return r.Rnd.Int63()
-}
-
-// Float64 returns a random float. It is sometimes +/-Inf, NaN, and attempts to
-// be distributed among very small, large, and normal scale numbers.
-func (r *RSG) Float64() float64 {
-	v := r.Rnd.Float64()*2 - 1
-	switch r.Rnd.Intn(10) {
-	case 0:
-		v = 0
-	case 1:
-		v = math.Inf(1)
-	case 2:
-		v = math.Inf(-1)
-	case 3:
-		v = math.NaN()
-	case 4, 5:
-		i := r.Rnd.Intn(50)
-		v *= math.Pow10(i)
-	case 6, 7:
-		i := r.Rnd.Intn(50)
-		v *= math.Pow10(-i)
-	}
-	return v
-}
-
-// lockedSource is a thread safe math/rand.Source. See math/rand/rand.go.
-type lockedSource struct {
-	src rand.Source64
-}
-
-func (r *lockedSource) Int63() (n int64) {
-	n = r.src.Int63()
-	return
-}
-
-func (r *lockedSource) Uint64() (n uint64) {
-	n = r.src.Uint64()
-	return
-}
-
-func (r *lockedSource) Seed(seed int64) {
-	r.src.Seed(seed)
 }
