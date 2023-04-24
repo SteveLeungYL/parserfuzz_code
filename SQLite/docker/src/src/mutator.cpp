@@ -2669,6 +2669,13 @@ bool Mutator::fix_dependency(IR *root,
       IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
 
       if (ir->id_type_ == id_top_table_name) {
+
+        if (findStringIn(ir->str_val_, "forced_view")) {
+          ir->str_val_ = v_table_names.back();
+          visited.insert(ir);
+          continue;
+        }
+
         /* This is the place to reference prevous defined table names. Used in
          * FROM clause etc. */
         if (v_table_names.size() != 0 ||
@@ -4220,6 +4227,10 @@ string Mutator::rsg_generate_valid(const string type) {
     fix_common_rsg_errors(ir_vec.back());
     tmp_query_str = ir_vec.back()->to_string();
     ir_vec.back()->deep_drop();
+
+    if (findStringIn(tmp_query_str, "CREATE VIEW")) {
+      tmp_query_str += "\nSELECT * FROM forced_view;";
+    }
 #ifdef DEBUG
     cerr << "\n\n\n" << type << ", returned tmp-query-str: " << tmp_query_str << "\n\n\n";
 #endif

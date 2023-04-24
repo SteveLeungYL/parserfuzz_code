@@ -5814,7 +5814,7 @@ static u8 fuzz_one(char **argv) {
 //            cerr << "From stmt: " << all_valid_inputs + "\n" + cur_input << "\n";
 //            cerr << "Getting res: " << program_output_res << "\n\n\n";
             if (findStringIn(program_output_res, "error")) {
-              int fix_res = g_mutator.dyn_fix_sql_errors(cur_root, program_output_res);
+              int fix_res = g_mutator.dyn_fix_sql_errors(v_stmt.front(), program_output_res);
               if (fix_res) {
                 // cannot fix, early terminate.
                 is_succeed = false;
@@ -5823,8 +5823,14 @@ static u8 fuzz_one(char **argv) {
               v_stmt = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
               cur_input.clear();
               for (IR *cur_stmt : v_stmt) {
-                cur_input = cur_stmt->to_string() + "; \n";
+                cur_input += cur_stmt->to_string() + "; \n";
               }
+
+              if (v_stmt.front()->type_ == kCmdCreateView) {
+                vector<string> tmp_drop_view = {"DROP VIEW " + g_mutator.v_table_names.back() + ";\n"};
+                common_fuzz_stuff(argv, tmp_drop_view, false);
+              }
+
               continue;
             } else if (child_has_stop || child_timed_out) {
               is_succeed = false;
