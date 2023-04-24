@@ -587,6 +587,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
 	replayingMode := false
+	isChooseCompRule := false
 
 	if parentPathNode == nil {
 		fmt.Printf("\n\n\nError: parentPathNode is nil. \n\n\n")
@@ -616,6 +617,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 				if !ok {
 					//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
 					prods = r.prods[root]
+					isChooseCompRule = true
 				}
 			}
 		} else {
@@ -623,6 +625,13 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 			prods = r.prods[root]
 		}
 		prod = r.MABChooseArm(prods, root)
+		// Check whether the chosen rule is complex rule
+		for _, val := range r.compProds[root] {
+			if val == prod {
+				isChooseCompRule = true
+				break
+			}
+		}
 		parentPathNode.ExprProds = prod
 		parentPathNode.Children = []*PathNode{}
 	} else {
@@ -806,7 +815,13 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 					}
 					r.pathId += 1
 					parentPathNode.Children = append(parentPathNode.Children, newChildPathNode)
-					v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
+					if isChooseCompRule {
+						// Choosing the complex rules, depth - 1.
+						v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
+					} else {
+						// If not choosing the complex rules, depth not decrease.
+						v = r.generateSqlite(item.Value, newChildPathNode, depth, rootDepth)
+					}
 				} else {
 					if replayExprIdx >= len(parentPathNode.Children) {
 						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
