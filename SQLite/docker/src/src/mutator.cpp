@@ -871,7 +871,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   string_libary.push_back("xxx");
   string_libary.push_back("yyy");
   string_libary.push_back("test");
-  string_libary.push_back("rrrr");
+  string_libary.push_back("integrity-check");
 
   ifstream input_pragma("./pragma");
   string s;
