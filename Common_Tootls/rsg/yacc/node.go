@@ -43,8 +43,8 @@ type ExpressionNode struct {
 	Pos
 	Items       []Item
 	Command     string
-	HitCount    int  // In one single RSG, how many times does the code hit the branch.
-	IsTermNode  bool // Is the current node lead to a terminating ending.
+	HitCount    int // In one single RSG, how many times does the code hit the branch.
+	NodeComp    int // Node Complexity. If 0, terminating node, if 1, unknown, if 2, complex nested node.
 	RewardScore float64
 }
 

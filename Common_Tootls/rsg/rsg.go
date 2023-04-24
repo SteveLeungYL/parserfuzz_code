@@ -38,12 +38,138 @@ type RSG struct {
 
 	prods     map[string][]*yacc.ExpressionNode
 	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
+	normProds map[string][]*yacc.ExpressionNode // prods that cannot be defined.
+	compProds map[string][]*yacc.ExpressionNode // prods that doomed to lead to complex expressions.
 
 	curChosenPath   []*PathNode
 	allSavedPath    map[string][][]*PathNode
 	curMutatingType string
 	epsilon         float64
 	pathId          int
+}
+
+func (rsg *RSG) isSqliteCompNode(nodeValue string) bool {
+	switch nodeValue {
+	case "select":
+		fallthrough
+	case "expr":
+		fallthrough
+	case "nexprlist":
+		return true
+	}
+	return false
+}
+
+func (rsg *RSG) ClassifyEdges(dbmsName string) {
+	// Construct the terminating or nested Productions (Grammar Edges)
+
+	// Set up the Complicated Node classification function.
+	var isCompNode func(nodeValue string) bool
+	if dbmsName == "sqlite" {
+		isCompNode = r.isSqliteCompNode
+	} else {
+		// Default placeholder.
+		isCompNode = func(in string) bool {
+			return false
+		}
+	}
+
+	for rootName, rootProds := range rsg.prods {
+
+		for _, prod := range rootProds {
+			// For each single rule.
+
+			// whether the node lead to terminating tokens.
+			// assume yes, if encountering non-terminating tokens,
+			// change to false.
+			isTerm := true
+			// whether the node lead to complex nested node.
+			// if found, switch to yes.
+			isComp := false
+
+			for _, curNode := range prod.Items {
+				if isComp {
+					// If the current path is already
+					// classified as non-term
+					// Do not continue
+					break
+				}
+				if isCompNode(curNode.Value) {
+					// If the current child node is a complicated node,
+					// do not continue the search. This is a complicated node.
+					isComp = true
+					isTerm = false
+					break
+				}
+
+				// See whether the current child node is terminating token.
+				childProds, ok := rsg.prods[curNode.Value]
+
+				if ok {
+					// this is not a terminating child node.
+					// search one more level.
+					// Thoroughly go through all the possible
+					// choices from the sub-node.
+
+					// If all children have complicated nodes, treat the current as comp
+					isAllGrandChildComp := true
+					for _, childProd := range childProds {
+						grandChildComp := false
+						if !isTerm {
+							// If the current path is already
+							// classified as non-term
+							// Do not continue
+							break
+						}
+						for _, childNode := range childProd.Items {
+							if !isTerm {
+								// If the current path is already
+								// classified as non-term
+								// Do not continue
+								break
+							}
+							if isCompNode(childNode.Value) {
+								// The grandchildren contains complicated nodes.
+								grandChildComp = true
+							}
+							_, childOk := rsg.prods[childNode.Value]
+							if childOk {
+								// Find the nested child node.
+								// Not a terminating node.
+								// Do not continue
+								isTerm = false
+							}
+						}
+						if !grandChildComp {
+							// In on the of the child,
+							// Not all grand child contains complicated nodes.
+							// The current choice of the subnode should be normal or term.
+							isAllGrandChildComp = false
+						}
+					}
+
+					if isAllGrandChildComp {
+						isComp = true
+						isTerm = false
+					}
+				} // finished searching the one child node.
+				if isComp {
+					break
+				}
+			} // finished searching all the child node.
+			if isTerm {
+				prod.NodeComp = 0
+				rsg.termProds[rootName] = append(rsg.termProds[rootName], prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
+			} else if isComp {
+				prod.NodeComp = 2
+				rsg.compProds[rootName] = append(rsg.compProds[rootName], prod)
+			} else {
+				prod.NodeComp = 1
+				rsg.normProds[rootName] = append(rsg.normProds[rootName], prod)
+			}
+		} // loop: Each single rule.
+	} // loop: All rule in one token.
 }
 
 // NewRSG creates a random syntax generator from the given random seed and
@@ -64,6 +190,8 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		Rnd:           rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
 		prods:         make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
 		termProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		normProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
+		compProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
 		curChosenPath: []*PathNode{},
 		allSavedPath:  make(map[string][][]*PathNode),
 		epsilon:       epsilon,
@@ -81,61 +209,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		}
 	}
 
-	// Construct the terminating Productions (Grammar Edges)
-	for rootName, rootProds := range rsg.prods {
-		for _, prod := range rootProds {
-			isTerm := true
-			for _, curNode := range prod.Items {
-				if !isTerm {
-					// If the current path is already
-					// classified as non-term
-					// Do not continue
-					break
-				}
-				childProds, ok := rsg.prods[curNode.Value]
-				if ok {
-					// this is not a terminating child node.
-					// search one more level.
-					// Thoroughly go through all the possible
-					// choices from the sub-node.
-					for _, childProd := range childProds {
-						if !isTerm {
-							// If the current path is already
-							// classified as non-term
-							// Do not continue
-							break
-						}
-						for _, childNode := range childProd.Items {
-							if !isTerm {
-								// If the current path is already
-								// classified as non-term
-								// Do not continue
-								break
-							}
-							_, childOk := rsg.prods[childNode.Value]
-							if childOk {
-								// Find the nested child node.
-								// Not a terminating node.
-								// Do not continue
-								isTerm = false
-								break
-							}
-						}
-					}
-				} // finished searching the one child node.
-				if !isTerm {
-					break
-				}
-			} // finished searching all the child node.
-			if isTerm {
-				prod.IsTermNode = true
-				rsg.termProds[rootName] = append(rsg.termProds[rootName], prod)
-				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
-			} else {
-				prod.IsTermNode = false
-			}
-		}
-	}
+	rsg.ClassifyEdges(dbmsName)
 
 	return &rsg, nil
 }
@@ -287,7 +361,7 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 	}
 
-	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %d. \n\n\n", root, resIdx)
+	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %v. \n\n\n", root, prods[resIdx].Items)
 	return prods[resIdx]
 }
 
@@ -523,25 +597,6 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	ret := make([]string, 0)
 
-	if depth <= -5 {
-		// Return nil represent error.
-		//fmt.Printf("\n\n\nDebug: reaching depth: %s\n\n\n", root)
-		if root == "stl_prefix" ||
-			root == "distinct" {
-			ret = append(ret, "")
-			return ret
-		} else if root == "selectnowith" ||
-			root == "oneselect" ||
-			root == "select" {
-			ret = append(ret, "select 'abc'")
-			return ret
-		} else if root == "nm" {
-			ret = append(ret, "v0")
-			return ret
-		}
-		return nil
-	}
-
 	//fmt.Printf("\n\n\n From root: %s, getting prods size: %d \n\n\n", root, len(prods))
 	var prod *yacc.ExpressionNode
 	if parentPathNode.ExprProds == nil {
@@ -553,12 +608,18 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 		if depth <= 0 && r.Rnd.Intn(100) < 95 {
 			var ok bool
 			prods, ok = r.termProds[root]
+			//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
 			if !ok {
 				// fallback to the original non-term tokens
 				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
-				prods = r.prods[root]
+				prods, ok = r.normProds[root]
+				if !ok {
+					//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
+					prods = r.prods[root]
+				}
 			}
 		} else {
+			//fmt.Printf("\n\n\nUsing random rules. \n\n\n", root)
 			prods = r.prods[root]
 		}
 		prod = r.MABChooseArm(prods, root)
