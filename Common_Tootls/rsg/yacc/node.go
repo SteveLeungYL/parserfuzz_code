@@ -46,6 +46,7 @@ type ExpressionNode struct {
 	HitCount    int // In one single RSG, how many times does the code hit the branch.
 	NodeComp    int // Node Complexity. If 0, terminating node, if 1, unknown, if 2, complex nested node.
 	RewardScore float64
+	UniqueHash  uint32 // Unique hash, used to calculate edge information.
 }
 
 func newExpression(pos Pos) *ExpressionNode {

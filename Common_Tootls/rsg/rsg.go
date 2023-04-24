@@ -125,6 +125,10 @@ func (r *RSG) DumpParserRuleMap(outFile string) {
 
 }
 
+func (r *RSG) DumpEdgeCovMap() {
+	fmt.Printf("\n\n\nLogging: Dump edge map: \n%v\n\n\n", r.allTriggerEdges)
+}
+
 func (r *RSG) ClearChosenExpr() {
 	// clear the map
 	r.curChosenPath = []*PathNode{}
@@ -281,6 +285,7 @@ type RSG struct {
 	curMutatingType string
 	epsilon         float64
 	pathId          int
+	allTriggerEdges []uint8
 }
 
 func (r *RSG) ClassifyEdges(dbmsName string) {
@@ -395,6 +400,20 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 	} // loop: All rule in one token.
 }
 
+func (r *RSG) CheckEdgeCov(prevHash uint32, curHash uint32) bool {
+	if r.allTriggerEdges[(prevHash>>1)^curHash] != 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (r *RSG) MarkEdgeCov(prevHash uint32, curHash uint32) {
+	if r.allTriggerEdges[(prevHash>>1)^curHash] != 0xff {
+		r.allTriggerEdges[(prevHash>>1)^curHash] += 1
+	}
+}
+
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
 func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
@@ -410,14 +429,15 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:           rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:         make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
-		termProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
-		normProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
-		compProds:     make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
-		curChosenPath: []*PathNode{},
-		allSavedPath:  make(map[string][][]*PathNode),
-		epsilon:       epsilon,
+		Rnd:             rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		prods:           make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		termProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		normProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
+		compProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		curChosenPath:   []*PathNode{},
+		allSavedPath:    make(map[string][][]*PathNode),
+		epsilon:         epsilon,
+		allTriggerEdges: make([]uint8, 65536),
 	}
 
 	// Construct all the possible Productions (Grammar Edges)
@@ -425,6 +445,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		_, ok := rsg.prods[prod.Name]
 		if ok {
 			for _, curExpr := range prod.Expressions {
+				curExpr.UniqueHash = uint32(rsg.Rnd.Intn(65536)) // setup the unique hash
 				rsg.prods[prod.Name] = append(rsg.prods[prod.Name], curExpr)
 			}
 		} else {
@@ -437,7 +458,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 	return &rsg, nil
 }
 
-func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.ExpressionNode {
+func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string, rootHash uint32) *yacc.ExpressionNode {
 
 	resIdx := 0
 	for trial := 0; trial < 10; trial++ {
@@ -451,6 +472,24 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
 		} else {
 			// Random choice.
+
+			if r.Rnd.Intn(2) != 0 {
+				// 50% chances, only look through the edges that were not triggered before.
+				tmpTrimProds := []*yacc.ExpressionNode{}
+				for _, tmpProds := range prods {
+					if r.CheckEdgeCov(rootHash, tmpProds.UniqueHash) {
+						//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
+						continue
+					}
+					//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: %v\n\n\n", root, tmpProds.Items)
+					tmpTrimProds = append(tmpTrimProds, tmpProds)
+				}
+				if len(tmpTrimProds) > 0 {
+					prods = tmpTrimProds
+				}
+				//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: size: %v\n\n\n", root, len(prods))
+			}
+
 			//fmt.Printf("\n\n\nUsing Random. \n\n\n")
 			resIdx = r.Rnd.Intn(len(prods))
 			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
@@ -477,6 +516,8 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string) *yacc.Expr
 		}
 	}
 
+	r.MarkEdgeCov(rootHash, prods[resIdx].UniqueHash)
+
 	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %v. \n\n\n", root, prods[resIdx].Items)
 	return prods[resIdx]
 }
@@ -500,9 +541,10 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 			s = strings.Replace(s, "_LA", "", -1)
 			s = strings.Replace(s, " AS OF SYSTEM TIME \"string\"", "", -1)
 			return s
+		} else {
+			//fmt.Printf("Error: Getting empty string from RSG.Generate. \n\n\n")
 		}
 	}
-	//fmt.Printf("\n\n\ncouldn't find unique string for root: %s\n\n\n", root)
 	return s
 }
 
@@ -553,7 +595,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 	var resStr []string
 
 	if dbmsName == "sqlite" {
-		resStr = r.generateSqlite(root, rootPathNode, depth, rootDepth)
+		resStr = r.generateSqlite(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "sqlite_bison" {
 		// TODO: Implement replaying mode.
 		resStr = r.generateSqliteBison(root, depth, rootDepth)
@@ -584,7 +626,7 @@ func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root)
+	prod := r.MABChooseArm(prods, root, 0)
 
 	if prod == nil {
 		return nil
@@ -638,7 +680,7 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root)
+	prod := r.MABChooseArm(prods, root, 0)
 
 	if prod == nil {
 		return nil
@@ -719,7 +761,7 @@ func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []strin
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root)
+	prod := r.MABChooseArm(prods, root, 0)
 
 	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
@@ -766,7 +808,7 @@ func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []strin
 	return ret
 }
 
-func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, rootDepth int) []string {
+func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 
@@ -774,8 +816,8 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 	replayingMode := false
 	isChooseCompRule := false
 
-	if parentPathNode == nil {
-		fmt.Printf("\n\n\nError: parentPathNode is nil. \n\n\n")
+	if rootPathNode == nil {
+		fmt.Printf("\n\n\nError: rootPathNode is nil. \n\n\n")
 		// Return nil is different from return an empty array.
 		// Return nil represent error.
 		return nil
@@ -785,7 +827,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 
 	//fmt.Printf("\n\n\n From root: %s, getting prods size: %d \n\n\n", root, len(prods))
 	var prod *yacc.ExpressionNode
-	if parentPathNode.ExprProds == nil {
+	if rootPathNode.ExprProds == nil {
 		// Not in the replaying mode, randomly choose one node and proceed.
 		replayingMode = false
 
@@ -809,7 +851,7 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 			//fmt.Printf("\n\n\nUsing random rules. \n\n\n", root)
 			prods = r.prods[root]
 		}
-		prod = r.MABChooseArm(prods, root)
+		prod = r.MABChooseArm(prods, root, parentHash)
 		// Check whether the chosen rule is complex rule
 		for _, val := range r.compProds[root] {
 			if val == prod {
@@ -817,18 +859,20 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 				break
 			}
 		}
-		parentPathNode.ExprProds = prod
-		parentPathNode.Children = []*PathNode{}
+		rootPathNode.ExprProds = prod
+		rootPathNode.Children = []*PathNode{}
 	} else {
 		// Replay mode, directly reuse the previous chosen expressions.
 		replayingMode = true
-		prod = parentPathNode.ExprProds
+		prod = rootPathNode.ExprProds
 	}
 
 	if prod == nil {
 		fmt.Printf("\n\n\nERROR: getting nil prod. \n\n\n")
 		return nil
 	}
+
+	rootHash := prod.UniqueHash
 
 	replayExprIdx := 0
 	for _, item := range prod.Items {
@@ -994,28 +1038,28 @@ func (r *RSG) generateSqlite(root string, parentPathNode *PathNode, depth int, r
 				if !replayingMode {
 					newChildPathNode = &PathNode{
 						Id:        r.pathId,
-						Parent:    parentPathNode,
+						Parent:    rootPathNode,
 						ExprProds: nil,
 						Children:  []*PathNode{},
 					}
 					r.pathId += 1
-					parentPathNode.Children = append(parentPathNode.Children, newChildPathNode)
+					rootPathNode.Children = append(rootPathNode.Children, newChildPathNode)
 					if isChooseCompRule {
 						// Choosing the complex rules, depth - 1.
-						v = r.generateSqlite(item.Value, newChildPathNode, depth-1, rootDepth)
+						v = r.generateSqlite(item.Value, newChildPathNode, rootHash, depth-1, rootDepth)
 					} else {
 						// If not choosing the complex rules, depth not decrease.
-						v = r.generateSqlite(item.Value, newChildPathNode, depth, rootDepth)
+						v = r.generateSqlite(item.Value, newChildPathNode, rootHash, depth, rootDepth)
 					}
 				} else {
-					if replayExprIdx >= len(parentPathNode.Children) {
+					if replayExprIdx >= len(rootPathNode.Children) {
 						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
 						return nil
 					}
-					newChildPathNode = parentPathNode.Children[replayExprIdx]
+					newChildPathNode = rootPathNode.Children[replayExprIdx]
 					replayExprIdx += 1
 					// We won't decrease depth number in replaying mode.
-					v = r.generateSqlite(item.Value, newChildPathNode, depth, rootDepth)
+					v = r.generateSqlite(item.Value, newChildPathNode, rootHash, depth, rootDepth)
 				}
 
 				//fmt.Printf("\n\n\nFor root: %s, getting child node: %s, child Node: %v\n\n\n", root, item.Value, newChildPathNode.ExprProds)
@@ -1046,7 +1090,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		// Check whether the chosen prod contains unimplemented or error related
 		// rule. If yes, do not choose this path.
 
-		tmpProd := r.MABChooseArm(prods, root)
+		tmpProd := r.MABChooseArm(prods, root, 0)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
 			continue
