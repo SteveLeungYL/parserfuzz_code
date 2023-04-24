@@ -169,6 +169,8 @@ public:
   /* Given one string, find the least child node that containing the string */
   IR *find_least_child_node_contain_str(IR* cur_node, const string& str);
 
+  IR* get_nexprlist_from_value_clause(IR* cur_node);
+
 private:
   IR *ir_root = nullptr;
 };

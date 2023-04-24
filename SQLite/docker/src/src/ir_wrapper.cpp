@@ -1053,3 +1053,14 @@ IR *IRWrapper::find_least_child_node_contain_str(IR* cur_node, const string& str
   return cur_node;
 
 }
+
+IR* IRWrapper::get_nexprlist_from_value_clause(IR* cur_node) {
+  if (cur_node->right_ != nullptr) {
+    return cur_node->right_;
+  } else if (cur_node->left_ != nullptr) {
+    return cur_node->left_;
+  } else {
+    cerr << "\n\n\nError, cannot find kNexprlist in the IRWrapper::get_nexprlist_from_value_clause function. \n\n\n";
+    return nullptr;
+  }
+}

@@ -118,8 +118,12 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
     return 0;
   } else if (findStringIn(error_msg, "GROUP BY term out of range - should be between")) {
     return handle_group_by_value_error(cur_stmt_root, error_msg);
+  } else if (findStringIn(error_msg, "values were supplied")) {
+    handle_wrong_num_of_values(cur_stmt_root, error_msg);
+    return 0;
   }
 
+  // Not being handled, skip fixing the current error.
   return 1;
 }
 
@@ -240,6 +244,56 @@ void Mutator::handle_unsupported_having_clause(IR*& cur_stmt_root) {
   }
 
   return;
+}
+
+int Mutator::handle_wrong_num_of_values(IR*& cur_stmt_root, string error_msg) {
+
+  vector<string> tmp_err_split = string_splitter(error_msg, " has ");
+  if (tmp_err_split.size() <= 1) {
+    cerr << "\n\n\nError, cannot find ' has ' in the handle_wrong_num_of_values function.\n\n\n";
+    return 1;
+  }
+
+  error_msg = tmp_err_split.back();
+
+  tmp_err_split = string_splitter(error_msg, " columns but ");
+  if (tmp_err_split.size() <= 1) {
+    cerr << "\n\n\nError, cannot find ' columns but ' in the handle_wrong_num_of_values function.\n\n\n";
+    return 1;
+  }
+  error_msg = tmp_err_split.front();
+
+  int target_num_of_vals = stoi(error_msg);
+  if (target_num_of_vals <= 0) {
+    cerr << "\n\n\nError, getting target_num_of_vals <= 0 in handle_wrong_num_of_values function.\n\n\n";
+    return 1;
+  }
+
+  // Gather all the kValues clauses from the statement.
+  // Change the values to the target number of values.
+
+  vector<IR*> v_values_clauses = p_oracle
+            ->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kValues, false, true);
+
+  for (IR* cur_value_clause : v_values_clauses) {
+    IR* nexpr_node = p_oracle->ir_wrapper.get_nexprlist_from_value_clause(cur_value_clause);
+    string new_vals_str = "";
+
+    DataType cur_arg_type;
+    for (int i = 0; i < target_num_of_vals; i++) {
+      if (i != 0) {
+        new_vals_str += ", ";
+      }
+      DATATYPE rand_any_type = cur_arg_type.gen_rand_any_type(this->all_supported_types);
+      cur_arg_type.set_data_type(rand_any_type);
+      new_vals_str += cur_arg_type.mutate_type_entry();
+    }
+
+    nexpr_node->str_val_ = new_vals_str;
+
+  }
+
+  return 0;
 }
 
 int Mutator::handle_group_by_value_error(IR*& cur_stmt_root, string& error_msg) {
@@ -896,7 +950,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   string func_sig_str = buffer.str();
   json func_data = json::parse(func_sig_str);
 
-  vector<DATATYPE> all_supported_types  = {
+  all_supported_types  = {
       kTYPEINT,
       kTYPEREAL,
       kTYPETEXT,

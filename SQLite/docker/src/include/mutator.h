@@ -24,6 +24,8 @@ class Mutator {
 
 public:
 
+  vector<DATATYPE> all_supported_types;
+
   int dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg);
   IR* locate_error_ir(IR* cur_stmt_root, string& error_msg);
 
@@ -292,6 +294,7 @@ private:
   void handle_unsupported_frame(IR*& cur_stmt_root);
   void handle_unsupported_having_clause(IR*& cur_stmt_root);
   int handle_group_by_value_error(IR*& cur_stmt_root, string& err_msg);
+  int handle_wrong_num_of_values(IR*& cur_stmt_root, string err_msg);
 
 };
 
