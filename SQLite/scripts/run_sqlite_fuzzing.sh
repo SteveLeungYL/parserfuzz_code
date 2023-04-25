@@ -43,6 +43,7 @@ if [ "$1" == "SQLRight" ]; then
     sudo docker run -i --rm \
         -v $(pwd)/$resoutdir:/home/sqlite/fuzzing/fuzz_root/outputs \
         -v $(pwd)/$bugoutdir:/home/sqlite/fuzzing/Bug_Analysis \
+        --shm-size=10gb \
         --name $resoutdir \
         sqlright_sqlite /bin/bash /home/sqlite/scripts/run_sqlright_sqlite_fuzzing_helper.sh ${@:2}
     
