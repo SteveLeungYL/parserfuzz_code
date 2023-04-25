@@ -532,7 +532,7 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	// Mark the current mutating types
 	// The successfully generated and executed queries would be saved
 	// based on the root type.
-	r.curMutatingType = root
+	r.curMutatingType = strings.Clone(root)
 	for i := 0; i < 1000; i++ {
 		s = strings.Join(r.generate(root, dbmsName, depth, depth), " ")
 		//fmt.Printf("\n\n\nFrom root, %s, depth: %d, getting stmt: %s\n\n\n", root, depth, s)
