@@ -5830,7 +5830,7 @@ static u8 fuzz_one(char **argv) {
                 cur_input += cur_stmt->to_string() + "; \n";
               }
 
-              if (v_stmt.front()->type_ == kCmdCreateView) {
+              if (v_stmt.front()->left_ != nullptr && v_stmt.front()->left_->type_ == kCmdCreateView) {
                 vector<string> tmp_drop_view = {"DROP VIEW " + g_mutator.v_table_names.back() + ";\n"};
                 common_fuzz_stuff(argv, tmp_drop_view, false);
               }
