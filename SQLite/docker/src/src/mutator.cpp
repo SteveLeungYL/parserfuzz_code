@@ -135,7 +135,7 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
 IR* Mutator::locate_error_ir(IR* cur_stmt_root, string& error_msg) {
 
   vector<string> v_err_split = string_splitter(error_msg, "\n");
-  if (v_err_split.size() < 3) {
+  if (v_err_split.size() != 4) {
     return nullptr;
   }
   v_err_split.pop_back(); // The very last line is empty.
@@ -680,7 +680,7 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
 
     vector<IR*> v_target_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, target_col, false, true);
     for (IR* cur_target_node: v_target_node) {
-      if(get_rand_int(2)) {
+      if (get_rand_int(2)) {
         cur_target_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
         cur_target_node->type_ = kStringLiteral;
       } else {
@@ -688,7 +688,6 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
         cur_target_node->type_ = kIntegerLiteral;
       }
     }
-    return;
   }
 
   return;
@@ -2758,7 +2757,8 @@ bool Mutator::fix_dependency(IR *root,
                   cur_stmt_type != kCmdAlterTableAddColumn &&
                   cur_stmt_type != kCmdAlterTableDropColumn &&
                   cur_stmt_type != kCmdAlterTableRename &&
-                  cur_stmt_type != kCmdAlterTableRenameColumn
+                  cur_stmt_type != kCmdAlterTableRenameColumn &&
+                  cur_stmt_type != kCmdAnalyze
                   )
           {
             string new_alias_str = gen_alias_name();
@@ -3106,6 +3106,7 @@ bool Mutator::fix_dependency(IR *root,
              cur_stmt_type != kCmdAlterTableRenameColumn &&
              cur_stmt_type != kCmdAlterTableAddColumn &&
              cur_stmt_type != kCmdAlterTableDropColumn &&
+             cur_stmt_type != kCmdAnalyze &&
              cur_stmt_type != kCmdUpdate && get_rand_int(100) < 30) ||
             (v_table_names_single.size() == 0 &&
              v_create_table_names_single.size() == 0)) {
@@ -3284,6 +3285,7 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn &&
+              cur_stmt_type != kCmdAnalyze &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
@@ -3312,6 +3314,7 @@ bool Mutator::fix_dependency(IR *root,
               cur_stmt_type != kCmdAlterTableRenameColumn &&
               cur_stmt_type != kCmdAlterTableRename &&
               cur_stmt_type != kCmdAlterTableDropColumn &&
+              cur_stmt_type != kCmdAnalyze &&
               !(p_oracle->ir_wrapper.is_ir_in(ir, kIdlist)) && // idlist does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kTcons)) && // kTcons does not allow dot
               !(p_oracle->ir_wrapper.is_ir_in(ir, kCcons)) && // kCcons does not allow dot
