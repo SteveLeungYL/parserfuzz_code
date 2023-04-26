@@ -157,15 +157,6 @@ user_version = _empty_
 user_version = _int_
 
 
-vdbe_debug = _boolean_
-
-
-vdbe_listing = _boolean_
-
-
-vdbe_trace = _boolean_
-
-
 wal_autocheckpoint = _empty_
 wal_autocheckpoint = _int_
 
