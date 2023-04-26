@@ -171,6 +171,8 @@ public:
 
   IR* get_nexprlist_from_value_clause(IR* cur_node);
 
+  string trim_quote(string in);
+
 private:
   IR *ir_root = nullptr;
 };

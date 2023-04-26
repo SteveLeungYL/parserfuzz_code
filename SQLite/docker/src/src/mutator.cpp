@@ -678,14 +678,59 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
     string target_col = string_splitter(err_str, "no such column: ").back();
     target_col = string_splitter(target_col, "\n").front();
 
+    if (
+        target_col.size() > 2 &&
+        target_col.front() == '\'' || // This is a string.
+        target_col.front() == '"' // This is a string.
+    ){
+       target_col = target_col.substr(1, target_col.size() - 2);
+    }
+
     vector<IR*> v_target_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_str(cur_stmt_root, target_col, false, true);
     for (IR* cur_target_node: v_target_node) {
-      if (get_rand_int(2)) {
-        cur_target_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
-        cur_target_node->type_ = kStringLiteral;
-      } else {
-        cur_target_node->str_val_ = to_string(get_rand_int(100));
-        cur_target_node->type_ = kIntegerLiteral;
+      bool is_set_col = false;
+      if (
+          cur_target_node->type_ == kIntegerLiteral ||
+          cur_target_node->type_ == kStringLiteral ||
+          (cur_target_node->str_val_.size() != 0 &&
+           cur_target_node->str_val_.front() == '\'' || // This is a string.
+           cur_target_node->str_val_.front() == '"' // This is a string.
+           )
+
+      ) {
+        if (!this->v_table_names_single.empty()) {
+          string rand_tab_str = vector_rand_ele(this->v_table_names_single);
+          if (!this->m_tables[rand_tab_str].empty()) {
+            string rand_col_str = vector_rand_ele(this->m_tables[rand_tab_str]);
+            if (m_table2alias_single.count(rand_tab_str) > 0) {
+              rand_tab_str = vector_rand_ele(m_table2alias_single[rand_tab_str]);
+            }
+            IRTYPE cur_stmt_type = cur_stmt_root->type_;
+            if (cur_stmt_type != kCmdCreateIndex &&
+                cur_stmt_type != kCmdAlterTableAddColumn &&
+                cur_stmt_type != kCmdAlterTableDropColumn &&
+                cur_stmt_type != kCmdAlterTableRename &&
+                cur_stmt_type != kCmdAlterTableRenameColumn &&
+                cur_stmt_type != kCmdAnalyze) {
+              cur_target_node->str_val_ = rand_tab_str + "." + rand_col_str;
+            } else {
+              cur_target_node->str_val_ = rand_col_str;
+            }
+            cur_target_node->type_ = kColumnname;
+            cur_target_node->id_type_ = id_column_name; // id_column_name
+            is_set_col = true;
+          }
+        }
+      }
+      if (!is_set_col) {
+        if (get_rand_int(2)) {
+          cur_target_node->str_val_ =
+              "'" + vector_rand_ele(string_libary) + "'";
+          cur_target_node->type_ = kStringLiteral;
+        } else {
+          cur_target_node->str_val_ = to_string(get_rand_int(100));
+          cur_target_node->type_ = kIntegerLiteral;
+        }
       }
     }
   }
@@ -693,18 +738,40 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
   return;
 }
 
-void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* err_node, string& err_str) {
+void Mutator::handle_no_such_column_with_err_loc(IR*& cur_stmt_root, IR* cur_target_node, string& err_str) {
 
 //  cerr << "Inside handle_no_such_column_with_err_loc, getting err_node\n";
 //  debug(err_node, 0);
 //  cerr << "end\n\n\n";
-  if (err_node->type_ == kIdentifier) {
-    if(get_rand_int(2)) {
-      err_node->str_val_ = "'" + vector_rand_ele(string_libary) + "'";
-      err_node->type_ = kStringLiteral;
+  bool is_set_col = false;
+  if (
+      cur_target_node->type_ == kIntegerLiteral ||
+      cur_target_node->type_ == kStringLiteral ||
+      (cur_target_node->str_val_.size() != 0 &&
+           cur_target_node->str_val_.front() == '\'' || // This is a string.
+       cur_target_node->str_val_.front() == '"' // This is a string.
+       )
+
+  ) {
+    if (!this->v_table_names_single.empty()) {
+      string rand_tab_str = vector_rand_ele(this->v_table_names_single);
+      if (!this->m_tables[rand_tab_str].empty()) {
+        string rand_col_str = vector_rand_ele(this->m_tables[rand_tab_str]);
+        cur_target_node->str_val_ = rand_col_str;
+        cur_target_node->type_ = kColumnname;
+        cur_target_node->id_type_ = id_column_name; // id_column_name
+        is_set_col = true;
+      }
+    }
+  }
+  if (!is_set_col && cur_target_node->type_ == kIdentifier) {
+    if (get_rand_int(2)) {
+      cur_target_node->str_val_ =
+          "'" + vector_rand_ele(string_libary) + "'";
+      cur_target_node->type_ = kStringLiteral;
     } else {
-      err_node->str_val_ = to_string(get_rand_int(100));
-      err_node->type_ = kIntegerLiteral;
+      cur_target_node->str_val_ = to_string(get_rand_int(100));
+      cur_target_node->type_ = kIntegerLiteral;
     }
   }
 //  debug(err_node, 0);

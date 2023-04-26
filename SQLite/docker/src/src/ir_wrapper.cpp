@@ -135,6 +135,18 @@ vector<IR *> IRWrapper::get_ir_node_in_stmt_with_type(IR *cur_stmt,
   return ir_vec_matching_type_depth;
 }
 
+string IRWrapper::trim_quote(string in) {
+  trim_string(in);
+  if (
+      in.size() > 2 &&
+      in.front() == '\'' ||
+      in.front() == '"'
+      ) {
+    in = in.substr(1, in.size()-2);
+  }
+  return in;
+}
+
 vector<IR *> IRWrapper::get_ir_node_in_stmt_with_str(IR *cur_stmt,
                                                       const string& in,
                                                       bool is_subquery,
@@ -153,7 +165,8 @@ vector<IR *> IRWrapper::get_ir_node_in_stmt_with_str(IR *cur_stmt,
     if (v_tmp.size() > 1) {
       to_str = v_tmp.front();
     }
-    if (to_str == in) {
+    to_str = trim_quote(to_str);
+    if (to_str == trim_quote(in)) {
       ir_vec_matching_type.push_back(cur_IR);
     }
 
