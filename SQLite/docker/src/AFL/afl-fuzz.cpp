@@ -2878,8 +2878,8 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
   program_output_res = read_sqlite_output_and_reset_output_file();
 
-  all_comp_res.v_cmd_str.push_back(cmd_string);
-  all_comp_res.v_res_str.push_back(program_output_res);
+//  all_comp_res.v_cmd_str.push_back(cmd_string);
+  all_comp_res.v_res_str.push_back(program_output_res + "\n" + to_string(fault));
   all_comp_res.v_res.push_back(fault);
 
   /* Users can hit us with SIGUSR1 to request the current input
@@ -5295,6 +5295,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str, bool is_re
 
   ALL_COMP_RES all_res;
 
+  all_res.v_cmd_str.push_back(v_query_str.back());
   fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout, is_restart);
 
   /* This handles FAULT_ERROR for us: */
