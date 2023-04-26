@@ -2466,7 +2466,8 @@ static string read_sqlite_output_and_reset_output_file() {
 
   lseek(program_output_fd, 0, SEEK_SET);
 
-  while (1) {
+  // Read maximum 2k bytes of data.
+  for (int idx = 0; idx < 2; idx++) {
 
     ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
     if (num_bytes == 0 || output_buf[0] == '\0')
@@ -2475,7 +2476,7 @@ static string read_sqlite_output_and_reset_output_file() {
     output_buf[num_bytes] = '\0';
     program_output_str += output_buf;
   }
-  // lseek(program_output_fd, 0, SEEK_SET);
+
   ftruncate(program_output_fd, 0);
   lseek(program_output_fd, 0, SEEK_SET);
 
@@ -5748,6 +5749,8 @@ static u8 fuzz_one(char **argv) {
 
   g_mutator.pre_validate();
 
+  show_stats();
+
   restart_sqlite(argv);
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
@@ -5870,6 +5873,8 @@ static u8 fuzz_one(char **argv) {
   
   total_execs++;
   total_execute++;
+
+  show_stats();
 
   return ret_val;
 }

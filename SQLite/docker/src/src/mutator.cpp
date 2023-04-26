@@ -49,6 +49,11 @@ vector<string> Mutator::v_create_column_names_single_with_tmp;
 
 int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
 
+  if (error_msg.size() > 2048) {
+    // Error message too long. Ignore.
+    return 1;
+  }
+
   if (findStringIn(error_msg, "no tables specified")) {
     this->handle_no_tables_specified_error(cur_stmt_root);
     return 0;
