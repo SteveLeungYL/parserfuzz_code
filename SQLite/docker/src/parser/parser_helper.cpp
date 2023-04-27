@@ -739,7 +739,7 @@ u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir, GramCovMap* p_gr
     zSql += n;
   }
   IRParser(pEngine, 0, "", &v_ir);
-  ParserCov(pEngine, 0, "", p_gram);
+  ParserCov(pEngineCov, 0, "", p_gram);
 
   IRParserFree(pEngine, custom_free);
   ParserCovFree(pEngineCov, free);
