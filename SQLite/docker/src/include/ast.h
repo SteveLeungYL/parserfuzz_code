@@ -135,11 +135,11 @@ public:
     delete[](this->edge_virgin_map);
   }
 
-  u8 has_new_grammar_bits(bool is_debug = false) {
+  u8 has_new_grammar_bits(bool is_debug = false, const string in = "") {
 //    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
-    return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug);
+    return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug, in);
   }
-  u8 has_new_grammar_bits(u8 *, u8 *, bool is_debug = false);
+  u8 has_new_grammar_bits(u8 *, u8 *, bool is_debug = false, const string in = "");
 
   void reset_block_cov_map() { memset(this->block_cov_map, 0, MAP_SIZE); }
   void reset_block_virgin_map() { memset(this->block_virgin_map, 0, MAP_SIZE); }
@@ -204,7 +204,7 @@ private:
     return new_byte_v;
   }
 
-  inline void gram_log_map_id (u32 i, u8 byte) {
+  inline void gram_log_map_id (u32 i, u8 byte, const string in = "") {
     fstream gram_id_out;
     i = (MAP_SIZE >> 3) - i - 1 ;
     u32 actual_idx = i * 8 + byte;
@@ -219,6 +219,17 @@ private:
     gram_id_out << actual_idx << endl;
     gram_id_out.flush();
     gram_id_out.close();
+
+    if (!filesystem::exists("./new_gram_file/")) {
+      filesystem::create_directory("./new_gram_file/");
+    }
+    fstream map_id_seed_output;
+    map_id_seed_output.open(
+        "./new_gram_file/" + to_string(actual_idx) + ".txt",
+        std::fstream::out | std::fstream::trunc);
+    map_id_seed_output << in;
+    map_id_seed_output.close();
+
   }
 };
 

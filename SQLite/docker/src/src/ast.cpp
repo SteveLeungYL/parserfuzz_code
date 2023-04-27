@@ -8,7 +8,7 @@
 #include <vector>
 
 u8 GramCovMap::has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
-                                    bool is_debug) {
+                                    bool is_debug, const string in) {
 
 #if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
@@ -54,7 +54,7 @@ u8 GramCovMap::has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
           if (unlikely(is_debug)) {
             vector<u8> byte = get_cur_new_byte(cur, vir);
             for (const u8 &cur_byte : byte) {
-              this->gram_log_map_id(i, cur_byte);
+              this->gram_log_map_id(i, cur_byte, in);
             }
           }
         } else if (unlikely(ret != 2))

@@ -748,7 +748,7 @@ u8 lemon_parser_helper(const string& in_str, vector<IR*>& v_ir, GramCovMap* p_gr
     free(cur_zSql);
   }
 
-  u8 res = p_gram->has_new_grammar_bits();
+  u8 res = p_gram->has_new_grammar_bits(false, in_str);
   p_gram->reset_block_cov_map();
   p_gram->reset_edge_cov_map();
   return res;
