@@ -702,7 +702,7 @@ void Mutator::handle_no_such_column_without_err_loc(IR*& cur_stmt_root, string& 
           string rand_tab_str = vector_rand_ele(this->v_table_names_single);
           if (!this->m_tables[rand_tab_str].empty()) {
             string rand_col_str = vector_rand_ele(this->m_tables[rand_tab_str]);
-            if (m_table2alias_single.count(rand_tab_str) > 0) {
+            if (m_table2alias_single.count(rand_tab_str) > 0 && !m_table2alias_single[rand_tab_str].empty()) {
               rand_tab_str = vector_rand_ele(m_table2alias_single[rand_tab_str]);
             }
             IRTYPE cur_stmt_type = cur_stmt_root->type_;
