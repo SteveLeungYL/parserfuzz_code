@@ -54,7 +54,7 @@ u8 GramCovMap::has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
           if (unlikely(is_debug)) {
             vector<u8> byte = get_cur_new_byte(cur, vir);
             for (const u8 &cur_byte : byte) {
-              //              this->gram_log_map_id(i, cur_byte);
+              this->gram_log_map_id(i, cur_byte);
             }
           }
         } else if (unlikely(ret != 2))

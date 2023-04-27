@@ -136,8 +136,8 @@ public:
   }
 
   u8 has_new_grammar_bits(bool is_debug = false) {
-    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
-    return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map);
+//    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
+    return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug);
   }
   u8 has_new_grammar_bits(u8 *, u8 *, bool is_debug = false);
 
@@ -204,22 +204,22 @@ private:
     return new_byte_v;
   }
 
-  //  inline void gram_log_map_id (u32 i, u8 byte) {
-  //    fstream gram_id_out;
-  //    i = (MAP_SIZE >> 3) - i - 1 ;
-  //    u32 actual_idx = i * 8 + byte;
-  //
-  //    if (!filesystem::exists("./gram_cov.txt")) {
-  //      gram_id_out.open("./gram_cov.txt", std::fstream::out |
-  //      std::fstream::trunc);
-  //    } else {
-  //      gram_id_out.open("./gram_cov.txt", std::fstream::out |
-  //      std::fstream::app);
-  //    }
-  //    gram_id_out << actual_idx << endl;
-  //    gram_id_out.flush();
-  //    gram_id_out.close();
-  //  }
+  inline void gram_log_map_id (u32 i, u8 byte) {
+    fstream gram_id_out;
+    i = (MAP_SIZE >> 3) - i - 1 ;
+    u32 actual_idx = i * 8 + byte;
+
+    if (!filesystem::exists("./gram_cov.txt")) {
+      gram_id_out.open("./gram_cov.txt", std::fstream::out |
+      std::fstream::trunc);
+    } else {
+      gram_id_out.open("./gram_cov.txt", std::fstream::out |
+      std::fstream::app);
+    }
+    gram_id_out << actual_idx << endl;
+    gram_id_out.flush();
+    gram_id_out.close();
+  }
 };
 
 class IROperator {
