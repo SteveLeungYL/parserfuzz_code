@@ -6,7 +6,7 @@
 // default type for non-terminals.
 //
 %token_type {const char*}
-%default_type {void*}
+%default_type {unsigned int}
 
 // An extra argument to the parse function for the parser, which is available
 // to all actions.
@@ -29,173 +29,215 @@
 
 }
 
-input ::= cmdlist . {
-p_cov_map->log_cov_map(24469); 
+input(A) ::= cmdlist(B) . {
+A = 152384; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmdlist ::= cmdlist ecmd . {
-p_cov_map->log_cov_map(87152); 
+cmdlist(A) ::= cmdlist(B) ecmd(C) . {
+A = 41834; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmdlist ::= ecmd . {
-p_cov_map->log_cov_map(109555); 
+cmdlist(A) ::= ecmd(B) . {
+A = 24315; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ecmd ::= SEMI . {
-p_cov_map->log_cov_map(247624); 
+ecmd(A) ::= SEMI . {
+A = 50141; 
 }
 
-ecmd ::= cmdx SEMI . {
-p_cov_map->log_cov_map(138040); 
+ecmd(A) ::= cmdx(B) SEMI . {
+A = 122340; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ecmd ::= explain cmdx SEMI .       {
-p_cov_map->log_cov_map(132910); 
+ecmd(A) ::= explain(B) cmdx(C) SEMI .       {
+A = 92821; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-explain ::= EXPLAIN .              {
-p_cov_map->log_cov_map(28108); 
+explain(A) ::= EXPLAIN .              {
+A = 236429; 
 }
 
-explain ::= EXPLAIN QUERY PLAN .   {
-p_cov_map->log_cov_map(206249); 
+explain(A) ::= EXPLAIN QUERY PLAN .   {
+A = 13653; 
 }
 
-cmdx ::= cmd .           {
-p_cov_map->log_cov_map(15075); 
+cmdx(A) ::= cmd(B) .           {
+A = 162792; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= BEGIN transtype trans_opt .  {
-p_cov_map->log_cov_map(231221); 
+cmd(A) ::= BEGIN transtype(B) trans_opt(C) .  {
+A = 246427; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-trans_opt ::= . {
-p_cov_map->log_cov_map(174123); 
+trans_opt(A) ::= . {
+A = 76505; 
 }
 
-trans_opt ::= TRANSACTION . {
-p_cov_map->log_cov_map(95109); 
+trans_opt(A) ::= TRANSACTION . {
+A = 102856; 
 }
 
-trans_opt ::= TRANSACTION nm . {
-p_cov_map->log_cov_map(11577); 
+trans_opt(A) ::= TRANSACTION nm(B) . {
+A = 224282; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type transtype {IR*}
-transtype ::= .             {
-p_cov_map->log_cov_map(11062); 
+%type transtype {unsigned int}
+transtype(A) ::= .             {
+A = 74019; 
 }
 
-transtype ::= DEFERRED .  {
-p_cov_map->log_cov_map(39908); 
+transtype(A) ::= DEFERRED .  {
+A = 96795; 
 }
 
-transtype ::= IMMEDIATE . {
-p_cov_map->log_cov_map(6445); 
+transtype(A) ::= IMMEDIATE . {
+A = 32941; 
 }
 
-transtype ::= EXCLUSIVE . {
-p_cov_map->log_cov_map(101781); 
+transtype(A) ::= EXCLUSIVE . {
+A = 65075; 
 }
 
-cmd ::= COMMIT|END trans_opt .   {
-p_cov_map->log_cov_map(253610); 
+cmd(A) ::= COMMIT|END trans_opt(B) .   {
+A = 6554; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= ROLLBACK trans_opt .     {
-p_cov_map->log_cov_map(68756); 
+cmd(A) ::= ROLLBACK trans_opt(B) .     {
+A = 110912; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-savepoint_opt ::= SAVEPOINT . {
-p_cov_map->log_cov_map(151411); 
+savepoint_opt(A) ::= SAVEPOINT . {
+A = 224971; 
 }
 
-savepoint_opt ::= . {
-p_cov_map->log_cov_map(232889); 
+savepoint_opt(A) ::= . {
+A = 44839; 
 }
 
-cmd ::= SAVEPOINT nm . {
-p_cov_map->log_cov_map(198732); 
+cmd(A) ::= SAVEPOINT nm(B) . {
+A = 230260; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= RELEASE savepoint_opt nm . {
-p_cov_map->log_cov_map(44043); 
+cmd(A) ::= RELEASE savepoint_opt(B) nm(C) . {
+A = 182151; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= ROLLBACK trans_opt TO savepoint_opt nm . {
-p_cov_map->log_cov_map(158412); 
+cmd(A) ::= ROLLBACK trans_opt(B) TO savepoint_opt(C) nm(D) . {
+A = 146098; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-cmd ::= create_table create_table_args . {
-p_cov_map->log_cov_map(153119); 
+cmd(A) ::= create_table(B) create_table_args(C) . {
+A = 172385; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-create_table ::= createkw temp TABLE ifnotexists nm dbnm . {
-p_cov_map->log_cov_map(78875); 
+create_table(A) ::= createkw(B) temp(C) TABLE ifnotexists(D) nm(E) dbnm(F) . {
+A = 98545; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-createkw ::= CREATE .  {
-p_cov_map->log_cov_map(259008); 
+createkw(A) ::= CREATE .  {
+A = 98080; 
 }
 
-%type ifnotexists {IR*}
-ifnotexists ::= .              {
-p_cov_map->log_cov_map(219075); 
+%type ifnotexists {unsigned int}
+ifnotexists(A) ::= .              {
+A = 69604; 
 }
 
-ifnotexists ::= IF NOT EXISTS . {
-p_cov_map->log_cov_map(6787); 
+ifnotexists(A) ::= IF NOT EXISTS . {
+A = 9016; 
 }
 
-%type temp {IR*}
-temp ::= TEMP .  {
-p_cov_map->log_cov_map(136204); 
+%type temp {unsigned int}
+temp(A) ::= TEMP .  {
+A = 95427; 
 }
 
-temp ::= .      {
-p_cov_map->log_cov_map(107921); 
+temp(A) ::= .      {
+A = 43787; 
 }
 
-create_table_args ::= LP columnlist conslist_opt RP table_option_set . {
-p_cov_map->log_cov_map(206051); 
+create_table_args(A) ::= LP columnlist(B) conslist_opt(C) RP table_option_set(D) . {
+A = 45086; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-create_table_args ::= AS select . {
-p_cov_map->log_cov_map(68468); 
+create_table_args(A) ::= AS select(B) . {
+A = 258859; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type table_option_set {IR*}
-%type table_option {IR*}
-table_option_set ::= .    {
-p_cov_map->log_cov_map(49740); 
+%type table_option_set {unsigned int}
+%type table_option {unsigned int}
+table_option_set(A) ::= .    {
+A = 154861; 
 }
 
-table_option_set ::= table_option . {
-p_cov_map->log_cov_map(235576); 
+table_option_set(A) ::= table_option(B) . {
+A = 72624; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-table_option_set ::= table_option_set COMMA table_option . {
-p_cov_map->log_cov_map(63505); 
+table_option_set(A) ::= table_option_set(B) COMMA table_option(C) . {
+A = 237570; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-table_option ::= WITHOUT nm . {
-p_cov_map->log_cov_map(104718); 
+table_option(A) ::= WITHOUT nm(B) . {
+A = 73274; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-table_option ::= nm . {
-p_cov_map->log_cov_map(216838); 
+table_option(A) ::= nm(B) . {
+A = 128864; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-columnlist ::= columnlist COMMA columnname carglist . {
-p_cov_map->log_cov_map(222009); 
+columnlist(A) ::= columnlist(B) COMMA columnname(C) carglist(D) . {
+A = 136430; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-columnlist ::= columnname carglist . {
-p_cov_map->log_cov_map(60185); 
+columnlist(A) ::= columnname(B) carglist(C) . {
+A = 213444; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-columnname ::= nm typetoken . {
-p_cov_map->log_cov_map(197865); 
+columnname(A) ::= nm(B) typetoken(C) . {
+A = 232935; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
 %token ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN BY CASCADE CAST.
@@ -233,1542 +275,2046 @@ p_cov_map->log_cov_map(197865);
 %token_class id  ID|INDEXED.
 %token_class ids  ID|STRING.
 %token_class idj  ID|INDEXED|JOIN_KW.
-%type nm {IR*}
-nm ::= idj . {
-p_cov_map->log_cov_map(48250); 
+%type nm {unsigned int}
+nm(A) ::= idj . {
+A = 63309; 
 }
 
-nm ::= STRING . {
-p_cov_map->log_cov_map(244807); 
+nm(A) ::= STRING . {
+A = 221217; 
 }
 
-%type typetoken {IR*}
-typetoken ::= .   {
-p_cov_map->log_cov_map(204296); 
+%type typetoken {unsigned int}
+typetoken(A) ::= .   {
+A = 230171; 
 }
 
-typetoken ::= typename . {
-p_cov_map->log_cov_map(143314); 
+typetoken(A) ::= typename(B) . {
+A = 95727; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-typetoken ::= typename LP signed RP . {
-p_cov_map->log_cov_map(110341); 
+typetoken(A) ::= typename(B) LP signed(C) RP . {
+A = 60080; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-typetoken ::= typename LP signed COMMA signed RP . {
-p_cov_map->log_cov_map(37197); 
+typetoken(A) ::= typename(B) LP signed(C) COMMA signed(D) RP . {
+A = 110248; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type typename {IR*}
-typename ::= ids . {
-p_cov_map->log_cov_map(102655); 
+%type typename {unsigned int}
+typename(A) ::= ids . {
+A = 252362; 
 }
 
-typename ::= typename ids . {
-p_cov_map->log_cov_map(122327); 
+typename(A) ::= typename(B) ids . {
+A = 104667; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-signed ::= plus_num . {
-p_cov_map->log_cov_map(38614); 
+signed(A) ::= plus_num(B) . {
+A = 128249; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-signed ::= minus_num . {
-p_cov_map->log_cov_map(207905); 
+signed(A) ::= minus_num(B) . {
+A = 190006; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type scanpt {IR*}
-scanpt ::= . {
-p_cov_map->log_cov_map(246873); 
+%type scanpt {unsigned int}
+scanpt(A) ::= . {
+A = 191646; 
 }
 
-scantok ::= . {
-p_cov_map->log_cov_map(207565); 
+scantok(A) ::= . {
+A = 121826; 
 }
 
-carglist ::= carglist ccons . {
-p_cov_map->log_cov_map(234794); 
+carglist(A) ::= carglist(B) ccons(C) . {
+A = 154725; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-carglist ::= . {
-p_cov_map->log_cov_map(169203); 
+carglist(A) ::= . {
+A = 177881; 
 }
 
-ccons ::= CONSTRAINT nm .           {
-p_cov_map->log_cov_map(87764); 
+ccons(A) ::= CONSTRAINT nm(B) .           {
+A = 64888; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= DEFAULT scantok term . {
-p_cov_map->log_cov_map(3429); 
+ccons(A) ::= DEFAULT scantok(B) term(C) . {
+A = 97814; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-ccons ::= DEFAULT LP expr RP . {
-p_cov_map->log_cov_map(151964); 
+ccons(A) ::= DEFAULT LP expr(B) RP . {
+A = 209655; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= DEFAULT PLUS scantok term . {
-p_cov_map->log_cov_map(79626); 
+ccons(A) ::= DEFAULT PLUS scantok(B) term(C) . {
+A = 109349; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-ccons ::= DEFAULT MINUS scantok term . {
-p_cov_map->log_cov_map(186111); 
+ccons(A) ::= DEFAULT MINUS scantok(B) term(C) . {
+A = 58816; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-ccons ::= DEFAULT scantok id .       {
-p_cov_map->log_cov_map(63903); 
+ccons(A) ::= DEFAULT scantok(B) id .       {
+A = 118162; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= NULL onconf . {
-p_cov_map->log_cov_map(96609); 
+ccons(A) ::= NULL onconf(B) . {
+A = 126180; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= NOT NULL onconf .    {
-p_cov_map->log_cov_map(53311); 
+ccons(A) ::= NOT NULL onconf(B) .    {
+A = 122865; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= PRIMARY KEY sortorder onconf autoinc . {
-p_cov_map->log_cov_map(11600); 
+ccons(A) ::= PRIMARY KEY sortorder(B) onconf(C) autoinc(D) . {
+A = 144391; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-ccons ::= UNIQUE onconf .      {
-p_cov_map->log_cov_map(228633); 
+ccons(A) ::= UNIQUE onconf(B) .      {
+A = 204475; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= CHECK LP expr RP .  {
-p_cov_map->log_cov_map(90075); 
+ccons(A) ::= CHECK LP expr(B) RP .  {
+A = 133796; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= REFERENCES nm eidlist_opt refargs . {
-p_cov_map->log_cov_map(182978); 
+ccons(A) ::= REFERENCES nm(B) eidlist_opt(C) refargs(D) . {
+A = 16664; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-ccons ::= defer_subclause .    {
-p_cov_map->log_cov_map(5881); 
+ccons(A) ::= defer_subclause(B) .    {
+A = 175086; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= COLLATE ids .        {
-p_cov_map->log_cov_map(39104); 
+ccons(A) ::= COLLATE ids .        {
+A = 209038; 
 }
 
-ccons ::= GENERATED ALWAYS AS generated . {
-p_cov_map->log_cov_map(219000); 
+ccons(A) ::= GENERATED ALWAYS AS generated(B) . {
+A = 25592; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-ccons ::= AS generated . {
-p_cov_map->log_cov_map(113763); 
+ccons(A) ::= AS generated(B) . {
+A = 107243; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-generated ::= LP expr RP .          {
-p_cov_map->log_cov_map(162691); 
+generated(A) ::= LP expr(B) RP .          {
+A = 160238; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-generated ::= LP expr RP ID . {
-p_cov_map->log_cov_map(101052); 
+generated(A) ::= LP expr(B) RP ID . {
+A = 71811; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type autoinc {IR*}
-autoinc ::= .          {
-p_cov_map->log_cov_map(6904); 
+%type autoinc {unsigned int}
+autoinc(A) ::= .          {
+A = 136399; 
 }
 
-autoinc ::= AUTOINCR .  {
-p_cov_map->log_cov_map(77541); 
+autoinc(A) ::= AUTOINCR .  {
+A = 19399; 
 }
 
-%type refargs {IR*}
-refargs ::= .                  {
-p_cov_map->log_cov_map(19247); 
+%type refargs {unsigned int}
+refargs(A) ::= .                  {
+A = 243258; 
 }
 
-refargs ::= refargs refarg . {
-p_cov_map->log_cov_map(251425); 
+refargs(A) ::= refargs(B) refarg(C) . {
+A = 96397; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type refarg {IR*}
-refarg ::= MATCH nm .              {
-p_cov_map->log_cov_map(99145); 
+%type refarg {unsigned int}
+refarg(A) ::= MATCH nm(B) .              {
+A = 232320; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-refarg ::= ON INSERT refact .      {
-p_cov_map->log_cov_map(28175); 
+refarg(A) ::= ON INSERT refact(B) .      {
+A = 51290; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-refarg ::= ON DELETE refact .   {
-p_cov_map->log_cov_map(74159); 
+refarg(A) ::= ON DELETE refact(B) .   {
+A = 76044; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-refarg ::= ON UPDATE refact .   {
-p_cov_map->log_cov_map(118316); 
+refarg(A) ::= ON UPDATE refact(B) .   {
+A = 38418; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type refact {IR*}
-refact ::= SET NULL .              {
-p_cov_map->log_cov_map(186063); 
+%type refact {unsigned int}
+refact(A) ::= SET NULL .              {
+A = 92655; 
 }
 
-refact ::= SET DEFAULT .           {
-p_cov_map->log_cov_map(258250); 
+refact(A) ::= SET DEFAULT .           {
+A = 188839; 
 }
 
-refact ::= CASCADE .               {
-p_cov_map->log_cov_map(142666); 
+refact(A) ::= CASCADE .               {
+A = 117481; 
 }
 
-refact ::= RESTRICT .              {
-p_cov_map->log_cov_map(64248); 
+refact(A) ::= RESTRICT .              {
+A = 126127; 
 }
 
-refact ::= NO ACTION .             {
-p_cov_map->log_cov_map(79461); 
+refact(A) ::= NO ACTION .             {
+A = 172623; 
 }
 
-%type defer_subclause {IR*}
-defer_subclause ::= NOT DEFERRABLE init_deferred_pred_opt .     {
-p_cov_map->log_cov_map(39098); 
+%type defer_subclause {unsigned int}
+defer_subclause(A) ::= NOT DEFERRABLE init_deferred_pred_opt(B) .     {
+A = 24095; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-defer_subclause ::= DEFERRABLE init_deferred_pred_opt .      {
-p_cov_map->log_cov_map(40396); 
+defer_subclause(A) ::= DEFERRABLE init_deferred_pred_opt(B) .      {
+A = 34608; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type init_deferred_pred_opt {IR*}
-init_deferred_pred_opt ::= .                       {
-p_cov_map->log_cov_map(159989); 
+%type init_deferred_pred_opt {unsigned int}
+init_deferred_pred_opt(A) ::= .                       {
+A = 114590; 
 }
 
-init_deferred_pred_opt ::= INITIALLY DEFERRED .     {
-p_cov_map->log_cov_map(169609); 
+init_deferred_pred_opt(A) ::= INITIALLY DEFERRED .     {
+A = 222178; 
 }
 
-init_deferred_pred_opt ::= INITIALLY IMMEDIATE .    {
-p_cov_map->log_cov_map(70874); 
+init_deferred_pred_opt(A) ::= INITIALLY IMMEDIATE .    {
+A = 101889; 
 }
 
-conslist_opt ::= .                         {
-p_cov_map->log_cov_map(124608); 
+conslist_opt(A) ::= .                         {
+A = 163171; 
 }
 
-conslist_opt ::= COMMA conslist . {
-p_cov_map->log_cov_map(231379); 
+conslist_opt(A) ::= COMMA conslist(B) . {
+A = 213268; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-conslist ::= conslist tconscomma tcons . {
-p_cov_map->log_cov_map(175537); 
+conslist(A) ::= conslist(B) tconscomma(C) tcons(D) . {
+A = 31818; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-conslist ::= tcons . {
-p_cov_map->log_cov_map(48587); 
+conslist(A) ::= tcons(B) . {
+A = 261662; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-tconscomma ::= COMMA .            {
-p_cov_map->log_cov_map(64419); 
+tconscomma(A) ::= COMMA .            {
+A = 226892; 
 }
 
-tconscomma ::= . {
-p_cov_map->log_cov_map(129939); 
+tconscomma(A) ::= . {
+A = 245348; 
 }
 
-tcons ::= CONSTRAINT nm .      {
-p_cov_map->log_cov_map(137110); 
+tcons(A) ::= CONSTRAINT nm(B) .      {
+A = 156206; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf . {
-p_cov_map->log_cov_map(257006); 
+tcons(A) ::= PRIMARY KEY LP sortlist(B) autoinc(C) RP onconf(D) . {
+A = 91472; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-tcons ::= UNIQUE LP sortlist RP onconf . {
-p_cov_map->log_cov_map(66198); 
+tcons(A) ::= UNIQUE LP sortlist(B) RP onconf(C) . {
+A = 113067; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-tcons ::= CHECK LP expr RP onconf . {
-p_cov_map->log_cov_map(18550); 
+tcons(A) ::= CHECK LP expr(B) RP onconf(C) . {
+A = 199800; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt . {
-p_cov_map->log_cov_map(210957); 
+tcons(A) ::= FOREIGN KEY LP eidlist(B) RP REFERENCES nm(C) eidlist_opt(D) refargs(E) defer_subclause_opt(F) . {
+A = 68323; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-%type defer_subclause_opt {IR*}
-defer_subclause_opt ::= .                    {
-p_cov_map->log_cov_map(220932); 
+%type defer_subclause_opt {unsigned int}
+defer_subclause_opt(A) ::= .                    {
+A = 245340; 
 }
 
-defer_subclause_opt ::= defer_subclause . {
-p_cov_map->log_cov_map(254843); 
+defer_subclause_opt(A) ::= defer_subclause(B) . {
+A = 143016; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type onconf {IR*}
-%type orconf {IR*}
-%type resolvetype {IR*}
-onconf ::= .                              {
-p_cov_map->log_cov_map(157840); 
+%type onconf {unsigned int}
+%type orconf {unsigned int}
+%type resolvetype {unsigned int}
+onconf(A) ::= .                              {
+A = 122944; 
 }
 
-onconf ::= ON CONFLICT resolvetype .    {
-p_cov_map->log_cov_map(230574); 
+onconf(A) ::= ON CONFLICT resolvetype(B) .    {
+A = 205723; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-orconf ::= .                              {
-p_cov_map->log_cov_map(230867); 
+orconf(A) ::= .                              {
+A = 221522; 
 }
 
-orconf ::= OR resolvetype .             {
-p_cov_map->log_cov_map(88296); 
+orconf(A) ::= OR resolvetype(B) .             {
+A = 171108; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-resolvetype ::= raisetype . {
-p_cov_map->log_cov_map(232219); 
+resolvetype(A) ::= raisetype(B) . {
+A = 209959; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-resolvetype ::= IGNORE .                   {
-p_cov_map->log_cov_map(75731); 
+resolvetype(A) ::= IGNORE .                   {
+A = 105320; 
 }
 
-resolvetype ::= REPLACE .                  {
-p_cov_map->log_cov_map(132514); 
+resolvetype(A) ::= REPLACE .                  {
+A = 86634; 
 }
 
-cmd ::= DROP TABLE ifexists fullname . {
-p_cov_map->log_cov_map(99406); 
+cmd(A) ::= DROP TABLE ifexists(B) fullname(C) . {
+A = 118821; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type ifexists {IR*}
-ifexists ::= IF EXISTS .   {
-p_cov_map->log_cov_map(242499); 
+%type ifexists {unsigned int}
+ifexists(A) ::= IF EXISTS .   {
+A = 10189; 
 }
 
-ifexists ::= .            {
-p_cov_map->log_cov_map(210631); 
+ifexists(A) ::= .            {
+A = 74057; 
 }
 
-cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select . {
-p_cov_map->log_cov_map(183360); 
+cmd(A) ::= createkw(B) temp(C) VIEW ifnotexists(D) nm(E) dbnm(F) eidlist_opt(G) AS select(H) . {
+A = 120091; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
 }
 
-cmd ::= DROP VIEW ifexists fullname . {
-p_cov_map->log_cov_map(147258); 
+cmd(A) ::= DROP VIEW ifexists(B) fullname(C) . {
+A = 42096; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= select .  {
-p_cov_map->log_cov_map(100010); 
+cmd(A) ::= select(B) .  {
+A = 218071; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type select {IR*}
-%type selectnowith {IR*}
-%type oneselect {IR*}
-select ::= WITH wqlist selectnowith . {
-p_cov_map->log_cov_map(251393); 
+%type select {unsigned int}
+%type selectnowith {unsigned int}
+%type oneselect {unsigned int}
+select(A) ::= WITH wqlist(B) selectnowith(C) . {
+A = 21975; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-select ::= WITH RECURSIVE wqlist selectnowith . {
-p_cov_map->log_cov_map(175055); 
+select(A) ::= WITH RECURSIVE wqlist(B) selectnowith(C) . {
+A = 133911; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-select ::= selectnowith . {
-p_cov_map->log_cov_map(34483); 
+select(A) ::= selectnowith(B) . {
+A = 67255; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-selectnowith ::= oneselect . {
-p_cov_map->log_cov_map(119051); 
+selectnowith(A) ::= oneselect(B) . {
+A = 89324; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-selectnowith ::= selectnowith multiselect_op oneselect .  {
-p_cov_map->log_cov_map(88221); 
+selectnowith(A) ::= selectnowith(B) multiselect_op(C) oneselect(D) .  {
+A = 187131; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type multiselect_op {IR*}
-multiselect_op ::= UNION .             {
-p_cov_map->log_cov_map(236352); 
+%type multiselect_op {unsigned int}
+multiselect_op(A) ::= UNION .             {
+A = 123119; 
 }
 
-multiselect_op ::= UNION ALL .             {
-p_cov_map->log_cov_map(49282); 
+multiselect_op(A) ::= UNION ALL .             {
+A = 46260; 
 }
 
-multiselect_op ::= EXCEPT|INTERSECT .  {
-p_cov_map->log_cov_map(191056); 
+multiselect_op(A) ::= EXCEPT|INTERSECT .  {
+A = 159242; 
 }
 
-oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt orderby_opt limit_opt . {
-p_cov_map->log_cov_map(190603); 
+oneselect(A) ::= SELECT distinct(B) selcollist(C) from(D) where_opt(E) groupby_opt(F) having_opt(G) orderby_opt(H) limit_opt(I) . {
+A = 157778; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
+p_cov_map->log_edge_cov_map(I, A); 
 }
 
-oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt window_clause orderby_opt limit_opt . {
-p_cov_map->log_cov_map(178650); 
+oneselect(A) ::= SELECT distinct(B) selcollist(C) from(D) where_opt(E) groupby_opt(F) having_opt(G) window_clause(H) orderby_opt(I) limit_opt(J) . {
+A = 15585; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
+p_cov_map->log_edge_cov_map(I, A); 
+p_cov_map->log_edge_cov_map(J, A); 
 }
 
-oneselect ::= values . {
-p_cov_map->log_cov_map(54198); 
+oneselect(A) ::= values(B) . {
+A = 5878; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type values {IR*}
-values ::= VALUES LP nexprlist RP . {
-p_cov_map->log_cov_map(149564); 
+%type values {unsigned int}
+values(A) ::= VALUES LP nexprlist(B) RP . {
+A = 184302; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-values ::= values COMMA LP nexprlist RP . {
-p_cov_map->log_cov_map(6288); 
+values(A) ::= values(B) COMMA LP nexprlist(C) RP . {
+A = 244627; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type distinct {IR*}
-distinct ::= DISTINCT .   {
-p_cov_map->log_cov_map(9891); 
+%type distinct {unsigned int}
+distinct(A) ::= DISTINCT .   {
+A = 198677; 
 }
 
-distinct ::= ALL .        {
-p_cov_map->log_cov_map(63772); 
+distinct(A) ::= ALL .        {
+A = 190178; 
 }
 
-distinct ::= .           {
-p_cov_map->log_cov_map(248888); 
+distinct(A) ::= .           {
+A = 22214; 
 }
 
-%type selcollist {IR*}
-%type sclp {IR*}
-sclp ::= selcollist COMMA . {
-p_cov_map->log_cov_map(178391); 
+%type selcollist {unsigned int}
+%type sclp {unsigned int}
+sclp(A) ::= selcollist(B) COMMA . {
+A = 33901; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-sclp ::= .                                {
-p_cov_map->log_cov_map(150276); 
+sclp(A) ::= .                                {
+A = 200738; 
 }
 
-selcollist ::= sclp scanpt expr scanpt as .     {
-p_cov_map->log_cov_map(234228); 
+selcollist(A) ::= sclp(B) scanpt(C) expr(D) scanpt(E) as(F) .     {
+A = 173421; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-selcollist ::= sclp scanpt STAR . {
-p_cov_map->log_cov_map(14473); 
+selcollist(A) ::= sclp(B) scanpt(C) STAR . {
+A = 94351; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-selcollist ::= sclp scanpt nm DOT STAR . {
-p_cov_map->log_cov_map(132646); 
+selcollist(A) ::= sclp(B) scanpt(C) nm(D) DOT STAR . {
+A = 116922; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type as {IR*}
-as ::= AS nm .    {
-p_cov_map->log_cov_map(105591); 
+%type as {unsigned int}
+as(A) ::= AS nm(B) .    {
+A = 22878; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-as ::= ids . {
-p_cov_map->log_cov_map(76027); 
+as(A) ::= ids . {
+A = 102648; 
 }
 
-as ::= .            {
-p_cov_map->log_cov_map(911); 
+as(A) ::= .            {
+A = 109665; 
 }
 
-%type seltablist {IR*}
-%type stl_prefix {IR*}
-%type from {IR*}
-from ::= .                {
-p_cov_map->log_cov_map(165220); 
+%type seltablist {unsigned int}
+%type stl_prefix {unsigned int}
+%type from {unsigned int}
+from(A) ::= .                {
+A = 40616; 
 }
 
-from ::= FROM seltablist . {
-p_cov_map->log_cov_map(61030); 
+from(A) ::= FROM seltablist(B) . {
+A = 241809; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-stl_prefix ::= seltablist joinop .    {
-p_cov_map->log_cov_map(209050); 
+stl_prefix(A) ::= seltablist(B) joinop(C) .    {
+A = 214401; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-stl_prefix ::= .                           {
-p_cov_map->log_cov_map(208855); 
+stl_prefix(A) ::= .                           {
+A = 159544; 
 }
 
-seltablist ::= stl_prefix nm dbnm as on_using . {
-p_cov_map->log_cov_map(207136); 
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) on_using(F) . {
+A = 57255; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-seltablist ::= stl_prefix nm dbnm as indexed_by on_using . {
-p_cov_map->log_cov_map(1945); 
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) as(E) indexed_by(F) on_using(G) . {
+A = 69793; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
 }
 
-seltablist ::= stl_prefix nm dbnm LP exprlist RP as on_using . {
-p_cov_map->log_cov_map(133552); 
+seltablist(A) ::= stl_prefix(B) nm(C) dbnm(D) LP exprlist(E) RP as(F) on_using(G) . {
+A = 161325; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
 }
 
-seltablist ::= stl_prefix LP select RP as on_using . {
-p_cov_map->log_cov_map(152263); 
+seltablist(A) ::= stl_prefix(B) LP select(C) RP as(D) on_using(E) . {
+A = 112207; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-seltablist ::= stl_prefix LP seltablist RP as on_using . {
-p_cov_map->log_cov_map(199813); 
+seltablist(A) ::= stl_prefix(B) LP seltablist(C) RP as(D) on_using(E) . {
+A = 61432; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-%type dbnm {IR*}
-dbnm ::= .          {
-p_cov_map->log_cov_map(89547); 
+%type dbnm {unsigned int}
+dbnm(A) ::= .          {
+A = 136676; 
 }
 
-dbnm ::= DOT nm . {
-p_cov_map->log_cov_map(167189); 
+dbnm(A) ::= DOT nm(B) . {
+A = 196651; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type fullname {IR*}
-fullname ::= nm .  {
-p_cov_map->log_cov_map(150842); 
+%type fullname {unsigned int}
+fullname(A) ::= nm(B) .  {
+A = 186442; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-fullname ::= nm DOT nm . {
-p_cov_map->log_cov_map(174402); 
+fullname(A) ::= nm(B) DOT nm(C) . {
+A = 55400; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type xfullname {IR*}
-xfullname ::= nm .  {
-p_cov_map->log_cov_map(178627); 
+%type xfullname {unsigned int}
+xfullname(A) ::= nm(B) .  {
+A = 22033; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-xfullname ::= nm DOT nm .  {
-p_cov_map->log_cov_map(258354); 
+xfullname(A) ::= nm(B) DOT nm(C) .  {
+A = 24388; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-xfullname ::= nm DOT nm AS nm .  {
-p_cov_map->log_cov_map(184486); 
+xfullname(A) ::= nm(B) DOT nm(C) AS nm(D) .  {
+A = 92155; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-xfullname ::= nm AS nm . {
-p_cov_map->log_cov_map(184408); 
+xfullname(A) ::= nm(B) AS nm(C) . {
+A = 108728; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type joinop {IR*}
-joinop ::= COMMA|JOIN .              {
-p_cov_map->log_cov_map(11779); 
+%type joinop {unsigned int}
+joinop(A) ::= COMMA|JOIN .              {
+A = 233370; 
 }
 
-joinop ::= JOIN_KW JOIN . {
-p_cov_map->log_cov_map(167693); 
+joinop(A) ::= JOIN_KW JOIN . {
+A = 150993; 
 }
 
-joinop ::= JOIN_KW nm JOIN . {
-p_cov_map->log_cov_map(19381); 
+joinop(A) ::= JOIN_KW nm(B) JOIN . {
+A = 159587; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-joinop ::= JOIN_KW nm nm JOIN . {
-p_cov_map->log_cov_map(107894); 
+joinop(A) ::= JOIN_KW nm(B) nm(C) JOIN . {
+A = 195427; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type on_using {IR*}
-on_using ::= ON expr .            {
-p_cov_map->log_cov_map(147038); 
+%type on_using {unsigned int}
+on_using(A) ::= ON expr(B) .            {
+A = 51771; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-on_using ::= USING LP idlist RP . {
-p_cov_map->log_cov_map(55244); 
+on_using(A) ::= USING LP idlist(B) RP . {
+A = 105090; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-on_using ::= .                  [OR]{
-p_cov_map->log_cov_map(230359); 
+on_using(A) ::= .                  [OR]{
+A = 238125; 
 }
 
-%type indexed_opt {IR*}
-%type indexed_by  {IR*}
-indexed_opt ::= .                 {
-p_cov_map->log_cov_map(220557); 
+%type indexed_opt {unsigned int}
+%type indexed_by  {unsigned int}
+indexed_opt(A) ::= .                 {
+A = 124699; 
 }
 
-indexed_opt ::= indexed_by . {
-p_cov_map->log_cov_map(81471); 
+indexed_opt(A) ::= indexed_by(B) . {
+A = 239927; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-indexed_by ::= INDEXED BY nm . {
-p_cov_map->log_cov_map(260882); 
+indexed_by(A) ::= INDEXED BY nm(B) . {
+A = 184350; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-indexed_by ::= NOT INDEXED .      {
-p_cov_map->log_cov_map(97657); 
+indexed_by(A) ::= NOT INDEXED .      {
+A = 25550; 
 }
 
-%type orderby_opt {IR*}
-%type sortlist {IR*}
-orderby_opt ::= .                          {
-p_cov_map->log_cov_map(257305); 
+%type orderby_opt {unsigned int}
+%type sortlist {unsigned int}
+orderby_opt(A) ::= .                          {
+A = 217403; 
 }
 
-orderby_opt ::= ORDER BY sortlist .      {
-p_cov_map->log_cov_map(251454); 
+orderby_opt(A) ::= ORDER BY sortlist(B) .      {
+A = 235333; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-sortlist ::= sortlist COMMA expr sortorder nulls . {
-p_cov_map->log_cov_map(235807); 
+sortlist(A) ::= sortlist(B) COMMA expr(C) sortorder(D) nulls(E) . {
+A = 113438; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-sortlist ::= expr sortorder nulls . {
-p_cov_map->log_cov_map(207976); 
+sortlist(A) ::= expr(B) sortorder(C) nulls(D) . {
+A = 257064; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type sortorder {IR*}
-sortorder ::= ASC .           {
-p_cov_map->log_cov_map(238798); 
+%type sortorder {unsigned int}
+sortorder(A) ::= ASC .           {
+A = 67340; 
 }
 
-sortorder ::= DESC .          {
-p_cov_map->log_cov_map(190060); 
+sortorder(A) ::= DESC .          {
+A = 47254; 
 }
 
-sortorder ::= .              {
-p_cov_map->log_cov_map(25335); 
+sortorder(A) ::= .              {
+A = 12128; 
 }
 
-%type nulls {IR*}
-nulls ::= NULLS FIRST .       {
-p_cov_map->log_cov_map(174243); 
+%type nulls {unsigned int}
+nulls(A) ::= NULLS FIRST .       {
+A = 107139; 
 }
 
-nulls ::= NULLS LAST .        {
-p_cov_map->log_cov_map(77562); 
+nulls(A) ::= NULLS LAST .        {
+A = 237979; 
 }
 
-nulls ::= .                  {
-p_cov_map->log_cov_map(126822); 
+nulls(A) ::= .                  {
+A = 41892; 
 }
 
-%type groupby_opt {IR*}
-groupby_opt ::= .                      {
-p_cov_map->log_cov_map(22430); 
+%type groupby_opt {unsigned int}
+groupby_opt(A) ::= .                      {
+A = 203238; 
 }
 
-groupby_opt ::= GROUP BY nexprlist . {
-p_cov_map->log_cov_map(219409); 
+groupby_opt(A) ::= GROUP BY nexprlist(B) . {
+A = 85685; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type having_opt {IR*}
-having_opt ::= .                {
-p_cov_map->log_cov_map(145496); 
+%type having_opt {unsigned int}
+having_opt(A) ::= .                {
+A = 64006; 
 }
 
-having_opt ::= HAVING expr .  {
-p_cov_map->log_cov_map(150437); 
+having_opt(A) ::= HAVING expr(B) .  {
+A = 183486; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type limit_opt {IR*}
-limit_opt ::= .       {
-p_cov_map->log_cov_map(239462); 
+%type limit_opt {unsigned int}
+limit_opt(A) ::= .       {
+A = 133436; 
 }
 
-limit_opt ::= LIMIT expr . {
-p_cov_map->log_cov_map(130335); 
+limit_opt(A) ::= LIMIT expr(B) . {
+A = 243800; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-limit_opt ::= LIMIT expr OFFSET expr . {
-p_cov_map->log_cov_map(190471); 
+limit_opt(A) ::= LIMIT expr(B) OFFSET expr(C) . {
+A = 175725; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-limit_opt ::= LIMIT expr COMMA expr . {
-p_cov_map->log_cov_map(237994); 
+limit_opt(A) ::= LIMIT expr(B) COMMA expr(C) . {
+A = 259116; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret orderby_opt limit_opt . {
-p_cov_map->log_cov_map(221286); 
+cmd(A) ::= with(B) DELETE FROM xfullname(C) indexed_opt(D) where_opt_ret(E) orderby_opt(F) limit_opt(G) . {
+A = 75210; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
 }
 
-%type where_opt {IR*}
-%type where_opt_ret {IR*}
-where_opt ::= .                    {
-p_cov_map->log_cov_map(41044); 
+%type where_opt {unsigned int}
+%type where_opt_ret {unsigned int}
+where_opt(A) ::= .                    {
+A = 77368; 
 }
 
-where_opt ::= WHERE expr .       {
-p_cov_map->log_cov_map(89712); 
+where_opt(A) ::= WHERE expr(B) .       {
+A = 252853; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-where_opt_ret ::= .                                      {
-p_cov_map->log_cov_map(13082); 
+where_opt_ret(A) ::= .                                      {
+A = 157126; 
 }
 
-where_opt_ret ::= WHERE expr .                         {
-p_cov_map->log_cov_map(50723); 
+where_opt_ret(A) ::= WHERE expr(B) .                         {
+A = 98890; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-where_opt_ret ::= RETURNING selcollist .               {
-p_cov_map->log_cov_map(127131); 
+where_opt_ret(A) ::= RETURNING selcollist(B) .               {
+A = 182283; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-where_opt_ret ::= WHERE expr RETURNING selcollist . {
-p_cov_map->log_cov_map(142237); 
+where_opt_ret(A) ::= WHERE expr(B) RETURNING selcollist(C) . {
+A = 20997; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret orderby_opt limit_opt .  {
-p_cov_map->log_cov_map(21927); 
+cmd(A) ::= with(B) UPDATE orconf(C) xfullname(D) indexed_opt(E) SET setlist(F) from(G) where_opt_ret(H) orderby_opt(I) limit_opt(J) .  {
+A = 62204; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
+p_cov_map->log_edge_cov_map(I, A); 
+p_cov_map->log_edge_cov_map(J, A); 
 }
 
-%type setlist {IR*}
-setlist ::= setlist COMMA nm EQ expr . {
-p_cov_map->log_cov_map(55711); 
+%type setlist {unsigned int}
+setlist(A) ::= setlist(B) COMMA nm(C) EQ expr(D) . {
+A = 56765; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-setlist ::= setlist COMMA LP idlist RP EQ expr . {
-p_cov_map->log_cov_map(216508); 
+setlist(A) ::= setlist(B) COMMA LP idlist(C) RP EQ expr(D) . {
+A = 68528; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-setlist ::= nm EQ expr . {
-p_cov_map->log_cov_map(251737); 
+setlist(A) ::= nm(B) EQ expr(C) . {
+A = 54537; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-setlist ::= LP idlist RP EQ expr . {
-p_cov_map->log_cov_map(87600); 
+setlist(A) ::= LP idlist(B) RP EQ expr(C) . {
+A = 253104; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert . {
-p_cov_map->log_cov_map(59052); 
+cmd(A) ::= with(B) insert_cmd(C) INTO xfullname(D) idlist_opt(E) select(F) upsert(G) . {
+A = 177480; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
 }
 
-cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning . {
-p_cov_map->log_cov_map(70137); 
+cmd(A) ::= with(B) insert_cmd(C) INTO xfullname(D) idlist_opt(E) DEFAULT VALUES returning(F) . {
+A = 113679; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-%type upsert {IR*}
-upsert ::= . {
-p_cov_map->log_cov_map(24405); 
+%type upsert {unsigned int}
+upsert(A) ::= . {
+A = 191748; 
 }
 
-upsert ::= RETURNING selcollist .  {
-p_cov_map->log_cov_map(98663); 
+upsert(A) ::= RETURNING selcollist(B) .  {
+A = 219868; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-upsert ::= ON CONFLICT LP sortlist RP where_opt DO UPDATE SET setlist where_opt upsert . {
-p_cov_map->log_cov_map(67849); 
+upsert(A) ::= ON CONFLICT LP sortlist(B) RP where_opt(C) DO UPDATE SET setlist(D) where_opt(E) upsert(F) . {
+A = 9251; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-upsert ::= ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert . {
-p_cov_map->log_cov_map(242035); 
+upsert(A) ::= ON CONFLICT LP sortlist(B) RP where_opt(C) DO NOTHING upsert(D) . {
+A = 261587; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-upsert ::= ON CONFLICT DO NOTHING returning . {
-p_cov_map->log_cov_map(215497); 
+upsert(A) ::= ON CONFLICT DO NOTHING returning(B) . {
+A = 157412; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-upsert ::= ON CONFLICT DO UPDATE SET setlist where_opt returning . {
-p_cov_map->log_cov_map(191732); 
+upsert(A) ::= ON CONFLICT DO UPDATE SET setlist(B) where_opt(C) returning(D) . {
+A = 227046; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-returning ::= RETURNING selcollist .  {
-p_cov_map->log_cov_map(121006); 
+returning(A) ::= RETURNING selcollist(B) .  {
+A = 111399; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-returning ::= . {
-p_cov_map->log_cov_map(136921); 
+returning(A) ::= . {
+A = 171292; 
 }
 
-%type insert_cmd {IR*}
-insert_cmd ::= INSERT orconf .   {
-p_cov_map->log_cov_map(182543); 
+%type insert_cmd {unsigned int}
+insert_cmd(A) ::= INSERT orconf(B) .   {
+A = 174905; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-insert_cmd ::= REPLACE .            {
-p_cov_map->log_cov_map(219123); 
+insert_cmd(A) ::= REPLACE .            {
+A = 153992; 
 }
 
-%type idlist_opt {IR*}
-%type idlist {IR*}
-idlist_opt ::= .                       {
-p_cov_map->log_cov_map(239283); 
+%type idlist_opt {unsigned int}
+%type idlist {unsigned int}
+idlist_opt(A) ::= .                       {
+A = 120136; 
 }
 
-idlist_opt ::= LP idlist RP .    {
-p_cov_map->log_cov_map(147242); 
+idlist_opt(A) ::= LP idlist(B) RP .    {
+A = 141124; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-idlist ::= idlist COMMA nm . {
-p_cov_map->log_cov_map(89833); 
+idlist(A) ::= idlist(B) COMMA nm(C) . {
+A = 206465; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-idlist ::= nm . {
-p_cov_map->log_cov_map(156877); 
+idlist(A) ::= nm(B) . {
+A = 103533; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type expr {IR*}
-%type term {IR*}
-expr ::= term . {
-p_cov_map->log_cov_map(150039); 
+%type expr {unsigned int}
+%type term {unsigned int}
+expr(A) ::= term(B) . {
+A = 202920; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= LP expr RP . {
-p_cov_map->log_cov_map(55447); 
+expr(A) ::= LP expr(B) RP . {
+A = 149434; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= idj .          {
-p_cov_map->log_cov_map(65572); 
+expr(A) ::= idj .          {
+A = 32662; 
 }
 
-expr ::= nm DOT nm . {
-p_cov_map->log_cov_map(117877); 
+expr(A) ::= nm(B) DOT nm(C) . {
+A = 200810; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= nm DOT nm DOT nm . {
-p_cov_map->log_cov_map(211265); 
+expr(A) ::= nm(B) DOT nm(C) DOT nm(D) . {
+A = 75495; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-term ::= NULL|FLOAT|BLOB . {
-p_cov_map->log_cov_map(205467); 
+term(A) ::= NULL|FLOAT|BLOB . {
+A = 175001; 
 }
 
-term ::= STRING .          {
-p_cov_map->log_cov_map(206590); 
+term(A) ::= STRING .          {
+A = 94864; 
 }
 
-term ::= INTEGER . {
-p_cov_map->log_cov_map(200737); 
+term(A) ::= INTEGER . {
+A = 244234; 
 }
 
-expr ::= VARIABLE .     {
-p_cov_map->log_cov_map(105128); 
+expr(A) ::= VARIABLE .     {
+A = 68125; 
 }
 
-expr ::= expr COLLATE ids . {
-p_cov_map->log_cov_map(147743); 
+expr(A) ::= expr(B) COLLATE ids . {
+A = 193364; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= CAST LP expr AS typetoken RP . {
-p_cov_map->log_cov_map(200222); 
+expr(A) ::= CAST LP expr(B) AS typetoken(C) RP . {
+A = 172582; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= idj LP distinct exprlist RP . {
-p_cov_map->log_cov_map(244306); 
+expr(A) ::= idj LP distinct(B) exprlist(C) RP . {
+A = 27533; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= idj LP STAR RP . {
-p_cov_map->log_cov_map(71312); 
+expr(A) ::= idj LP STAR RP . {
+A = 37740; 
 }
 
-expr ::= idj LP distinct exprlist RP filter_over . {
-p_cov_map->log_cov_map(208667); 
+expr(A) ::= idj LP distinct(B) exprlist(C) RP filter_over(D) . {
+A = 88891; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-expr ::= idj LP STAR RP filter_over . {
-p_cov_map->log_cov_map(191327); 
+expr(A) ::= idj LP STAR RP filter_over(B) . {
+A = 3785; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-term ::= CTIME_KW . {
-p_cov_map->log_cov_map(54085); 
+term(A) ::= CTIME_KW . {
+A = 185061; 
 }
 
-expr ::= LP nexprlist COMMA expr RP . {
-p_cov_map->log_cov_map(142999); 
+expr(A) ::= LP nexprlist(B) COMMA expr(C) RP . {
+A = 169856; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr AND expr .        {
-p_cov_map->log_cov_map(169415); 
+expr(A) ::= expr(B) AND expr(C) .        {
+A = 236727; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr OR expr .     {
-p_cov_map->log_cov_map(158524); 
+expr(A) ::= expr(B) OR expr(C) .     {
+A = 52037; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr LT|GT|GE|LE expr . {
-p_cov_map->log_cov_map(46724); 
+expr(A) ::= expr(B) LT|GT|GE|LE expr(C) . {
+A = 32453; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr EQ|NE expr .  {
-p_cov_map->log_cov_map(182285); 
+expr(A) ::= expr(B) EQ|NE expr(C) .  {
+A = 11823; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr BITAND|BITOR|LSHIFT|RSHIFT expr . {
-p_cov_map->log_cov_map(96507); 
+expr(A) ::= expr(B) BITAND|BITOR|LSHIFT|RSHIFT expr(C) . {
+A = 186791; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr PLUS|MINUS expr . {
-p_cov_map->log_cov_map(117092); 
+expr(A) ::= expr(B) PLUS|MINUS expr(C) . {
+A = 212702; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr STAR|SLASH|REM expr . {
-p_cov_map->log_cov_map(248736); 
+expr(A) ::= expr(B) STAR|SLASH|REM expr(C) . {
+A = 146558; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr CONCAT expr . {
-p_cov_map->log_cov_map(187598); 
+expr(A) ::= expr(B) CONCAT expr(C) . {
+A = 41986; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type likeop {IR*}
-likeop ::= LIKE_KW|MATCH . {
-p_cov_map->log_cov_map(206846); 
+%type likeop {unsigned int}
+likeop(A) ::= LIKE_KW|MATCH . {
+A = 245473; 
 }
 
-likeop ::= NOT LIKE_KW|MATCH . {
-p_cov_map->log_cov_map(131129); 
+likeop(A) ::= NOT LIKE_KW|MATCH . {
+A = 188033; 
 }
 
-expr ::= expr likeop expr .   [LIKE_KW] {
-p_cov_map->log_cov_map(138345); 
+expr(A) ::= expr(B) likeop(C) expr(D) .   [LIKE_KW] {
+A = 135739; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-expr ::= expr likeop expr ESCAPE expr .   [LIKE_KW] {
-p_cov_map->log_cov_map(117424); 
+expr(A) ::= expr(B) likeop(C) expr(D) ESCAPE expr(E) .   [LIKE_KW] {
+A = 169201; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-expr ::= expr ISNULL|NOTNULL .   {
-p_cov_map->log_cov_map(109219); 
+expr(A) ::= expr(B) ISNULL|NOTNULL .   {
+A = 258488; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= expr NOT NULL .    {
-p_cov_map->log_cov_map(5389); 
+expr(A) ::= expr(B) NOT NULL .    {
+A = 97159; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= expr IS expr .     {
-p_cov_map->log_cov_map(95614); 
+expr(A) ::= expr(B) IS expr(C) .     {
+A = 96129; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr IS NOT expr . {
-p_cov_map->log_cov_map(47698); 
+expr(A) ::= expr(B) IS NOT expr(C) . {
+A = 53907; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr IS NOT DISTINCT FROM expr .     {
-p_cov_map->log_cov_map(33210); 
+expr(A) ::= expr(B) IS NOT DISTINCT FROM expr(C) .     {
+A = 73980; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= expr IS DISTINCT FROM expr . {
-p_cov_map->log_cov_map(106322); 
+expr(A) ::= expr(B) IS DISTINCT FROM expr(C) . {
+A = 111696; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-expr ::= NOT expr .  {
-p_cov_map->log_cov_map(16004); 
+expr(A) ::= NOT expr(B) .  {
+A = 152902; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= BITNOT expr . {
-p_cov_map->log_cov_map(110077); 
+expr(A) ::= BITNOT expr(B) . {
+A = 172296; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= PLUS|MINUS expr .  [BITNOT]{
-p_cov_map->log_cov_map(14392); 
+expr(A) ::= PLUS|MINUS expr(B) .  [BITNOT]{
+A = 88167; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= expr PTR expr . {
-p_cov_map->log_cov_map(47110); 
+expr(A) ::= expr(B) PTR expr(C) . {
+A = 61917; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type between_op {IR*}
-between_op ::= BETWEEN .     {
-p_cov_map->log_cov_map(15561); 
+%type between_op {unsigned int}
+between_op(A) ::= BETWEEN .     {
+A = 18639; 
 }
 
-between_op ::= NOT BETWEEN . {
-p_cov_map->log_cov_map(89522); 
+between_op(A) ::= NOT BETWEEN . {
+A = 3434; 
 }
 
-expr ::= expr between_op expr AND expr .  [BETWEEN]{
-p_cov_map->log_cov_map(37779); 
+expr(A) ::= expr(B) between_op(C) expr(D) AND expr(E) .  [BETWEEN]{
+A = 49101; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-in_op ::= IN .      {
-p_cov_map->log_cov_map(51055); 
+in_op(A) ::= IN .      {
+A = 41601; 
 }
 
-in_op ::= NOT IN .  {
-p_cov_map->log_cov_map(198617); 
+in_op(A) ::= NOT IN .  {
+A = 116035; 
 }
 
-expr ::= expr in_op LP exprlist RP .  [IN]{
-p_cov_map->log_cov_map(206101); 
+expr(A) ::= expr(B) in_op(C) LP exprlist(D) RP .  [IN]{
+A = 22282; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-expr ::= LP select RP . {
-p_cov_map->log_cov_map(25782); 
+expr(A) ::= LP select(B) RP . {
+A = 18651; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= expr in_op LP select RP .   [IN]{
-p_cov_map->log_cov_map(203282); 
+expr(A) ::= expr(B) in_op(C) LP select(D) RP .   [IN]{
+A = 114461; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-expr ::= expr in_op nm dbnm paren_exprlist .  [IN]{
-p_cov_map->log_cov_map(208988); 
+expr(A) ::= expr(B) in_op(C) nm(D) dbnm(E) paren_exprlist(F) .  [IN]{
+A = 244820; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-expr ::= EXISTS LP select RP . {
-p_cov_map->log_cov_map(213579); 
+expr(A) ::= EXISTS LP select(B) RP . {
+A = 114789; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-expr ::= CASE case_operand case_exprlist case_else END . {
-p_cov_map->log_cov_map(33072); 
+expr(A) ::= CASE case_operand(B) case_exprlist(C) case_else(D) END . {
+A = 13579; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type case_exprlist {IR*}
-case_exprlist ::= case_exprlist WHEN expr THEN expr . {
-p_cov_map->log_cov_map(64839); 
+%type case_exprlist {unsigned int}
+case_exprlist(A) ::= case_exprlist(B) WHEN expr(C) THEN expr(D) . {
+A = 100757; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-case_exprlist ::= WHEN expr THEN expr . {
-p_cov_map->log_cov_map(8315); 
+case_exprlist(A) ::= WHEN expr(B) THEN expr(C) . {
+A = 32128; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type case_else {IR*}
-case_else ::= ELSE expr .         {
-p_cov_map->log_cov_map(211458); 
+%type case_else {unsigned int}
+case_else(A) ::= ELSE expr(B) .         {
+A = 34256; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-case_else ::= .                     {
-p_cov_map->log_cov_map(162762); 
+case_else(A) ::= .                     {
+A = 158005; 
 }
 
-%type case_operand {IR*}
-case_operand ::= expr .            {
-p_cov_map->log_cov_map(219834); 
+%type case_operand {unsigned int}
+case_operand(A) ::= expr(B) .            {
+A = 204691; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-case_operand ::= .                   {
-p_cov_map->log_cov_map(192178); 
+case_operand(A) ::= .                   {
+A = 125976; 
 }
 
-%type exprlist {IR*}
-%type nexprlist {IR*}
-exprlist ::= nexprlist . {
-p_cov_map->log_cov_map(158626); 
+%type exprlist {unsigned int}
+%type nexprlist {unsigned int}
+exprlist(A) ::= nexprlist(B) . {
+A = 48622; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-exprlist ::= .                            {
-p_cov_map->log_cov_map(106055); 
+exprlist(A) ::= .                            {
+A = 83151; 
 }
 
-nexprlist ::= nexprlist COMMA expr . {
-p_cov_map->log_cov_map(199189); 
+nexprlist(A) ::= nexprlist(B) COMMA expr(C) . {
+A = 153192; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-nexprlist ::= expr . {
-p_cov_map->log_cov_map(17586); 
+nexprlist(A) ::= expr(B) . {
+A = 12762; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type paren_exprlist {IR*}
-paren_exprlist ::= .   {
-p_cov_map->log_cov_map(187654); 
+%type paren_exprlist {unsigned int}
+paren_exprlist(A) ::= .   {
+A = 147138; 
 }
 
-paren_exprlist ::= LP exprlist RP .  {
-p_cov_map->log_cov_map(6263); 
+paren_exprlist(A) ::= LP exprlist(B) RP .  {
+A = 122791; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt . {
-p_cov_map->log_cov_map(259373); 
+cmd(A) ::= createkw(B) uniqueflag(C) INDEX ifnotexists(D) nm(E) dbnm(F) ON nm(G) LP sortlist(H) RP where_opt(I) . {
+A = 236308; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
+p_cov_map->log_edge_cov_map(I, A); 
 }
 
-%type uniqueflag {IR*}
-uniqueflag ::= UNIQUE .  {
-p_cov_map->log_cov_map(88590); 
+%type uniqueflag {unsigned int}
+uniqueflag(A) ::= UNIQUE .  {
+A = 262038; 
 }
 
-uniqueflag ::= .        {
-p_cov_map->log_cov_map(47849); 
+uniqueflag(A) ::= .        {
+A = 91310; 
 }
 
-%type eidlist {IR*}
-%type eidlist_opt {IR*}
-eidlist_opt ::= .                         {
-p_cov_map->log_cov_map(125463); 
+%type eidlist {unsigned int}
+%type eidlist_opt {unsigned int}
+eidlist_opt(A) ::= .                         {
+A = 161023; 
 }
 
-eidlist_opt ::= LP eidlist RP .         {
-p_cov_map->log_cov_map(168516); 
+eidlist_opt(A) ::= LP eidlist(B) RP .         {
+A = 57976; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-eidlist ::= eidlist COMMA nm collate sortorder .  {
-p_cov_map->log_cov_map(91791); 
+eidlist(A) ::= eidlist(B) COMMA nm(C) collate(D) sortorder(E) .  {
+A = 47453; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-eidlist ::= nm collate sortorder . {
-p_cov_map->log_cov_map(108937); 
+eidlist(A) ::= nm(B) collate(C) sortorder(D) . {
+A = 182447; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-%type collate {IR*}
-collate ::= .              {
-p_cov_map->log_cov_map(229116); 
+%type collate {unsigned int}
+collate(A) ::= .              {
+A = 120574; 
 }
 
-collate ::= COLLATE ids .   {
-p_cov_map->log_cov_map(98133); 
+collate(A) ::= COLLATE ids .   {
+A = 4772; 
 }
 
-cmd ::= DROP INDEX ifexists fullname .   {
-p_cov_map->log_cov_map(6019); 
+cmd(A) ::= DROP INDEX ifexists(B) fullname(C) .   {
+A = 17750; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type vinto {IR*}
-cmd ::= VACUUM vinto .                {
-p_cov_map->log_cov_map(184605); 
+%type vinto {unsigned int}
+cmd(A) ::= VACUUM vinto(B) .                {
+A = 230719; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= VACUUM nm vinto .          {
-p_cov_map->log_cov_map(118450); 
+cmd(A) ::= VACUUM nm(B) vinto(C) .          {
+A = 149604; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-vinto ::= INTO expr .              {
-p_cov_map->log_cov_map(203532); 
+vinto(A) ::= INTO expr(B) .              {
+A = 139399; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-vinto ::= .                          {
-p_cov_map->log_cov_map(52182); 
+vinto(A) ::= .                          {
+A = 149940; 
 }
 
-cmd ::= PRAGMA nm dbnm .                {
-p_cov_map->log_cov_map(168336); 
+cmd(A) ::= PRAGMA nm(B) dbnm(C) .                {
+A = 108011; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= PRAGMA nm dbnm EQ nmnum .    {
-p_cov_map->log_cov_map(230305); 
+cmd(A) ::= PRAGMA nm(B) dbnm(C) EQ nmnum(D) .    {
+A = 113916; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-cmd ::= PRAGMA nm dbnm LP nmnum RP . {
-p_cov_map->log_cov_map(5628); 
+cmd(A) ::= PRAGMA nm(B) dbnm(C) LP nmnum(D) RP . {
+A = 230734; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-cmd ::= PRAGMA nm dbnm EQ minus_num . {
-p_cov_map->log_cov_map(22229); 
+cmd(A) ::= PRAGMA nm(B) dbnm(C) EQ minus_num(D) . {
+A = 195373; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-cmd ::= PRAGMA nm dbnm LP minus_num RP . {
-p_cov_map->log_cov_map(181281); 
+cmd(A) ::= PRAGMA nm(B) dbnm(C) LP minus_num(D) RP . {
+A = 197277; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-nmnum ::= plus_num . {
-p_cov_map->log_cov_map(203695); 
+nmnum(A) ::= plus_num(B) . {
+A = 153817; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-nmnum ::= nm . {
-p_cov_map->log_cov_map(34917); 
+nmnum(A) ::= nm(B) . {
+A = 48844; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-nmnum ::= ON . {
-p_cov_map->log_cov_map(183064); 
+nmnum(A) ::= ON . {
+A = 80152; 
 }
 
-nmnum ::= DELETE . {
-p_cov_map->log_cov_map(182480); 
+nmnum(A) ::= DELETE . {
+A = 182193; 
 }
 
-nmnum ::= DEFAULT . {
-p_cov_map->log_cov_map(217191); 
+nmnum(A) ::= DEFAULT . {
+A = 239432; 
 }
 
 %token_class number INTEGER|FLOAT.
-plus_num ::= PLUS number .       {
-p_cov_map->log_cov_map(38337); 
+plus_num(A) ::= PLUS number .       {
+A = 8221; 
 }
 
-plus_num ::= number . {
-p_cov_map->log_cov_map(124391); 
+plus_num(A) ::= number . {
+A = 181475; 
 }
 
-minus_num ::= MINUS number .     {
-p_cov_map->log_cov_map(249856); 
+minus_num(A) ::= MINUS number .     {
+A = 173489; 
 }
 
-cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END . {
-p_cov_map->log_cov_map(203536); 
+cmd(A) ::= createkw(B) trigger_decl(C) BEGIN trigger_cmd_list(D) END . {
+A = 256126; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-trigger_decl ::= temp TRIGGER ifnotexists nm dbnm trigger_time trigger_event ON fullname foreach_clause when_clause . {
-p_cov_map->log_cov_map(203043); 
+trigger_decl(A) ::= temp(B) TRIGGER ifnotexists(C) nm(D) dbnm(E) trigger_time(F) trigger_event(G) ON fullname(H) foreach_clause(I) when_clause(J) . {
+A = 130066; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
+p_cov_map->log_edge_cov_map(I, A); 
+p_cov_map->log_edge_cov_map(J, A); 
 }
 
-%type trigger_time {IR*}
-trigger_time ::= BEFORE|AFTER .  {
-p_cov_map->log_cov_map(209226); 
+%type trigger_time {unsigned int}
+trigger_time(A) ::= BEFORE|AFTER .  {
+A = 4242; 
 }
 
-trigger_time ::= INSTEAD OF .  {
-p_cov_map->log_cov_map(203060); 
+trigger_time(A) ::= INSTEAD OF .  {
+A = 235463; 
 }
 
-trigger_time ::= .            {
-p_cov_map->log_cov_map(163340); 
+trigger_time(A) ::= .            {
+A = 259314; 
 }
 
-%type trigger_event {IR*}
-trigger_event ::= DELETE|INSERT .   {
-p_cov_map->log_cov_map(54301); 
+%type trigger_event {unsigned int}
+trigger_event(A) ::= DELETE|INSERT .   {
+A = 160976; 
 }
 
-trigger_event ::= UPDATE .          {
-p_cov_map->log_cov_map(89337); 
+trigger_event(A) ::= UPDATE .          {
+A = 255380; 
 }
 
-trigger_event ::= UPDATE OF idlist . {
-p_cov_map->log_cov_map(32137); 
+trigger_event(A) ::= UPDATE OF idlist(B) . {
+A = 89064; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-foreach_clause ::= . {
-p_cov_map->log_cov_map(230846); 
+foreach_clause(A) ::= . {
+A = 57798; 
 }
 
-foreach_clause ::= FOR EACH ROW . {
-p_cov_map->log_cov_map(199606); 
+foreach_clause(A) ::= FOR EACH ROW . {
+A = 51035; 
 }
 
-%type when_clause {IR*}
-when_clause ::= .             {
-p_cov_map->log_cov_map(70780); 
+%type when_clause {unsigned int}
+when_clause(A) ::= .             {
+A = 12594; 
 }
 
-when_clause ::= WHEN expr . {
-p_cov_map->log_cov_map(135195); 
+when_clause(A) ::= WHEN expr(B) . {
+A = 52778; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type trigger_cmd_list {IR*}
-trigger_cmd_list ::= trigger_cmd_list trigger_cmd SEMI . {
-p_cov_map->log_cov_map(181073); 
+%type trigger_cmd_list {unsigned int}
+trigger_cmd_list(A) ::= trigger_cmd_list(B) trigger_cmd(C) SEMI . {
+A = 151056; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-trigger_cmd_list ::= trigger_cmd SEMI . {
-p_cov_map->log_cov_map(66830); 
+trigger_cmd_list(A) ::= trigger_cmd(B) SEMI . {
+A = 85669; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type trnm {IR*}
-trnm ::= nm . {
-p_cov_map->log_cov_map(175793); 
+%type trnm {unsigned int}
+trnm(A) ::= nm(B) . {
+A = 162661; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-trnm ::= nm DOT nm . {
-p_cov_map->log_cov_map(86907); 
+trnm(A) ::= nm(B) DOT nm(C) . {
+A = 166725; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-tridxby ::= . {
-p_cov_map->log_cov_map(2235); 
+tridxby(A) ::= . {
+A = 24809; 
 }
 
-tridxby ::= INDEXED BY nm . {
-p_cov_map->log_cov_map(195005); 
+tridxby(A) ::= INDEXED BY nm(B) . {
+A = 205263; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-tridxby ::= NOT INDEXED . {
-p_cov_map->log_cov_map(32476); 
+tridxby(A) ::= NOT INDEXED . {
+A = 199181; 
 }
 
-%type trigger_cmd {IR*}
-trigger_cmd ::= UPDATE orconf trnm tridxby SET setlist from where_opt scanpt .  {
-p_cov_map->log_cov_map(231285); 
+%type trigger_cmd {unsigned int}
+trigger_cmd(A) ::= UPDATE orconf(B) trnm(C) tridxby(D) SET setlist(E) from(F) where_opt(G) scanpt(H) .  {
+A = 88274; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
 }
 
-trigger_cmd ::= scanpt insert_cmd INTO trnm idlist_opt select upsert scanpt . {
-p_cov_map->log_cov_map(155252); 
+trigger_cmd(A) ::= scanpt(B) insert_cmd(C) INTO trnm(D) idlist_opt(E) select(F) upsert(G) scanpt(H) . {
+A = 7100; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
+p_cov_map->log_edge_cov_map(G, A); 
+p_cov_map->log_edge_cov_map(H, A); 
 }
 
-trigger_cmd ::= DELETE FROM trnm tridxby where_opt scanpt . {
-p_cov_map->log_cov_map(116812); 
+trigger_cmd(A) ::= DELETE FROM trnm(B) tridxby(C) where_opt(D) scanpt(E) . {
+A = 161726; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-trigger_cmd ::= scanpt select scanpt . {
-p_cov_map->log_cov_map(94819); 
+trigger_cmd(A) ::= scanpt(B) select(C) scanpt(D) . {
+A = 244286; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-expr ::= RAISE LP IGNORE RP .  {
-p_cov_map->log_cov_map(132055); 
+expr(A) ::= RAISE LP IGNORE RP .  {
+A = 144653; 
 }
 
-expr ::= RAISE LP raisetype COMMA nm RP .  {
-p_cov_map->log_cov_map(248601); 
+expr(A) ::= RAISE LP raisetype(B) COMMA nm(C) RP .  {
+A = 206162; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type raisetype {IR*}
-raisetype ::= ROLLBACK .  {
-p_cov_map->log_cov_map(173085); 
+%type raisetype {unsigned int}
+raisetype(A) ::= ROLLBACK .  {
+A = 61603; 
 }
 
-raisetype ::= ABORT .     {
-p_cov_map->log_cov_map(55323); 
+raisetype(A) ::= ABORT .     {
+A = 132441; 
 }
 
-raisetype ::= FAIL .      {
-p_cov_map->log_cov_map(96272); 
+raisetype(A) ::= FAIL .      {
+A = 175033; 
 }
 
-cmd ::= DROP TRIGGER ifexists fullname . {
-p_cov_map->log_cov_map(207399); 
+cmd(A) ::= DROP TRIGGER ifexists(B) fullname(C) . {
+A = 22929; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= ATTACH database_kw_opt expr AS expr key_opt . {
-p_cov_map->log_cov_map(46062); 
+cmd(A) ::= ATTACH database_kw_opt(B) expr(C) AS expr(D) key_opt(E) . {
+A = 143275; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-cmd ::= DETACH database_kw_opt expr . {
-p_cov_map->log_cov_map(151484); 
+cmd(A) ::= DETACH database_kw_opt(B) expr(C) . {
+A = 181664; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type key_opt {IR*}
-key_opt ::= .                     {
-p_cov_map->log_cov_map(92003); 
+%type key_opt {unsigned int}
+key_opt(A) ::= .                     {
+A = 258666; 
 }
 
-key_opt ::= KEY expr .          {
-p_cov_map->log_cov_map(35035); 
+key_opt(A) ::= KEY expr(B) .          {
+A = 230228; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-database_kw_opt ::= DATABASE . {
-p_cov_map->log_cov_map(151458); 
+database_kw_opt(A) ::= DATABASE . {
+A = 226247; 
 }
 
-database_kw_opt ::= . {
-p_cov_map->log_cov_map(170023); 
+database_kw_opt(A) ::= . {
+A = 168944; 
 }
 
-cmd ::= REINDEX .                {
-p_cov_map->log_cov_map(121845); 
+cmd(A) ::= REINDEX .                {
+A = 215231; 
 }
 
-cmd ::= REINDEX nm dbnm .  {
-p_cov_map->log_cov_map(92301); 
+cmd(A) ::= REINDEX nm(B) dbnm(C) .  {
+A = 103598; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= ANALYZE .                {
-p_cov_map->log_cov_map(157021); 
+cmd(A) ::= ANALYZE .                {
+A = 8843; 
 }
 
-cmd ::= ANALYZE nm dbnm .  {
-p_cov_map->log_cov_map(101116); 
+cmd(A) ::= ANALYZE nm(B) dbnm(C) .  {
+A = 242594; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= ALTER TABLE fullname RENAME TO nm . {
-p_cov_map->log_cov_map(49625); 
+cmd(A) ::= ALTER TABLE fullname(B) RENAME TO nm(C) . {
+A = 43806; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-cmd ::= ALTER TABLE add_column_fullname ADD kwcolumn_opt columnname carglist . {
-p_cov_map->log_cov_map(101683); 
+cmd(A) ::= ALTER TABLE add_column_fullname(B) ADD kwcolumn_opt(C) columnname(D) carglist(E) . {
+A = 62368; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm . {
-p_cov_map->log_cov_map(192384); 
+cmd(A) ::= ALTER TABLE fullname(B) DROP kwcolumn_opt(C) nm(D) . {
+A = 217557; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-add_column_fullname ::= fullname . {
-p_cov_map->log_cov_map(153347); 
+add_column_fullname(A) ::= fullname(B) . {
+A = 184585; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm . {
-p_cov_map->log_cov_map(133643); 
+cmd(A) ::= ALTER TABLE fullname(B) RENAME kwcolumn_opt(C) nm(D) TO nm(E) . {
+A = 174522; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-kwcolumn_opt ::= . {
-p_cov_map->log_cov_map(65158); 
+kwcolumn_opt(A) ::= . {
+A = 129364; 
 }
 
-kwcolumn_opt ::= COLUMNKW . {
-p_cov_map->log_cov_map(110657); 
+kwcolumn_opt(A) ::= COLUMNKW . {
+A = 155635; 
 }
 
-cmd ::= create_vtab .                       {
-p_cov_map->log_cov_map(151456); 
+cmd(A) ::= create_vtab(B) .                       {
+A = 36389; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-cmd ::= create_vtab LP vtabarglist RP .  {
-p_cov_map->log_cov_map(135534); 
+cmd(A) ::= create_vtab(B) LP vtabarglist(C) RP .  {
+A = 95719; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm . {
-p_cov_map->log_cov_map(137075); 
+create_vtab(A) ::= createkw(B) VIRTUAL TABLE ifnotexists(C) nm(D) dbnm(E) USING nm(F) . {
+A = 202821; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
+p_cov_map->log_edge_cov_map(F, A); 
 }
 
-vtabarglist ::= vtabarg . {
-p_cov_map->log_cov_map(210476); 
+vtabarglist(A) ::= vtabarg(B) . {
+A = 149684; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-vtabarglist ::= vtabarglist COMMA vtabarg . {
-p_cov_map->log_cov_map(132227); 
+vtabarglist(A) ::= vtabarglist(B) COMMA vtabarg(C) . {
+A = 19776; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-vtabarg ::= .                       {
-p_cov_map->log_cov_map(129553); 
+vtabarg(A) ::= .                       {
+A = 138440; 
 }
 
-vtabarg ::= vtabarg vtabargtoken . {
-p_cov_map->log_cov_map(193265); 
+vtabarg(A) ::= vtabarg(B) vtabargtoken(C) . {
+A = 156123; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-vtabargtoken ::= ANY .            {
-p_cov_map->log_cov_map(174490); 
+vtabargtoken(A) ::= ANY .            {
+A = 83518; 
 }
 
-vtabargtoken ::= lp anylist RP .  {
-p_cov_map->log_cov_map(55824); 
+vtabargtoken(A) ::= lp(B) anylist(C) RP .  {
+A = 210805; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-lp ::= LP .                       {
-p_cov_map->log_cov_map(143235); 
+lp(A) ::= LP .                       {
+A = 181170; 
 }
 
-anylist ::= . {
-p_cov_map->log_cov_map(260190); 
+anylist(A) ::= . {
+A = 121677; 
 }
 
-anylist ::= anylist LP anylist RP . {
-p_cov_map->log_cov_map(99339); 
+anylist(A) ::= anylist(B) LP anylist(C) RP . {
+A = 34947; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-anylist ::= anylist ANY . {
-p_cov_map->log_cov_map(111575); 
+anylist(A) ::= anylist(B) ANY . {
+A = 100310; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type wqlist {IR*}
-%type wqitem {IR*}
-with ::= . {
-p_cov_map->log_cov_map(31145); 
+%type wqlist {unsigned int}
+%type wqitem {unsigned int}
+with(A) ::= . {
+A = 257492; 
 }
 
-with ::= WITH wqlist .              {
-p_cov_map->log_cov_map(36151); 
+with(A) ::= WITH wqlist(B) .              {
+A = 37742; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-with ::= WITH RECURSIVE wqlist .    {
-p_cov_map->log_cov_map(124543); 
+with(A) ::= WITH RECURSIVE wqlist(B) .    {
+A = 124854; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type wqas {IR*}
-wqas ::= AS .                  {
-p_cov_map->log_cov_map(155712); 
+%type wqas {unsigned int}
+wqas(A) ::= AS .                  {
+A = 84711; 
 }
 
-wqas ::= AS MATERIALIZED .     {
-p_cov_map->log_cov_map(215485); 
+wqas(A) ::= AS MATERIALIZED .     {
+A = 217809; 
 }
 
-wqas ::= AS NOT MATERIALIZED . {
-p_cov_map->log_cov_map(101455); 
+wqas(A) ::= AS NOT MATERIALIZED . {
+A = 26288; 
 }
 
-wqitem ::= nm eidlist_opt wqas LP select RP . {
-p_cov_map->log_cov_map(150016); 
+wqitem(A) ::= nm(B) eidlist_opt(C) wqas(D) LP select(E) RP . {
+A = 103206; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-wqlist ::= wqitem . {
-p_cov_map->log_cov_map(127996); 
+wqlist(A) ::= wqitem(B) . {
+A = 214108; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-wqlist ::= wqlist COMMA wqitem . {
-p_cov_map->log_cov_map(143929); 
+wqlist(A) ::= wqlist(B) COMMA wqitem(C) . {
+A = 134797; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type windowdefn_list {IR*}
-windowdefn_list ::= windowdefn . {
-p_cov_map->log_cov_map(117875); 
+%type windowdefn_list {unsigned int}
+windowdefn_list(A) ::= windowdefn(B) . {
+A = 113334; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-windowdefn_list ::= windowdefn_list COMMA windowdefn . {
-p_cov_map->log_cov_map(35765); 
+windowdefn_list(A) ::= windowdefn_list(B) COMMA windowdefn(C) . {
+A = 15849; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type windowdefn {IR*}
-windowdefn ::= nm AS LP window RP . {
-p_cov_map->log_cov_map(107431); 
+%type windowdefn {unsigned int}
+windowdefn(A) ::= nm(B) AS LP window(C) RP . {
+A = 36037; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-%type window {IR*}
-%type frame_opt {IR*}
-%type part_opt {IR*}
-%type filter_clause {IR*}
-%type over_clause {IR*}
-%type filter_over {IR*}
-%type range_or_rows {IR*}
-%type frame_bound {IR*}
-%type frame_bound_s {IR*}
-%type frame_bound_e {IR*}
-window ::= PARTITION BY nexprlist orderby_opt frame_opt . {
-p_cov_map->log_cov_map(17314); 
+%type window {unsigned int}
+%type frame_opt {unsigned int}
+%type part_opt {unsigned int}
+%type filter_clause {unsigned int}
+%type over_clause {unsigned int}
+%type filter_over {unsigned int}
+%type range_or_rows {unsigned int}
+%type frame_bound {unsigned int}
+%type frame_bound_s {unsigned int}
+%type frame_bound_e {unsigned int}
+window(A) ::= PARTITION BY nexprlist(B) orderby_opt(C) frame_opt(D) . {
+A = 115370; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-window ::= nm PARTITION BY nexprlist orderby_opt frame_opt . {
-p_cov_map->log_cov_map(220236); 
+window(A) ::= nm(B) PARTITION BY nexprlist(C) orderby_opt(D) frame_opt(E) . {
+A = 106123; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-window ::= ORDER BY sortlist frame_opt . {
-p_cov_map->log_cov_map(239139); 
+window(A) ::= ORDER BY sortlist(B) frame_opt(C) . {
+A = 244092; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-window ::= nm ORDER BY sortlist frame_opt . {
-p_cov_map->log_cov_map(177531); 
+window(A) ::= nm(B) ORDER BY sortlist(C) frame_opt(D) . {
+A = 27153; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-window ::= frame_opt . {
-p_cov_map->log_cov_map(64472); 
+window(A) ::= frame_opt(B) . {
+A = 186596; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-window ::= nm frame_opt . {
-p_cov_map->log_cov_map(114043); 
+window(A) ::= nm(B) frame_opt(C) . {
+A = 245975; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-frame_opt ::= .                             {
-p_cov_map->log_cov_map(129340); 
+frame_opt(A) ::= .                             {
+A = 117283; 
 }
 
-frame_opt ::= range_or_rows frame_bound_s frame_exclude_opt . {
-p_cov_map->log_cov_map(235264); 
+frame_opt(A) ::= range_or_rows(B) frame_bound_s(C) frame_exclude_opt(D) . {
+A = 215521; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
 }
 
-frame_opt ::= range_or_rows BETWEEN frame_bound_s AND frame_bound_e frame_exclude_opt . {
-p_cov_map->log_cov_map(124579); 
+frame_opt(A) ::= range_or_rows(B) BETWEEN frame_bound_s(C) AND frame_bound_e(D) frame_exclude_opt(E) . {
+A = 23365; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
+p_cov_map->log_edge_cov_map(D, A); 
+p_cov_map->log_edge_cov_map(E, A); 
 }
 
-range_or_rows ::= RANGE|ROWS|GROUPS .   {
-p_cov_map->log_cov_map(145935); 
+range_or_rows(A) ::= RANGE|ROWS|GROUPS .   {
+A = 21793; 
 }
 
-frame_bound_s ::= frame_bound .         {
-p_cov_map->log_cov_map(192312); 
+frame_bound_s(A) ::= frame_bound(B) .         {
+A = 3342; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-frame_bound_s ::= UNBOUNDED PRECEDING . {
-p_cov_map->log_cov_map(14194); 
+frame_bound_s(A) ::= UNBOUNDED PRECEDING . {
+A = 53298; 
 }
 
-frame_bound_e ::= frame_bound .         {
-p_cov_map->log_cov_map(36616); 
+frame_bound_e(A) ::= frame_bound(B) .         {
+A = 206016; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-frame_bound_e ::= UNBOUNDED FOLLOWING . {
-p_cov_map->log_cov_map(244616); 
+frame_bound_e(A) ::= UNBOUNDED FOLLOWING . {
+A = 88803; 
 }
 
-frame_bound ::= expr PRECEDING|FOLLOWING . {
-p_cov_map->log_cov_map(48560); 
+frame_bound(A) ::= expr(B) PRECEDING|FOLLOWING . {
+A = 74111; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-frame_bound ::= CURRENT ROW .           {
-p_cov_map->log_cov_map(211877); 
+frame_bound(A) ::= CURRENT ROW .           {
+A = 28525; 
 }
 
-%type frame_exclude_opt {IR*}
-frame_exclude_opt ::= . {
-p_cov_map->log_cov_map(11688); 
+%type frame_exclude_opt {unsigned int}
+frame_exclude_opt(A) ::= . {
+A = 54486; 
 }
 
-frame_exclude_opt ::= EXCLUDE frame_exclude . {
-p_cov_map->log_cov_map(125780); 
+frame_exclude_opt(A) ::= EXCLUDE frame_exclude(B) . {
+A = 250025; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-%type frame_exclude {IR*}
-frame_exclude ::= NO OTHERS .   {
-p_cov_map->log_cov_map(141916); 
+%type frame_exclude {unsigned int}
+frame_exclude(A) ::= NO OTHERS .   {
+A = 220305; 
 }
 
-frame_exclude ::= CURRENT ROW . {
-p_cov_map->log_cov_map(70278); 
+frame_exclude(A) ::= CURRENT ROW . {
+A = 47599; 
 }
 
-frame_exclude ::= GROUP|TIES .  {
-p_cov_map->log_cov_map(205991); 
+frame_exclude(A) ::= GROUP|TIES .  {
+A = 225690; 
 }
 
-%type window_clause {IR*}
-window_clause ::= WINDOW windowdefn_list . {
-p_cov_map->log_cov_map(111366); 
+%type window_clause {unsigned int}
+window_clause(A) ::= WINDOW windowdefn_list(B) . {
+A = 167714; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-filter_over ::= filter_clause over_clause . {
-p_cov_map->log_cov_map(164437); 
+filter_over(A) ::= filter_clause(B) over_clause(C) . {
+A = 142268; 
+p_cov_map->log_edge_cov_map(B, A); 
+p_cov_map->log_edge_cov_map(C, A); 
 }
 
-filter_over ::= over_clause . {
-p_cov_map->log_cov_map(243329); 
+filter_over(A) ::= over_clause(B) . {
+A = 113984; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-filter_over ::= filter_clause . {
-p_cov_map->log_cov_map(54892); 
+filter_over(A) ::= filter_clause(B) . {
+A = 133640; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-over_clause ::= OVER LP window RP . {
-p_cov_map->log_cov_map(65724); 
+over_clause(A) ::= OVER LP window(B) RP . {
+A = 50638; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-over_clause ::= OVER nm . {
-p_cov_map->log_cov_map(2212); 
+over_clause(A) ::= OVER nm(B) . {
+A = 248138; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
-filter_clause ::= FILTER LP WHERE expr RP .  {
-p_cov_map->log_cov_map(41021); 
+filter_clause(A) ::= FILTER LP WHERE expr(B) RP .  {
+A = 167040; 
+p_cov_map->log_edge_cov_map(B, A); 
 }
 
 %token

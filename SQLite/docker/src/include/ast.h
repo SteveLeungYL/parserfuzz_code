@@ -165,6 +165,14 @@ public:
     }
   }
 
+  void log_edge_cov_map(unsigned int prev_cov, unsigned int cur_cov) {
+    unsigned int offset = ((prev_cov >> 1) ^ cur_cov);
+    if (edge_cov_map[offset] < 0xff) {
+      edge_cov_map[offset]++;
+    }
+    return;
+  }
+
   inline double get_total_block_cov_size() {
     u32 t_bytes = this->count_non_255_bytes(this->block_virgin_map);
     return ((double)t_bytes * 100.0) / MAP_SIZE;

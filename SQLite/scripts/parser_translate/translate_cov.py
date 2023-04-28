@@ -5,6 +5,8 @@ import re
 import random
 import time
 
+all_rule_maps = dict()
+
 random.seed(time.time_ns(), version=2)
 
 ONETAB = " " * 4
@@ -60,7 +62,7 @@ def camel_to_snake(word: str):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 def is_terminating_keyword(word: str) -> bool:
-    if word == "id" or word == "ids" or word == "number":
+    if word == "id" or word == "ids" or word == "number" or word == "idj":
         return True
     if word[0].isupper():
         return True
@@ -106,17 +108,37 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 def translate_single_rule(token_seq, parent):
-    
-    all_saved_str = parent  + " ::= "
+    global all_rule_maps
 
+    all_saved_str = parent  + "(A) ::= "
+
+    tmp_idx = 0
     for cur_token in token_seq:
-        all_saved_str += cur_token + " "
+        if is_terminating_keyword(cur_token):
+            all_saved_str += cur_token + " "
+        else:
+            all_saved_str += cur_token + "(" + chr(ord('B') + tmp_idx) + ") "
+            tmp_idx += 1
+
+    if parent not in all_rule_maps:
+        all_rule_maps[parent] = [token_seq]
+    else:
+        all_rule_maps[parent].append(token_seq)
 
     return all_saved_str
 
 def translate_single_action(token_seq, parent):
 
-    body = f"p_cov_map->log_cov_map({random.randint(0, 262143)}); \n"
+    rand_hash = random.randint(0, 262143)
+    body = f"A = {rand_hash}; \n"
+
+    tmp_idx = 0
+    for cur_token in token_seq:
+        if is_terminating_keyword(cur_token):
+            # Do not handle the terminating token.
+            continue
+        body += f"p_cov_map->log_edge_cov_map({chr(ord('B') + tmp_idx)}, A); \n"
+        tmp_idx += 1
 
     logger.debug(f"Result: \n{body}")
     return body
@@ -130,7 +152,7 @@ def get_predef_text() ->str:
 // default type for non-terminals.
 //
 %token_type {const char*}
-%default_type {IR*}
+%default_type {unsigned int}
 
 // An extra argument to the parse function for the parser, which is available
 // to all actions.
@@ -138,7 +160,7 @@ def get_predef_text() ->str:
 
 // The name of the generated procedure that implements the parser
 // is as follows:
-%name IRParser
+%name ParserCov
 
 // input is the start symbol
 %start_symbol input
@@ -218,9 +240,9 @@ def handle_ori_comp_parser() -> str:
             continue
 
         if cur_line.startswith("%type "):
-            # Change all the non-terminal types to IR*.
+            # Change all the non-terminal types to unsigned int.
             cur_line = cur_line.split("{")[0]
-            cur_line += "{IR*}\n"
+            cur_line += "{unsigned int}\n"
             all_saved_lines += cur_line
             continue
 
@@ -328,7 +350,7 @@ def run(output_fd, all_ir_type_fd):
 
 if __name__ == "__main__":
 
-    output_file_str = "sqlite_lemon_parser.y"
+    output_file_str = "sqlite_lemon_parser_cov.y"
     all_ir_type_str = "sqlite_type_str.txt"
     if len(sys.argv) == 2:
         output_file_str = sys.argv[1] 
