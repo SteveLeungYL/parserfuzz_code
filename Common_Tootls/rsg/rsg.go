@@ -200,6 +200,9 @@ type PathNode struct {
 	Parent    *PathNode
 	ExprProds *yacc.ExpressionNode
 	Children  []*PathNode
+	IsFav     bool
+	// Debug
+	//ParentStr string
 }
 
 func (r *RSG) GatherAllPathNodes(curPathNode *PathNode) []*PathNode {
@@ -233,6 +236,8 @@ func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *Pat
 		Parent:    destParentNode,
 		ExprProds: srcNode.ExprProds,
 		Children:  []*PathNode{},
+		IsFav:     srcNode.IsFav,
+		//ParentStr: srcNode.ParentStr,
 	}
 
 	for _, curChild := range srcNode.Children {
@@ -318,7 +323,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 			for _, curNode := range prod.Items {
 				if isComp {
 					// If the current path is already
-					// classified as non-term
+					// classified as complicated rule
 					// Do not continue
 					break
 				}
@@ -544,10 +549,27 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		// Choose a random node to mutate.
 		// Do not choose the root to mutate
 		var mutateNode *PathNode
-		if len(newPath) == 1 {
+		if len(newPath) <= 2 {
 			mutateNode = newPath[0]
 		} else {
-			mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
+			if r.Rnd.Intn(2) != 0 {
+				// Choose Fav node.
+				var favPath []*PathNode
+				for _, curPath := range newPath {
+					if curPath.IsFav == true {
+						favPath = append(favPath, curPath)
+					}
+				}
+				if len(favPath) > 2 {
+					mutateNode = favPath[r.Rnd.Intn(len(favPath)-1)+1]
+				} else {
+					mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
+				}
+				//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
+			} else {
+				// Normal node.
+				mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
+			}
 		}
 
 		// Remove the ExprProds and the Children,
@@ -568,6 +590,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 			Parent:    nil,
 			ExprProds: nil,
 			Children:  []*PathNode{},
+			IsFav:     false,
 		}
 	}
 
@@ -794,6 +817,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
 	replayingMode := false
 	isChooseCompRule := false
+	isFavPathNode := false
 
 	if rootPathNode == nil {
 		fmt.Printf("\n\n\nError: rootPathNode is nil. \n\n\n")
@@ -810,9 +834,10 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 		// Not in the replaying mode, randomly choose one node and proceed.
 		replayingMode = false
 
-		// Choose terminating node, if depth reached.
+		// See whether the depth reached, choose different edge respectively.
 		var prods []*yacc.ExpressionNode
 		if depth <= 0 && r.Rnd.Intn(100) < 95 {
+			// Depth IS reached.
 			var ok bool
 			prods, ok = r.termProds[root]
 			//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
@@ -823,14 +848,29 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 				if !ok {
 					//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
 					prods = r.prods[root]
-					isChooseCompRule = true
 				}
 			}
 		} else {
+			// Depth IS NOT reached.
 			//fmt.Printf("\n\n\nUsing random rules. \n\n\n", root)
 			prods = r.prods[root]
 		}
+
 		prod = r.MABChooseArm(prods, parentHash)
+
+		// Check whether there are non-triggered rules in the current token.
+		// if yes, set as isFavPathNode.
+		for _, tmpProds := range prods {
+			if r.CheckEdgeCov(parentHash, tmpProds.UniqueHash) {
+				//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
+				continue
+			} else {
+				isFavPathNode = true
+				fmt.Printf("IsFav is true because root: %s to prods: %v is not triggered. \n\n\n", root, tmpProds.Items)
+				break
+			}
+		}
+
 		// Check whether the chosen rule is complex rule
 		for _, val := range r.compProds[root] {
 			if val == prod {
@@ -1020,6 +1060,9 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 						Parent:    rootPathNode,
 						ExprProds: nil,
 						Children:  []*PathNode{},
+						IsFav:     isFavPathNode,
+						// Debug
+						//ParentStr: root,
 					}
 					r.pathId += 1
 					rootPathNode.Children = append(rootPathNode.Children, newChildPathNode)
