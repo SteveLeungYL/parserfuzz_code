@@ -178,6 +178,10 @@ def dump_all_hash_to_edge_maps():
     with open("hash_to_edge_maps.json", "w") as out:
         out.write(json.dumps(all_hash_to_edge_maps, indent=2))
 
+    with open("all_hash.txt", "w") as out:
+        for cur_hash, _ in all_hash_to_edge_maps.items():
+            out.write(f"{cur_hash}\n")
+
 
 if __name__ == "__main__":
     cur_key = ""
