@@ -91,7 +91,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "-o", cur_output_dir_str,
         "-c", str(cur_inst_id),
         "-O", str(oracle_str),
-        "-t", str(timeout_ms)
+        "-t", str(timeout_ms),
+        "-m none "
     ]
 
     if is_disable_rsg:
