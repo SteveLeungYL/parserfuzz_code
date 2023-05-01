@@ -458,62 +458,41 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 	return &rsg, nil
 }
 
-func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, root string, rootHash uint32) *yacc.ExpressionNode {
+func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, rootHash uint32) *yacc.ExpressionNode {
 
 	resIdx := 0
-	for trial := 0; trial < 10; trial++ {
-		if r.Rnd.Float64() > r.epsilon {
-			//fmt.Printf("\n\n\nUsing ArgMax. \n\n\n")
-			var rewards []float64
-			for _, prod := range prods {
-				rewards = append(rewards, prod.RewardScore)
-			}
-			resIdx = r.argMax(rewards)
-			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
-		} else {
-			// Random choice.
 
-			if r.Rnd.Intn(2) != 0 {
-				// 50% chances, only look through the edges that were not triggered before.
-				tmpTrimProds := []*yacc.ExpressionNode{}
-				for _, tmpProds := range prods {
-					if r.CheckEdgeCov(rootHash, tmpProds.UniqueHash) {
-						//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
-						continue
-					}
-					//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: %v\n\n\n", root, tmpProds.Items)
-					tmpTrimProds = append(tmpTrimProds, tmpProds)
-				}
-				if len(tmpTrimProds) > 0 {
-					prods = tmpTrimProds
-				}
-				//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: size: %v\n\n\n", root, len(prods))
-			}
+	if r.Rnd.Float64() > r.epsilon {
+		//fmt.Printf("\n\n\nUsing ArgMax. \n\n\n")
+		var rewards []float64
+		for _, prod := range prods {
+			rewards = append(rewards, prod.RewardScore)
+		}
+		resIdx = r.argMax(rewards)
+		//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
+	} else {
+		// Random choice.
 
-			//fmt.Printf("\n\n\nUsing Random. \n\n\n")
-			resIdx = r.Rnd.Intn(len(prods))
-			//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
+		if r.Rnd.Intn(2) != 0 {
+			// 50% chances, only look through the edges that were not triggered before.
+			tmpTrimProds := []*yacc.ExpressionNode{}
+			for _, tmpProds := range prods {
+				if r.CheckEdgeCov(rootHash, tmpProds.UniqueHash) {
+					//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
+					continue
+				}
+				//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: %v\n\n\n", root, tmpProds.Items)
+				tmpTrimProds = append(tmpTrimProds, tmpProds)
+			}
+			if len(tmpTrimProds) > 0 {
+				prods = tmpTrimProds
+			}
+			//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: size: %v\n\n\n", root, len(prods))
 		}
 
-		resProd := prods[resIdx]
-
-		isRetry := false
-		for _, childProd := range resProd.Items {
-			if childProd.Value == root {
-				if r.Rnd.Intn(10) != 0 {
-					// 9/10 chances, do not use nested token.
-					isRetry = true
-					//fmt.Printf("\n\n\nFrom root:%s, getting recursive child: %v\n\n\n", root, resProd.Items)
-				}
-			}
-		}
-		if isRetry {
-			continue
-		} else {
-			// Decided to choose the current path.
-			// Return the resProd.
-			break
-		}
+		//fmt.Printf("\n\n\nUsing Random. \n\n\n")
+		resIdx = r.Rnd.Intn(len(prods))
+		//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
 	}
 
 	r.MarkEdgeCov(rootHash, prods[resIdx].UniqueHash)
@@ -626,7 +605,7 @@ func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root, 0)
+	prod := r.MABChooseArm(prods, 0)
 
 	if prod == nil {
 		return nil
@@ -680,7 +659,7 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root, 0)
+	prod := r.MABChooseArm(prods, 0)
 
 	if prod == nil {
 		return nil
@@ -761,7 +740,7 @@ func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []strin
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, root, 0)
+	prod := r.MABChooseArm(prods, 0)
 
 	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
@@ -851,7 +830,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 			//fmt.Printf("\n\n\nUsing random rules. \n\n\n", root)
 			prods = r.prods[root]
 		}
-		prod = r.MABChooseArm(prods, root, parentHash)
+		prod = r.MABChooseArm(prods, parentHash)
 		// Check whether the chosen rule is complex rule
 		for _, val := range r.compProds[root] {
 			if val == prod {
@@ -1090,7 +1069,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		// Check whether the chosen prod contains unimplemented or error related
 		// rule. If yes, do not choose this path.
 
-		tmpProd := r.MABChooseArm(prods, root, 0)
+		tmpProd := r.MABChooseArm(prods, 0)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
 			continue
