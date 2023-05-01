@@ -866,7 +866,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 				continue
 			} else {
 				isFavPathNode = true
-				fmt.Printf("IsFav is true because root: %s to prods: %v is not triggered. \n\n\n", root, tmpProds.Items)
+				//fmt.Printf("IsFav is true because root: %s to prods: %v is not triggered. \n\n\n", root, tmpProds.Items)
 				break
 			}
 		}
