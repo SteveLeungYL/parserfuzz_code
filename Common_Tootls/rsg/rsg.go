@@ -468,6 +468,7 @@ func (r *RSG) CheckIsFav(root string, parentHash uint32) bool {
 
 	for _, curRule := range rootProds {
 		if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
+			//fmt.Printf("\nDebug: Unseen Rule. Root: %s, Rule: %v\n", root, curRule.Items)
 			continue
 		}
 		// has unseen rule.
@@ -622,14 +623,18 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 						favPath = append(favPath, curPath)
 					}
 				}
-				if len(favPath) > 2 {
-					mutateNode = favPath[r.Rnd.Intn(len(favPath)-1)+1]
+
+				if len(favPath) != 0 {
+					mutateNode = favPath[r.Rnd.Intn(len(favPath))]
+					//fmt.Printf("\nDebug: (not accurate log) Choosing unseen rule. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
 				} else {
+					// Avoid mutating root node.
 					mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
 				}
 				//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
 			} else {
-				// Normal node.
+				// Choose any fav/non-fav nodes to mutate.
+				// Avoid mutating root node.
 				mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
 			}
 		}
