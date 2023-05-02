@@ -619,197 +619,6 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 	return resStr
 }
 
-func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
-	ret := make([]string, 0)
-	prods := r.prods[root]
-	if len(prods) == 0 {
-		return []string{r.formatTokenValue(root)}
-	}
-
-	prod := r.MABChooseArm(prods, 0)
-
-	if prod == nil {
-		return nil
-	}
-
-	for _, item := range prod.Items {
-		switch item.Typ {
-		case yacc.TypLiteral:
-			v := item.Value[1 : len(item.Value)-1]
-			ret = append(ret, v)
-			continue
-		case yacc.TypToken:
-			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
-
-			var v []string
-
-			switch item.Value {
-			case "ident":
-				v = []string{"ident"}
-
-			case "expr":
-				if depth == 0 {
-					v = []string{"TRUE"}
-				} else {
-					v = r.generateMySQL(item.Value, depth-1, rootDepth)
-				}
-
-			default:
-				if depth == 0 {
-					return nil
-				}
-				v = r.generateMySQL(item.Value, depth-1, rootDepth)
-			}
-			if v == nil {
-				continue
-			}
-			ret = append(ret, v...)
-		default:
-			panic("unknown item type")
-		}
-	}
-	return ret
-}
-
-func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
-	ret := make([]string, 0)
-	prods := r.prods[root]
-	if len(prods) == 0 {
-		return []string{r.formatTokenValue(root)}
-	}
-
-	prod := r.MABChooseArm(prods, 0)
-
-	if prod == nil {
-		return nil
-	}
-
-	for _, item := range prod.Items {
-		switch item.Typ {
-		case yacc.TypLiteral:
-			v := item.Value[1 : len(item.Value)-1]
-			ret = append(ret, v)
-			continue
-		case yacc.TypToken:
-			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
-
-			var v []string
-
-			switch item.Value {
-			case "IDENT":
-				v = []string{"ident"}
-
-				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
-				// to d_expr would cause a lot of syntax errors.
-				/*
-				   //case "a_expr":
-				       //fallthrough
-				   //case "b_expr":
-				       //fallthrough
-				*/
-				// If the recursion reaches specific depth, do not expand on `c_expr`,
-				// directly refer to `d_expr`.
-			case "c_expr":
-				if (rootDepth-3) > 0 &&
-					depth > (rootDepth-3) {
-					v = r.generatePostgres(item.Value, depth-1, rootDepth)
-				} else if depth > 0 {
-					v = r.generatePostgres("SCONST", depth-1, rootDepth)
-				} else {
-					v = []string{`'string'`}
-				}
-
-				if v == nil {
-					v = []string{`'string'`}
-				}
-
-			case "SCONST":
-				v = []string{`'string'`}
-			case "ICONST":
-				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
-			case "FCONST":
-				v = []string{fmt.Sprint(r.Float64())}
-			case "BCONST":
-				v = []string{`b'bytes'`}
-			case "XCONST":
-				v = []string{`B'10010'`}
-			default:
-				if depth == 0 {
-					return nil
-				}
-				v = r.generatePostgres(item.Value, depth-1, rootDepth)
-			}
-			if v == nil {
-				return nil
-			}
-			ret = append(ret, v...)
-		default:
-			panic("unknown item type")
-		}
-	}
-	return ret
-}
-
-func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
-	ret := make([]string, 0)
-	prods := r.prods[root]
-	if len(prods) == 0 {
-		return []string{r.formatTokenValue(root)}
-	}
-
-	prod := r.MABChooseArm(prods, 0)
-
-	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
-
-	if prod == nil {
-		return nil
-	}
-
-	for _, item := range prod.Items {
-		switch item.Typ {
-		case yacc.TypLiteral:
-			v := item.Value[1 : len(item.Value)-1]
-			ret = append(ret, v)
-			continue
-		case yacc.TypToken:
-
-			var v []string
-
-			switch item.Value {
-
-			case "IDENTIFIER":
-				{
-					v = []string{"v0"}
-				}
-			case "STRING":
-				{
-					v = []string{`'string'`}
-				}
-
-			default:
-				if depth == 0 {
-					return ret
-				}
-				v = r.generateSqliteBison(item.Value, depth-1, rootDepth)
-			}
-			if v == nil {
-				fmt.Printf("\n\n\nFor root %s, item,Value: %s, reaching depth\n\n\n", root, item.Value)
-				return nil
-			}
-			ret = append(ret, v...)
-		default:
-			panic("unknown item type")
-		}
-	}
-	return ret
-}
-
 func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
@@ -1095,6 +904,197 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 		}
 	}
 	//fmt.Printf("\n%sLevel: %d, root: %s, prods: %v", strings.Repeat(" ", 9-depth), depth, root, prod.Items)
+	return ret
+}
+
+func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := r.MABChooseArm(prods, 0)
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+
+			var v []string
+
+			switch item.Value {
+			case "ident":
+				v = []string{"ident"}
+
+			case "expr":
+				if depth == 0 {
+					v = []string{"TRUE"}
+				} else {
+					v = r.generateMySQL(item.Value, depth-1, rootDepth)
+				}
+
+			default:
+				if depth == 0 {
+					return nil
+				}
+				v = r.generateMySQL(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				continue
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := r.MABChooseArm(prods, 0)
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+
+			var v []string
+
+			switch item.Value {
+			case "IDENT":
+				v = []string{"ident"}
+
+				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
+				// to d_expr would cause a lot of syntax errors.
+				/*
+				   //case "a_expr":
+				       //fallthrough
+				   //case "b_expr":
+				       //fallthrough
+				*/
+				// If the recursion reaches specific depth, do not expand on `c_expr`,
+				// directly refer to `d_expr`.
+			case "c_expr":
+				if (rootDepth-3) > 0 &&
+					depth > (rootDepth-3) {
+					v = r.generatePostgres(item.Value, depth-1, rootDepth)
+				} else if depth > 0 {
+					v = r.generatePostgres("SCONST", depth-1, rootDepth)
+				} else {
+					v = []string{`'string'`}
+				}
+
+				if v == nil {
+					v = []string{`'string'`}
+				}
+
+			case "SCONST":
+				v = []string{`'string'`}
+			case "ICONST":
+				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
+			case "FCONST":
+				v = []string{fmt.Sprint(r.Float64())}
+			case "BCONST":
+				v = []string{`b'bytes'`}
+			case "XCONST":
+				v = []string{`B'10010'`}
+			default:
+				if depth == 0 {
+					return nil
+				}
+				v = r.generatePostgres(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []string {
+	// Initialize to an empty slice instead of nil because nil is the signal
+	// that the depth has been exceeded.
+	ret := make([]string, 0)
+	prods := r.prods[root]
+	if len(prods) == 0 {
+		return []string{r.formatTokenValue(root)}
+	}
+
+	prod := r.MABChooseArm(prods, 0)
+
+	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
+
+	if prod == nil {
+		return nil
+	}
+
+	for _, item := range prod.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+
+			var v []string
+
+			switch item.Value {
+
+			case "IDENTIFIER":
+				{
+					v = []string{"v0"}
+				}
+			case "STRING":
+				{
+					v = []string{`'string'`}
+				}
+
+			default:
+				if depth == 0 {
+					return ret
+				}
+				v = r.generateSqliteBison(item.Value, depth-1, rootDepth)
+			}
+			if v == nil {
+				fmt.Printf("\n\n\nFor root %s, item,Value: %s, reaching depth\n\n\n", root, item.Value)
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
 	return ret
 }
 
