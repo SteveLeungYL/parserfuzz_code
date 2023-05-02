@@ -137,6 +137,7 @@ func (r *RSG) ClearChosenExpr() {
 
 func (r *RSG) IncrementSucceed() {
 
+	isFavPath := false
 	//fmt.Printf("\nSaving r.curChosenPath size: %d", len(r.curChosenPath))
 	//if len(r.curChosenPath) != 0 && r.curChosenPath[0].ExprProds != nil {
 	//	fmt.Printf("exprNode: %v\n\n\n", r.curChosenPath[0].ExprProds)
@@ -152,6 +153,10 @@ func (r *RSG) IncrementSucceed() {
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*1.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
+
+		if curPath.IsFav == true {
+			isFavPath = true
+		}
 	}
 
 	// Save the new nodes to the seed.
@@ -160,6 +165,13 @@ func (r *RSG) IncrementSucceed() {
 		r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
 		//fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
 	}
+
+	if len(r.curChosenPath) != 0 && isFavPath == true {
+		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
+		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
+		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
+	}
+
 	r.ClearChosenExpr()
 
 }
@@ -248,6 +260,38 @@ func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *Pat
 	return newDestPathNode
 }
 
+func (r *RSG) retrieveExistingFavPathNode(root string) []*PathNode {
+
+	var targetPath []*PathNode
+	srcSavedFavPath, pathExisted := r.allSavedFavPath[root]
+	if !pathExisted || len(srcSavedFavPath) == 0 {
+		// Return empty targetPath.
+		return targetPath
+	}
+
+	// Retrieve the FIRST element from the FAV, and then remove the current chosen FAV.
+	srcPath := srcSavedFavPath[0]
+	r.allSavedFavPath[root] = srcSavedFavPath[1:]
+
+	if len(srcPath) == 0 {
+		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
+			"Root: %s"+
+			"\n\n\n", root)
+	}
+
+	// Deep Copy the source path from root
+	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
+
+	targetPath = r.GatherAllPathNodes(targetPathRoot)
+
+	if len(targetPath) == 0 {
+		fmt.Printf("\n\n\n Error, getting targetPath len == 0 in the retrieveExistingPathNode. \n\n\n")
+		os.Exit(1)
+	}
+
+	return targetPath
+}
+
 func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 
 	_, pathExisted := r.allSavedPath[root]
@@ -287,6 +331,7 @@ type RSG struct {
 
 	curChosenPath   []*PathNode
 	allSavedPath    map[string][][]*PathNode
+	allSavedFavPath map[string][][]*PathNode
 	curMutatingType string
 	epsilon         float64
 	pathId          int
@@ -441,6 +486,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		allCompProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
 		curChosenPath:   []*PathNode{},
 		allSavedPath:    make(map[string][][]*PathNode),
+		allSavedFavPath: make(map[string][][]*PathNode),
 		epsilon:         epsilon,
 		allTriggerEdges: make([]uint8, 65536),
 	}
@@ -606,8 +652,21 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		// 2/3 chances.
 		// Replaying mode.
 
+		// whether choosing the FAV PATH for grammar edge exploration.
+		isUsingFav := false
+
+		// 1/2 chances, use Favorite Node instead of random choosing saved path.
 		// Retrieve a deep copied from the existing seed.
-		newPath := r.retrieveExistingPathNode(root)
+		var newPath []*PathNode
+		if r.Rnd.Intn(2) == 0 {
+			//fmt.Printf("\n\n\nDebug: Retrieve FAV PATH NODE from root: %s.\n\n\n", root)
+			newPath = r.retrieveExistingFavPathNode(root)
+			isUsingFav = true
+		}
+		if len(newPath) == 0 {
+			newPath = r.retrieveExistingPathNode(root)
+			isUsingFav = false
+		}
 
 		// Choose a random node to mutate.
 		// Do not choose the root to mutate
@@ -615,7 +674,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		if len(newPath) <= 2 {
 			mutateNode = newPath[0]
 		} else {
-			if r.Rnd.Intn(2) != 0 {
+			if r.Rnd.Intn(2) != 0 || isUsingFav {
 				// Choose Fav node.
 				var favPath []*PathNode
 				for _, curPath := range newPath {
@@ -626,10 +685,13 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 				if len(favPath) != 0 {
 					mutateNode = favPath[r.Rnd.Intn(len(favPath))]
-					//fmt.Printf("\nDebug: (not accurate log) Choosing unseen rule. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
+					//fmt.Printf("\nDebug: (not accurate log) Choosing FAV rule. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
 				} else {
 					// Avoid mutating root node.
 					mutateNode = newPath[r.Rnd.Intn(len(newPath)-1)+1]
+					//if isUsingFav {
+					//	fmt.Printf("\nERROR: (not accurate log) FAV PATH SIZE 0. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
+					//}
 				}
 				//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
 			} else {
