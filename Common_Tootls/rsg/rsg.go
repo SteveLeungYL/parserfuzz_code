@@ -107,10 +107,10 @@ func (r *RSG) argMax(rewards []float64) int {
 
 func (r *RSG) DumpParserRuleMap(outFile string) {
 
-	resJsonStr, err := json.Marshal(r.prods)
+	resJsonStr, err := json.Marshal(r.allProds)
 
 	if err != nil {
-		fmt.Printf("\n\n\nError: Cannot generate the r.prods JSON file. \n\n\n")
+		fmt.Printf("\n\n\nError: Cannot generate the r.allProds JSON file. \n\n\n")
 	}
 
 	f, err := os.OpenFile(outFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
@@ -280,10 +280,10 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 type RSG struct {
 	Rnd *rand.Rand
 
-	prods     map[string][]*yacc.ExpressionNode
-	termProds map[string][]*yacc.ExpressionNode // prods that lead to token termination
-	normProds map[string][]*yacc.ExpressionNode // prods that cannot be defined.
-	compProds map[string][]*yacc.ExpressionNode // prods that doomed to lead to complex expressions.
+	allProds     map[string][]*yacc.ExpressionNode
+	allTermProds map[string][]*yacc.ExpressionNode // allProds that lead to token termination
+	allNormProds map[string][]*yacc.ExpressionNode // allProds that cannot be defined.
+	allCompProds map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
 
 	curChosenPath   []*PathNode
 	allSavedPath    map[string][][]*PathNode
@@ -307,7 +307,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		}
 	}
 
-	for rootName, rootProds := range r.prods {
+	for rootName, rootProds := range r.allProds {
 
 		for _, prod := range rootProds {
 			// For each single rule.
@@ -336,7 +336,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 				}
 
 				// See whether the current child node is terminating token.
-				childProds, ok := r.prods[curNode.Value]
+				childProds, ok := r.allProds[curNode.Value]
 
 				if ok {
 					// this is not a terminating child node.
@@ -365,7 +365,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 								// The grandchildren contains complicated nodes.
 								grandChildComp = true
 							}
-							_, childOk := r.prods[childNode.Value]
+							_, childOk := r.allProds[childNode.Value]
 							if childOk {
 								// Find the nested child node.
 								// Not a terminating node.
@@ -392,14 +392,14 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 			} // finished searching all the child node.
 			if isTerm {
 				prod.NodeComp = 0
-				r.termProds[rootName] = append(r.termProds[rootName], prod)
+				r.allTermProds[rootName] = append(r.allTermProds[rootName], prod)
 				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
 			} else if isComp {
 				prod.NodeComp = 2
-				r.compProds[rootName] = append(r.compProds[rootName], prod)
+				r.allCompProds[rootName] = append(r.allCompProds[rootName], prod)
 			} else {
 				prod.NodeComp = 1
-				r.normProds[rootName] = append(r.normProds[rootName], prod)
+				r.allNormProds[rootName] = append(r.allNormProds[rootName], prod)
 			}
 		} // loop: Each single rule.
 	} // loop: All rule in one token.
@@ -435,10 +435,10 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 	}
 	rsg := RSG{
 		Rnd:             rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		prods:           make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
-		termProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
-		normProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
-		compProds:       make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		allProds:        make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		allTermProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		allNormProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
+		allCompProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
 		curChosenPath:   []*PathNode{},
 		allSavedPath:    make(map[string][][]*PathNode),
 		epsilon:         epsilon,
@@ -447,14 +447,14 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 
 	// Construct all the possible Productions (Grammar Edges)
 	for _, prod := range tree.Productions {
-		_, ok := rsg.prods[prod.Name]
+		_, ok := rsg.allProds[prod.Name]
 		if ok {
 			for _, curExpr := range prod.Expressions {
 				curExpr.UniqueHash = uint32(rsg.Rnd.Intn(65536)) // setup the unique hash
-				rsg.prods[prod.Name] = append(rsg.prods[prod.Name], curExpr)
+				rsg.allProds[prod.Name] = append(rsg.allProds[prod.Name], curExpr)
 			}
 		} else {
-			rsg.prods[prod.Name] = prod.Expressions
+			rsg.allProds[prod.Name] = prod.Expressions
 		}
 	}
 
@@ -463,9 +463,90 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 	return &rsg, nil
 }
 
-func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, rootHash uint32) *yacc.ExpressionNode {
+func (r *RSG) CheckIsFav(root string, parentHash uint32) bool {
+	rootProds := r.allProds[root]
+
+	for _, curRule := range rootProds {
+		if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
+			continue
+		}
+		// has unseen rule.
+		return true
+	}
+	// cannot find unseen rule.
+	return false
+}
+
+func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) []*yacc.ExpressionNode {
+
+	rootAllRules := r.allProds[root]
+
+	// first priority.
+	// If the current root contains unseen rules, 50% chance, prioritize these unseen rule first.
+	// The prioritization is based on all rules possible if depth > 1. Regardless of rootCompProds or not.
+	trimRootProds := []*yacc.ExpressionNode{}
+	for _, curRule := range rootAllRules {
+		if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
+			// Seen rule.
+			//fmt.Printf("\n\n\nDebug: root: %s, find seen rule: %v\n\n\n", root, curRule.Items)
+		} else {
+			// Unseen rule.
+			//fmt.Printf("\n\n\nDebug: root: %s, find unseen rule: %v\n\n\n", root, curRule.Items)
+			trimRootProds = append(trimRootProds, curRule)
+		}
+	}
+	if len(trimRootProds) != 0 && depth > 0 && r.Rnd.Intn(2) != 0 {
+		// If depth > 0 and current root contains unseen rules, return unseen rule directly.
+		return trimRootProds
+	}
+
+	// Otherwise, we prioritize rules based on the complexity of the rules.
+	// See whether the depth reached, choose different rule respectively.
+	var resRules []*yacc.ExpressionNode
+	var ok bool
+	if depth <= 0 && r.Rnd.Intn(100) < 95 {
+		// Depth IS reached. Prefer simple/term rules than complex rules.
+		resRules, ok = r.allTermProds[root]
+		//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
+		if !ok {
+			// fallback to the original non-term tokens
+			//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
+			resRules, ok = r.allNormProds[root]
+			if !ok {
+				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
+				resRules = r.allProds[root]
+			}
+		}
+	} else {
+		// Depth IS NOT reached. (or rare escape 5%)
+		if r.Rnd.Intn(100) < 30 {
+			// 30% chances, prefer comp to norm to term.
+			resRules, ok = r.allCompProds[root]
+			if !ok {
+				// fallback to the original non-term tokens
+				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
+				resRules, ok = r.allNormProds[root]
+				if !ok {
+					resRules = r.allProds[root]
+				}
+			}
+		} else {
+			// Depth IS NOT reached.
+			// 70% chances, use complete all rules possible.
+			// It is OK to trigger complex rules here.
+			// Complete rely on MABChooseARM to decide from all rules.
+			resRules = rootAllRules
+		}
+	}
+
+	return resRules
+
+}
+
+func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
 
 	resIdx := 0
+	//fmt.Printf("\n\n\nori_prods size: %d\n\n\n", len(ori_prods))
 
 	if r.Rnd.Float64() > r.epsilon {
 		//fmt.Printf("\n\n\nUsing ArgMax. \n\n\n")
@@ -477,32 +558,13 @@ func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode, rootHash uint32) *yacc.
 		//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
 	} else {
 		// Random choice.
-
-		if r.Rnd.Intn(2) != 0 {
-			// 50% chances, only look through the edges that were not triggered before.
-			tmpTrimProds := []*yacc.ExpressionNode{}
-			for _, tmpProds := range prods {
-				if r.CheckEdgeCov(rootHash, tmpProds.UniqueHash) {
-					//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
-					continue
-				}
-				//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: %v\n\n\n", root, tmpProds.Items)
-				tmpTrimProds = append(tmpTrimProds, tmpProds)
-			}
-			if len(tmpTrimProds) > 0 {
-				prods = tmpTrimProds
-			}
-			//fmt.Printf("\n\n\nDebug: root: %s, using unseen edges: size: %v\n\n\n", root, len(prods))
-		}
-
 		//fmt.Printf("\n\n\nUsing Random. \n\n\n")
 		resIdx = r.Rnd.Intn(len(prods))
-		//fmt.Printf("\n\n\nusing resIdx: %d \n\n\n", resIdx)
+		//fmt.Printf("\n\n\nUsing resIdx: %d \n\n\n", resIdx)
 	}
 
-	r.MarkEdgeCov(rootHash, prods[resIdx].UniqueHash)
-
-	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %v. \n\n\n", root, prods[resIdx].Items)
+	//fmt.Printf("\n\n\nori_prods size: %d\n\n\n", len(ori_prods))
+	//fmt.Printf("\n\n\nFrom root: %s, Chossing resProd: %v. \n\n\n", root, allProds[resIdx].Items)
 	return prods[resIdx]
 }
 
@@ -637,73 +699,50 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 
 	ret := make([]string, 0)
 
-	//fmt.Printf("\n\n\n From root: %s, getting prods size: %d \n\n\n", root, len(prods))
-	var prod *yacc.ExpressionNode
+	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d \n\n\n", root, len(allProds))
+	var curChosenRule *yacc.ExpressionNode
 	if rootPathNode.ExprProds == nil {
-		// Not in the replaying mode, randomly choose one node and proceed.
+		// Not in the replaying mode, choose one node using MABChooseARM and proceed.
 		replayingMode = false
 
-		// See whether the depth reached, choose different edge respectively.
-		var prods []*yacc.ExpressionNode
-		if depth <= 0 && r.Rnd.Intn(100) < 95 {
-			// Depth IS reached.
-			var ok bool
-			prods, ok = r.termProds[root]
-			//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
-			if !ok {
-				// fallback to the original non-term tokens
-				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
-				prods, ok = r.normProds[root]
-				if !ok {
-					//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
-					prods = r.prods[root]
-				}
-			}
-		} else {
-			// Depth IS NOT reached.
-			//fmt.Printf("\n\n\nUsing random rules. \n\n\n", root)
-			prods = r.prods[root]
-		}
+		curRuleSet := r.PrioritizeParserRules(root, parentHash, depth)
 
-		prod = r.MABChooseArm(prods, parentHash)
+		curChosenRule = r.MABChooseArm(curRuleSet)
 
-		// Check whether there are non-triggered rules in the current token.
-		// if yes, set as isFavPathNode.
-		for _, tmpProds := range prods {
-			if r.CheckEdgeCov(parentHash, tmpProds.UniqueHash) {
-				//fmt.Printf("\n\n\nDebug: root: %s, using seen edges: %v\n\n\n", root, tmpProds.Items)
-				continue
-			} else {
-				isFavPathNode = true
-				//fmt.Printf("IsFav is true because root: %s to prods: %v is not triggered. \n\n\n", root, tmpProds.Items)
-				break
-			}
-		}
+		// Mark the current parent to child rule as triggered.
+		r.MarkEdgeCov(parentHash, curChosenRule.UniqueHash)
 
-		// Check whether the chosen rule is complex rule
-		for _, val := range r.compProds[root] {
-			if val == prod {
+		// Check whether all rules in the current root keyword is triggered.
+		// If not all are triggered, set is isFav = true
+		isFavPathNode = r.CheckIsFav(root, parentHash)
+
+		// Check whether the chosen rule is complex rule, i.e., select, expr, nexpr etc.
+		for _, val := range r.allCompProds[root] {
+			if val == curChosenRule {
+				//fmt.Printf("\n\n\nDebugging: Complex rule matched: val: %v, curChosenRule: %v\n\n\n", val.Items, curChosenRule.Items)
 				isChooseCompRule = true
 				break
 			}
 		}
-		rootPathNode.ExprProds = prod
+		rootPathNode.ExprProds = curChosenRule
 		rootPathNode.Children = []*PathNode{}
 	} else {
-		// Replay mode, directly reuse the previous chosen expressions.
+		// Replay mode, directly reuse the previous chosen rule.
 		replayingMode = true
-		prod = rootPathNode.ExprProds
+		curChosenRule = rootPathNode.ExprProds
 	}
 
-	if prod == nil {
-		fmt.Printf("\n\n\nERROR: getting nil prod. \n\n\n")
+	if curChosenRule == nil {
+		fmt.Printf("\n\n\nERROR: getting nil curChosenRule. \n\n\n")
 		return nil
 	}
 
-	rootHash := prod.UniqueHash
+	rootHash := curChosenRule.UniqueHash
 
 	replayExprIdx := 0
-	for _, item := range prod.Items {
+	// It is OK to be empty Items. Return empty ret then.
+	// Attention: return nil means error.
+	for _, item := range curChosenRule.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
 			// Single quoted characters
@@ -712,7 +751,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 			ret = append(ret, v)
 			continue
 		case yacc.TypToken:
-			//fmt.Printf("Getting prod.Items: %s\n", item.Value)
+			//fmt.Printf("Getting curChosenRule.Items: %s\n", item.Value)
 
 			var v []string
 
@@ -896,6 +935,8 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 				//fmt.Printf("\n\n\nFor root: %s, getting child node: %s, child Node: %v\n\n\n", root, item.Value, newChildPathNode.ExprProds)
 			}
 			if v == nil {
+				// Return nil means error.
+				fmt.Printf("\n\n\nError: v == nil in the RSG. Root: %s, item: %s\n\n\n", root, item.Value)
 				return nil
 			}
 			ret = append(ret, v...)
@@ -903,7 +944,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 			panic("unknown item type")
 		}
 	}
-	//fmt.Printf("\n%sLevel: %d, root: %s, prods: %v", strings.Repeat(" ", 9-depth), depth, root, prod.Items)
+	//fmt.Printf("\n%sLevel: %d, root: %s, allProds: %v", strings.Repeat(" ", 9-depth), depth, root, curChosenRule.Items)
 	return ret
 }
 
@@ -911,12 +952,12 @@ func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
-	prods := r.prods[root]
+	prods := r.allProds[root]
 	if len(prods) == 0 {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, 0)
+	prod := r.MABChooseArm(prods)
 
 	if prod == nil {
 		return nil
@@ -965,12 +1006,12 @@ func (r *RSG) generatePostgres(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
-	prods := r.prods[root]
+	prods := r.allProds[root]
 	if len(prods) == 0 {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, 0)
+	prod := r.MABChooseArm(prods)
 
 	if prod == nil {
 		return nil
@@ -1046,12 +1087,12 @@ func (r *RSG) generateSqliteBison(root string, depth int, rootDepth int) []strin
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
-	prods := r.prods[root]
+	prods := r.allProds[root]
 	if len(prods) == 0 {
 		return []string{r.formatTokenValue(root)}
 	}
 
-	prod := r.MABChooseArm(prods, 0)
+	prod := r.MABChooseArm(prods)
 
 	//fmt.Printf("\n\n\nFrom node: %s, getting stmt: %v\n\n\n", root, prod)
 
@@ -1102,7 +1143,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
-	prods := r.prods[root]
+	prods := r.allProds[root]
 	if len(prods) == 0 {
 		return []string{root}
 	}
@@ -1112,7 +1153,7 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 		// Check whether the chosen prod contains unimplemented or error related
 		// rule. If yes, do not choose this path.
 
-		tmpProd := r.MABChooseArm(prods, 0)
+		tmpProd := r.MABChooseArm(prods)
 
 		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
 			continue
