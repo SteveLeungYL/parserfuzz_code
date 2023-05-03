@@ -482,7 +482,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 				if isRecursive {
 					curCompProds = append(curCompProds, prod)
 				} else {
-					fmt.Printf("\n\n\nSaving root: %s to non-recursive: %v\n\n\n", rootName, prod.Items)
+					//fmt.Printf("\n\n\nSaving root: %s to non-recursive: %v\n\n\n", rootName, prod.Items)
 					r.allNormProds[rootName] = append(r.allNormProds[rootName], prod)
 				}
 			}
