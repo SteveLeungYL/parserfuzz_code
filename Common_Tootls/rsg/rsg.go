@@ -888,6 +888,12 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 			case "SLASH":
 				ret = append(ret, "/")
 				continue
+			case "REM":
+				ret = append(ret, "%")
+				continue
+			case "PTR":
+				ret = append(ret, "->")
+				continue
 			case "BITNOT":
 				ret = append(ret, "~")
 				continue
