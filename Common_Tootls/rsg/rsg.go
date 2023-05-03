@@ -390,7 +390,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 				// See whether the current child node is terminating token.
 				childProds, ok := r.allProds[curNode.Value]
 
-				if ok {
+				if ok && len(childProds) != 0 {
 					// this is not a terminating child node.
 					// search one more level.
 					// Thoroughly go through all the possible
@@ -455,6 +455,41 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 			}
 		} // loop: Each single rule.
 	} // loop: All rule in one token.
+
+	// For special case, if no termProds, normProds possible.
+	// prefer non-recursive rule to recursive rule.
+	/*
+		values ::= VALUES LP nexprlist RP.  --prefer this one. send to normProds.
+		values ::= values COMMA LP nexprlist RP. -- recursive, send to compProds.
+		... no other values rules.
+	*/
+	for rootName, rootProds := range r.allProds {
+		// all rules.
+		tmpNormProds, normOK := r.allNormProds[rootName]
+		tmpTermProds, termOK := r.allTermProds[rootName]
+		if !normOK && !termOK && len(tmpNormProds) == 0 && len(tmpTermProds) == 0 {
+			curCompProds := []*yacc.ExpressionNode{}
+			for _, prod := range rootProds {
+				// For each single rule.
+				isRecursive := false
+				for _, curNode := range prod.Items {
+					// For each child keyword.
+					if rootName == curNode.Value {
+						isRecursive = true
+						break
+					}
+				}
+				if isRecursive {
+					curCompProds = append(curCompProds, prod)
+				} else {
+					fmt.Printf("\n\n\nSaving root: %s to non-recursive: %v\n\n\n", rootName, prod.Items)
+					r.allNormProds[rootName] = append(r.allNormProds[rootName], prod)
+				}
+			}
+			r.allCompProds[rootName] = curCompProds
+		}
+	}
+
 }
 
 func (r *RSG) CheckEdgeCov(prevHash uint32, curHash uint32) bool {
@@ -562,11 +597,11 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 		// Depth IS reached. Prefer simple/term rules than complex rules.
 		resRules, ok = r.allTermProds[root]
 		//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
-		if !ok {
+		if !ok || len(resRules) == 0 {
 			// fallback to the original non-term tokens
 			//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
 			resRules, ok = r.allNormProds[root]
-			if !ok {
+			if !ok || len(resRules) == 0 {
 				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
 				resRules = r.allProds[root]
 			}
@@ -576,11 +611,11 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 		if r.Rnd.Intn(100) < 30 {
 			// 30% chances, prefer comp to norm to term.
 			resRules, ok = r.allCompProds[root]
-			if !ok {
+			if !ok || len(resRules) == 0 {
 				// fallback to the original non-term tokens
 				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any terminating rules. \n\n\n", root)
 				resRules, ok = r.allNormProds[root]
-				if !ok {
+				if !ok || len(resRules) == 0 {
 					resRules = r.allProds[root]
 				}
 			}
