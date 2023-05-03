@@ -380,6 +380,13 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 					break
 				}
 
+				if curNode.Value == rootName || isCompNode(curNode.Value) {
+					// This is a nested rule.
+					isComp = true
+					isTerm = false
+					break
+				}
+
 				// See whether the current child node is terminating token.
 				childProds, ok := r.allProds[curNode.Value]
 
@@ -749,8 +756,6 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 }
 
 func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
 
 	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
 	replayingMode := false
@@ -764,6 +769,7 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 		return nil
 	}
 
+	// Initialize to an empty slice instead of nil because nil means error.
 	ret := make([]string, 0)
 
 	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d \n\n\n", root, len(allProds))
