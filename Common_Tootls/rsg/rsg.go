@@ -880,6 +880,9 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 			case "LIKE_KW":
 				ret = append(ret, " LIKE ")
 				continue
+			case "MATCH":
+				ret = append(ret, " MATCH ")
+				continue
 			case "NE":
 				ret = append(ret, "!=")
 				continue
@@ -931,6 +934,9 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 				continue
 			case "REM":
 				ret = append(ret, "%")
+				continue
+			case "CONCAT":
+				ret = append(ret, " || ")
 				continue
 			case "PTR":
 				ret = append(ret, "->")
@@ -986,7 +992,10 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 				ret = append(ret, "'abc'")
 				continue
 			case "VARIABLE":
-				ret = append(ret, "0.0")
+				ret = append(ret, " 0.0 ")
+				continue
+			case "AUTOINCR":
+				ret = append(ret, "AUTOINCREMENT")
 				continue
 			case "FLOAT":
 				ret = append(ret, "0.0")
