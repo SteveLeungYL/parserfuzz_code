@@ -124,29 +124,31 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 		s = generateNormal(tc, dbmsName)
 	}
 
-	if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
-		//fmt.Printf("\n\n\nDEBUG: Getting BEGIN or START\n\n\n")
-		return nil, 0
-	}
-	if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
-		//fmt.Printf("\n\n\nDEBUG: Getting SET SESSION CHARACTERISTICS AS TRANSACTION\n\n\n")
-		return nil, 0
-	}
-	if strings.Contains(s, "READ ONLY") {
-		strings.Replace(s, "READ ONLY", "READ WRITE", -1)
-	}
-	if strings.Contains(s, "read_only") {
-		//fmt.Printf("\n\n\nDEBUG: Getting read_only\n\n\n")
-		return nil, 0
-	}
-	if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
-		//fmt.Printf("\n\n\nDEBUG: Getting REVOKE or GRANT\n\n\n")
-		//fmt.Printf("\n\n\n%s\n\n\n", s)
-		return nil, 0
-	}
-	if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
-		//fmt.Printf("\n\n\nDEBUG: Getting EXPERIMENTAL SCRUB\n\n\n")
-		return nil, 0
+	if dbmsName == "cockroachdb" {
+		if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
+			//fmt.Printf("\n\n\nDEBUG: Getting BEGIN or START\n\n\n")
+			return nil, 0
+		}
+		if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
+			//fmt.Printf("\n\n\nDEBUG: Getting SET SESSION CHARACTERISTICS AS TRANSACTION\n\n\n")
+			return nil, 0
+		}
+		if strings.Contains(s, "READ ONLY") {
+			strings.Replace(s, "READ ONLY", "READ WRITE", -1)
+		}
+		if strings.Contains(s, "read_only") {
+			//fmt.Printf("\n\n\nDEBUG: Getting read_only\n\n\n")
+			return nil, 0
+		}
+		if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
+			//fmt.Printf("\n\n\nDEBUG: Getting REVOKE or GRANT\n\n\n")
+			//fmt.Printf("\n\n\n%s\n\n\n", s)
+			return nil, 0
+		}
+		if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
+			//fmt.Printf("\n\n\nDEBUG: Getting EXPERIMENTAL SCRUB\n\n\n")
+			return nil, 0
+		}
 	}
 
 	return C.CString(s), len(s)
