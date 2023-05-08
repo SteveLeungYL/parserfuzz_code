@@ -150,6 +150,7 @@ func (t *Tree) parse() {
 			p := newProduction(token.pos, token.val)
 			t.parseProduction(p)
 			t.Productions = append(t.Productions, p)
+			//fmt.Printf("From keyword: %s\n", token.val)
 			//for _, expr := range p.Expressions {
 			//	fmt.Printf("Getting token: %v\n", expr.Items)
 			//}
