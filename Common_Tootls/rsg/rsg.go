@@ -191,11 +191,27 @@ func (r *RSG) IncrementFailed() {
 	r.ClearChosenExpr()
 }
 
-func (r *RSG) isSqliteCompNode(nodeValue string) bool {
+func (r *RSG) isSqliteCompNode(_ string, nodeValue string) bool {
 	switch nodeValue {
 	case "select":
 		fallthrough
 	case "expr":
+		return true
+	}
+	return false
+}
+
+func (r *RSG) isMySQLCompNode(_ string, nodeValue string) bool {
+
+	if strings.Contains(nodeValue, "expr") || strings.Contains(nodeValue, "subquery") {
+		return true
+	}
+	switch nodeValue {
+	case "subquery":
+		fallthrough
+	case "expr":
+		fallthrough
+	case "query_specification":
 		return true
 	}
 	return false
@@ -340,12 +356,14 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 	// Construct the terminating or nested Productions (Grammar Edges)
 
 	// Set up the Complicated Node classification function.
-	var isCompNode func(nodeValue string) bool
+	var isCompNode func(rootName string, nodeValue string) bool
 	if dbmsName == "sqlite" {
 		isCompNode = r.isSqliteCompNode
+	} else if dbmsName == "mysql" {
+		isCompNode = r.isMySQLCompNode
 	} else {
 		// Default placeholder.
-		isCompNode = func(in string) bool {
+		isCompNode = func(_ string, in string) bool {
 			return false
 		}
 	}
@@ -370,7 +388,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 					// Do not continue
 					break
 				}
-				if isCompNode(curNode.Value) {
+				if isCompNode(rootName, curNode.Value) {
 					// If the current child node is a complicated node,
 					// do not continue the search. This is a complicated node.
 					isComp = true
@@ -378,7 +396,7 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 					break
 				}
 
-				if curNode.Value == rootName || isCompNode(curNode.Value) {
+				if curNode.Value == rootName || isCompNode(rootName, curNode.Value) {
 					// This is a nested rule.
 					isComp = true
 					isTerm = false
@@ -398,20 +416,20 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 					isAllGrandChildComp := true
 					for _, childProd := range childProds {
 						grandChildComp := false
-						if !isTerm {
-							// If the current path is already
-							// classified as non-term
-							// Do not continue
-							break
-						}
+						//if !isTerm {
+						//	// If the current path is already
+						//	// classified as non-term
+						//	// Do not continue
+						//	break
+						//}
 						for _, childNode := range childProd.Items {
-							if !isTerm {
-								// If the current path is already
-								// classified as non-term
-								// Do not continue
-								break
-							}
-							if isCompNode(childNode.Value) {
+							//if !isTerm {
+							//	// If the current path is already
+							//	// classified as non-term
+							//	// Do not continue
+							//	break
+							//}
+							if isCompNode(curNode.Value, childNode.Value) {
 								// The grandchildren contains complicated nodes.
 								grandChildComp = true
 							}
@@ -443,13 +461,15 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 			if isTerm {
 				prod.NodeComp = 0
 				r.allTermProds[rootName] = append(r.allTermProds[rootName], prod)
-				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting terminating root: %s, prod: %v\n\n\n", rootName, prod.Items)
 			} else if isComp {
 				prod.NodeComp = 2
 				r.allCompProds[rootName] = append(r.allCompProds[rootName], prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting Complex root: %s, prod: %v\n\n\n", rootName, prod.Items)
 			} else {
 				prod.NodeComp = 1
 				r.allNormProds[rootName] = append(r.allNormProds[rootName], prod)
+				//fmt.Printf("\n\n\nDEBUG: Getting Normal root: %s, prod: %v\n\n\n", rootName, prod.Items)
 			}
 		} // loop: Each single rule.
 	} // loop: All rule in one token.
@@ -778,7 +798,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		resStr = r.generateCockroach(root, depth, rootDepth)
 	} else if dbmsName == "mysql" {
 		// TODO: Implement replaying mode.
-		resStr = r.generateMySQL(root, depth, rootDepth)
+		resStr = r.generateMySQL(root, rootPathNode, 0, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
 	}
@@ -1069,22 +1089,65 @@ func (r *RSG) generateSqlite(root string, rootPathNode *PathNode, parentHash uin
 	return ret
 }
 
-func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
-	ret := make([]string, 0)
-	prods := r.allProds[root]
-	if len(prods) == 0 {
-		return []string{r.formatTokenValue(root)}
-	}
+func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
 
-	prod := r.MABChooseArm(prods)
+	//fmt.Printf("\n\n\nLooking for root: %s, depth: %d\n\n\n", root, depth)
+	replayingMode := false
+	isChooseCompRule := false
+	isFavPathNode := false
 
-	if prod == nil {
+	if rootPathNode == nil {
+		fmt.Printf("\n\n\nError: rootPathNode is nil. \n\n\n")
+		// Return nil is different from return an empty array.
+		// Return nil represent error.
 		return nil
 	}
 
-	for _, item := range prod.Items {
+	// Initialize to an empty slice instead of nil because nil means error.
+	ret := make([]string, 0)
+
+	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d \n\n\n", root, len(allProds))
+	var curChosenRule *yacc.ExpressionNode
+	if rootPathNode.ExprProds == nil {
+		// Not in the replaying mode, choose one node using MABChooseARM and proceed.
+		replayingMode = false
+
+		curRuleSet := r.PrioritizeParserRules(root, parentHash, depth)
+
+		curChosenRule = r.MABChooseArm(curRuleSet)
+
+		// Mark the current parent to child rule as triggered.
+		r.MarkEdgeCov(parentHash, curChosenRule.UniqueHash)
+
+		// Check whether all rules in the current root keyword is triggered.
+		// If not all are triggered, set is isFav = true
+		isFavPathNode = r.CheckIsFav(root, parentHash)
+
+		// Check whether the chosen rule is complex rule, i.e., select, expr, nexpr etc.
+		for _, val := range r.allCompProds[root] {
+			if val == curChosenRule {
+				//fmt.Printf("\n\n\nDebugging: Complex rule matched: val: %v, curChosenRule: %v\n\n\n", val.Items, curChosenRule.Items)
+				isChooseCompRule = true
+				break
+			}
+		}
+		rootPathNode.ExprProds = curChosenRule
+		rootPathNode.Children = []*PathNode{}
+	} else {
+		// Replay mode, directly reuse the previous chosen rule.
+		replayingMode = true
+		curChosenRule = rootPathNode.ExprProds
+	}
+
+	if curChosenRule == nil {
+		fmt.Printf("\n\n\nERROR: getting nil curChosenRule. \n\n\n")
+		return nil
+	}
+
+	rootHash := curChosenRule.UniqueHash
+
+	replayExprIdx := 0
+	for _, item := range curChosenRule.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
 			v := item.Value[1 : len(item.Value)-1]
@@ -1095,31 +1158,75 @@ func (r *RSG) generateMySQL(root string, depth int, rootDepth int) []string {
 
 			var v []string
 
-			switch item.Value {
-			case "ident":
-				v = []string{"ident"}
+			tokenStr := item.Value
 
-			case "expr":
-				if depth == 0 {
-					v = []string{"TRUE"}
-				} else {
-					v = r.generateMySQL(item.Value, depth-1, rootDepth)
+			if depth < 0 {
+				if tokenStr == "expr" {
+					ret = append(ret, " TRUE ")
+					continue
+				} else if tokenStr == "subquery" {
+					ret = append(ret, " select 'abc' ")
+					continue
 				}
+			}
+
+			switch tokenStr {
+			case "ident":
+				v = []string{" v0 "}
 
 			default:
-				if depth == 0 {
-					return nil
+
+				if _, ok := r.allProds[tokenStr]; !ok {
+					// Terminating token.
+					if len(tokenStr) > 3 && tokenStr[len(tokenStr)-4:] == "_SYM" {
+						tokenStr = tokenStr[:len(tokenStr)-4]
+					}
+					v = []string{tokenStr}
+				} else {
+					// Non-terminating token.
+					var newChildPathNode *PathNode
+					if !replayingMode {
+						newChildPathNode = &PathNode{
+							Id:        r.pathId,
+							Parent:    rootPathNode,
+							ExprProds: nil,
+							Children:  []*PathNode{},
+							IsFav:     isFavPathNode,
+							// Debug
+							//ParentStr: root,
+						}
+						r.pathId += 1
+						rootPathNode.Children = append(rootPathNode.Children, newChildPathNode)
+						if isChooseCompRule {
+							// Choosing the complex rules, depth - 1.
+							v = r.generateMySQL(item.Value, newChildPathNode, rootHash, depth-1, rootDepth)
+						} else {
+							// If not choosing the complex rules, depth not decrease.
+							v = r.generateMySQL(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+						}
+					} else {
+						if replayExprIdx >= len(rootPathNode.Children) {
+							fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+							return nil
+						}
+						newChildPathNode = rootPathNode.Children[replayExprIdx]
+						replayExprIdx += 1
+						// We won't decrease depth number in replaying mode.
+						v = r.generateMySQL(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+					}
 				}
-				v = r.generateMySQL(item.Value, depth-1, rootDepth)
+
 			}
 			if v == nil {
-				continue
+				fmt.Printf("\n\n\nError: v == nil in the RSG. Root: %s, item: %s\n\n\n", root, item.Value)
+				return nil
 			}
 			ret = append(ret, v...)
 		default:
 			panic("unknown item type")
 		}
 	}
+	//fmt.Printf("\n%sLevel: %d, root: %s, allProds: %v", strings.Repeat(" ", 9-depth), depth, root, curChosenRule.Items)
 	return ret
 }
 
