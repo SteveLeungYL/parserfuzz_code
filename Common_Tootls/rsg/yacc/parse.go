@@ -147,16 +147,16 @@ func (t *Tree) parse() {
 		//fmt.Printf("Inside the parse for loop. \n")
 		switch token := t.next(); token.typ {
 		case itemIdent:
-			//fmt.Printf("Getting Ident token: %s\n\n\n", token.val)
 			p := newProduction(token.pos, token.val)
 			t.parseProduction(p)
 			t.Productions = append(t.Productions, p)
-			//fmt.Printf("Getting token: %s", p.Expressions[len(p.Expressions)-1].Command)
+			//for _, expr := range p.Expressions {
+			//	fmt.Printf("Getting token: %v\n", expr.Items)
+			//}
+			//fmt.Printf("\n\n\n")
 		case itemEOF:
 			//fmt.Printf("Getting itemEOF: %s\n\n\n", token.val)
 			return
-			//default:
-			//	fmt.Printf("Getting default token: %s\n\n\n", token.val)
 		}
 	}
 }
@@ -198,7 +198,9 @@ func (t *Tree) parseProduction(p *ProductionNode) {
 			// ignore
 		case itemPipe:
 			if expectExpr {
-				t.unexpected(token, context)
+				//t.unexpected(token, context)
+				e := newExpression(token.pos)
+				p.Expressions = append(p.Expressions, e)
 			}
 			expectExpr = true
 		default:
@@ -218,6 +220,9 @@ func (t *Tree) parseExpression(e *ExpressionNode) {
 	const context = "expression"
 	for {
 		switch token := t.next(); token.typ {
+		case itemPipe:
+			t.backup()
+			return
 		case itemSemicolon:
 			return
 		case itemNL:
@@ -234,7 +239,6 @@ func (t *Tree) parseExpression(e *ExpressionNode) {
 			if t.peek().typ == itemNL {
 				t.next()
 			}
-			return
 		case itemPct, itemComment:
 			// ignore
 		default:
