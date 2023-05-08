@@ -253,6 +253,9 @@ void Mutator::handle_unsupported_having_clause(IR*& cur_stmt_root) {
 
 int Mutator::handle_wrong_num_of_values(IR*& cur_stmt_root, string error_msg) {
 
+//  cerr << "\n\n\nDEBUG: inside handle_wrong_num_of_values: \n\n\n";
+//  cerr << "Before fixing: " << cur_stmt_root->to_string() << "\n";
+
   vector<string> tmp_err_split = string_splitter(error_msg, " has ");
   if (tmp_err_split.size() <= 1) {
     cerr << "\n\n\nError, cannot find ' has ' in the handle_wrong_num_of_values function.\n\n\n";
@@ -285,18 +288,27 @@ int Mutator::handle_wrong_num_of_values(IR*& cur_stmt_root, string error_msg) {
     string new_vals_str = "";
 
     DataType cur_arg_type;
-    for (int i = 0; i < target_num_of_vals; i++) {
-      if (i != 0) {
-        new_vals_str += ", ";
+    int num_exprs = (get_rand_int(13) + 1);
+    for (int i = 0; i < num_exprs; i++) {
+      for (int j = 0; j < target_num_of_vals; j++) {
+        if (j != 0) {
+          new_vals_str += ", ";
+        }
+        DATATYPE rand_any_type =
+            cur_arg_type.gen_rand_any_type(this->all_supported_types);
+        cur_arg_type.set_data_type(rand_any_type);
+        new_vals_str += cur_arg_type.mutate_type_entry();
       }
-      DATATYPE rand_any_type = cur_arg_type.gen_rand_any_type(this->all_supported_types);
-      cur_arg_type.set_data_type(rand_any_type);
-      new_vals_str += cur_arg_type.mutate_type_entry();
+      if (i != num_exprs-1) {
+        new_vals_str += "), (";
+      }
     }
 
     nexpr_node->str_val_ = new_vals_str;
 
   }
+
+//  cerr << "After fixing: " << cur_stmt_root->to_string() << "\n";
 
   return 0;
 }
