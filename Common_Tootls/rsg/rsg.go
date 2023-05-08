@@ -203,7 +203,8 @@ func (r *RSG) isSqliteCompNode(_ string, nodeValue string) bool {
 
 func (r *RSG) isMySQLCompNode(_ string, nodeValue string) bool {
 
-	if strings.Contains(nodeValue, "expr") || strings.Contains(nodeValue, "subquery") {
+	if strings.Contains(nodeValue, "expr") || strings.Contains(nodeValue, "subquery") ||
+		strings.Contains(nodeValue, "joined_table") || strings.Contains(nodeValue, "list") {
 		return true
 	}
 	switch nodeValue {
@@ -338,10 +339,12 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 type RSG struct {
 	Rnd *rand.Rand
 
-	allProds     map[string][]*yacc.ExpressionNode
-	allTermProds map[string][]*yacc.ExpressionNode // allProds that lead to token termination
-	allNormProds map[string][]*yacc.ExpressionNode // allProds that cannot be defined.
-	allCompProds map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
+	allProds                 map[string][]*yacc.ExpressionNode
+	allTermProds             map[string][]*yacc.ExpressionNode // allProds that lead to token termination
+	allNormProds             map[string][]*yacc.ExpressionNode // allProds that cannot be defined.
+	allCompProds             map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
+	allCompRecursiveProds    map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
+	allCompNonRecursiveProds map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
 
 	curChosenPath   []*PathNode
 	allSavedPath    map[string][][]*PathNode
@@ -483,28 +486,22 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 	*/
 	for rootName, rootProds := range r.allProds {
 		// all rules.
-		tmpNormProds, normOK := r.allNormProds[rootName]
-		tmpTermProds, termOK := r.allTermProds[rootName]
-		if !normOK && !termOK && len(tmpNormProds) == 0 && len(tmpTermProds) == 0 {
-			curCompProds := []*yacc.ExpressionNode{}
-			for _, prod := range rootProds {
-				// For each single rule.
-				isRecursive := false
-				for _, curNode := range prod.Items {
-					// For each child keyword.
-					if rootName == curNode.Value {
-						isRecursive = true
-						break
-					}
-				}
-				if isRecursive {
-					curCompProds = append(curCompProds, prod)
-				} else {
-					//fmt.Printf("\n\n\nSaving root: %s to non-recursive: %v\n\n\n", rootName, prod.Items)
-					r.allNormProds[rootName] = append(r.allNormProds[rootName], prod)
+		for _, prod := range rootProds {
+			// For each single rule.
+			isRecursive := false
+			for _, curNode := range prod.Items {
+				// For each child keyword.
+				if rootName == curNode.Value {
+					isRecursive = true
+					break
 				}
 			}
-			r.allCompProds[rootName] = curCompProds
+			if isRecursive {
+				r.allCompRecursiveProds[rootName] = append(r.allCompRecursiveProds[rootName], prod)
+			} else {
+				//fmt.Printf("\n\n\nSaving root: %s to non-recursive: %v\n\n\n", rootName, prod.Items)
+				r.allCompNonRecursiveProds[rootName] = append(r.allCompNonRecursiveProds[rootName], prod)
+			}
 		}
 	}
 
@@ -539,16 +536,18 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		return nil, err
 	}
 	rsg := RSG{
-		Rnd:             rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
-		allProds:        make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
-		allTermProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
-		allNormProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
-		allCompProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
-		curChosenPath:   []*PathNode{},
-		allSavedPath:    make(map[string][][]*PathNode),
-		allSavedFavPath: make(map[string][][]*PathNode),
-		epsilon:         epsilon,
-		allTriggerEdges: make([]uint8, 65536),
+		Rnd:                      rand.New(&lockedSource{src: rand.NewSource(seed).(rand.Source64)}),
+		allProds:                 make(map[string][]*yacc.ExpressionNode), // Used to save all the grammar edges
+		allTermProds:             make(map[string][]*yacc.ExpressionNode), // Used to save only the terminating edges
+		allNormProds:             make(map[string][]*yacc.ExpressionNode), // Used to save only the unknown complexity edges
+		allCompProds:             make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		allCompRecursiveProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		allCompNonRecursiveProds: make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
+		curChosenPath:            []*PathNode{},
+		allSavedPath:             make(map[string][][]*PathNode),
+		allSavedFavPath:          make(map[string][][]*PathNode),
+		epsilon:                  epsilon,
+		allTriggerEdges:          make([]uint8, 65536),
 	}
 
 	// Construct all the possible Productions (Grammar Edges)
@@ -621,7 +620,10 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 			resRules, ok = r.allNormProds[root]
 			if !ok || len(resRules) == 0 {
 				//fmt.Printf("\n\n\nDebug: For root: %s, cannot find any normal rules. \n\n\n", root)
-				resRules = r.allProds[root]
+				resRules, ok = r.allCompNonRecursiveProds[root]
+				if !ok || len(resRules) == 0 {
+					resRules, ok = r.allProds[root]
+				}
 			}
 		}
 	} else {
@@ -1110,6 +1112,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 	var curChosenRule *yacc.ExpressionNode
 	if rootPathNode.ExprProds == nil {
 		// Not in the replaying mode, choose one node using MABChooseARM and proceed.
+		//fmt.Printf("\n\n\nLooking for root: %s, depth: %d\n\n\n", root, depth)
 		replayingMode = false
 
 		curRuleSet := r.PrioritizeParserRules(root, parentHash, depth)
@@ -1166,6 +1169,9 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 					continue
 				} else if tokenStr == "subquery" {
 					ret = append(ret, " select 'abc' ")
+					continue
+				} else if tokenStr == "table_factor" {
+					ret = append(ret, " v0 ")
 					continue
 				}
 			}
