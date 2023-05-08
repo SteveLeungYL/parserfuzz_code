@@ -1186,6 +1186,20 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			switch tokenStr {
 			case "ident":
 				v = []string{" v0 "}
+			case "TEXT_STRING":
+				v = []string{" 'abc' "}
+			case "NUM":
+				fallthrough
+			case "LONG_NUM":
+				fallthrough
+			case "ULONGLONG_NUM":
+				fallthrough
+			case "DECIMAL_NUM":
+				v = []string{" 100 "}
+			case "HEX_NUM":
+				v = []string{" 0x100 "}
+			case "FLOAT_NUM":
+				v = []string{" 100.0 "}
 
 			default:
 
