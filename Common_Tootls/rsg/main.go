@@ -104,7 +104,7 @@ func RSGExecFailed() {
 func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 	tc := TestCase{
 		root:        genType,
-		depth:       30, // Increase from default 20 to 30.
+		depth:       2, // Increase from default 20 to 30.
 		repetitions: 1,
 	}
 
