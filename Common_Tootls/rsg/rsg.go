@@ -196,8 +196,6 @@ func (r *RSG) isSqliteCompNode(nodeValue string) bool {
 	case "select":
 		fallthrough
 	case "expr":
-		fallthrough
-	case "nexprlist":
 		return true
 	}
 	return false

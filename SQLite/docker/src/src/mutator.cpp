@@ -126,6 +126,9 @@ int Mutator::dyn_fix_sql_errors(IR*& cur_stmt_root, string error_msg) {
   } else if (findStringIn(error_msg, "values were supplied")) {
     handle_wrong_num_of_values(cur_stmt_root, error_msg);
     return 0;
+  } else if (findStringIn(error_msg, "IN(...) element has") || findStringIn(error_msg, " term - expected ")){
+    cerr << "\n\n\nDebug: Getting error: " << error_msg << "\n\n\n";
+    return 1;
   }
 
   // Not being handled, skip fixing the current error.
