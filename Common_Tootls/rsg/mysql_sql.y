@@ -1,5 +1,4 @@
 %%
-
 start_entry:
           sql_statement
         | GRAMMAR_SELECTOR_EXPR bit_expr END_OF_INPUT
@@ -160,7 +159,7 @@ simple_statement:
         | help                          { $$= nullptr; }
         | import_stmt                   { $$= nullptr; }
         | insert_stmt
-        | install                       { $$= nullptr; }
+        | install_stmt
         | kill                          { $$= nullptr; }
         | load_stmt
         | lock                          { $$= nullptr; }
@@ -841,7 +840,7 @@ source_def:
             Lex->mi.password = $3.str;
             if (strlen($3.str) > 32)
             {
-              my_error(ER_CHANGE_MASTER_PASSWORD_LENGTH, MYF(0));
+              my_error(ER_CHANGE_SOURCE_PASSWORD_LENGTH, MYF(0));
               MYSQL_YYABORT;
             }
             Lex->contains_plaintext_password= true;
@@ -864,7 +863,7 @@ source_def:
             if ($3 > MASTER_DELAY_MAX)
             {
               const char *msg= YYTHD->strmake(@3.cpp.start, @3.cpp.end - @3.cpp.start);
-              my_error(ER_MASTER_DELAY_VALUE_OUT_OF_RANGE, MYF(0),
+              my_error(ER_SOURCE_DELAY_VALUE_OUT_OF_RANGE, MYF(0),
                        msg, MASTER_DELAY_MAX);
             }
             else
@@ -935,22 +934,22 @@ source_def:
                const char format[]= "%d";
                char buf[4*sizeof(SLAVE_MAX_HEARTBEAT_PERIOD) + sizeof(format)];
                sprintf(buf, format, SLAVE_MAX_HEARTBEAT_PERIOD);
-               my_error(ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE, MYF(0), buf);
+               my_error(ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE, MYF(0), buf);
                MYSQL_YYABORT;
             }
             if (Lex->mi.heartbeat_period > replica_net_timeout)
             {
               push_warning(YYTHD, Sql_condition::SL_WARNING,
-                           ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX,
-                           ER_THD(YYTHD, ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX));
+                           ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX,
+                           ER_THD(YYTHD, ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX));
             }
             if (Lex->mi.heartbeat_period < 0.001)
             {
               if (Lex->mi.heartbeat_period != 0.0)
               {
                 push_warning(YYTHD, Sql_condition::SL_WARNING,
-                             ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN,
-                             ER_THD(YYTHD, ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN));
+                             ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN,
+                             ER_THD(YYTHD, ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN));
                 Lex->mi.heartbeat_period= 0.0;
               }
               Lex->mi.heartbeat_opt=  LEX_MASTER_INFO::LEX_MI_DISABLE;
@@ -1041,6 +1040,7 @@ ignore_server_id:
           {
             Lex->mi.repl_ignore_server_ids.push_back($1);
           }
+          ;
 
 privilege_check_def:
           user_ident_or_text
@@ -2513,6 +2513,7 @@ statement_information_item:
             if ($$ == NULL)
               MYSQL_YYABORT;
           }
+          ;
 
 simple_target_specification:
           ident
@@ -2588,6 +2589,7 @@ condition_information_item:
             if ($$ == NULL)
               MYSQL_YYABORT;
           }
+          ;
 
 condition_information_item_name:
           CLASS_ORIGIN_SYM
@@ -5174,7 +5176,7 @@ field_opt_list:
         ;
 
 field_option:
-          SIGNED_SYM   { $$ = 0; }
+          SIGNED_SYM   { $$ = 0; } // TODO: remove undocumented ignored syntax
         | UNSIGNED_SYM { $$ = UNSIGNED_FLAG; }
         | ZEROFILL_SYM {
             $$ = ZEROFILL_FLAG;
@@ -6070,6 +6072,7 @@ alter_logfile_stmt:
 
             Lex->sql_command= SQLCOM_ALTER_TABLESPACE;
           }
+          ;
 
 alter_tablespace_stmt:
           ALTER TABLESPACE_SYM ident ADD ts_datafile
@@ -7102,7 +7105,7 @@ start_replica_stmt:
                  Lex->slave_connection.plugin_auth ||
                  Lex->slave_connection.plugin_dir))
             {
-              my_error(ER_SQLTHREAD_WITH_SECURE_SLAVE, MYF(0));
+              my_error(ER_SQLTHREAD_WITH_SECURE_REPLICA, MYF(0));
               MYSQL_YYABORT;
             }
           }
@@ -7185,6 +7188,7 @@ opt_password_option:
             Lex->slave_connection.password= $3.str;
             Lex->contains_plaintext_password= true;
           }
+          ;
 
 opt_default_auth_option:
           {
@@ -7262,7 +7266,7 @@ opt_replica_until:
                   || lex->mi.relay_log_pos || lex->mi.gtid)
                  && lex->mi.until_after_gaps))
             {
-               my_error(ER_BAD_SLAVE_UNTIL_COND, MYF(0));
+               my_error(ER_BAD_REPLICA_UNTIL_COND, MYF(0));
                MYSQL_YYABORT;
             }
             lex->mi.slave_until= true;
@@ -8267,6 +8271,7 @@ simple_expr:
         | function_call_conflict
         | simple_expr COLLATE_SYM ident_or_text %prec NEG
           {
+            warn_on_deprecated_user_defined_collation(YYTHD, $3);
             $$= NEW_PTN Item_func_set_collation(@$, $1, $3);
           }
         | literal_or_null
@@ -9757,6 +9762,7 @@ inner_join_type:
         | INNER_SYM JOIN_SYM               { $$= JTT_INNER; }
         | CROSS JOIN_SYM                   { $$= JTT_INNER; }
         | STRAIGHT_JOIN                    { $$= JTT_STRAIGHT_INNER; }
+        ;
 
 outer_join_type:
           LEFT opt_outer JOIN_SYM          { $$= JTT_LEFT; }
@@ -10739,6 +10745,7 @@ drop_tablespace_stmt:
             Lex->m_sql_cmd= cmd;
             Lex->sql_command= SQLCOM_ALTER_TABLESPACE;
           }
+          ;
 
 drop_undo_tablespace_stmt:
           DROP UNDO_SYM TABLESPACE_SYM ident opt_undo_tablespace_options
@@ -11361,6 +11368,7 @@ show_databases_stmt:
            {
              $$ = NEW_PTN PT_show_databases(@$, $3.wild, $3.where);
            }
+           ;
 
 show_tables_stmt:
           SHOW opt_show_cmd_type TABLES opt_db opt_wild_or_where
@@ -11820,6 +11828,7 @@ opt_explain_format:
               MYSQL_YYABORT;
             }
           }
+          ;
 
 opt_explain_options:
           ANALYZE_SYM opt_explain_format
@@ -12063,7 +12072,7 @@ source_reset_options:
           {
             if ($2 == 0 || $2 > MAX_ALLOWED_FN_EXT_RESET_MASTER)
             {
-              my_error(ER_RESET_MASTER_TO_VALUE_OUT_OF_RANGE, MYF(0),
+              my_error(ER_RESET_SOURCE_TO_VALUE_OUT_OF_RANGE, MYF(0),
                        $2, MAX_ALLOWED_FN_EXT_RESET_MASTER);
               MYSQL_YYABORT;
             }
@@ -14002,6 +14011,7 @@ alter_instance_stmt:
             Lex->sql_command= SQLCOM_ALTER_INSTANCE;
             $$= $3;
           }
+          ;
 
 alter_instance_action:
           ROTATE_SYM ident_or_text MASTER_SYM KEY_SYM
@@ -14990,6 +15000,7 @@ opt_with_roles:
           { Lex->grant_as.role_type = role_enum::ROLE_NONE; }
         | WITH ROLE_SYM DEFAULT_SYM
           { Lex->grant_as.role_type = role_enum::ROLE_DEFAULT; }
+          ;
 
 opt_grant_as:
           /* empty */
@@ -14999,6 +15010,7 @@ opt_grant_as:
             Lex->grant_as.grant_as_used = true;
             Lex->grant_as.user = $2;
           }
+          ;
 
 begin_stmt:
           BEGIN_SYM
@@ -15747,6 +15759,7 @@ xa:
 opt_convert_xid:
           /* empty */ { $$= false; }
          | CONVERT_SYM XID_SYM { $$= true; }
+         ;
 
 xid:
           text_string
@@ -15810,18 +15823,63 @@ opt_suspend:
           { $$= XA_FOR_MIGRATE; }
         ;
 
-install:
+install_option_type:
+        /* empty */ { $$=OPT_GLOBAL; }
+        | GLOBAL_SYM  { $$=OPT_GLOBAL; }
+        | PERSIST_SYM { $$=OPT_PERSIST; }
+        ;
+
+install_set_rvalue:
+          expr
+        | ON_SYM
+          {
+            $$= NEW_PTN Item_string(@$, "ON", 2, system_charset_info);
+          }
+        ;
+
+install_set_value:
+        install_option_type lvalue_variable equal install_set_rvalue
+        {
+          $$ = NEW_PTN PT_install_component_set_element {$1, $2, $4};
+        }
+        ;
+
+install_set_value_list:
+        install_set_value
+          {
+            $$ = NEW_PTN List<PT_install_component_set_element>;
+            if (!$$)
+              MYSQL_YYABORT; // OOM
+            if ($$->push_back($1))
+              MYSQL_YYABORT; // OOM
+          }
+        | install_set_value_list ',' install_set_value
+          {
+            $$ = $1;
+            if ($$->push_back($3))
+              MYSQL_YYABORT; // OOM
+          }
+        ;
+
+opt_install_set_value_list:
+        /* empty */
+          {
+            $$ = NEW_PTN List<PT_install_component_set_element>;
+          }
+        | SET_SYM install_set_value_list { $$ = $2; }
+        ;
+
+install_stmt:
           INSTALL_SYM PLUGIN_SYM ident SONAME_SYM TEXT_STRING_sys
           {
             LEX *lex= Lex;
             lex->sql_command= SQLCOM_INSTALL_PLUGIN;
             lex->m_sql_cmd= new (YYMEM_ROOT) Sql_cmd_install_plugin(to_lex_cstring($3), $5);
+            $$ = nullptr;
           }
-        | INSTALL_SYM COMPONENT_SYM TEXT_STRING_sys_list
+        | INSTALL_SYM COMPONENT_SYM TEXT_STRING_sys_list opt_install_set_value_list
           {
-            LEX *lex= Lex;
-            lex->sql_command= SQLCOM_INSTALL_COMPONENT;
-            lex->m_sql_cmd= new (YYMEM_ROOT) Sql_cmd_install_component($3);
+            $$ = NEW_PTN PT_install_component(YYTHD, $3, $4);
           }
         ;
 
@@ -16031,5 +16089,5 @@ json_attribute:
             }
             $$ = to_lex_cstring($1);
           }
-
+          ;
 %%
