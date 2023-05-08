@@ -1138,6 +1138,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 		rootPathNode.Children = []*PathNode{}
 	} else {
 		// Replay mode, directly reuse the previous chosen rule.
+		//fmt.Printf("\n\n\nReplaying mode: Looking for root: %s, depth: %d\n\n\n", root, depth)
 		replayingMode = true
 		curChosenRule = rootPathNode.ExprProds
 	}
@@ -1166,12 +1167,18 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			if depth < 0 {
 				if tokenStr == "expr" {
 					ret = append(ret, " TRUE ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 					continue
 				} else if tokenStr == "subquery" {
 					ret = append(ret, " select 'abc' ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 					continue
 				} else if tokenStr == "table_factor" {
 					ret = append(ret, " v0 ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 					continue
 				}
 			}
@@ -1212,7 +1219,10 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 						}
 					} else {
 						if replayExprIdx >= len(rootPathNode.Children) {
-							fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+							//fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+							//fmt.Printf("Root: %s", root)
+							//fmt.Printf("len(rootPathNode.Children): %d\n", len(rootPathNode.Children))
+							//fmt.Printf("replayExprIdx %d\n", replayExprIdx)
 							return nil
 						}
 						newChildPathNode = rootPathNode.Children[replayExprIdx]
