@@ -1,8 +1,6 @@
-import json
 import os.path
-import re
-import sys
 from typing import List
+import pandas as pd
 
 import click
 from loguru import logger
@@ -13,120 +11,30 @@ default_ir_type = "kUnknown"
 
 saved_ir_type = []
 
-custom_additional_keywords = {
-    "/* nothing */",
-    "/* Nothing */",
-    "/* Nothing*/",
-    "/* empty */",
-    "/* Empty */",
-    "{}",
-    # "{",
-    # "}",
-    "'!'",
-    "'.'",
-    "%prec",
-}
+all_term_keyword_mapping = dict()
 
-custom_additional_keywords_mapping = {
-    "%prec": "",
-    # "/* nothing */": "",
-    # "/* Nothing */": "",
-    # "/* Nothing*/": "",
-    # "/* empty */": "",
-    # "/* Empty */": "",
-}
+with open("./assets/keyword_mapping.csv", 'r') as km_fd:
+    km_pd = pd.read_csv(km_fd)
 
-with open("assets/keywords_mapping.json") as f:
-    keywords_mapping = json.load(f)
-    keywords_mapping.update(custom_additional_keywords_mapping)
+    for idx, cur_km in km_pd.iterrows():
+        all_term_keyword_mapping[cur_km['Symbol']] = cur_km['Value']
 
-total_keywords = set()
-with open("assets/keywords.json") as f:
-    total_keywords |= set(json.load(f))
-total_keywords |= custom_additional_keywords
+    print(all_term_keyword_mapping)
 
-total_tokens = set()
-if os.path.exists("assets/tokens.json"):
-    with open("assets/tokens.json") as f:
-        total_tokens |= set(json.load(f))
-
-manually_translation = {
-    "opt_returning_type": """
-opt_returning_type:
-
-    // The default returning type is CHAR(512). (The max length of 512
-    // is chosen so that the returned values are not handled as BLOBs
-    // internally. See CONVERT_IF_BIGGER_TO_BLOB.)
-    {
-        res = new IR(kOptReturningType, OP3("", "", ""));
-        $$ = res;
-    }
-
-    | RETURNING_SYM cast_type {
-        auto tmp1 = $2;
-        res = new IR(kOptReturningType, OP3("RETURNING", "", ""), tmp1);
-        $$ = res;
-    }
-
-;
-
-"""
-}
-
-
-class Token:
-    def __init__(self, word, index):
-        self.word = word
-        self.index = index
-        self._is_keyword = None
-
-    @property
-    def is_keyword(self):
-        if self._is_keyword is not None:
-            return self._is_keyword
-
-        if "'" in self.word:
-            self._is_keyword = True
-            return self._is_keyword
-
-        self._is_keyword = self.word in total_keywords
-        return self._is_keyword
-
-    def __str__(self) -> str:
-        if self.is_keyword:
-            if self.word.startswith("'") and self.word.endswith("'"):
-                return self.word.strip("'")
-            if self.word in keywords_mapping:
-                return keywords_mapping[self.word]
-
-        return self.word
-
-    def __repr__(self) -> str:
-        return '{prefix}("{word}")'.format(
-            prefix="Keyword" if self.is_keyword else "Token", word=self.word
-        )
-
-    def __gt__(self, other):
-        other_index = -1
-        if isinstance(other, Token):
-            other_index = other.index
-
-        return self.index > other_index
-
+def is_token_terminating_keyword(token: str) -> bool:
+    if "'" in token:
+        return True
+    return token in all_term_keyword_mapping
 
 def snake_to_camel(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
-
 
 def camel_to_snake(word):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 
-def tokenize(line) -> List[Token]:
+def tokenize(line) -> List[str]:
     line = line.strip()
-    if line.startswith("/*") and line.endswith("*/"):
-        # HACK for empty grammar eg. /* EMPTY */
-        return [Token(line, 0)]
 
     words = [word.strip() for word in line.split()]
     words = [word for word in words if word]
@@ -136,27 +44,22 @@ def tokenize(line) -> List[Token]:
         if word == "%prec":
             # ignore everything after %prec
             break
-        token_sequence.append(Token(word, idx))
+        token_sequence.append(word)
 
     return token_sequence
 
 
-def repace_special_keyword_with_token(line):
-    words = [word.strip() for word in line.split()]
-    words = [word for word in words if word]
+def replace_terminating_keyword_from_mapping(token_seq: List[str]):
 
     seq = []
-    for word in words:
-        word = word.strip()
-        if not word:
-            continue
-        # if word in keywords_mapping:
-        #     word = keywords_mapping[word]
+    for cur_token in token_seq:
+        cur_token = cur_token.strip()
+        if cur_token in all_term_keyword_mapping:
+            cur_token = all_term_keyword_mapping[cur_token]
 
-        seq.append(word)
+        seq.append(cur_token)
 
     return " ".join(seq)
-
 
 def prefix_tabs(text, tabs_num):
     result = []
@@ -540,278 +443,6 @@ def get_gram_tokens():
         if elem in gram_tokens:
             gram_tokens.remove(elem)
 
-    custom_additional_tokens = [
-        "group_replication_plugin_auth",
-        "opt_with_roles",
-        "opt_group_replication_start_options",
-        "view_suid",
-        "opt_grant_as",
-        "change_replication_source_tls_version",
-        "equal",
-        "table_lock",
-        "grant_options",
-        "opt_ssl",
-        "import_stmt",
-        "table_to_table_list",
-        "group_replication_user",
-        "opt_all",
-        "change_replication_source_delay",
-        "execute_var_ident",
-        "table_or_tables",
-        "opt_savepoint",
-        "execute_var_list",
-        "purge_option",
-        "connect_option",
-        "change_replication_source_port",
-        "opt_if_exists_ident",
-        "view_replace",
-        "sp_proc_stmt_unlabeled",
-        "sp_pdparams",
-        "sp_proc_stmt_if",
-        "opt_value",
-        "sp_proc_stmt_statement",
-        "prepare_src",
-        "binlog_from",
-        "table_to_table",
-        "prepare",
-        "require_list",
-        "sf_tail",
-        "source_tls_ciphersuites_def",
-        "change_replication_source_auto_position",
-        "use",
-        "sp_pdparam",
-        "sp_block_content",
-        "master_or_binary",
-        "init_lex_create_info",
-        "opt_table",
-        "opt_account_lock_password_expire_option",
-        "reset",
-        "opt_outer",
-        "change_replication_source_user",
-        "source_file_def",
-        "resignal_stmt",
-        "opt_of",
-        "opt_create_database_options",
-        "ev_ends",
-        "else_clause_opt",
-        "drop_procedure_stmt",
-        "opt_column",
-        "change_replication_source_get_source_public_key",
-        "group_replication_password",
-        "not",
-        "opt_work",
-        "alter_function_stmt",
-        "drop_function_stmt",
-        "drop_tablespace_stmt",
-        "nchar",
-        "drop_user_stmt",
-        "varchar",
-        "opt_default_auth_option",
-        "get_diagnostics",
-        "create_database_options",
-        "searched_case_stmt",
-        "view_tail",
-        "ignore_server_id_list",
-        "opt_INTO",
-        "purge",
-        "create_user_list",
-        "character_set",
-        "simple_statement_or_begin",
-        "alter_database_stmt",
-        "rename_list",
-        "opt_storage",
-        "change_replication_source_heartbeat_period",
-        "sp_fetch_list",
-        "drop_undo_tablespace_stmt",
-        "event_tail",
-        "sp_labeled_block",
-        "change_replication_source_tls_ciphersuites",
-        "opt_account_lock_password_expire_options",
-        "source_reset_options",
-        "sp_proc_stmt_open",
-        "opt_user_option",
-        "view_query_block",
-        "grant",
-        "require_list_element",
-        "opt_user_attribute",
-        "group_replication_start_options",
-        "flush_options",
-        "not2",
-        "view_algorithm",
-        "checksum",
-        "drop_database_stmt",
-        "sp_unlabeled_control",
-        "start_entry",
-        "change_replication_source_connect_retry",
-        "change_replication_source",
-        "server_option",
-        "sp_c_chistic",
-        "sp_elseifs",
-        "connect_option_list",
-        "drop_view_stmt",
-        "drop_event_stmt",
-        "rollback",
-        "assign_gtids_to_anonymous_transactions_def",
-        "opt_comma",
-        "change_replication_source_ssl_crl",
-        "require_clause",
-        "sp_hcond_element",
-        "view_or_trigger_or_sp_or_event",
-        "definer_tail",
-        "sp_proc_stmt_close",
-        "change_replication_source_ssl_crlpath",
-        "revoke",
-        "sp_proc_stmt",
-        "searched_when_clause_list",
-        "connect_options",
-        "change_replication_source_ssl_cert",
-        "stop_replica_stmt",
-        "alter_procedure_stmt",
-        "definer_opt",
-        "trigger_tail",
-        "opt_as",
-        "drop_server_stmt",
-        "opt_generated_always",
-        "definer",
-        "no_definer_tail",
-        "release",
-        "sp_tail",
-        "create_database_option",
-        "sp_proc_stmt_fetch",
-        "commit",
-        "flush_option",
-        "savepoint",
-        "from_or_in",
-        "ignore_server_id",
-        "sp_proc_stmts1",
-        "execute_using",
-        "sp_proc_stmt_leave",
-        "create",
-        "ev_starts",
-        "alter_database_options",
-        "change_replication_source_public_key",
-        "opt_replica_until",
-        "deallocate_or_drop",
-        "sp_proc_stmts",
-        "help",
-        "change_replication_source_password",
-        "group_replication",
-        "deallocate",
-        "drop_table_stmt",
-        "opt_plugin_dir_option",
-        "sp_proc_stmt_return",
-        "alter_user_list",
-        "sp_c_chistics",
-        "alter_database_option",
-        "no_definer",
-        "change_replication_source_zstd_compression_level",
-        "simple_when_clause_list",
-        "opt_end_of_input",
-        "opt_equal",
-        "change_replication_source_retry_count",
-        "alter_view_stmt",
-        "simple_when_clause",
-        "start_replica_stmt",
-        "opt_privileges",
-        "change_replication_source_ssl_verify_server_cert",
-        "reset_options",
-        "sp_if",
-        "alter_logfile_stmt",
-        "flush",
-        "alter_undo_tablespace_stmt",
-        "start",
-        "udf_tail",
-        "filter_defs",
-        "source_log_pos",
-        "privilege_check_def",
-        "flush_options_list",
-        "sp_fdparam_list",
-        "kill_option",
-        "ev_sql_stmt_inner",
-        "rename",
-        "signal_stmt",
-        "opt_default",
-        "and",
-        "source_defs",
-        "change_replication_source_ssl_cipher",
-        "opt_account_lock_password_expire_option_list",
-        "group_replication_start_option",
-        "change_replication_source_ssl_ca",
-        "unlock",
-        "alter_server_stmt",
-        "grant_ident",
-        "lock",
-        "opt_wild",
-        "reset_option",
-        "opt_and",
-        "source_log_file",
-        "opt_inner",
-        "opt_flush_lock",
-        "change_replication_source_ssl_capath",
-        "change_replication_source_bind",
-        "drop_trigger_stmt",
-        "table_primary_key_check_def",
-        "key_or_index",
-        "purge_options",
-        "value_or_values",
-        "sp_suid",
-        "alter_user_command",
-        "begin_stmt",
-        "searched_when_clause",
-        "drop_logfile_stmt",
-        "sp_unlabeled_block",
-        "group_replication_start",
-        "replica_until",
-        "optional_braces",
-        "lines_or_rows",
-        "opt_primary",
-        "change",
-        "sp_fdparam",
-        "describe_command",
-        "kill",
-        "table_lock_list",
-        "sp_pdparam_list",
-        "sp_opt_fetch_noise",
-        "keys_or_index",
-        "view_replace_or_algorithm",
-        "change_replication_source_compression_algorithm",
-        "begin_or_start",
-        "opt_to",
-        "opt_replica_reset_options",
-        "dec_num",
-        "clone_stmt",
-        "case_stmt_specification",
-        "xa",
-        "opt_PRECISION",
-        "ev_sql_stmt",
-        "opt_password_option",
-        "source_def",
-        "alter_event_stmt",
-        "binlog_base64_event",
-        "install",
-        "sp_a_chistics",
-        "ev_schedule_time",
-        "simple_case_stmt",
-        "sp_labeled_control",
-        "opt_key_or_index",
-        "alter_user_stmt",
-        "change_replication_source_ssl_key",
-        "sp_chistic",
-        "dec_num_error",
-        "sql_statement.y.y",
-        "execute",
-        "sp_proc_stmt_iterate",
-        "change_replication_source_ssl",
-        "change_replication_source_host",
-        "sp_fdparams",
-        "nvarchar",
-        "alter_tablespace_stmt",
-        "filter_def",
-        "replica",
-        "server_options_list",
-        "uninstall",
-    ]
-
     total_tokens |= gram_tokens
     total_tokens |= set(custom_additional_tokens)
     with open("assets/tokens.json", "w") as f:
@@ -1024,10 +655,7 @@ def run(output, remove_comments):
     marked_lines, extract_tokens = mark_statement_location(data)
 
     for token_name, extract_token in extract_tokens.items():
-        if token_name in manually_translation:
-            translation = manually_translation[token_name]
-        else:
-            translation = translate(extract_token)
+        translation = translate(extract_token)
 
         marked_lines = marked_lines.replace(
             f"=== {token_name.strip()} ===", translation, 1
