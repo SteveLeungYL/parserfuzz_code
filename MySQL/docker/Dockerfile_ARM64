@@ -14,8 +14,6 @@ RUN apt -y install build-essential
 RUN apt -y install clang
 RUN apt -y install cmake
 RUN apt -y install flex
-RUN apt -y install g++-multilib
-RUN apt -y install gcc-multilib
 RUN apt -y install gdb
 RUN apt -y install git
 RUN apt -y install libncurses5-dev
@@ -64,7 +62,7 @@ RUN chown -R mysql:mysql /home/mysql
 
 USER mysql
 WORKDIR /home/mysql/AFL 
-RUN make
+RUN AFL_NO_X86=1 make
 WORKDIR /home/mysql/AFL/llvm_mode
 # ENV LLVM_CONFIG=llvm-config-6.0
 RUN make 
@@ -79,7 +77,7 @@ RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.33.zi
 RUN unzip mysql-8.0.33.zip
 RUN mv mysql-server-mysql-8.0.33 mysql-server
 WORKDIR /home/mysql/mysql-server
-# MySQL version 8.0.33
+# MySQL version 8.0.30
 # RUN git checkout 3290a66c89eb1625a7058e0ef732432b6952b435 
 RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
@@ -114,11 +112,10 @@ RUN bash ./replace-changed-code.sh
 WORKDIR /home/mysql/src/parser/mysql-server
 RUN mkdir bld
 RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz && tar -xf boost_1_73_0.tar.gz
-RUN mkdir -p boost && mv boost_1_73_0 boost
 WORKDIR /home/mysql/src/parser/mysql-server/bld
 
 # Mute the Warning information. The modified version of the MySQL does return many Warnings while compiling. Known problem, ignore them. 
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost 
+RUN cmake .. -DWITH_BOOST=../boost_1_73_0
 RUN make -j$(nproc)
 
 WORKDIR /home/mysql/src

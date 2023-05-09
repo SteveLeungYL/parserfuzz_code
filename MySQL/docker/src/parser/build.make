@@ -100,8 +100,6 @@ join_syntax-t: mysql-server/bld/archive_output_directory/libstrings.a
 join_syntax-t: mysql-server/bld/archive_output_directory/libz.a
 join_syntax-t: mysql-server/bld/archive_output_directory/libmytime.a
 join_syntax-t: mysql-server/bld/archive_output_directory/libzstd.a
-join_syntax-t: /usr/lib/x86_64-linux-gnu/libssl.so
-join_syntax-t: /usr/lib/x86_64-linux-gnu/libcrypto.so
 join_syntax-t: mysql-server/bld/storage/myisammrg/libmyisammrg.a
 join_syntax-t: mysql-server/bld/storage/perfschema/libperfschema.a
 join_syntax-t: mysql-server/bld/storage/temptable/libtemptable.a
