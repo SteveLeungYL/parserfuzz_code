@@ -1,6 +1,6 @@
 #include "MySQL_IR_constructor.h"
 
-IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children) {
+IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children, IRTYPE ir_type) {
 
   vector<MySQLIRConstructor::ParseTreeTypeEnum> v_children_type; // 0 for terminated token, 1 for non-term rule.
 
@@ -75,6 +75,7 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children)
     }
   }
 
+  cur_ir->set_ir_type(ir_type);
   return cur_ir;
 
 }

@@ -221,7 +221,12 @@ public:
   string to_string_core();
 
   /* Do not use this func unless necessary (don't know the IR type. ) */
-  bool set_type(DATATYPE, DATAFLAG);
+  bool set_ir_type(IRTYPE in) {this->type_ = in; return true;}
+  bool set_type(DATATYPE data_type, DATAFLAG data_flag) {
+    this->set_data_type(data_type);
+    this->set_data_flag(data_flag);
+    return true;
+  }
 };
 
 

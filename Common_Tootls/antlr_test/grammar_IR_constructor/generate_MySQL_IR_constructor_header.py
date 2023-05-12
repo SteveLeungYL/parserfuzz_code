@@ -77,7 +77,7 @@ private:
     }
   }
 
-  IR* gen_node_ir(vector<antlr4::tree::ParseTree*>);
+  IR* gen_node_ir(vector<antlr4::tree::ParseTree*>, IRTYPE);
 
   inline bool is_parser_tree_node_terminated (antlr4::tree::ParseTree* child) {
     if (antlr4::ParserRuleContext* tmp = dynamic_cast<antlr4::ParserRuleContext*>(child)) {
@@ -141,6 +141,10 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("MySQL_I
         if "virtual std::any visit" not in cur_line:
             continue
         fd.write(cur_line)
-        fd.write("    return this->gen_node_ir(ctx->children);\n  }\n\n")
+
+        rule_name_str = cur_line.split("virtual std::any visit")[1]
+        rule_name_str = rule_name_str.split("(")[0]
+
+        fd.write(f"    return this->gen_node_ir(ctx->children, k{rule_name_str});\n  }}\n\n")
 
     fd.write(suffix_str)
