@@ -645,6 +645,8 @@ V(kLValueKeyword) \
 V(kIdentifierKeywordsAmbiguous4SystemVariables) \
 V(kRoleOrIdentifierKeyword) \
 V(kRoleOrLabelKeyword) \
+V(kUnknown)
+
 
 #define ALLDATAFLAG(V) \
   V(kUse) \
@@ -713,3 +715,26 @@ V(kRoleOrLabelKeyword) \
   V(kDataDatabaseFollow) \
   V(kDataLiteral) \
   
+
+
+
+#define ALLSPECIALTERMTOKENTYPE(V) \
+  V(IDENTIFIER) \
+  V(SINGLE_QUOTED_TEXT) \
+  V(DOUBLE_QUOTED_TEXT) \
+  V(HEX_NUMBER) \
+  V(BIN_NUMBER) \
+  V(NCHAR_TEXT) \
+  V(INT_NUMBER) \
+  V(LONG_NUMBER) \
+  V(ULONGLONG_NUMBER) \
+  V(DECIMAL_NUMBER) \
+  V(FLOAT_NUMBER) \
+  V(TRUE_SYMBOL) \
+  V(FALSE_SYMBOL) \
+  V(NULL_SYMBOL) \
+  V(NULL2_SYMBOL) \
+  V(DATE_SYMBOL) \
+  V(TIME_SYMBOL) \
+  V(TIMESTAMP_SYMBOL) \
+

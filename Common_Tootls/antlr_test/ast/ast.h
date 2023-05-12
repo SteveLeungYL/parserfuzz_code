@@ -173,6 +173,9 @@ public:
   string get_prefix();
   string get_middle();
   string get_suffix();
+  void set_prefix(string in);
+  void set_middle(string in);
+  void set_suffix(string in);
   IR* get_parent();
 
   bool update_left(IR*);
@@ -224,5 +227,6 @@ public:
 
 string get_string_by_ir_type(IRTYPE);
 string get_string_by_data_type(DATATYPE);
+string get_string_by_data_flag(DATAFLAG type);
 
 #endif // ANTLR_TEST_AST_H

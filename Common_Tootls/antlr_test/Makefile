@@ -1,4 +1,4 @@
-SRCS := *.cpp grammar/*.cpp ast/*.cpp
+SRCS := *.cpp grammar/*.cpp grammar_IR_constructor/*.cpp ast/*.cpp
 
 CFLAGS := -I/usr/local/include/antlr4-runtime -std=c++17 -pthread
 LINKER_FLAGS := -L/usr/local/lib/ -lantlr4-runtime -lpthread

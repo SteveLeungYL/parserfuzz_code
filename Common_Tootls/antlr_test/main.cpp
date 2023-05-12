@@ -11,6 +11,32 @@
 using namespace std;
 using namespace parsers;
 
+void debug(IR* root, unsigned level) {
+
+  for (unsigned i = 0; i < level; i++) {
+    cerr << " ";
+  }
+
+  cerr << level << ": "
+       << get_string_by_ir_type(root->type_) << ": "
+       << get_string_by_data_type(root->data_type_) << ": "
+       << get_string_by_data_flag(root->data_flag_) << ": "
+       << root->uniq_id_in_tree_ << ": "
+       << root -> to_string()
+       << endl;
+
+  if (root->left_) {
+    debug(root->left_, level + 1);
+  }
+  if (root->right_) {
+    debug(root->right_, level + 1);
+  }
+}
+
+void debug(IR *root){
+  debug(root, 0);
+}
+
 int main() {
 
   string str_in = "CREATE TABLE v0 (v1 int, v2 TEXT);";
@@ -37,7 +63,10 @@ int main() {
 
   MySQLIRConstructor ir_constr;
   ir_constr.set_parser(&parser);
-  ir_constr.visitQuery(tree);
+  IR* root_ir = any_cast<IR *>(ir_constr.visitQuery(tree));
+  if (root_ir != nullptr) {
+    debug(root_ir);
+  }
 
   cerr << "Error: " << parser.getNumberOfSyntaxErrors() << "\n\n\n";
 

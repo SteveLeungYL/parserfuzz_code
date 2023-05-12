@@ -77,6 +77,14 @@ string get_string_by_data_type(DATATYPE type) {
   return "";
 }
 
+string get_string_by_data_flag(DATAFLAG type) {
+#define DECLARE_CASE(classname)                                                \
+  if (type == classname)                                                       \
+    return #classname;
+  ALLDATAFLAG(DECLARE_CASE);
+#undef DECLARE_CASE
+  return "";
+}
 
 IR *IR::deep_copy() {
 
@@ -200,6 +208,18 @@ std::string IR::get_suffix() {
 IR* IR::get_parent() {
   if (!parent_) return NULL;
   else return parent_;
+}
+void IR::set_prefix(string in) {
+  if (!op_) this->op_ = OP0();
+  this->op_->prefix_ = in;
+}
+void IR::set_middle(string in) {
+  if (!op_) this->op_ = OP0();
+  this->op_->middle_ = in;
+}
+void IR::set_suffix(string in) {
+  if (!op_) this->op_ = OP0();
+  this->op_->suffix_ = in;
 }
 
 bool IR::detatch_node(IR *node) { return swap_node(node, NULL); }

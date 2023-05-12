@@ -11,6 +11,8 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
         cur_type = "k" + cur_line
 
         fd.write(f"V({cur_type}) \\\n")
+    fd.write("V(kUnknown)\n\n")
+
 
     fd.write(f"\n#define ALLDATAFLAG(V) \\\n")
     fd.write("""\
@@ -81,4 +83,28 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
   V(kDataDatabaseFollow) \\
   V(kDataLiteral) \\
   
+""")
+
+    fd.write("\n\n\n")
+    fd.write(f"#define ALLSPECIALTERMTOKENTYPE(V) \\\n")
+    fd.write("""\
+  V(IDENTIFIER) \\
+  V(SINGLE_QUOTED_TEXT) \\
+  V(DOUBLE_QUOTED_TEXT) \\
+  V(HEX_NUMBER) \\
+  V(BIN_NUMBER) \\
+  V(NCHAR_TEXT) \\
+  V(INT_NUMBER) \\
+  V(LONG_NUMBER) \\
+  V(ULONGLONG_NUMBER) \\
+  V(DECIMAL_NUMBER) \\
+  V(FLOAT_NUMBER) \\
+  V(TRUE_SYMBOL) \\
+  V(FALSE_SYMBOL) \\
+  V(NULL_SYMBOL) \\
+  V(NULL2_SYMBOL) \\
+  V(DATE_SYMBOL) \\
+  V(TIME_SYMBOL) \\
+  V(TIMESTAMP_SYMBOL) \\
+
 """)
