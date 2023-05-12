@@ -9,9 +9,11 @@
 #include <cstring>
 #include <filesystem>
 #include <typeinfo>
+#include <vector>
 
 #include "../MySQLBaseCommon.h"
 #include "../grammar/MySQLParserBaseVisitor.h"
+#include "../ast/ast.h"
 
 using namespace std;
 using namespace parsers;
@@ -37,6 +39,8 @@ class MySQLIRConstructor: public parsers::MySQLParserBaseVisitor {
 private:
 
   MySQLParser* p_parser;
+
+  IR* generate_node_ir(vector<antlr4::tree::ParseTree*>);
 
 public:
 
