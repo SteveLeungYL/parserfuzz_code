@@ -645,6 +645,8 @@ V(kLValueKeyword) \
 V(kIdentifierKeywordsAmbiguous4SystemVariables) \
 V(kRoleOrIdentifierKeyword) \
 V(kRoleOrLabelKeyword) \
+V(kIdentifierRule) \
+V(kStmtList) \
 V(kUnknown)
 
 

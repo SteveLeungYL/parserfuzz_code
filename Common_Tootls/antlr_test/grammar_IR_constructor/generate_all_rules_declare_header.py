@@ -11,6 +11,8 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
         cur_type = "k" + cur_line
 
         fd.write(f"V({cur_type}) \\\n")
+    fd.write("V(kIdentifierRule) \\\n")
+    fd.write("V(kStmtList) \\\n")
     fd.write("V(kUnknown)\n\n")
 
 

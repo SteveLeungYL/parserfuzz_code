@@ -39,7 +39,7 @@ void debug(IR *root){
 
 int main() {
 
-  string str_in = "CREATE TABLE v0 (v1 int, v2 TEXT);";
+  string str_in = "CREATE TABLE v0 (v1 int, v2 TEXT);CREATE TABLE v0 (v1 int, v2 TEXT);";
   antlr4::ANTLRInputStream input(str_in);
   MySQLLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
@@ -50,7 +50,7 @@ int main() {
   lexer.reset();
   parser.reset();
 
-  str_in = "SELECT * FROM v0;";
+  str_in = "INSERT INTO v0 (v1, v2, v3, v4) VALUES (1, 2, 3, 4);";
   input.load(str_in);
   lexer.setInputStream(&input);
   tokens.setTokenSource(&lexer);

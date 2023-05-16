@@ -149,6 +149,9 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("MySQL_I
         rule_name_str = cur_line.split("virtual std::any visit")[1]
         rule_name_str = rule_name_str.split("(")[0]
 
+        if rule_name_str == "Identifier":
+            rule_name_str = "IdentifierRule"
+
         fd.write(f"    IR* root = this->gen_node_ir(ctx->children, k{rule_name_str}); \n")
         fd.write(f"    special_handling_rule_name(root, k{rule_name_str});\n")
 

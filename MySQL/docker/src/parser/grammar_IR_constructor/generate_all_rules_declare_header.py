@@ -9,8 +9,10 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
         cur_line = cur_line.split("virtual std::any visit")[1]
         cur_line = cur_line.split("(")[0]
         cur_type = "k" + cur_line
-
         fd.write(f"V({cur_type}) \\\n")
+
+    fd.write("V(kIdentifierRule) \\\n")
+    fd.write("V(kStmtList) \\\n")
     fd.write("V(kUnknown)\n\n")
 
 
