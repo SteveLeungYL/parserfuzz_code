@@ -1,4 +1,3 @@
-
 #include "../include/ast.h"
 #include "sql/sql_ir_define.h"
 #include "../include/mutate.h"
@@ -122,7 +121,6 @@ bool try_validate_query(IR* cur_root) {
 }
 
 int main(int argc, char *argv[]) {
-  parser_init("test-parser");
 
   if (argc != 2) {
 

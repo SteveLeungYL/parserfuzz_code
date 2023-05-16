@@ -14,7 +14,7 @@
 #
 
 PROGNAME    = afl
-VERSION     = $(shell grep '^\#define VERSION ' config.h | cut -d '"' -f2)
+VERSION     = $(shell grep '^\#define FUZZER_VERSION ' config.h | cut -d '"' -f2)
 
 MYSQL_SRC_PATH =  ../parser/mysql-server/bld/
 MYSQL_INSTALL_PATH =  ../parser/mysql-server/bld/

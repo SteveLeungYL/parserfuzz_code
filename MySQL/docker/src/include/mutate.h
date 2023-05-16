@@ -3,7 +3,6 @@
 
 
 #include "ast.h"
-#include "sql/sql_ir_define.h"
 #include "utils.h"
 #include "../oracle/mysql_oracle.h"
 #include "../include/ir_wrapper.h"

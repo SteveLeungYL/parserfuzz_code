@@ -13,10 +13,11 @@ enum DATATYPE;
 class IR;
 class IROperator;
 
-class IRWrapper {
-public:
-    void set_ir_root (IR* in) {this->ir_root = in;} 
-    IR* get_ir_root () {return this->ir_root;}
+namespace IRWrapper {
+    static IR* ir_root = nullptr;
+
+    void set_ir_root (IR* in) {ir_root = in;}
+    IR* get_ir_root () {return ir_root;}
 
     // All deep_copied. 
     IR* reconstruct_ir_with_stmt_vec(const vector<IR*>&);
@@ -78,10 +79,10 @@ public:
     int get_stmt_idx(IR*);
 
     vector<IR*> get_stmt_ir_vec();
-    vector<IR*> get_stmt_ir_vec(IR* root) {this->set_ir_root(root); return this->get_stmt_ir_vec();}
+    vector<IR*> get_stmt_ir_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmt_ir_vec();}
 
     vector<IR*> get_stmtlist_IR_vec();
-    vector<IR*> get_stmtlist_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtlist_IR_vec();}
+    vector<IR*> get_stmtlist_IR_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmtlist_IR_vec();}
 
     bool compare_ir_type(IRTYPE left,IRTYPE right, bool ignore_subtype = true);
 
@@ -104,7 +105,7 @@ public:
     vector<IR*> get_selectclauselist_vec(IR*);
     bool append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
     bool remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx);
-    // int get_num_selectclause(IR* cur_stmt) {return this->get_selectclauselist_vec(cur_stmt).size();}
+    // int get_num_selectclause(IR* cur_stmt) {return IRWrapper::get_selectclauselist_vec(cur_stmt).size();}
     bool is_exist_UNION(IR* cur_stmt);
     bool is_exist_set_operator(IR* cur_stmt);
 
@@ -113,7 +114,7 @@ public:
     bool is_exist_func_call_generic(IR* cur_stmt);
 
     vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
-    int get_num_select_items_in_select_stmt(IR* cur_stmt) { return this->get_select_items_in_select_stmt(cur_stmt).size(); }
+    int get_num_select_items_in_select_stmt(IR* cur_stmt) { return get_select_items_in_select_stmt(cur_stmt).size(); }
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
@@ -132,11 +133,6 @@ public:
     int get_num_kvalues_in_stmt(IR* cur_stmt);
 
     void debug(IR* root, unsigned level);
-
-
-private:
-    IR* ir_root = nullptr;
-
 };
 
 #endif

@@ -14,10 +14,9 @@ MYSQL_LIB_PATH =
 export CC = g++
 export DEBUG =
 export OPT = -O3
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lmysqlclient
-
-include parser/link_depend.make
+export PARSER_FLAGS = -I/usr/local/include/antlr4-runtime -pthread
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS) $(PARSER_FLAGS)
+LDFLAGS = -ldl -lmysqlclient -L/usr/local/lib/ -lantlr4-runtime -lpthread
 
 all: afl-fuzz test-parser
 

@@ -50,7 +50,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     root = ir_tree.back();
 
-    IR *cur_ir_stmt = ir_wrapper.get_first_stmt_from_root(root);
+    IR *cur_ir_stmt = IRWrapper::get_first_stmt_from_root(root);
 
     // g_mutator->debug(root, 0);
 
@@ -198,7 +198,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
       }
 
       // Make sure the mutated structure is different.
-      IR* new_ir_verified_stmt = ir_wrapper.get_first_stmt_from_root(new_ir_verified.back());
+      IR* new_ir_verified_stmt = IRWrapper::get_first_stmt_from_root(new_ir_verified.back());
 
       // /* Debug outputs.  */
       // cerr << "ori_valid_select_struct is: " << ori_valid_select_struct << "\n";
@@ -276,8 +276,8 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 }
 
 int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
-    ir_wrapper.set_ir_root(ir_root);
-    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+    IRWrapper::set_ir_root(ir_root);
+    vector<IR*> stmt_vec = IRWrapper::get_stmt_ir_vec();
 
     int oracle_stmt_num = 0;
     for (IR* cur_stmt : stmt_vec){
@@ -287,8 +287,8 @@ int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
 }
 
 int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
-    ir_wrapper.set_ir_root(ir_root);
-    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+    IRWrapper::set_ir_root(ir_root);
+    vector<IR*> stmt_vec = IRWrapper::get_stmt_ir_vec();
 
     int oracle_stmt_num = 0;
     for (IR* cur_stmt : stmt_vec){
@@ -298,7 +298,7 @@ int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
 }
 
 bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
-    if (cur_IR != NULL && cur_IR->type_ == kSelectStmt) {
+    if (cur_IR != NULL && cur_IR->type_ == kSelectStatement) {
         /* For dummy function in the base class, treat all SELECT stmt as oracle function.  */
         return true;
     }
@@ -306,8 +306,8 @@ bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
 }
 
 void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
-    ir_wrapper.set_ir_root(ir_root);
-    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+    IRWrapper::set_ir_root(ir_root);
+    vector<IR*> stmt_vec = IRWrapper::get_stmt_ir_vec(ir_root);
 
     // cerr << "DEBUG: SQL_ORACLE::remove_oracle_select_stmt_from_ir: getting stmt\n";
     // for (IR* stmt: stmt_vec) {
@@ -321,8 +321,8 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
     // cerr << "Finished";
 
     for (IR* cur_stmt : stmt_vec) {
-        if (cur_stmt->type_ == kSelectStmt) {
-          ir_wrapper.remove_stmt_and_free(cur_stmt);
+        if (cur_stmt->type_ == kSelectStatement) {
+          IRWrapper::remove_stmt_and_free(cur_stmt);
         }
     }
 
@@ -334,12 +334,12 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
 }
 
 void SQL_ORACLE::remove_explain_stmt_from_ir(IR* ir_root) {
-    ir_wrapper.set_ir_root(ir_root);
-    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+    IRWrapper::set_ir_root(ir_root);
+    vector<IR*> stmt_vec = IRWrapper::get_stmt_ir_vec(ir_root);
 
     for (IR* cur_stmt : stmt_vec) {
-        if (cur_stmt->type_ == kExplainStmt) {
-          ir_wrapper.remove_stmt_and_free(cur_stmt);
+        if (cur_stmt->type_ == kExplainStatement) {
+          IRWrapper::remove_stmt_and_free(cur_stmt);
         }
     }
 
@@ -347,11 +347,11 @@ void SQL_ORACLE::remove_explain_stmt_from_ir(IR* ir_root) {
 }
 
 void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR* ir_root) {
-    ir_wrapper.set_ir_root(ir_root);
-    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+    IRWrapper::set_ir_root(ir_root);
+    vector<IR*> stmt_vec = IRWrapper::get_stmt_ir_vec(ir_root);
     for (IR* cur_stmt : stmt_vec) {
         if (this->is_oracle_select_stmt(cur_stmt)) {
-          ir_wrapper.remove_stmt_and_free(cur_stmt);
+          IRWrapper::remove_stmt_and_free(cur_stmt);
         }
     }
     return;
@@ -406,7 +406,7 @@ bool SQL_ORACLE::is_oracle_select_stmt(string in) {
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
     }
-    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_set.back());
+    IR* cur_stmt = IRWrapper::get_first_stmt_from_root(ir_set.back());
     if(cur_stmt == NULL) {
         cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
         return false;
@@ -422,7 +422,7 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
     }
-    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_set.back());
+    IR* cur_stmt = IRWrapper::get_first_stmt_from_root(ir_set.back());
     if(cur_stmt == NULL) {
         cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
         return false;
