@@ -79,3 +79,31 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
   return cur_ir;
 
 }
+
+void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
+
+// The function handle all identifiers and literals.
+// Fix the IRTypes, DataTypes and DataFlags from the data structure.
+// Notation, all fixing identifier rules: pureIdentifier, identifier, identifierList, identifierListWithParentheses,
+// -- qualifiedIdentifier, simpleIdentifier, dotIdentifier, textOrIdentifier,
+// -- lValueIdentifier, roleIdentifierOrText, identifierList, insertIdentifier,
+// -- userIdentifierOrText, schemaIdentifierPair, grantIdentifier,
+// -- roleIdentifierOrText, simpleIdentifier, identList, identListArg,
+// -- qualifiedIdentifier, dotIdentifier, labelIdentifier, userIdentifierOrText,
+// -- fieldIdentifier, insertIdentifier, identListArg.
+
+  switch(ir_type) {
+  case kFunctionCall:
+    handle_function_call(root);
+    break;
+  default:
+    break;
+  }
+
+  return;
+
+}
+
+void MySQLIRConstructor::handle_function_call(IR* root) {
+  return;
+}

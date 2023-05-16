@@ -120,11 +120,13 @@ private:
       return any_cast<IR *>(visit(child));
     }
   }
+  
+  void handle_function_call(IR*);
 
 public:
-
   void set_parser(MySQLParser* in) {this->p_parser = in;}
-
+  void special_handling_rule_name(IR*, IRTYPE);
+  
 """
 
 suffix_str = """\
@@ -140,11 +142,16 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("MySQL_I
     for cur_line in base_vis.readlines():
         if "virtual std::any visit" not in cur_line:
             continue
+        # Write the function signature
         fd.write(cur_line)
 
+        # record the IR class name.
         rule_name_str = cur_line.split("virtual std::any visit")[1]
         rule_name_str = rule_name_str.split("(")[0]
 
-        fd.write(f"    return this->gen_node_ir(ctx->children, k{rule_name_str});\n  }}\n\n")
+        fd.write(f"    IR* root = this->gen_node_ir(ctx->children, k{rule_name_str}); \n")
+        fd.write(f"    special_handling_rule_name(root, k{rule_name_str});\n")
+
+        fd.write(f"    return root;\n  }}\n\n")
 
     fd.write(suffix_str)
