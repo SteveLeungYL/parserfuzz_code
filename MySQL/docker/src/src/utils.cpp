@@ -166,26 +166,23 @@ bool is_str_empty(string input_str) {
   return true; // Empty
 }
 
-// from http://www.cplusplus.com/forum/beginner/114790/
-vector<string> string_splitter(const std::string &s, const char delimiter) {
+// From
+// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+vector<string> string_splitter(const string &in, string delimiter) {
 
-  size_t start = 0;
-  size_t end = s.find_first_of(delimiter);
+  vector<string> ret;
+  string s = in;
 
-  vector<string> output;
-
-  while (end <= string::npos) {
-
-    output.emplace_back(s.substr(start, end - start));
-
-    if (end == string::npos)
-      break;
-
-    start = end + 1;
-    end = s.find_first_of(delimiter, start);
+  size_t pos = 0;
+  string token;
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+    token = s.substr(0, pos);
+    ret.push_back(token);
+    s.erase(0, pos + delimiter.length());
   }
+  ret.push_back(s);
 
-  return output;
+  return ret;
 }
 
 int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {

@@ -1203,7 +1203,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
 bool Mutator::correct_insert_stmt(IR* cur_stmt) {
   vector<int> table_column_num;
 
-  if (cur_stmt->get_ir_type() == kInsertStmt) {
+  if (cur_stmt->get_ir_type() == kInsertStatement) {
 
     vector<IR*> v_table_name_ir = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kIdentifier, false);
     if (v_table_name_ir.size() == 0) {
@@ -1229,25 +1229,15 @@ bool Mutator::correct_insert_stmt(IR* cur_stmt) {
       return false;
     }
 
-    vector<IR*> v_value_list = IRWrapper::get_kvalueslist_in_stmt(cur_stmt);
-
-    // cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
-    // cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
-    // cerr << "v_values_num: " << values_num << "\n\n\n";
-
     if (values_num > cur_used_column_size) {
       for (int i = 0; i < (values_num - cur_used_column_size); i++) {
         IRWrapper::drop_fields_to_insert_stmt(cur_stmt);
-        for (IR* value_list : v_value_list) {
-          IRWrapper::drop_kvalues_to_insert_stmt(value_list);
-        }
+        IRWrapper::drop_kvalues_to_insert_stmt(cur_stmt);
       }
     } else if (values_num < cur_used_column_size) {
       for (int i = 0; i < (cur_used_column_size - values_num); i++) {
         IRWrapper::add_fields_to_insert_stmt(cur_stmt);
-        for (IR* value_list : v_value_list) {
-          IRWrapper::add_kvalues_to_insert_stmt(value_list);
-        }
+        IRWrapper::add_kvalues_to_insert_stmt(cur_stmt);
       }
     }
   }

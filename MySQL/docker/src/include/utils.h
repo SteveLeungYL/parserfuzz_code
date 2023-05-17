@@ -128,7 +128,7 @@ vector<string> get_all_files_in_dir(const char * dir_name);
 
 
 std::vector<string> string_splitter(const string &input_string,
-                                     const char delimiter_re);
+                                     string delimiter_re);
 bool is_str_empty(string input_str);
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);

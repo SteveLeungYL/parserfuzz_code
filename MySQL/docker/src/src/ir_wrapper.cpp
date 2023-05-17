@@ -1,4 +1,5 @@
 #include "../include/ir_wrapper.h"
+#include "../include/utils.h"
 #include <chrono>
 
 IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
@@ -680,24 +681,22 @@ bool IRWrapper::drop_fields_to_insert_stmt(IR* cur_stmt) {
 
     vector<IR*> v_fields = get_fields_in_stmt(cur_stmt);
 
-    if (v_fields.size() <= 1 ) {
+    if (v_fields.size() == 0 ) {
         return false;
     }
 
     IR* last_field = v_fields.back();
-    IR* parent_node = last_field->get_parent();
 
-    if (!parent_node) {
+    if (last_field->get_right() == nullptr) {
+        // There is only one Identifier in the kField.
         return false;
     }
 
-    parent_node->detatch_node(last_field);
+    IR* next_content = last_field->get_right();
+    cur_stmt->swap_node(last_field, next_content);
+    next_content->set_ir_type(kFields);
 
-    IR* parent_node_fields = parent_node->get_right();
-    parent_node->detatch_node(parent_node_fields);
-    parent_node->update_left(parent_node_fields);
-
-    parent_node->op_->middle_ = "";
+    last_field->update_right(nullptr);
     last_field->deep_drop();
 
     return true;
@@ -705,63 +704,43 @@ bool IRWrapper::drop_fields_to_insert_stmt(IR* cur_stmt) {
 }
 
 bool IRWrapper::add_kvalues_to_insert_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kValuesList) {
+    if (cur_stmt->get_ir_type() != kInsertStatement) {
         return false;
     }
 
-    vector<IR*> v_values = get_kvalues_in_kvaluelist(cur_stmt);
+    vector<IR*> v_values_node = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValues, false, false);
 
-    if (v_values.size() == 0 ) {
-        // cerr << "v_values is 0;\n\n\n";
-        return false;
+    for (IR* cur_values_node: v_values_node) {
+        IR* new_literal = new IR(kLiteral, string("0"));
+        IR* new_values_node = new IR(kValues, OP3("", ", ", ""), nullptr, new_literal);
+        cur_values_node->set_ir_type(kUnknown);
+        cur_stmt->swap_node(cur_values_node, new_values_node);
+        new_values_node->update_left(cur_values_node);
     }
 
-    IR* last_values = v_values.back();
-    IR* last_values_content = last_values->get_left();
-    if (!last_values_content) {
-        return false;
-    }
-    IR* last_values_content_copy = last_values_content->deep_copy();
-
-    // cerr << "last_values_content_copy is: " << last_values_content_copy->to_string() << "\n\n\n";
-
-    IR* new_values = new IR(kValues, OP0(), last_values_content_copy);
-
-    last_values->detatch_node(last_values_content);
-    last_values->update_right(last_values_content);
-    last_values->op_->middle_ = ",";
-    last_values->update_left(new_values);
-    
     return true;
 
 }
 
 bool IRWrapper::drop_kvalues_to_insert_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kValuesList) {
+    if (cur_stmt->get_ir_type() != kInsertStatement) {
         return false;
     }
 
-    vector<IR*> v_values = get_kvalues_in_kvaluelist(cur_stmt);
+    vector<IR*> v_values_node = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValues, false, false);
 
-    if (v_values.size() <= 1 ) {
-        return false;
+    for (IR* cur_values_node: v_values_node) {
+
+        if (cur_values_node->get_right() == nullptr) {
+            continue;
+        }
+
+        IR* next_value = cur_values_node->get_right();
+        cur_values_node->update_right(nullptr);
+        cur_stmt->swap_node(cur_values_node, next_value);
+        cur_values_node->deep_drop();
+        next_value->set_ir_type(kValues);
     }
-
-    IR* last_values = v_values.back();
-    IR* parent_node = last_values->get_parent();
-
-    if (!parent_node) {
-        return false;
-    }
-
-    parent_node->detatch_node(last_values);
-
-    IR* parent_node_values = parent_node->get_right();
-    parent_node->detatch_node(parent_node_values);
-    parent_node->update_left(parent_node_values);
-
-    parent_node->op_->middle_ = "";
-    last_values->deep_drop();
 
     return true;
 
@@ -769,7 +748,7 @@ bool IRWrapper::drop_kvalues_to_insert_stmt(IR* cur_stmt) {
 
 
 vector<IR*> IRWrapper::get_fields_in_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kInsertStmt) {
+    if (cur_stmt->get_ir_type() != kInsertStatement) {
         vector<IR*> tmp;
         return tmp;
     }
@@ -778,67 +757,33 @@ vector<IR*> IRWrapper::get_fields_in_stmt(IR* cur_stmt) {
 }
 
 int IRWrapper::get_num_fields_in_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kInsertStmt) {
+    if (cur_stmt->get_ir_type() != kInsertStatement) {
         return false;
     }
 
-    return IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kFields, false).size();
-
-}
-
-vector<IR*> IRWrapper::get_kvalues_in_kvaluelist(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kValuesList) {
-        vector<IR*> tmp;
-        return tmp;
+    vector<IR*> v_fields = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kFields, false);
+    if (v_fields.size() == 0) {
+        return 0;
     }
 
-    vector<IR*> res;
-
-    res = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValues, false);
-
-    return res;
-}
-
-vector<vector<IR*>> IRWrapper::get_kvalues_in_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kInsertStmt) {
-        vector<vector<IR*>> tmp;
-        return tmp;
-    }
-
-    vector<vector<IR*>> res;
-
-    vector<IR*> v_value_list = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValuesList, false);
-    for (IR* value_list : v_value_list) {
-        vector<IR*> v_values = IRWrapper::get_ir_node_in_stmt_with_type(value_list, kValues, false);
-        res.push_back(v_values);
-    }
-
-    return res;
-}
-
-vector<IR*>  IRWrapper::get_kvalueslist_in_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kInsertStmt) {
-        vector<IR*> tmp;
-        return tmp;
-    }
-
-    return IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValuesList, false);
+    IR* field_node = v_fields.front();
+    string tmp = field_node->to_string();
+    return string_splitter(tmp, ",").size();
 }
 
 int IRWrapper::get_num_kvalues_in_stmt(IR* cur_stmt) {
-    if (cur_stmt->get_ir_type() != kInsertStmt) {
+    if (cur_stmt->get_ir_type() != kInsertStatement) {
         return 0;
     }
 
     vector<int> res;
 
-    vector<IR*> v_value_list = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValuesList, false);
+    vector<IR*> v_value_list = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValues, false);
     if (v_value_list.size() == 0) {
         return 0;
     }
-    IR* value_list = v_value_list.back();
-    int num_values = IRWrapper::get_ir_node_in_stmt_with_type(value_list, kValues, false).size();
+    IR* value_node = v_value_list.front();
+    string tmp = value_node->to_string();
 
-    return num_values;
-
+    return string_splitter(tmp, ",").size();
 }
