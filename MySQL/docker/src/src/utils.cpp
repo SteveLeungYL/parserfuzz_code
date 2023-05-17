@@ -9,8 +9,6 @@
 
 using namespace std;
 
-IRWrapper ir_wrapper_2;
-
 void trim_string(string &res){
     int count = 0;
     int idx = 0;
@@ -191,7 +189,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
   vector<IR*> v_ir_root;
   IR* ir_root;
 
-  vector<string> v_cmd_str = string_splitter(cmd_str, ';');
+  vector<string> v_cmd_str = string_splitter(cmd_str, ";");
   for (string cur_cmd_str : v_cmd_str) {
 
     if(is_str_empty(cur_cmd_str)) continue;
@@ -235,7 +233,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
       // continue;
     }
 
-    IR* cur_stmt = ir_wrapper_2.get_first_stmt_from_root(cur_ir_root)->deep_copy();
+    IR* cur_stmt = IRWrapper::get_first_stmt_from_root(cur_ir_root)->deep_copy();
     v_ir_root.push_back(cur_stmt);
 
     // cerr << "Just run throught the run_parser, getting: \n";
@@ -245,7 +243,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     cur_ir_root->deep_drop();
   }
 
-  ir_root = ir_wrapper_2.reconstruct_ir_with_stmt_vec(v_ir_root);
+  ir_root = IRWrapper::reconstruct_ir_with_stmt_vec(v_ir_root);
 
   if (!ir_root) {
     // cerr << "IR reconstruct failed in run_parser_multi_stmt. \n";
@@ -261,7 +259,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
   // cerr << get_string_by_ir_type(ir_root->type_);
   // cerr << "\n\n\n";
 
-  ir_vec_all_stmt = ir_wrapper_2.get_all_ir_node(ir_root);
+  ir_vec_all_stmt = IRWrapper::get_all_ir_node(ir_root);
 
   if (ir_vec_all_stmt.size() > 0) {
 

@@ -1,6 +1,7 @@
 #include "../include/ir_wrapper.h"
 #include "../include/utils.h"
 #include <chrono>
+#include <cassert>
 
 IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
     if (stmt_vec.size() == 0) {

@@ -64,8 +64,6 @@ namespace IRWrapper {
 
     bool replace_stmt_and_free(IR* old_stmt, IR* cur_stmt);
 
-    // bool swap_components_at_ir(IR*, bool is_left_f, IR*, bool is_left_l);
-
     IR* get_ir_node_for_stmt_by_idx(int idx);
     IR* get_ir_node_for_stmt_by_idx(IR* ir_root, int idx);
 
@@ -81,7 +79,6 @@ namespace IRWrapper {
     vector<IR*> get_stmtlist_IR_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmtlist_IR_vec();}
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false);
-    bool is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debug=false);
 
     /*
     ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
@@ -94,29 +91,19 @@ namespace IRWrapper {
     bool is_exist_having_clause(IR*);
     bool is_exist_limit_clause(IR*);
 
-    /**/
-    vector<IR*> get_selectclauselist_vec(IR*);
-    bool append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
-    bool remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx);
-    // int get_num_selectclause(IR* cur_stmt) {return IRWrapper::get_selectclauselist_vec(cur_stmt).size();}
-
     vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
     int get_num_select_items_in_select_stmt(IR* cur_stmt) { return get_select_items_in_select_stmt(cur_stmt).size(); }
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
 
-
     bool add_fields_to_insert_stmt(IR* cur_stmt);
     bool drop_fields_to_insert_stmt(IR* cur_stmt);
     vector<IR*> get_fields_in_stmt(IR* cur_stmt);
-    int get_num_fields_in_stmt(IR* cur_stmt);
 
     bool add_kvalues_to_insert_stmt(IR* cur_stmt);
     bool drop_kvalues_to_insert_stmt(IR* cur_stmt);
-    vector<vector<IR*>> get_kvalues_in_stmt(IR* cur_stmt);
-    vector<IR*> get_kvalueslist_in_stmt(IR* cur_stmt);
-    vector<IR*> get_kvalues_in_kvaluelist(IR* cur_stmt);
+    int get_num_fields_in_stmt(IR* cur_stmt);
     int get_num_kvalues_in_stmt(IR* cur_stmt);
 
     void debug(IR* root, unsigned level);

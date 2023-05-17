@@ -8,6 +8,6 @@ using namespace std;
 
 class IR;
 
-void run_parser(string in, vector<IR*>&);
+int run_parser(string in, vector<IR*>&);
 
 #endif

@@ -11,7 +11,7 @@
 using std::vector;
 using std::string;
 
-void run_parser(string str_in, vector<IR*>& ir_vec) {
+int run_parser(string str_in, vector<IR*>& ir_vec) {
 
   antlr4::ANTLRInputStream input(str_in);
   MySQLLexer lexer(&input);
@@ -32,10 +32,8 @@ void run_parser(string str_in, vector<IR*>& ir_vec) {
   cerr << "Error: " << parser.getNumberOfSyntaxErrors() << "\n\n\n";
   if (parser.getNumberOfSyntaxErrors() == 0) {
     IRWrapper::get_all_ir_node(root_ir, ir_vec);
+    return 0;
+  } else {
+    return 1;
   }
-
-  lexer.reset();
-  parser.reset();
-
-  return;
 }
