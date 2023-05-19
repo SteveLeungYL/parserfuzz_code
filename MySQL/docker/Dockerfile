@@ -99,33 +99,31 @@ FROM sqlright_mysql_source_build AS sqlright_src
 # Install SQLRight MySQL
 USER root
 COPY src /home/mysql/src
-WORKDIR /home/mysql/src/parser
-RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.27.zip
-RUN unzip mysql-8.0.27.zip 
-RUN mv mysql-server-mysql-8.0.27 mysql-server
 RUN chown -R mysql:mysql /home/mysql/src
 
-# Add SQLRight modification to the MySQL source code.
+# Setup the MySQL fuzzer compilation requirements.
+USER root
+RUN apt -y install antlr4 curl
+
+## antlr4
 USER mysql
-WORKDIR /home/mysql/src/parser/patches
-RUN bash ./replace-changed-code.sh
-
-# Compile the build-in MySQL source code.
-WORKDIR /home/mysql/src/parser/mysql-server
-RUN mkdir bld
-RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz && tar -xf boost_1_73_0.tar.gz
-RUN mkdir -p boost && mv boost_1_73_0 boost
-WORKDIR /home/mysql/src/parser/mysql-server/bld
-
-# Mute the Warning information. The modified version of the MySQL does return many Warnings while compiling. Known problem, ignore them. 
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost 
+WORKDIR /home/mysql
+RUN curl -O https://www.antlr.org/download/antlr-4.12.0-complete.jar
+## antlr4 runtime.
+RUN wget https://github.com/antlr/antlr4/archive/4.12.0.zip
+RUN unzip 4.12.0.zip
+WORKDIR /home/mysql/antlr4-4.12.0/runtime/Cpp/
+RUN mkdir -p bld
+WORKDIR /home/mysql/antlr4-4.12.0/runtime/Cpp/bld
+RUN cmake .. -DANTLR_JAR_LOCATION=/home/mysql/antlr-4.12.0-complete.jar -DWITH_DEMO=False
 RUN make -j$(nproc)
+USER root
+RUN make install
 
+# Compile MySQL Fuzzer.
+USER mysql
 WORKDIR /home/mysql/src
 RUN make
-
-USER root
-RUN cp /home/mysql/src/parser/mysql-server/bld/library_output_directory/libserver_unittest_library.so /usr/lib/
 
 
 # Setup other SQLRight configurations.
