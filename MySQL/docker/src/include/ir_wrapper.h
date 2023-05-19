@@ -73,10 +73,10 @@ namespace IRWrapper {
     int get_stmt_idx(IR*);
 
     vector<IR*> get_stmt_ir_vec();
-    vector<IR*> get_stmt_ir_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmt_ir_vec();}
+    vector<IR*> get_stmt_ir_vec(IR* root);
 
     vector<IR*> get_stmtlist_IR_vec();
-    vector<IR*> get_stmtlist_IR_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmtlist_IR_vec();}
+    vector<IR*> get_stmtlist_IR_vec(IR* root);
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false);
 
@@ -92,7 +92,7 @@ namespace IRWrapper {
     bool is_exist_limit_clause(IR*);
 
     vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
-    int get_num_select_items_in_select_stmt(IR* cur_stmt) { return get_select_items_in_select_stmt(cur_stmt).size(); }
+    int get_num_select_items_in_select_stmt(IR* cur_stmt);
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
