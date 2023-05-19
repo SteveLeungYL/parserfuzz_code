@@ -82,8 +82,11 @@ private:
 
   inline string get_terminated_token_str(antlr4::tree::ParseTree* child) {
     string out_str = dynamic_cast<antlr4::tree::TerminalNode*>(child)->getSymbol()->getText();
-    if (out_str == "<EOF>") {
+    auto type = dynamic_cast<antlr4::tree::TerminalNode*>(child)->getSymbol()->getType();
+    if (type == -1) {
         return "";
+    } else if (type == MySQLParser::SEMICOLON_SYMBOL) {
+        return ";";
     } else {
         return out_str;
     }

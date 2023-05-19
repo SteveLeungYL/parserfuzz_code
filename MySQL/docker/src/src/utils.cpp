@@ -14,9 +14,9 @@ void trim_string(string &res){
     int idx = 0;
     bool expect_space = false;
     for(int i = 0; i < res.size(); i++){
-        if(res[i] == ';' && i != res.size() - 1){
-            res[i+1] = '\n';
-        }
+//        if(res[i] == ';' && i != res.size() - 1){
+//            res[i+1] = '\n';
+//        }
         if(res[i] == ' '){
             if(expect_space == false){
                 continue;

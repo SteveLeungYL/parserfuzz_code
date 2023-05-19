@@ -972,8 +972,12 @@ void Mutator::debug(IR* root, unsigned level) {
          << get_string_by_data_type(root->data_type_) << ": "
          << get_string_by_data_flag(root->data_flag_) << ": " 
          << root->uniq_id_in_tree_ << ": "
-         << root -> to_string() << ": "
-         << endl;
+         << root -> to_string() << ":";
+    if (root->op_ != nullptr) {
+        cerr << "prefix:" << root->get_prefix() << ":middle:" << root->get_middle() << ":suffix:"
+             << root->get_suffix() << ":";
+    }
+    cerr << endl;
 
     if (root->left_) {
         debug(root->left_, level + 1);

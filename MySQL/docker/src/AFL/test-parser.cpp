@@ -106,7 +106,11 @@ bool try_validate_query(IR* cur_root) {
   vector<string> valid_split = string_splitter(validity, ";");
   cout << "validate: >\n";
   for (string str : valid_split) {
-    cout << str << ";\n";
+    trim_string(str);
+    if (str.empty()) {
+      continue;
+    }
+    cout << str << "; \n";
   }
   cout << "<\n\n\n";
 
