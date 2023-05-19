@@ -11,6 +11,10 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
         cur_type = "k" + cur_line
         fd.write(f"V({cur_type}) \\\n")
 
+    fd.write("V(kIntLiteral) \\\n")
+    fd.write("V(kFloatLiteral) \\\n")
+    fd.write("V(kStringLiteral) \\\n")
+    fd.write("V(kBooleanLiteral) \\\n")
     fd.write("V(kIdentifierRule) \\\n")
     fd.write("V(kStmtList) \\\n")
     fd.write("V(kUnknown)\n\n")
@@ -103,10 +107,5 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
   V(FLOAT_NUMBER) \\
   V(TRUE_SYMBOL) \\
   V(FALSE_SYMBOL) \\
-  V(NULL_SYMBOL) \\
-  V(NULL2_SYMBOL) \\
-  V(DATE_SYMBOL) \\
-  V(TIME_SYMBOL) \\
-  V(TIMESTAMP_SYMBOL) \\
 
 """)

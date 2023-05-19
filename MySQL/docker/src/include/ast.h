@@ -66,7 +66,7 @@ public:
 class IR{
 public:
   IR(IRTYPE type,  IROperator * op, IR * left=NULL, IR* right=NULL):
-                                                                       type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), data_type_(kDataWhatever){
+                                                                       type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
     name_ = "v0";
     if (left_)
       left_->parent_ = this;
@@ -74,7 +74,7 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, string str_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+  IR(IRTYPE type, string str_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kFlagUnknown):
                                                                                                               type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL), operand_num_
                                                                                                               (0), data_type_(data_type), scope_(scope) , data_flag_(flag){
     name_ = "v0";
@@ -84,7 +84,7 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, bool b_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+  IR(IRTYPE type, bool b_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kFlagUnknown):
                                                                                                           type_(type), bool_val_(b_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
     name_ = "v0";
     if (left_)
@@ -93,7 +93,7 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, unsigned long long_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+  IR(IRTYPE type, unsigned long long_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kFlagUnknown):
                                                                                                                       type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
     name_ = "v0";
     if (left_)
@@ -102,7 +102,7 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, int int_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+  IR(IRTYPE type, int int_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kFlagUnknown):
                                                                                                            type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
     name_ = "v0";
     if (left_)
@@ -111,7 +111,7 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, double f_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+  IR(IRTYPE type, double f_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kFlagUnknown):
                                                                                                             type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
     name_ = "v0";
     if (left_)
@@ -274,7 +274,7 @@ DATATYPE get_datatype_by_string(string s);
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_data_type(DATATYPE tt);
 string get_string_by_data_flag(DATAFLAG flag_type_);
-IR * deep_copy(const IR* const root);
+IR * deep_copy(IR* root);
 
 void deep_delete(IR * root);
 

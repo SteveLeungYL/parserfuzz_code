@@ -43,7 +43,6 @@
 #include "hash.h"
 #include "../include/ast.h"
 #include "../include/mutate.h"
-#include "sql/sql_ir_define.h"
 #include "../include/utils.h"
 
 #include <stdio.h>
@@ -86,9 +85,6 @@
 #include <filesystem>
 
 #include "../oracle/mysql_oracle.h"
-#include "../oracle/mysql_norec.h"
-#include "../oracle/mysql_tlp.h"
-#include "../oracle/mysql_opt.h"
 
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
@@ -5846,7 +5842,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       return FAULT_ERROR;
     }
 
-    vector<string> queries_vector = string_splitter(cmd_string, ';');
+    vector<string> queries_vector = string_splitter(cmd_string, ";");
     for (string &query : queries_vector) {
       // ignore the whole query pairs if !... in the stmt,
       for (auto iter = query.begin(); iter != query.end(); iter++) {
@@ -6646,7 +6642,7 @@ static u8 fuzz_one(char **argv)
   // cerr << "End\n\n\n";
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
-  // v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  // v_ir_stmts = IRWrapper::get_stmt_ir_vec(cur_root);
   // int create_num, drop_num;
   // bool is_missing_create;
   // create_num = 0;
@@ -6661,8 +6657,8 @@ static u8 fuzz_one(char **argv)
   //       {
   //         if (get_rand_int(2) < 1) {
   //           /* 50% chance, remove drop stmt.  */
-  //           p_oracle->ir_wrapper.set_ir_root(cur_root);
-  //           p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
+  //           IRWrapper::set_ir_root(cur_root);
+  //           IRWrapper::remove_stmt_and_free(ir_stmts);
   //         }
   //       }
   //       drop_num++;
@@ -6704,7 +6700,7 @@ static u8 fuzz_one(char **argv)
 
 
   ori_ir_tree.clear();
-  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root); 
+  ori_ir_tree = IRWrapper::get_all_ir_node(cur_root);
 
   stage_max = ori_ir_tree.size();
   stage_cur = 0;
@@ -6735,7 +6731,7 @@ static u8 fuzz_one(char **argv)
     IR* ir_to_mutate = vector_rand_ele(ori_ir_tree);
 
     /* Log which statement are we mutating on.  */
-    IR* cur_mutating_stmt = p_oracle->ir_wrapper.get_cur_stmt_ir_from_sub_ir(ir_to_mutate);  // Should not be NULL!
+    IR* cur_mutating_stmt = IRWrapper::get_cur_stmt_ir_from_sub_ir(ir_to_mutate);  // Should not be NULL!
     if (cur_mutating_stmt) {
       // cerr << "Mutating on: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << ":" << ir_to_mutate->to_string() << " stmt: " << get_string_by_ir_type(cur_mutating_stmt->get_ir_type()) << ": " << cur_mutating_stmt->to_string() << "\n\n\n";
 
@@ -6808,8 +6804,8 @@ static u8 fuzz_one(char **argv)
       // auto single_append_stmt_start_time = std::chrono::system_clock::now();
 
       for (IR* app_IR_node : v_oracle_select_stmts) {
-        p_oracle->ir_wrapper.set_ir_root(cur_root);
-        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
+        IRWrapper::set_ir_root(cur_root);
+        IRWrapper::append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
       }
 
       // auto single_append_stmt_end_time = std::chrono::system_clock::now();
@@ -8492,20 +8488,21 @@ int main(int argc, char *argv[])
     {
       /* Default NOREC */
       string arg = string(optarg);
-      if (arg == "NOREC")
-        p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "OPT")
-        p_oracle = new SQL_OPT();
+//      if (arg == "NOREC")
+//        p_oracle = new SQL_NOREC();
+//      else if (arg == "TLP")
+//        p_oracle = new SQL_TLP();
+//      else if (arg == "OPT")
+//        p_oracle = new SQL_OPT();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
       //   p_oracle = new SQL_ROWID();
       // else if (arg == "INDEX")
       //   p_oracle = new SQL_INDEX();
-      else
-        FATAL("Oracle arguments not supported. ");
+//      else
+//        FATAL("Oracle arguments not supported. ");
+      p_oracle = new SQL_ORACLE();
     }
     break;
 
@@ -8571,7 +8568,7 @@ int main(int argc, char *argv[])
     }
 
   if (p_oracle == NULL) {
-    p_oracle = new SQL_OPT();
+    p_oracle = new SQL_ORACLE();
   }
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);

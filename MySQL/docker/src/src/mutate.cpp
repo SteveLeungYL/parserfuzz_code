@@ -3809,13 +3809,13 @@ void Mutator::_extract_struct(IR *root) {
     return;
   }
 
-  if (root->get_ir_type() == kIntType || root->get_ir_type() == kIntLiteral ) {
+  if (root->get_ir_type() == kIntLiteral ) {
     if ( root->str_val_ != "") {
       root->int_val_ = 0;
       root->str_val_ = "0";
       return;
     }
-  } else if (root->get_ir_type() == kRealType && root->str_val_ != "") {
+  } else if (root->get_ir_type() == kFloatLiteral && root->str_val_ != "") {
     root->float_val_ = 0.0;
     root->str_val_ = "0.0";
     return;

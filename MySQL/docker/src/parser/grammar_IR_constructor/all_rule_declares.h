@@ -645,6 +645,10 @@ V(kLValueKeyword) \
 V(kIdentifierKeywordsAmbiguous4SystemVariables) \
 V(kRoleOrIdentifierKeyword) \
 V(kRoleOrLabelKeyword) \
+V(kIntLiteral) \
+V(kFloatLiteral) \
+V(kStringLiteral) \
+V(kBooleanLiteral) \
 V(kIdentifierRule) \
 V(kStmtList) \
 V(kUnknown)
@@ -734,9 +738,4 @@ V(kUnknown)
   V(FLOAT_NUMBER) \
   V(TRUE_SYMBOL) \
   V(FALSE_SYMBOL) \
-  V(NULL_SYMBOL) \
-  V(NULL2_SYMBOL) \
-  V(DATE_SYMBOL) \
-  V(TIME_SYMBOL) \
-  V(TIMESTAMP_SYMBOL) \
 

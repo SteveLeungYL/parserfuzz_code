@@ -16,8 +16,8 @@ class IROperator;
 namespace IRWrapper {
     static IR* ir_root = nullptr;
 
-    void set_ir_root (IR* in) {ir_root = in;}
-    IR* get_ir_root () {return ir_root;}
+    void set_ir_root (IR* in);
+    IR* get_ir_root ();
 
     // All deep_copied. 
     IR* reconstruct_ir_with_stmt_vec(const vector<IR*>&);

@@ -3,6 +3,17 @@
 #include <chrono>
 #include <cassert>
 
+using namespace IRWrapper;
+
+void IRWrapper::set_ir_root (IR* in) {ir_root = in;}
+IR* IRWrapper::get_ir_root () {return ir_root;}
+
+vector<IR*> IRWrapper::get_stmt_ir_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmt_ir_vec();}
+
+vector<IR*> IRWrapper::get_stmtlist_IR_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmtlist_IR_vec();}
+
+int IRWrapper::get_num_select_items_in_select_stmt(IR* cur_stmt) { return IRWrapper::get_select_items_in_select_stmt(cur_stmt).size(); }
+
 IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
     if (stmt_vec.size() == 0) {
         return nullptr;

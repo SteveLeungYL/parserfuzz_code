@@ -1,9 +1,9 @@
 SUB_DIRS := oracle src AFL
 
-PARSER_SRCS := parser/parser_entry.cc.o
+PARSER_SRCS := parser/*.o parser/grammar/*.o parser/grammar_IR_constructor/*.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
-DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cc
+DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)

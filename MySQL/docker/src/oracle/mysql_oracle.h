@@ -49,18 +49,18 @@ public:
      rewrite_2.
       If the results are all errors, return -1, all consistent, return 1, found
      inconsistent, return 0. */
-  virtual void compare_results(ALL_COMP_RES &res_out) = 0;
+  virtual void compare_results(ALL_COMP_RES &res_out) {};
 
   virtual IR* get_random_mutated_select_stmt();
 
   /* Helper function. */
   void set_mutator(Mutator *mutator);
 
-  virtual string get_template_select_stmts() = 0;
+  virtual string get_template_select_stmts() {return "select * from v0;";}
 
   virtual unsigned get_mul_run_num() { return 1; }
 
-  virtual string get_oracle_type() = 0;
+  virtual string get_oracle_type() {return "SQL_ORACLE";};
 
   /* 
   ** Transformation function for select statements. pre_fix_* functions work before concret value has been filled in to the 
@@ -96,7 +96,7 @@ public:
   int num_oracle_select_succeed = 0;
 
 protected:
-  Mutator *g_mutator;
+  Mutator *g_mutator = nullptr;
 
   virtual bool mark_node_valid(IR *root);
 };

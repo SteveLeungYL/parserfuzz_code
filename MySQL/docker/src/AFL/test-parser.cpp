@@ -1,11 +1,9 @@
 #include "../include/ast.h"
-#include "sql/sql_ir_define.h"
 #include "../include/mutate.h"
 #include "../include/utils.h"
 #include "../parser/parser_entry.h"
 #include "../include/ir_wrapper.h"
 #include "../oracle/mysql_oracle.h"
-#include "../oracle/mysql_norec.h"
 
 #include <fstream>
 #include <iostream>
@@ -13,8 +11,6 @@
 #include <string>
 
 using namespace std;
-
-IRWrapper ir_wrapper;
 
 namespace Color {
 enum Code {
@@ -84,8 +80,8 @@ bool try_validate_query(IR* cur_root) {
 
   mutator.pre_validate(); // Reset global variables for query sequence.
 
-  ir_wrapper.set_ir_root(cur_root);
-  vector<IR*> all_stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  IRWrapper::set_ir_root(cur_root);
+  vector<IR*> all_stmt_vec = IRWrapper::get_stmt_ir_vec();
 
   for (IR* cur_trans_stmt : all_stmt_vec) {
     cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt -> to_string() << "\n\n\n";
@@ -107,7 +103,7 @@ bool try_validate_query(IR* cur_root) {
     return false;
   }
 
-  vector<string> valid_split = string_splitter(validity, ';');
+  vector<string> valid_split = string_splitter(validity, ";");
   cout << "validate: >\n";
   for (string str : valid_split) {
     cout << str << ";\n";
@@ -157,14 +153,14 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy();
+    IR* cur_stmt = IRWrapper::get_first_stmt_from_root(cur_root)->deep_copy();
     cerr << cur_stmt->to_string() << "\n\n\n";
     stmt_ir_vec.push_back(cur_stmt);
 
     cur_root->deep_drop();
   }
 
-  IR* ir_root = ir_wrapper.reconstruct_ir_with_stmt_vec(stmt_ir_vec);
+  IR* ir_root = IRWrapper::reconstruct_ir_with_stmt_vec(stmt_ir_vec);
   // mutator.debug(ir_root, 0);
 
   if (!ir_root) {
@@ -176,8 +172,7 @@ int main(int argc, char *argv[]) {
     ir->deep_drop();
   }
 
-  mutator.p_oracle = new SQL_NOREC();
-  mutator.p_oracle->ir_wrapper = ir_wrapper;
+  mutator.p_oracle = new SQL_ORACLE();
 
   cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
 

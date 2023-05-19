@@ -2,8 +2,17 @@
 #include "../include/utils.h"
 #include <cassert>
 
- 
 static string s_table_name;
+
+DATATYPE get_datatype_by_string(string s){
+#define DECLARE_CASE(datatypename) \
+    if(s == #datatypename) return datatypename;
+
+  ALLDATATYPE(DECLARE_CASE);
+
+#undef DECLARE_CASE
+  return kDataWhatever;
+}
 
 string get_string_by_ir_type(IRTYPE type) {
 #define DECLARE_CASE(classname)                                                \
@@ -278,4 +287,12 @@ std::string IR::get_str_val() {
 void IR::set_str_val(std::string in) {
   this->str_val_ = in;
   return;
+}
+
+void deep_delete(IR * root) {
+  root->deep_drop();
+}
+
+IR * deep_copy(IR* root) {
+  return root->deep_copy();
 }

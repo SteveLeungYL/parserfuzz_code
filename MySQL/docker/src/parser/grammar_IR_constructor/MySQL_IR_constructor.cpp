@@ -5,7 +5,7 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
   vector<MySQLIRConstructor::ParseTreeTypeEnum> v_children_type; // 0 for terminated token, 1 for non-term rule.
 
   for (int i = 0; i < v_children.size(); i++) {
-    v_children_type.push_back(this->is_parser_tree_node_terminated(v_children[i]) ? TOKEN : RULE);
+    v_children_type.push_back(this->get_parser_tree_node_type_enum(v_children[i]));
   }
 
   assert(v_children.size() == v_children_type.size());
@@ -28,8 +28,8 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
     idx++;
   }
   // Left
-  if (idx < v_children_type.size()) {
-    left = this->get_rule_returned_ir(v_children[idx]);
+  if (idx < v_children_type.size()) { // SPEC or RULE
+    left = this->get_rule_returned_ir(v_children[idx], v_children_type[idx]);
     idx++;
   }
   // middle str
@@ -38,8 +38,8 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
     idx++;
   }
   // right
-  if (idx < v_children_type.size()) {
-    right = this->get_rule_returned_ir(v_children[idx]);
+  if (idx < v_children_type.size()) { // SPEC or RULE
+    right = this->get_rule_returned_ir(v_children[idx], v_children_type[idx]);
     idx++;
   }
 
@@ -57,8 +57,8 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
       idx++;
     }
     // right
-    if (idx < v_children_type.size()) {
-      right = this->get_rule_returned_ir(v_children[idx]);
+    if (idx < v_children_type.size()) { // SPEC or RULE
+      right = this->get_rule_returned_ir(v_children[idx], v_children_type[idx]);
       idx++;
     }
 
