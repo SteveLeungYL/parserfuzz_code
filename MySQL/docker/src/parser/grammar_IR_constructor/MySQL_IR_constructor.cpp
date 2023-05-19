@@ -24,7 +24,7 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
   // Construct the first IR node.
   // Prefix
   while (idx < v_children_type.size() && v_children_type[idx] == TOKEN) {
-    prefix += this->get_terminated_token_str(v_children[idx]);
+    prefix += " " + this->get_terminated_token_str(v_children[idx]) + " ";
     idx++;
   }
   // Left
@@ -34,7 +34,7 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
   }
   // middle str
   while (idx < v_children_type.size() && v_children_type[idx] == TOKEN) {
-    middle += this->get_terminated_token_str(v_children[idx]);
+    middle += " " + this->get_terminated_token_str(v_children[idx]) + " ";
     idx++;
   }
   // right
@@ -53,7 +53,7 @@ IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children,
   while (idx < v_children_type.size()) {
     // middle str
     while (idx < v_children_type.size() && v_children_type[idx] == TOKEN) {
-      middle += this->get_terminated_token_str(v_children[idx]);
+      middle += " " + this->get_terminated_token_str(v_children[idx]) + " ";
       idx++;
     }
     // right
