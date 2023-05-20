@@ -137,6 +137,8 @@ private:
     }
   }
   
+  void set_iden_type_from_pure_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag);
+  void set_iden_type_from_qualified_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag);
   void handle_function_call(IR*);
 
 public:

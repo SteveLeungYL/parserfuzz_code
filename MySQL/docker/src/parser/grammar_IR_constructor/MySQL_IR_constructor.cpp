@@ -1,4 +1,5 @@
 #include "MySQL_IR_constructor.h"
+#include "../../include/ir_wrapper.h"
 
 IR* MySQLIRConstructor::gen_node_ir(vector<antlr4::tree::ParseTree*> v_children, IRTYPE ir_type) {
 
@@ -104,7 +105,39 @@ void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
 
 }
 
+void MySQLIRConstructor::set_iden_type_from_pure_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag) {
+  assert(in->get_ir_type() == kPureIdentifier);
+
+  IR* iden_node = in->get_left();
+  iden_node->set_ir_type(kIdentifier);
+  iden_node->set_data_type(data_type);
+  iden_node->set_data_flag(data_flag);
+
+}
+
+void MySQLIRConstructor::set_iden_type_from_qualified_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag) {
+  assert(in->get_ir_type() == kQualifiedIdentifier);
+
+  vector<IR*> v_iden_node = IRWrapper::get_ir_node_in_stmt_with_type(in, kIdentifier, false, false);
+
+  // TODO: Not sure here. Need more testing.
+  IR* cur_iden = v_iden_node.back();
+  cur_iden->set_data_type(kDataFunctionName);
+  cur_iden->set_data_flag(kFlagUnknown);
+
+}
+
 void MySQLIRConstructor::handle_function_call(IR* root) {
 
-  return;
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(root, kPureIdentifier, false, false);
+  if (!v_pure_iden.empty()) {
+    this->set_iden_type_from_pure_iden(v_pure_iden.front(), kDataFunctionName, kFlagUnknown);
+    return;
+  }
+
+  vector<IR*> v_qualified_iden = IRWrapper::get_ir_node_in_stmt_with_type(root, kQualifiedIdentifier, false, false);
+  if (!v_qualified_iden.empty()) {
+    this->set_iden_type_from_qualified_iden(v_qualified_iden.front(), kDataFunctionName, kFlagUnknown);
+    return;
+  }
 }
