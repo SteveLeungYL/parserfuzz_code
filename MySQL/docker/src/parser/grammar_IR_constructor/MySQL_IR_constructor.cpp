@@ -85,6 +85,7 @@ void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
 
 // The function handle all identifiers and literals.
 // Fix the IRTypes, DataTypes and DataFlags from the data structure.
+// pureIdentifier,
 // Notation, all fixing identifier rules: pureIdentifier, identifier, identifierList, identifierListWithParentheses,
 // -- qualifiedIdentifier, simpleIdentifier, dotIdentifier, textOrIdentifier,
 // -- lValueIdentifier, roleIdentifierOrText, identifierList, insertIdentifier,
@@ -96,6 +97,18 @@ void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
   switch(ir_type) {
   case kFunctionCall:
     handle_function_call(root);
+    break;
+  case kLabel:
+    handle_label_node(root);
+    break;
+  case kRoleIdentifier:
+    handle_role_iden_node(root);
+    break;
+  case kLValueIdentifier:
+    handle_lvalue_iden(root);
+    break;
+  case kSizeNumber:
+    handle_size_number(root);
     break;
   default:
     break;
@@ -141,3 +154,59 @@ void MySQLIRConstructor::handle_function_call(IR* root) {
     return;
   }
 }
+
+void MySQLIRConstructor::handle_label_node(IR* node) {
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kPureIdentifier, false, false);
+  if (v_pure_iden.empty()) {
+    return;
+  }
+
+  IR* pure_iden = v_pure_iden.front();
+  this->set_iden_type_from_pure_iden(pure_iden, kDataLabelName, kFlagUnknown);
+
+}
+
+void MySQLIRConstructor::handle_role_iden_node(IR* node) {
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kPureIdentifier, false, false);
+  if (v_pure_iden.empty()) {
+    return;
+  }
+
+  IR* pure_iden = v_pure_iden.front();
+  this->set_iden_type_from_pure_iden(pure_iden, kDataLabelName, kFlagUnknown);
+
+}
+
+void MySQLIRConstructor::handle_identifier_non_term_rule_node(IR* node, DATATYPE data_type, DATAFLAG data_flag) {
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kPureIdentifier, false, false);
+  if (v_pure_iden.empty()) {
+    return;
+  }
+
+  IR* pure_iden = v_pure_iden.front();
+  this->set_iden_type_from_pure_iden(pure_iden, data_type, data_flag);
+}
+
+void MySQLIRConstructor::handle_lvalue_iden(IR* node) {
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kPureIdentifier, false, false);
+  if (v_pure_iden.empty()) {
+    return;
+  }
+
+  IR* pure_iden = v_pure_iden.front();
+  this->set_iden_type_from_pure_iden(pure_iden, kDataVarName, kFlagUnknown);
+}
+
+void MySQLIRConstructor::handle_size_number(IR* node) {
+  vector<IR*> v_pure_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kPureIdentifier, false, false);
+  if (v_pure_iden.empty()) {
+    return;
+  }
+
+  IR* pure_iden = v_pure_iden.front();
+  IR* new_int_literal = new IR(kIntLiteral, string(" 100 "));
+  node->swap_node(pure_iden, new_int_literal);
+  pure_iden->deep_drop();
+
+}
+

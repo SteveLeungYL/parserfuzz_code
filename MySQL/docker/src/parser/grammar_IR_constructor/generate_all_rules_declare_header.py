@@ -87,6 +87,7 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
   V(kDataForeignKey) \\
   V(kDataPartitionName) \\
   V(kDataDatabaseFollow) \\
+  V(kDataLabelName) \\
   V(kDataLiteral) \\
   
 """)

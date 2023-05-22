@@ -140,6 +140,11 @@ private:
   void set_iden_type_from_pure_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag);
   void set_iden_type_from_qualified_iden(IR* in, DATATYPE data_type, DATAFLAG data_flag);
   void handle_function_call(IR*);
+  void handle_label_node(IR* node);
+  void handle_role_iden_node(IR* node);
+  void handle_identifier_non_term_rule_node(IR* node, DATATYPE data_type, DATAFLAG data_flag);
+  void handle_lvalue_iden(IR* node);
+  void handle_size_number(IR* node);
 
 public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}

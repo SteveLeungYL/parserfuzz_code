@@ -719,6 +719,7 @@ V(kUnknown)
   V(kDataForeignKey) \
   V(kDataPartitionName) \
   V(kDataDatabaseFollow) \
+  V(kDataLabelName) \
   V(kDataLiteral) \
   
 
