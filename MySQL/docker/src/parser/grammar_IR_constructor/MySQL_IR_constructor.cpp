@@ -110,6 +110,15 @@ void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
   case kSizeNumber:
     handle_size_number(root);
     break;
+  case kAlterEvent:
+    handle_alter_event(root);
+    break;
+  case kAlterPartition:
+    handle_alter_partition(root);
+    break;
+  case kAlterListItem:
+    handle_alter_list_item(root);
+    break;
   default:
     break;
   }
@@ -210,3 +219,87 @@ void MySQLIRConstructor::handle_size_number(IR* node) {
 
 }
 
+void MySQLIRConstructor::handle_alter_event(IR* node) {
+  vector<IR*> v_iden_non_term = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
+
+  if(v_iden_non_term.empty()) {
+    return;
+  }
+
+  IR* iden_non_term = v_iden_non_term.front();
+  handle_identifier_non_term_rule_node(iden_non_term, kDataEventName, kDefine);
+
+}
+
+void MySQLIRConstructor::handle_alter_partition(IR* node) {
+  vector<IR*> v_iden_non_term = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
+
+  if(v_iden_non_term.empty()) {
+    return;
+  }
+
+  IR* iden_non_term = v_iden_non_term.front();
+  handle_identifier_non_term_rule_node(iden_non_term, kDataPartitionName, kUse);
+
+}
+
+void MySQLIRConstructor::handle_column_internal_ref(IR* node, DATATYPE data_type, DATAFLAG data_flag) {
+  assert(node->get_ir_type() == kColumnInternalRef && node->get_left() != nullptr);
+
+  IR* iden_non_term = node->get_left();
+  handle_identifier_non_term_rule_node(iden_non_term, data_type, data_flag);
+
+}
+
+void MySQLIRConstructor::handle_alter_list_item(IR* node) {
+
+  string tmp_str = node->to_string();
+
+  DATATYPE prev_data_type = kDataWhatever, data_type = kDataWhatever;
+  DATAFLAG prev_data_flag = kFlagUnknown, data_flag = kFlagUnknown;
+  if (findStringIn(tmp_str, "ADD") && findStringIn(tmp_str, "COLUMN")) {
+    data_type = kDataColumnName;
+    data_flag = kDefine;
+  } else if (findStringIn(tmp_str, "COLUMN") && findStringIn(tmp_str, "CHANGE") || findStringIn(tmp_str, "MODIFY")) {
+    data_type = kDataColumnName;
+    data_flag = kUndefine;
+    data_type = kDataColumnName;
+    data_flag = kDefine;
+  } else if (findStringIn(tmp_str, "DROP") && findStringIn(tmp_str, "COLUMN")) {
+    data_type = kDataColumnName;
+    data_flag = kUndefine;
+  } else if (findStringIn(tmp_str, "DROP") && findStringIn(tmp_str, "CHECK")) {
+    prev_data_type = kDataColumnName;
+    prev_data_flag = kUse;
+    data_type = kDataConstraintName;
+    data_flag = kUndefine;
+  } else if (findStringIn(tmp_str, "DROP") && findStringIn(tmp_str, "CONSTRAINT")) {
+    prev_data_type = kDataColumnName;
+    prev_data_flag = kUse;
+    data_type = kDataConstraintName;
+    data_flag = kUndefine;
+  } else if (findStringIn(tmp_str, "ALTER") && findStringIn(tmp_str, "COLUMN")) {
+    prev_data_type = kDataColumnName;
+    prev_data_flag = kUse;
+  } else if (findStringIn(tmp_str, "ALTER") && findStringIn(tmp_str, "CHECK") || findStringIn(tmp_str, "CONSTRAINT")) {
+    data_type = kDataConstraintName;
+    data_flag = kUse;
+  } else if (findStringIn(tmp_str, "ALTER") && findStringIn(tmp_str, "RENAME") && findStringIn(tmp_str, "COLUMN")) {
+    prev_data_type = kDataColumnName;
+    prev_data_flag = kUndefine;
+    data_type = kDataConstraintName;
+    data_flag = kDefine;
+  }
+
+  vector<IR*> v_column_internal = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kColumnInternalRef);
+  vector<IR*> v_iden_non_term = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
+
+  if (!v_column_internal.empty()) {
+    handle_column_internal_ref(v_column_internal.front(), prev_data_type, prev_data_flag);
+  }
+
+  if (!v_iden_non_term.empty()) {
+    handle_identifier_non_term_rule_node(v_iden_non_term.front(), data_type, data_flag);
+  }
+
+}

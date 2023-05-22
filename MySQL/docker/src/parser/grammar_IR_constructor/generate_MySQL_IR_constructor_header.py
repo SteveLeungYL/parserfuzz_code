@@ -145,6 +145,10 @@ private:
   void handle_identifier_non_term_rule_node(IR* node, DATATYPE data_type, DATAFLAG data_flag);
   void handle_lvalue_iden(IR* node);
   void handle_size_number(IR* node);
+  void handle_alter_event(IR* node);
+  void handle_alter_partition(IR* node);
+  void handle_column_internal_ref(IR* node, DATATYPE data_type, DATAFLAG data_flag);
+  void handle_alter_list_item(IR* node);
 
 public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}

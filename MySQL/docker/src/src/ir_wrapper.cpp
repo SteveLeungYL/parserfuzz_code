@@ -51,51 +51,85 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
 }
 
 vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
-    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery, bool ignore_type_suffix) {
+    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
 
-    // Iterate IR binary tree, left depth prioritized.
-    bool is_finished_search = false;
-    std::vector<IR*> ir_vec_iter;
-    std::vector<IR*> ir_vec_matching_type;
-    IR* cur_IR = cur_stmt; 
-    // Begin iterating. 
-    while (!is_finished_search) {
-        ir_vec_iter.push_back(cur_IR);
-        if (!ignore_type_suffix && cur_IR->type_ == ir_type) {
-            ir_vec_matching_type.push_back(cur_IR);
-        } else if (ignore_type_suffix && cur_IR->type_ == ir_type) {
-            ir_vec_matching_type.push_back(cur_IR);
-        }
+        // Iterate IR binary tree, left depth prioritized.
+        bool is_finished_search = false;
+        std::vector<IR*> ir_vec_iter;
+        std::vector<IR*> ir_vec_matching_type;
+        IR* cur_IR = cur_stmt;
+        // Begin iterating.
+        while (!is_finished_search) {
+            ir_vec_iter.push_back(cur_IR);
+            if (cur_IR->type_ == ir_type) {
+              ir_vec_matching_type.push_back(cur_IR);
+            }
 
-        if (cur_IR->left_ != nullptr){
-            cur_IR = cur_IR->left_;
-            continue;
-        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes. 
-            cur_IR = nullptr;
-            while (cur_IR == nullptr){
+            if (cur_IR->left_ != nullptr){
+              cur_IR = cur_IR->left_;
+              continue;
+            } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes.
+              cur_IR = nullptr;
+              while (cur_IR == nullptr){
                 if (ir_vec_iter.size() == 0){
-                    is_finished_search = true;
-                    break;
+                  is_finished_search = true;
+                  break;
                 }
                 cur_IR = ir_vec_iter.back()->right_;
                 ir_vec_iter.pop_back();
+              }
+              continue;
             }
-            continue;
         }
-    }
-    // Check whether IR node is in a SELECT subquery.
-    if (!ignore_is_subquery) {
-        std::vector<IR*> ir_vec_matching_type_depth;
-        for (IR* ir_match : ir_vec_matching_type){
-            if(IRWrapper::is_in_subquery(cur_stmt, ir_match) == is_subquery) {
+        // Check whether IR node is in a SELECT subquery.
+        if (!ignore_is_subquery) {
+            std::vector<IR*> ir_vec_matching_type_depth;
+            for (IR* ir_match : ir_vec_matching_type){
+              if(IRWrapper::is_in_subquery(cur_stmt, ir_match) == is_subquery) {
                 ir_vec_matching_type_depth.push_back(ir_match);
+              }
+              continue;
             }
-            continue;
+            return ir_vec_matching_type_depth;
+        } else {
+            return ir_vec_matching_type;
         }
-        return ir_vec_matching_type_depth;
-    } else {
+}
+
+vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type_one_level(IR *cur_stmt, IRTYPE ir_type) {
+
+        // Iterate IR binary tree, left depth prioritized.
+        bool is_finished_search = false;
+        std::vector<IR*> ir_vec_iter;
+        std::vector<IR*> ir_vec_matching_type;
+        IR* cur_IR = cur_stmt;
+        // Begin iterating.
+        while (!is_finished_search) {
+            if (cur_IR->get_ir_type() == kUnknown) {
+                // queue for right.
+                ir_vec_iter.push_back(cur_IR);
+            }
+            if (cur_IR->type_ == ir_type) {
+                ir_vec_matching_type.push_back(cur_IR);
+            }
+
+            if (cur_IR->left_ != nullptr && cur_IR->get_ir_type() == kUnknown){
+                cur_IR = cur_IR->left_;
+                continue;
+            } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes.
+                cur_IR = nullptr;
+                while (cur_IR == nullptr){
+                    if (ir_vec_iter.size() == 0){
+                        is_finished_search = true;
+                        break;
+                    }
+                    cur_IR = ir_vec_iter.back()->right_;
+                    ir_vec_iter.pop_back();
+                }
+                continue;
+            }
+        }
         return ir_vec_matching_type;
-    }
 }
 
 bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
