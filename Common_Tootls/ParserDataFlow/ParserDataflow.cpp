@@ -10,16 +10,21 @@ bool ParserDataflow::runOnModule(Module &M) {
 
   LLVMContext &C = M.getContext();
 
-  IntegerType *Int1Ty = IntegerType::getInt1Ty(C);
-  PointerType *Ptr8Ty = PointerType::getInt8PtrTy(C);
+  IntegerType *Int8Ty = IntegerType::getInt8Ty(C);
+  PointerType *Ptr64Ty = PointerType::getInt64PtrTy(C);
 
-  std::vector<Type *> args = {Int1Ty, Ptr8Ty};
+  std::vector<Type *> args = {Int8Ty, Ptr64Ty};
   auto *helpTy = FunctionType::get(Type::getVoidTy(C), args, false);
   Function *check_iden_var = dyn_cast<Function>(M.getOrInsertFunction("check_iden_variable", helpTy));
 
+
   for (auto & F : M) {
 
-    if (F.getName() == "check_iden_variable") continue;
+    fprintf(stderr, "Function iteration, getting name: %s\n", F.getName().data());
+    if (F.getName() == "check_iden_variable") {
+      fprintf(stderr, "func skipped\n\n\n");
+      continue;
+    }
 
     for (auto & BB : F) {
 
@@ -28,7 +33,14 @@ bool ParserDataflow::runOnModule(Module &M) {
         if (isa<StoreInst>(I)) {
           
           StoreInst * SI = cast<StoreInst>(&I);
+          fprintf(stderr, "After casting\n");
+
+          if (SI->getPointerOperand() == nullptr || SI->getPointerOperand()->getName().empty()) {
+            continue;
+          }
+
           IRBuilder<> IRB(&I);
+          printf("Getting operand name: %s\n\n", SI->getPointerOperand()->getName().data());
           auto *dest_var_name_ptr = IRB.CreateGlobalStringPtr(SI->getPointerOperand()->getName().data());
           std::vector<Value *> real_args = {SI->getPointerOperand(), dest_var_name_ptr};
           IRB.CreateCall(check_iden_var, real_args);
@@ -36,6 +48,8 @@ bool ParserDataflow::runOnModule(Module &M) {
       }
     }
   }
+
+  fprintf(stderr, "Finished. \n\n\n");
 
   return true;
 }
