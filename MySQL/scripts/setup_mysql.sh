@@ -5,7 +5,7 @@ cd "$(dirname "$0")"/../docker
 #sudo docker build --rm=false -f ./Dockerfile -t sqlright_mysql .  
 
 ## Release code. Remove all intermediate steps to save hard drive space.
-sudo docker build --rm=true -f ./Dockerfile -t sqlright_mysql .
+sudo docker build --rm=true -f ./Dockerfile -t sqlright_mysql_main .
 
 
 

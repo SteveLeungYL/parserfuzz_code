@@ -104,8 +104,6 @@ parser_entry: mysql-server/bld/archive_output_directory/libstrings.a
 parser_entry: mysql-server/bld/archive_output_directory/libz.a
 parser_entry: mysql-server/bld/archive_output_directory/libmytime.a
 parser_entry: mysql-server/bld/archive_output_directory/libzstd.a
-parser_entry: /usr/lib/x86_64-linux-gnu/libssl.so
-parser_entry: /usr/lib/x86_64-linux-gnu/libcrypto.so
 parser_entry: mysql-server/bld/storage/myisammrg/libmyisammrg.a
 parser_entry: mysql-server/bld/storage/perfschema/libperfschema.a
 parser_entry: mysql-server/bld/storage/temptable/libtemptable.a
