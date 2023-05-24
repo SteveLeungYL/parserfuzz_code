@@ -10,12 +10,13 @@ import psutil
 import MySQLdb
 import getopt
 import sys
+import libtmux
 
 from afl_config import *
 
-all_fuzzing_p_list = dict()
-all_mysql_p_list = dict()
-shm_env_list = []
+server = libtmux.Server()
+
+session = server.new_session(session_name="mysql_server_debug", kill_session=True, attach=False)
 
 def exit_handler(signal, frame):
     print("########################\n\n\n\n\nRecevied terminate signal. Ignored!!!!!!! \n\n\n\n\n")
@@ -101,15 +102,6 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     modi_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
     modi_env["AFL_SKIP_CPUFREQ"] = "1"
 
-    # Start running the SQLRight fuzzer. 
-    # fuzzing_command = "./afl-fuzz -t 300 -m 4000 " \
-    #                     + " -P " + str(cur_port_num) \
-    #                     + " -K " + socket_path \
-    #                     + " -i ./inputs " \
-    #                     + " -o " + cur_output_dir_str \
-    #                     + " -c " + str(cur_inst_id) \
-    #                     + " aaa " \
-    #                     + " & "
     fuzzing_command = [
         "./afl-fuzz", 
         "-t", "300", 
@@ -134,25 +126,17 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         fuzzing_command,
                         cwd=os.getcwd(),
                         shell=True,
-                        stderr=subprocess.DEVNULL,
-                        stdout=subprocess.DEVNULL,
+                        stderr=cur_output_file_2,
+                        stdout=cur_output_file_2,
                         stdin=subprocess.DEVNULL,
                         env=modi_env
                         )
-    # cur_proc_l = psutil.Process(p.pid).children()
-    # if len(cur_proc_l) == 1:
-    #     cur_pid = cur_proc_l[0].pid
-    #     all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
-    #     print("Pid: %d\n\n\n" %(cur_pid))
-    # else:
-    #     print("Running with %d failed. \n\n\n" % (cur_inst_id))
 
     # Read the current generated shm_mem_id
     while not (os.path.isfile(os.path.join(os.getcwd(), "shm_env.txt"))):
         time.sleep(1)
     shm_env_fd = open(os.path.join(os.getcwd(), "shm_env.txt"))
     cur_shm_str = shm_env_fd.read()
-    shm_env_list.append(cur_shm_str)
     shm_env_fd.close()
 
     os.remove(os.path.join(os.getcwd(), "shm_env.txt"))
@@ -162,52 +146,31 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # mysql_command = "__AFL_SHM_ID=" + cur_shm_str + " " + mysql_bin_dir + " --basedir=" + mysql_root_dir + " --datadir=" + cur_mysql_data_dir_str + " --port=" + str(cur_port_num) + " --socket=" + socket_path + " & "
 
     mysql_command = [
-        "screen",
-        "-dmS",
-        "test" + str(cur_inst_id),
-        "bash", "-c",
-        "'",    # left quote
+        "gdb --ex=run --args",
+        "env __AFL_SHM_ID=" + cur_shm_str,
         mysql_bin_dir,
         "--basedir=" + mysql_root_dir,
         "--datadir=" + cur_mysql_data_dir_str,
         "--port=" + str(cur_port_num),
         "--socket=" + socket_path,
-        "--performance_schema=OFF",
-        "'"  # right quote
+        "--performance_schema=OFF"
      ]
-    mysql_modi_env = dict()
-    mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
+
+    # mysql_modi_env = dict()
+    # mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
 
     mysql_command = " ".join(mysql_command)
 
-    print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + mysql_command)
+    print("Running mysql command: " + mysql_command)
+
+    cur_window = session.new_window(attach=True, window_name="mysql_test_"+str(cur_inst_id - starting_core_id))
+    cur_pane = cur_window.attached_pane
+    cur_pane.send_keys(mysql_command) 
     
-    p = subprocess.Popen(
-                        mysql_command,
-                        shell=True,
-                        stderr=subprocess.DEVNULL,
-                        stdout=subprocess.DEVNULL,
-                        stdin=subprocess.DEVNULL,
-                        env = mysql_modi_env
-                        )
     time.sleep(1)
-    all_mysql_p_list[cur_inst_id] = cur_shm_str
 
-all_share_mem_file = "./all_share_mem_file.txt"
-all_share_mem_file = open(all_share_mem_file, "w")
 
-for cur_inst_id, cur_shm_str in all_mysql_p_list.items():
-    all_share_mem_file.write("%s:%s\n" % (cur_inst_id, cur_shm_str))
-
-all_share_mem_file.flush()
-all_share_mem_file.close()
-
-all_prev_shut_time_file = open("./all_prev_shut_time_file.txt", "w")
-for i in range(starting_core_id, starting_core_id + parallel_num, 1):
-    all_prev_shut_time_file.write("%d:%s\n" % (i, time.mktime(time.localtime())))
-all_prev_shut_time_file.close()
-
-print("Finished launching the fuzzing. Now monitor the mysql process. ")
+print("Finished launching the fuzzing. ")
 
 # Avoid script exist
 while True:
