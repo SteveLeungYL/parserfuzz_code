@@ -24,39 +24,16 @@ void get_label_origin(dfsan_label label) {
     get_label_origin(info->l2);
   }
 
-  if (info->desc && !be_quiet) fprintf(stderr, "%s ", info->desc);
+  if (info->desc && !be_quiet) fprintf(stderr, "%s ", info->desc); // print description. 
 }
 
-static unsigned int count = 0;
-//static size_t (*real_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream);
-size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream, unsigned long fread_id) {
-
-  //if (real_fread == NULL) {
-  //  real_fread = dlsym(RTLD_NEXT, "fread");
-  //}
-
-  size_t res = fread(ptr, size, nmemb, stream);
-
-  //if (!be_quiet)
-  //  fprintf(stderr, "LIBHOOK_LOG fread[%p, %zu, %zu, %p] = %zu\n", 
-  //      ptr, size, nmemb, stream, res);
-
-  char *str = (char *) malloc(20);
-  sprintf(str, "%ld-%d", fread_id, count++);
-  dfsan_label k_label = dfsan_create_label(str, 0);
-  if (!be_quiet) fprintf(stderr, "create origin: %s\n", str);
-  dfsan_set_label(k_label, ptr, res * size);
-
-  return res;
-}
-
-
-void check_cond_label(char cond, unsigned long branch_id) {
+void check_iden_variable(char cond, char* var_name) {
 
   dfsan_label label = dfsan_get_label(cond);
   if (label==0) return;
 
-  if (!be_quiet) fprintf(stderr, "condition %ld: ", branch_id);
+  if (!be_quiet) fprintf(stderr, "For var_name: %s: ", var_name);
   get_label_origin(label);
-  if (!be_quiet) fprintf(stderr, "\n");
+  if (!be_quiet) fprintf(stderr, "\n\n");
+
 }

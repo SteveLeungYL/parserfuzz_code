@@ -1,4 +1,4 @@
-#include "ParserDataflow.h""
+#include "ParserDataflow.h"
 
 #define endl "\n"
 
@@ -27,51 +27,14 @@ bool ParserDataflow::runOnModule(Module &M) {
 
         if (isa<StoreInst>(I)) {
           
-          StoreInst * BI = cast<StoreInst>(&I);
-          
-          if (BI->isUnconditional()) continue;
-
-          // errs() << I << "\n";
-
+          StoreInst * SI = cast<StoreInst>(&I);
           IRBuilder<> IRB(&I);
-          std::vector<Value *> real_args = {BI->getCondition(), 
-            IRB.getInt64(branch_id++)};
-          IRB.CreateCall(check_label, real_args);
-
-        }
-
-        if (isa<CallInst>(I)) {
-
-          CallInst * CI = cast<CallInst>(&I);
-
-          if (CI->getCalledFunction() == nullptr) continue;
-
-          if (CI->getCalledFunction()->getName() == "fread") {
-
-            calls.push_back(CI);
-
-          }
+          auto *dest_var_name_ptr = IRB.CreateGlobalStringPtr(SI->getPointerOperand()->getName().data());
+          std::vector<Value *> real_args = {SI->getPointerOperand(), dest_var_name_ptr};
+          IRB.CreateCall(check_iden_var, real_args);
         }
       }
     }
-  }
-
-  for (auto I : calls) {
-
-    assert(my_fread_func != nullptr);
-
-    CallInst * CI  = I;
-    IRBuilder<> IRB(CI);
-
-    std::vector<Value *> real_args;
-    for (unsigned index = 0; index < CI->getNumArgOperands(); index++)
-      real_args.push_back(CI->getArgOperand(index));
-    real_args.push_back(IRB.getInt64(fread_id++));
-    auto res = IRB.CreateCall(myfread_func, real_args);
-    CI->replaceAllUsesWith(res);
-    //CI->removeFromParent();
-    CI->eraseFromParent();
-
   }
 
   return true;
@@ -79,7 +42,7 @@ bool ParserDataflow::runOnModule(Module &M) {
 
 static RegisterPass<ParserDataflow> X("ParserDataflow", "trace the parser Identifier values to the variable back-end ");
 
-static void registerParserDataflow(const PassManagerBuilder &,
+static void registerParserDataflowPass(const PassManagerBuilder &,
     legacy::PassManagerBase &PM) {
   PM.add(new ParserDataflow());
 }
@@ -87,6 +50,7 @@ static void registerParserDataflow(const PassManagerBuilder &,
 static RegisterStandardPasses RegisterParserDataflowPass(
     //PassManagerBuilder::EP_OptimizerLast, registerCmpDataflowPass);
     //PassManagerBuilder::EP_EarlyAsPossible, registerCmpDataflowPass);
-    PassManagerBuilder::EP_ModuleOptimizerEarly, registerParserDataflow);
+    PassManagerBuilder::EP_ModuleOptimizerEarly, registerParserDataflowPass);
+
 static RegisterStandardPasses RegisterParserDataflowPass0(
     PassManagerBuilder::EP_EnabledOnOptLevel0, registerParserDataflowPass);
