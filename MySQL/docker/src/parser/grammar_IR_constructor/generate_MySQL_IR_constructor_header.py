@@ -149,6 +149,7 @@ private:
   void handle_alter_partition(IR* node);
   void handle_column_internal_ref(IR* node, DATATYPE data_type, DATAFLAG data_flag);
   void handle_alter_list_item(IR* node);
+  void handle_table_name_node(IR* node, DATATYPE data_type, DATAFLAG data_flag);
 
 public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}

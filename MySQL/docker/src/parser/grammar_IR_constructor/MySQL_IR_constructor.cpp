@@ -251,6 +251,16 @@ void MySQLIRConstructor::handle_column_internal_ref(IR* node, DATATYPE data_type
 
 }
 
+void MySQLIRConstructor::handle_table_name_node(IR* node, DATATYPE data_type, DATAFLAG data_flag) {
+  vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  assert(!v_iden.empty());
+
+  IR* iden_node = v_iden.back();
+  iden_node->set_data_type(data_type);
+  iden_node->set_data_flag(data_flag);
+
+}
+
 void MySQLIRConstructor::handle_alter_list_item(IR* node) {
 
   string tmp_str = node->to_string();
@@ -289,6 +299,15 @@ void MySQLIRConstructor::handle_alter_list_item(IR* node) {
     prev_data_flag = kUndefine;
     data_type = kDataConstraintName;
     data_flag = kDefine;
+  } else if (findStringIn(tmp_str, "RENAME")) {
+    // only rename, no RENAME COLUMN
+    vector<IR*> v_table_name = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kTableName);
+    if (v_table_name.empty()) {
+      return;
+    } else {
+      IR* table_name_node = v_table_name.front();
+      table_name_node
+    }
   }
 
   vector<IR*> v_column_internal = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kColumnInternalRef);

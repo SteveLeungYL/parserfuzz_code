@@ -7,4 +7,4 @@ PASS_FLAGS="-Xclang -load -Xclang "$SCRIPT_DIR"/ParserDataflow.so"
 DF_FLAGS="-fsanitize=dataflow"
 EMIT_LL="-emit-llvm -S"
 
-clang-6.0 $PASS_FLAGS $DF_FLAGS $SCRIPT_DIR/runtime.c $@
+clang++-6.0 $PASS_FLAGS $DF_FLAGS $SCRIPT_DIR/runtime.cpp $@
