@@ -103,6 +103,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     modi_env["AFL_SKIP_CPUFREQ"] = "1"
 
     fuzzing_command = [
+        "strace -s 2000 -o afl-fuzz-strace_output_" + str(cur_inst_id - starting_core_id),
         "./afl-fuzz", 
         "-t", "300", 
         "-m", "4000",
@@ -146,7 +147,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # mysql_command = "__AFL_SHM_ID=" + cur_shm_str + " " + mysql_bin_dir + " --basedir=" + mysql_root_dir + " --datadir=" + cur_mysql_data_dir_str + " --port=" + str(cur_port_num) + " --socket=" + socket_path + " & "
 
     mysql_command = [
-        "gdb --ex=run --args",
+        # "gdb --ex=run --args",
+        "strace -s 2000 -o mysqld_strace_output_" + str(cur_inst_id - starting_core_id),
         "env __AFL_SHM_ID=" + cur_shm_str,
         mysql_bin_dir,
         "--basedir=" + mysql_root_dir,
