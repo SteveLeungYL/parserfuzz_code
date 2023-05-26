@@ -14,8 +14,6 @@ RUN apt -y install build-essential
 RUN apt -y install clang
 RUN apt -y install cmake
 RUN apt -y install flex
-RUN apt -y install g++-multilib
-RUN apt -y install gcc-multilib
 RUN apt -y install gdb
 RUN apt -y install git
 RUN apt -y install libncurses5-dev
@@ -103,7 +101,7 @@ RUN chown -R mysql:mysql /home/mysql/src
 
 # Setup the MySQL fuzzer compilation requirements.
 USER root
-RUN apt -y install antlr4 curl
+RUN apt -y install curl openjdk-11-jdk
 
 ## antlr4
 USER mysql

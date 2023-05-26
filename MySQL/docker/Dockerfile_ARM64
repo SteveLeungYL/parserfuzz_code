@@ -101,7 +101,7 @@ RUN chown -R mysql:mysql /home/mysql/src
 
 # Setup the MySQL fuzzer compilation requirements.
 USER root
-RUN apt -y install antlr4 curl
+RUN apt -y install curl openjdk-11-jdk
 
 ## antlr4
 USER mysql
