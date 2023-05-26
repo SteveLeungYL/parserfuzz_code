@@ -77,7 +77,7 @@ RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.33.zi
 RUN unzip mysql-8.0.33.zip
 RUN mv mysql-server-mysql-8.0.33 mysql-server
 WORKDIR /home/mysql/mysql-server
-# MySQL version 8.0.30
+# MySQL version 8.0.33
 # RUN git checkout 3290a66c89eb1625a7058e0ef732432b6952b435 
 RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
@@ -108,7 +108,7 @@ USER mysql
 WORKDIR /home/mysql
 RUN curl -O https://www.antlr.org/download/antlr-4.12.0-complete.jar
 ## antlr4 runtime.
-RUN wget https://github.com/antlr/antlr4/archive/4.12.0.zip 
+RUN wget https://github.com/antlr/antlr4/archive/4.12.0.zip
 RUN unzip 4.12.0.zip
 WORKDIR /home/mysql/antlr4-4.12.0/runtime/Cpp/
 RUN mkdir -p bld
@@ -118,7 +118,7 @@ RUN make -j$(nproc)
 USER root
 RUN make install
 
-# Compile MySQL Fuzzer. 
+# Compile MySQL Fuzzer.
 USER mysql
 WORKDIR /home/mysql/src
 RUN make
