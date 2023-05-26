@@ -16,7 +16,7 @@ export DEBUG =
 export OPT = -O3
 export PARSER_FLAGS = -I/usr/local/include/antlr4-runtime -pthread
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS) $(PARSER_FLAGS)
-LDFLAGS = -ldl -lmysqlclient -L/usr/local/lib/ -lantlr4-runtime -lpthread
+LDFLAGS = -ldl -lmysqlclient -L/usr/local/lib/ -Wl,-R/usr/local/lib -lantlr4-runtime -lpthread
 
 all: afl-fuzz test-parser
 
