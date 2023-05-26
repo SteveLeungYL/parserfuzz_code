@@ -1451,7 +1451,7 @@ void MySQLIRConstructor::handle_window_definition(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kWindowName);
   assert(!v_iden.empty());
 
-  this->handle_window_name(v_iden.front(), kDataWindowName, kDefine);
+  this->handle_window_name(v_iden.front(), kDefine);
 }
 
 void MySQLIRConstructor::handle_window_clause(IR* node) {
