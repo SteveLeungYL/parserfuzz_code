@@ -105,7 +105,7 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type_one_level(IR *cur_stmt, IRT
         IR* cur_IR = cur_stmt;
         // Begin iterating.
         while (!is_finished_search) {
-            if (cur_IR->get_ir_type() == kUnknown) {
+            if (cur_IR->get_ir_type() == kUnknown || cur_IR == cur_stmt) {
                 // queue for right.
                 ir_vec_iter.push_back(cur_IR);
             }
@@ -113,7 +113,7 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type_one_level(IR *cur_stmt, IRT
                 ir_vec_matching_type.push_back(cur_IR);
             }
 
-            if (cur_IR->left_ != nullptr && cur_IR->get_ir_type() == kUnknown){
+            if (cur_IR->left_ != nullptr && (cur_IR->get_ir_type() == kUnknown || cur_IR == cur_stmt)){
                 cur_IR = cur_IR->left_;
                 continue;
             } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes.
