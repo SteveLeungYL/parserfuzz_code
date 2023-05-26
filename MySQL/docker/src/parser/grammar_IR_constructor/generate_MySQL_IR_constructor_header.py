@@ -151,7 +151,6 @@ private:
   void handle_alter_list_item(IR* node);
   void handle_table_name_node(IR* node, DATAFLAG data_flag);
   void handle_index_ref_node(IR* node, DATAFLAG data_flag);
-  void handle_index_name_node(IR* node, DATAFLAG data_flag);
   void handle_place(IR* node);
   void handle_alter_order_list(IR* node);
   void handle_alter_algorithm_option(IR* node);
@@ -169,7 +168,6 @@ private:
   void handle_create_database(IR* node);
   void handle_create_table(IR* node);
   void handle_table_ref(IR* node, DATAFLAG data_flag);
-  void handle_create_table(IR* node);
   void handle_column_name_node(IR* node, DATAFLAG data_flag);
   void handle_column_definition(IR* node);
   void handle_procedure_name_node(IR* node, DATAFLAG data_flag);
@@ -205,6 +203,18 @@ private:
   void handle_drop_trigger(IR* node);
   void handle_drop_undo_tablespace(IR* node);
   void handle_drop_view(IR* node);
+  void handle_rename_pair(IR* node, DATATYPE data_type);
+  void handle_rename_table_statement(IR* node);
+  void handle_truncate_table_statement(IR* node);
+  void handle_call_statement(IR* node);
+  void handle_table_ref_with_wildcard(IR* node, DATATYPE data_type, DATAFLAG data_flag);
+  void handle_table_alias_ref_list(IR* node, DATAFLAG data_flag);
+  void handle_table_alias(IR* node, DATAFLAG data_flag);
+  void handle_table_reference_list(IR* node, DATAFLAG data_flag);
+  void handle_delete_statement(IR* node);
+  void handle_partition_delete(IR* node);
+  void handle_handler_statement(IR* node);
+  void handle_handler_read_or_scan(IR* node);
 
 public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}
