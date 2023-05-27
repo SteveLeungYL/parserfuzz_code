@@ -23,13 +23,17 @@ int run_parser(string str_in, vector<IR*>& ir_vec) {
   gram_cov_visitor.set_parser(&parser);
   gram_cov_visitor.visitQuery(tree);
   gram_cov_visitor.gram_cov.has_new_grammar_bits(false, str_in);
+#ifdef DEBUG
   cerr << "Grammar Cov: " << gram_cov_visitor.gram_cov.get_total_edge_cov_size_num() << "\n\n\n";
+#endif
 
   MySQLIRConstructor ir_constr;
   ir_constr.set_parser(&parser);
   IR* root_ir = any_cast<IR *>(ir_constr.visitQuery(tree));
 
+#ifdef DEBUG
   cerr << "Error: " << parser.getNumberOfSyntaxErrors() << "\n\n\n";
+#endif
   if (parser.getNumberOfSyntaxErrors() == 0) {
     IRWrapper::get_all_ir_node(root_ir, ir_vec);
     return 0;
