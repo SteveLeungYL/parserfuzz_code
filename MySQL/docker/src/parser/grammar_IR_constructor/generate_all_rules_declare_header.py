@@ -109,5 +109,7 @@ with open("../grammar/MySQLParserBaseVisitor.h", "r") as base_vis, open("all_rul
   V(FLOAT_NUMBER) \\
   V(TRUE_SYMBOL) \\
   V(FALSE_SYMBOL) \\
+  V(BACK_TICK_QUOTED_ID) \\
+  
 
 """)
