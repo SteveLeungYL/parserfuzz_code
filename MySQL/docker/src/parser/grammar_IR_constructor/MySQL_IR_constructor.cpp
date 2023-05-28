@@ -1755,7 +1755,7 @@ void MySQLIRConstructor::handle_ident_list_arg(IR* node) {
 
 void MySQLIRConstructor::handle_table_constraint_def(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
-      node, kTableConstraintDef, false, false);
+      node, kIndexName, false, false);
   for (IR* cur_iden: v_iden) {
     this->handle_index_name_node(cur_iden, kDefine);
   }
