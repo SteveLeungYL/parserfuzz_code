@@ -133,7 +133,11 @@ private:
       return gen_special_terminated_token_ir(child);
     } else {
       // Other normal rules.
-      return any_cast<IR *>(visit(child));
+      try {
+        return any_cast<IR *>(visit(child));
+      } catch (const std::bad_any_cast& e) {
+        return new IR(kUnknown, OP3("", "", ""));
+      }
     }
   }
   

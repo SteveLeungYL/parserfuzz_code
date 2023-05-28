@@ -168,8 +168,8 @@ int main(int argc, char *argv[]) {
   // mutator.debug(ir_root, 0);
 
   if (!ir_root) {
-    cerr << "Reconstructed ir_root is NULL!!!. Return NULL";
-    return;
+    cerr << "Reconstructed ir_root is NULL!!!. Return NULL\n\n\n";
+    return 0;
   }
 
   for (IR* ir : stmt_ir_vec) {
