@@ -483,6 +483,9 @@ void MySQLIRConstructor::handle_column_internal_ref(IR* node, DATATYPE data_type
 
 void MySQLIRConstructor::handle_table_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifier, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   IR* iden_node = v_iden.back();
@@ -493,6 +496,9 @@ void MySQLIRConstructor::handle_table_name_node(IR* node, DATAFLAG data_flag) {
 
 void MySQLIRConstructor::handle_index_ref_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifier, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   IR* iden_node = v_iden.back();
@@ -707,7 +713,9 @@ void MySQLIRConstructor::handle_alter_undo_table_space(IR* node) {
 void MySQLIRConstructor::handle_view_ref(IR* node, DATAFLAG data_flag) {
 
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
-
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataViewName, data_flag);
@@ -718,6 +726,9 @@ void MySQLIRConstructor::handle_alter_view(IR* node) {
 
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kViewRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   // TODO:: NOT SURE.
@@ -745,6 +756,9 @@ void MySQLIRConstructor::handle_view_tail(IR* node) {
 
 void MySQLIRConstructor::handle_schema_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   handle_identifier_non_term_rule_node(v_iden.front(), kDataDatabase, data_flag);
@@ -762,6 +776,9 @@ void MySQLIRConstructor::handle_create_database(IR* node) {
 
 void MySQLIRConstructor::handle_table_ref(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataTableName, data_flag);
@@ -785,6 +802,9 @@ void MySQLIRConstructor::handle_create_table(IR* node) {
 
 void MySQLIRConstructor::handle_column_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataColumnName, data_flag);
@@ -793,6 +813,9 @@ void MySQLIRConstructor::handle_column_name_node(IR* node, DATAFLAG data_flag) {
 void MySQLIRConstructor::handle_column_definition(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kColumnName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_column_name_node(v_iden.front(), kDefine);
@@ -801,6 +824,9 @@ void MySQLIRConstructor::handle_column_definition(IR* node) {
 
 void MySQLIRConstructor::handle_procedure_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataProcedureName, data_flag);
@@ -818,6 +844,9 @@ void MySQLIRConstructor::handle_create_procedure(IR* node) {
 
 void MySQLIRConstructor::handle_function_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataFunctionName, data_flag);
@@ -847,6 +876,9 @@ void MySQLIRConstructor::handle_create_udf(IR* node) {
 
 void MySQLIRConstructor::handle_index_name_node(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataIndexName, data_flag);
@@ -875,6 +907,9 @@ void MySQLIRConstructor::handle_index_name_and_type(IR* node) {
 void MySQLIRConstructor::handle_create_index_target(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kTableRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_index_ref_node(v_iden.front(), kDefine);
@@ -884,6 +919,9 @@ void MySQLIRConstructor::handle_create_index_target(IR* node) {
 void MySQLIRConstructor::handle_server_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataServerName, data_flag);
@@ -893,6 +931,9 @@ void MySQLIRConstructor::handle_server_name(IR* node, DATAFLAG data_flag) {
 void MySQLIRConstructor::handle_create_server(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kServerName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_server_name(v_iden.front(), kDefine);
@@ -913,6 +954,9 @@ void MySQLIRConstructor::handle_text_or_identifier(IR* node, DATATYPE data_type,
 void MySQLIRConstructor::handle_table_space_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataTableSpaceName, data_flag);
@@ -922,6 +966,9 @@ void MySQLIRConstructor::handle_table_space_name(IR* node, DATAFLAG data_flag) {
 void MySQLIRConstructor::handle_create_tablespace(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kTablespaceName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_table_space_name(v_iden.front(), kDefine);
@@ -933,6 +980,9 @@ void MySQLIRConstructor::handle_create_undo_tablespace(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTablespaceName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_table_space_name(v_iden.front(), kDefine);
@@ -941,6 +991,9 @@ void MySQLIRConstructor::handle_create_undo_tablespace(IR* node) {
 void MySQLIRConstructor::handle_view_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataViewName, data_flag);
@@ -951,12 +1004,18 @@ void MySQLIRConstructor::handle_create_view(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kViewName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_view_name(v_iden.front(), kDefine);
 
   v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kViewTail, false, false);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
   this->handle_view_tail(v_iden.front());
 }
@@ -965,6 +1024,9 @@ void MySQLIRConstructor::handle_create_view(IR* node) {
 void MySQLIRConstructor::handle_trigger_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataTriggerName, data_flag);
@@ -975,6 +1037,9 @@ void MySQLIRConstructor::handle_create_trigger(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTriggerName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_trigger_name(v_iden.front(), kDefine);
@@ -982,6 +1047,9 @@ void MySQLIRConstructor::handle_create_trigger(IR* node) {
   v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTableRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_table_ref(v_iden.front(), kUse);
@@ -992,6 +1060,9 @@ void MySQLIRConstructor::handle_create_trigger(IR* node) {
 void MySQLIRConstructor::handle_event_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataEventName, data_flag);
@@ -1002,6 +1073,9 @@ void MySQLIRConstructor::handle_create_event(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kEventName, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_event_name(v_iden.front(), kDefine);
@@ -1011,6 +1085,9 @@ void MySQLIRConstructor::handle_drop_database(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kSchemaRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_schema_name_node(v_iden.front(), kUndefine);
@@ -1021,6 +1098,9 @@ void MySQLIRConstructor::handle_drop_event(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kEventRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_event_name(v_iden.front(), kUndefine);
@@ -1031,6 +1111,9 @@ void MySQLIRConstructor::handle_drop_function(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kFunctionRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_function_name_node(v_iden.front(), kUndefine);
@@ -1041,6 +1124,9 @@ void MySQLIRConstructor::handle_drop_procedure(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kProcedureRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_procedure_name_node(v_iden.front(), kUndefine);
@@ -1051,6 +1137,9 @@ void MySQLIRConstructor::handle_drop_index(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kIndexRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_index_ref_node(v_iden.front(), kUndefine);
@@ -1061,6 +1150,9 @@ void MySQLIRConstructor::handle_drop_server(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kServerRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_server_name(v_iden.front(), kUndefine);
@@ -1071,6 +1163,9 @@ void MySQLIRConstructor::handle_drop_table(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTableRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_table_ref(v_iden.front(), kUndefine);
@@ -1081,6 +1176,9 @@ void MySQLIRConstructor::handle_drop_tablespace(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTablespaceRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_tablespace_ref_node(v_iden.front(), kUndefine);
@@ -1091,6 +1189,9 @@ void MySQLIRConstructor::handle_drop_trigger(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTriggerRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_trigger_name(v_iden.front(), kUndefine);
@@ -1111,6 +1212,9 @@ void MySQLIRConstructor::handle_drop_view(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kViewRefList, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_view_ref_list(v_iden.front(), kUndefine);
@@ -1121,6 +1225,9 @@ void MySQLIRConstructor::handle_drop_undo_tablespace(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kTablespaceRef, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_tablespace_ref_node(v_iden.front(), kUndefine);
@@ -1141,6 +1248,9 @@ void MySQLIRConstructor::handle_rename_table_statement(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(
       node, kRenamePair);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   for (IR* cur_iden: v_iden) {
@@ -1153,6 +1263,9 @@ void MySQLIRConstructor::handle_truncate_table_statement(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(
       node, kTableRef);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   for (IR* cur_iden: v_iden) {
@@ -1166,6 +1279,9 @@ void MySQLIRConstructor::handle_call_statement(IR* node) {
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(
       node, kProcedureRef);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   for (IR* cur_iden: v_iden) {
@@ -1177,6 +1293,9 @@ void MySQLIRConstructor::handle_call_statement(IR* node) {
 void MySQLIRConstructor::handle_table_ref_with_wildcard(IR* node, DATATYPE data_type, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataAliasTableName, kUse);
@@ -1201,6 +1320,9 @@ void MySQLIRConstructor::handle_table_alias(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden =
       IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   for (IR* cur_v: v_iden) {
@@ -1331,6 +1453,9 @@ void MySQLIRConstructor::handle_field_identifier(IR* node, DATATYPE data_type, D
   vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(
       node, kIdentifierRule, false, false);
 
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   // TODO: Not sure here.
@@ -1442,6 +1567,9 @@ void MySQLIRConstructor::handle_into_clause(IR* node) {
 
 void MySQLIRConstructor::handle_window_name(IR* node, DATAFLAG data_flag) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kIdentifierRule);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_identifier_non_term_rule_node(v_iden.front(), kDataWindowName, data_flag);
@@ -1449,6 +1577,9 @@ void MySQLIRConstructor::handle_window_name(IR* node, DATAFLAG data_flag) {
 
 void MySQLIRConstructor::handle_window_definition(IR* node) {
   vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(node, kWindowName);
+  if (v_iden.empty()) {
+    return;
+  }
   assert(!v_iden.empty());
 
   this->handle_window_name(v_iden.front(), kDefine);
