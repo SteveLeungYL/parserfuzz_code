@@ -17,6 +17,7 @@ int run_parser(string str_in, vector<IR*>& ir_vec) {
   MySQLLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
   MySQLParser parser(&tokens);
+  parser.removeErrorListeners();
   MySQLParser::QueryContext* tree = parser.query();
 
   MySQLGrammarCovVisitor gram_cov_visitor;
