@@ -4092,6 +4092,10 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
      */
+    if (unique_node_id >= current_ir_set.size()) {
+      current_ir_root->deep_drop();
+      return new IR(kUnknown, string(""));
+    }
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
       if (matched_ir_node->type_ != type_) {
