@@ -776,16 +776,26 @@ bool IRWrapper::drop_kvalues_to_insert_stmt(IR* cur_stmt) {
     vector<IR*> v_values_node = IRWrapper::get_ir_node_in_stmt_with_type(cur_stmt, kValues, false, false);
 
     for (IR* cur_values_node: v_values_node) {
+        IR* cur_sub_value = cur_values_node;
+        while (true) {
+            if (cur_sub_value->get_right() == nullptr) {
+                if (cur_sub_value->get_left() != nullptr && cur_values_node->get_left()->type_ == kUnknown) {
+                        // Already removed in previous steps.
+                  cur_sub_value = cur_sub_value->get_left();
+                  continue;
+                } else {
+                  // nothing to remove from.
+                  break;
+                }
+            }
 
-        if (cur_values_node->get_right() == nullptr) {
-            continue;
+            IR *next_value = cur_values_node->get_right();
+            cur_values_node->update_right(nullptr);
+            //        cur_stmt->swap_node(cur_values_node, next_value);
+            next_value->deep_drop();
+            break;
         }
-
-        IR* next_value = cur_values_node->get_right();
-        cur_values_node->update_right(nullptr);
-        cur_stmt->swap_node(cur_values_node, next_value);
-        cur_values_node->deep_drop();
-        next_value->set_ir_type(kValues);
+        // go to next kvalues.
     }
 
     return true;
