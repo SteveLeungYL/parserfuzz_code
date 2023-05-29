@@ -778,7 +778,7 @@ IR * Mutator::strategy_insert(IR * cur){
 
     // return res;
 
-    if (cur->type_ == kStmtList) {
+  if (cur->type_ == kStmtList) {
     auto new_right = get_from_libary_with_left_type(cur->type_);
     if (new_right != NULL) {
       auto res = cur->deep_copy();
@@ -821,7 +821,7 @@ IR * Mutator::strategy_replace(IR * cur){
         if(cur->left_ != NULL){
             res = deep_copy(cur);
         
-            auto new_node = get_ir_from_library(res->left_->type_);
+            auto new_node = get_from_libary_with_type(res->left_->type_);
             new_node->data_type_ = res->left_->data_type_;
             deep_delete(res->left_);
             res->left_ = deep_copy(new_node);
@@ -831,7 +831,7 @@ IR * Mutator::strategy_replace(IR * cur){
         if(cur->right_ != NULL){
             res = deep_copy(cur);
         
-            auto new_node = get_ir_from_library(res->right_->type_);
+            auto new_node = get_from_libary_with_type(res->right_->type_);
              new_node->data_type_ = res->right_->data_type_;
             deep_delete(res->right_);
             res->right_ = deep_copy(new_node);
@@ -841,8 +841,8 @@ IR * Mutator::strategy_replace(IR * cur){
         if(cur->left_ != NULL && cur->right_ != NULL){
             res = deep_copy(cur);
        
-            auto new_left = get_ir_from_library(res->left_->type_);
-            auto new_right = get_ir_from_library(res->right_->type_);
+            auto new_left = get_from_libary_with_type(res->left_->type_);
+            auto new_right = get_from_libary_with_type(res->right_->type_);
             new_left->data_type_ = res->left_->data_type_;
             new_right->data_type_ = res->right_->data_type_;
             deep_delete(res->right_);
@@ -909,21 +909,21 @@ IR* Mutator::generate_ir_by_type(IRTYPE type){
     return ret_ir;
 }
 
-IR* Mutator::get_ir_from_library(IRTYPE type){
-    
-    const int generate_prop = 1;
-    const int threshold = 0;
-    static IR* empty_ir = new IR(kLiteral, "");
-#ifdef USEGENERATE
-    if(ir_library_[type].empty() == true || (get_rand_int(400) == 0 && type != kUnknown)){
-        auto ir = generate_ir_by_type(type);
-        add_ir_to_library_no_deepcopy(ir);
-        return ir;
-    }
-#endif
-    if(ir_library_[type].empty()) return empty_ir;
-    return vector_rand_ele(ir_library_[type]);
-}
+//IR* Mutator::get_ir_from_library(IRTYPE type){
+//
+//    const int generate_prop = 1;
+//    const int threshold = 0;
+//    static IR* empty_ir = new IR(kLiteral, "");
+//#ifdef USEGENERATE
+//    if(ir_library_[type].empty() == true || (get_rand_int(400) == 0 && type != kUnknown)){
+//        auto ir = generate_ir_by_type(type);
+//        add_ir_to_library_no_deepcopy(ir);
+//        return ir;
+//    }
+//#endif
+//    if(ir_library_[type].empty()) return empty_ir;
+//    return vector_rand_ele(ir_library_[type]);
+//}
 
 string Mutator::get_a_string() {
     unsigned com_size = common_string_library_.size();
@@ -4087,7 +4087,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     /* Reconstruct the IR tree. */
     int ret = run_parser_multi_stmt(*p_current_query_str, current_ir_set);
     if (ret != 0 || current_ir_set.size() <= 0)
-      return new IR(kUnknown, "");
+      return new IR(kUnknown, string(""));
     current_ir_root = current_ir_set.back();
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
@@ -4097,7 +4097,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
       if (matched_ir_node->type_ != type_) {
         // cerr << "DEBUG: Type not matched\n\n\n";
         current_ir_root->deep_drop();
-        return new IR(kUnknown, "");
+        return new IR(kUnknown, string(""));
       }
       return_matched_ir_node = matched_ir_node;
       current_ir_root->detatch_node(return_matched_ir_node);
@@ -4115,7 +4115,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     }
   }
 
-  return new IR(kUnknown, "");
+  return new IR(kUnknown, string(""));
 }
 
 IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
@@ -4142,10 +4142,14 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
       return NULL;
     current_ir_root = current_ir_set.back();
 
+    if (current_ir_set.size() <= unique_node_id) {
+      return NULL;
+    }
+
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
-    if (matched_ir_node != NULL) {
+    if (matched_ir_node != NULL && matched_ir_node->right_ != NULL) {
       if (matched_ir_node->left_->type_ != type_) {
         current_ir_root->deep_drop();
         return NULL;
@@ -4191,10 +4195,14 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
       return NULL;
     current_ir_root = current_ir_set.back();
 
+    if (current_ir_set.size() <= unique_node_id) {
+      return NULL;
+    }
+
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
-    if (matched_ir_node != NULL) {
+    if (matched_ir_node != NULL && matched_ir_node->left_ != NULL) {
       if (matched_ir_node->right_->type_ != type_) {
         current_ir_root->deep_drop();
         return NULL;

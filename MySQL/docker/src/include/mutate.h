@@ -96,7 +96,7 @@ public:
 
     string get_a_string() ; //DONE
     unsigned long get_a_val() ; //DONE
-    IR* get_ir_from_library(IRTYPE);//DONE
+//    IR* get_ir_from_library(IRTYPE);//DONE
     IR* generate_ir_by_type(IRTYPE) ; //Done
 
     string get_data_by_type(DATATYPE) ;

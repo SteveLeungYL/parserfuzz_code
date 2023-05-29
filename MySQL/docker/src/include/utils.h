@@ -18,6 +18,7 @@ using std::string;
 
 #define MUTATESTART                                                            \
   IR *res;                                                                     \
+  res = nullptr;                                                               \
   auto randint = get_rand_int(3);                                              \
   switch (randint) {
 
