@@ -122,14 +122,14 @@ public:
       }
 
   void reset_block_cov_map() { memset(this->block_cov_map, 0, MAP_SIZE); }
-  void reset_block_virgin_map() { memset(this->block_virgin_map, 0, MAP_SIZE); }
+  void reset_block_virgin_map() { memset(this->block_virgin_map, 0xff, MAP_SIZE); }
 
   void reset_edge_cov_map() {
     memset(this->edge_cov_map, 0, MAP_SIZE);
     edge_prev_cov = 0;
   }
   void reset_edge_virgin_map() {
-    memset(this->edge_virgin_map, 0, MAP_SIZE);
+    memset(this->edge_virgin_map, 0xff, MAP_SIZE);
     edge_prev_cov = 0;
   }
 
