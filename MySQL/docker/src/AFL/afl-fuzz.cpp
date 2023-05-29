@@ -6851,7 +6851,7 @@ static u8 fuzz_one(char **argv)
       for (IR* cur_trans_stmt : all_pre_trans_vec) {
         g_mutator.validate(cur_trans_stmt);
         if (get_rand_int(2) < 1) {
-          g_mutator.correct_insert_stmt(cur_trans_stmt);
+//          g_mutator.correct_insert_stmt(cur_trans_stmt);
         }
       }
       // auto single_validate_func_end_time_3 = std::chrono::system_clock::now();
