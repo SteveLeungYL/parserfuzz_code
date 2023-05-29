@@ -13,6 +13,10 @@ using std::string;
 
 static MySQLGrammarCovVisitor gram_cov_visitor;
 
+u32 get_total_grammar_edge_cov_size_num() {
+  return gram_cov_visitor.gram_cov.get_total_edge_cov_size_num();
+}
+
 int run_parser(string str_in, vector<IR*>& ir_vec) {
 
   antlr4::ANTLRInputStream input(str_in);

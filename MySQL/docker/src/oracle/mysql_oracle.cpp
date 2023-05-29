@@ -57,6 +57,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     if (!this->is_oracle_select_stmt(cur_ir_stmt))
       {
         // cerr << "Error: cur_ir_stmt is not oracle statement. cur_ir_stmt->to_stirng(): "<<  cur_ir_stmt->to_string() << "  In func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
+        root->deep_drop();
         continue;
       }
 
