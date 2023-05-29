@@ -11,6 +11,8 @@
 using std::vector;
 using std::string;
 
+static MySQLGrammarCovVisitor gram_cov_visitor;
+
 int run_parser(string str_in, vector<IR*>& ir_vec) {
 
   antlr4::ANTLRInputStream input(str_in);
@@ -20,7 +22,6 @@ int run_parser(string str_in, vector<IR*>& ir_vec) {
   parser.removeErrorListeners();
   MySQLParser::QueryContext* tree = parser.query();
 
-  MySQLGrammarCovVisitor gram_cov_visitor;
   gram_cov_visitor.set_parser(&parser);
   gram_cov_visitor.visitQuery(tree);
   gram_cov_visitor.gram_cov.has_new_grammar_bits(false, str_in);
