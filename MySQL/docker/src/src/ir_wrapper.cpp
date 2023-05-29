@@ -789,8 +789,8 @@ bool IRWrapper::drop_kvalues_to_insert_stmt(IR* cur_stmt) {
                 }
             }
 
-            IR *next_value = cur_values_node->get_right();
-            cur_values_node->update_right(nullptr);
+            IR *next_value = cur_sub_value->get_right();
+            cur_sub_value->update_right(nullptr);
             //        cur_stmt->swap_node(cur_values_node, next_value);
             next_value->deep_drop();
             break;
