@@ -1122,6 +1122,10 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 	// Initialize to an empty slice instead of nil because nil means error.
 	ret := make([]string, 0)
 
+	if root == "shutdown_stmt" {
+		return ret
+	}
+
 	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d \n\n\n", root, len(allProds))
 	var curChosenRule *yacc.ExpressionNode
 	if rootPathNode.ExprProds == nil {
