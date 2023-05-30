@@ -1122,7 +1122,10 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 	// Initialize to an empty slice instead of nil because nil means error.
 	ret := make([]string, 0)
 
-	if root == "shutdown_stmt" {
+	if root == "shutdown_stmt" || root == "drop_database_stmt" ||
+		root == "alter_database_stmt" || root == "alter_user_stmt" ||
+		root == "set_role_stmt" || root == "revoke" || root == "grant" ||
+		root == "drop_user_stmt" {
 		return ret
 	}
 
