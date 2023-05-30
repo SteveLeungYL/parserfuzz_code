@@ -1462,7 +1462,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			case "NOW_SYM":
 				v = []string{" CURRENT_TIMESTAMP "}
 			case "CURRENT_USER":
-				v = []string{" CURRENT_USER "}
+				v = []string{" 'abc' "}
 			case "CURSOR_SYM":
 				v = []string{" CURSOR "}
 			case "CURSOR_NAME_SYM":
@@ -1888,7 +1888,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			case "MASTER_LOG_POS_SYM":
 				v = []string{" MASTER_LOG_POS "}
 			case "MASTER_PASSWORD_SYM":
-				v = []string{" MASTER_PASSWORD "}
+				v = []string{" "}
 			case "MASTER_PORT_SYM":
 				v = []string{" MASTER_PORT "}
 			case "MASTER_PUBLIC_KEY_PATH_SYM":
@@ -2102,9 +2102,9 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			case "PARTITIONS_SYM":
 				v = []string{" PARTITIONS "}
 			case "PASSWORD":
-				v = []string{" PASSWORD "}
+				v = []string{" "}
 			case "PASSWORD_LOCK_TIME_SYM":
-				v = []string{" PASSWORD_LOCK_TIME "}
+				v = []string{" "}
 			case "PERCENT_RANK_SYM":
 				v = []string{" PERCENT_RANK "}
 			case "PERSIST_SYM":
@@ -2394,7 +2394,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 			case "SOURCE_LOG_POS_SYM":
 				v = []string{" SOURCE_LOG_POS "}
 			case "SOURCE_PASSWORD_SYM":
-				v = []string{" SOURCE_PASSWORD "}
+				v = []string{" "}
 			case "SOURCE_PORT_SYM":
 				v = []string{" SOURCE_PORT "}
 			case "SOURCE_PUBLIC_KEY_PATH_SYM":
@@ -2673,7 +2673,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 				v = []string{" XA "}
 			case "XID_SYM":
 				v = []string{" XID "}
-			case "XML_SYM /* LOAD XML Arnold/Erik */":
+			case "XML_SYM":
 				v = []string{" XML "}
 			case "YEAR_SYM":
 				v = []string{" YEAR "}
