@@ -41,7 +41,7 @@ string rsg_generate(const string input_str) {
 
     GoString gostr_input = {input_str.c_str(), long(input_str.size())};
 
-    const string dbms_name = "mysqlSquirrel";
+    const string dbms_name = "mysql";
     GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
 
     // Actual Parsing.
@@ -70,7 +70,7 @@ string rsg_generate(const IRTYPE type) {
   if (type == kSelectStatement) {
     input_str = "select_stmt";
   } else {
-    input_str = "stmt";
+    input_str = "simple_statement";
   }
 
   return rsg_generate(input_str);
