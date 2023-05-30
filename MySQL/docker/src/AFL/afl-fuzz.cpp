@@ -6503,9 +6503,9 @@ string rsg_generate_query_sequence() {
     res_query += rsg_generate("create_table_stmt") + "; \n";
     res_query += rsg_generate("insert_stmt") + "; \n";
     res_query += rsg_generate("insert_stmt") + "; \n";
-    res_query += rsg_generate("stmt") + "; \n";
-    res_query += rsg_generate("stmt") + "; \n";
-    res_query += rsg_generate("stmt") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
