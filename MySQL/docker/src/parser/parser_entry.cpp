@@ -17,13 +17,15 @@ u32 get_total_grammar_edge_cov_size_num() {
   return gram_cov_visitor.gram_cov.get_total_edge_cov_size_num();
 }
 
-int run_parser(string str_in, vector<IR*>& ir_vec) {
+int run_parser(string str_in, vector<IR*>& ir_vec, bool is_debug = false) {
 
   antlr4::ANTLRInputStream input(str_in);
   MySQLLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
   MySQLParser parser(&tokens);
-  parser.removeErrorListeners();
+  if (!is_debug) {
+    parser.removeErrorListeners();
+  }
   MySQLParser::QueryContext* tree = parser.query();
 
   gram_cov_visitor.set_parser(&parser);

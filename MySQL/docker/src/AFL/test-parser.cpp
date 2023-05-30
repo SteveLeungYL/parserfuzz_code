@@ -44,7 +44,7 @@ IR* test_parse(string &query) {
 
   vector<IR*> v_ir;
 
-  int ret = run_parser(query, v_ir);
+  int ret = run_parser(query, v_ir, true); // is_debug = true
   // exec_query_command_entry(query, v_ir);
 
   if (v_ir.size() == 0 || ret != 0) {
