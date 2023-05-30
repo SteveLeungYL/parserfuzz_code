@@ -3138,32 +3138,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec) {
   // Final step, IR_to_string function. 
   string output_str_mark, output_str_no_mark; 
-  for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between different statements. 
+  for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between different statements.
     vector<IR*> post_trans_vec = all_post_trans_vec[i];
-    int count = 0;
-    bool is_oracle_select = false;
-    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
-    for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations. 
+    for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations.
       string tmp = cur_trans_stmt->to_string();
-      if (is_oracle_select) {
-
-        output_str_mark += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
-        output_str_mark  += tmp + "; \n";
-        output_str_mark += "SELECT 'END VERI " + to_string(count) + "'; \n";
-
-        output_str_no_mark += tmp + "; \n";
-        count++;
-
-      } else {
-
-        if (cur_trans_stmt->is_mutating) {
-          output_str_mark  += "#MutationMark " + tmp + "; \n";
-        } else {
-          output_str_mark  += tmp + "; \n";
-        }
-
-        output_str_no_mark += tmp + "; \n";
-      }
+      output_str_mark += tmp + "; \n";
+      output_str_no_mark += tmp + "; \n";
     }
   }
   pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 

@@ -169,8 +169,6 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
-u64 max_mutation_count = 100;
-
 u64 timeout_seed_num = 0;
 
 u64 mysql_execute_ok = 0;
@@ -544,45 +542,16 @@ public:
 
     for (string cur_cmd_str : v_cmd_str) {
 
-      if (cur_cmd_str.find("#MutationMark ") != string::npos) {
-        // We are executing the mutating query
-        cur_cmd_str.replace(0, 15, "");
+      // cerr << "Testing with normal cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
 
-        // cerr << "Testing with MUTATED cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
+      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+      correctness = clean_up_connection(m_);
 
-        server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
-        correctness = clean_up_connection(m_);
-
-        if ( is_oracle_select ) {
-          if (server_response == 0 ) {
-            debug_good++;
-          } else {
-            debug_error++;
-          }
-        }
+      if (server_response == 0 ) {
+        debug_good++;
       } else {
-
-        // cerr << "Testing with normal cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
-
-        server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
-        correctness = clean_up_connection(m_);
-
-        if ( is_oracle_select ) {
-          if (server_response == 0 ) {
-            debug_good++;
-          } else {
-            debug_error++;
-          }
-        }
-
-      }
-
-      if (cur_cmd_str.find("BEGIN VERI 0") != string::npos || cur_cmd_str.find("BEGIN VERI 1") != string::npos ) {
-        is_oracle_select = true;
-      } else {
-        is_oracle_select = false;
+        debug_error++;
       }
 
       if (server_response == CR_SERVER_LOST) {
@@ -3163,7 +3132,7 @@ BEGIN:
     status = FAULT_NONE;
   }
 
-  total_execs++;
+//  total_execs++;
 
   MEM_BARRIER();
 
@@ -5833,135 +5802,58 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   u8 fault;
 
+  /* Compare results between different validation stmts in a single run. */
+  string cmd_string = cmd_string_vec[0];
+
+  /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
+  cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
+
+  // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
+
+  trim_string(cmd_string);
+
   string res_str = "";
-
-  for (const string& cmd_string : cmd_string_vec) {
-    if (is_using_non_deter) {
-        /* If it is using the non-deter queries, do not check for the non-deter keywords.  */
-        break;
-    }
-    if ((cmd_string.find("RANDOM") != std::string::npos) ||
-        (cmd_string.find("random") != std::string::npos)
-      ){
-      return FAULT_ERROR;
-    }
-
-    vector<string> queries_vector = string_splitter(cmd_string, ";");
-    for (string &query : queries_vector) {
-      // ignore the whole query pairs if !... in the stmt,
-      for (auto iter = query.begin(); iter != query.end(); iter++) {
-        if (*iter == '!')
-          return FAULT_ERROR;
-        else if (*iter != ' ')
-          break;
-      }
-    }
-  }
-
-  if (p_oracle->get_mul_run_num() <= 1)
+  fault = run_target(argv, tmout, cmd_string, res_str);
+  // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n";
+  if (stop_soon)
+    return fault;
+  if (fault == FAULT_TMOUT)
   {
-    /* Compare results between different validation stmts in a single run. */
-    // for (string query : queries_vector) {
-    //   cout << query << endl;
-    // }
-    // cmd_string = expand_valid_stmts_str(queries_vector, true);
-    string cmd_string = cmd_string_vec[0];
-
-    /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
-    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
-
-    // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
-
-    trim_string(cmd_string);
-
-    string res_str = "";
-    fault = run_target(argv, tmout, cmd_string, res_str);
-    // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
-    if (stop_soon)
-      return fault;
-    if (fault == FAULT_TMOUT)
+    if (subseq_tmouts++ > TMOUT_LIMIT)
     {
-      if (subseq_tmouts++ > TMOUT_LIMIT)
-      {
-        cur_skipped_paths++;
-        return fault;
-      }
-    }
-    else
-    {
-      subseq_tmouts = 0;
-    }
-    /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-    if (skip_requested)
-    {
-      skip_requested = 0;
       cur_skipped_paths++;
       return fault;
     }
-
-    all_comp_res.cmd_str = std::move(cmd_string);
-    all_comp_res.res_str = std::move(res_str);
-    compare_query_result(all_comp_res, explain_diff_id);
-  } else
+  }
+  else
   {
-    /* Compare results of the same validation stmts in different runs. */
-    for (int idx = 0; idx < cmd_string_vec.size(); idx++)
-    {
-      // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
-      string cmd_string = cmd_string_vec[idx];
-
-      trim_string(cmd_string);
-
-      /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
-      cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
-
-      string res_str = "";
-      fault = run_target(argv, tmout, cmd_string, res_str);
-      cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n";
-      if (stop_soon)
-        return fault;
-      if (fault == FAULT_TMOUT)
-      {
-        if (subseq_tmouts++ > TMOUT_LIMIT)
-        {
-          cur_skipped_paths++;
-          return fault;
-        }
-      }
-      else
-      {
-        subseq_tmouts = 0;
-      }
-      /* Users can hit us with SIGUSR1 to request the current input
-           to be abandoned. */
-      if (skip_requested)
-      {
-        skip_requested = 0;
-        cur_skipped_paths++;
-        return fault;
-      }
-
-      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
-      all_comp_res.v_res_str.push_back(std::move(res_str));
-
-    } // End for run_id loop.
-
-    compare_query_results_cross_run(all_comp_res, explain_diff_id);
+    subseq_tmouts = 0;
+  }
+  /* Users can hit us with SIGUSR1 to request the current input
+       to be abandoned. */
+  if (skip_requested)
+  {
+    skip_requested = 0;
+    cur_skipped_paths++;
+    return fault;
   }
 
-  // /* Log the debug_error and debug_good. */
-  // for (auto &res : all_comp_res.v_res)
-  // {
-  //   if (res.comp_res == ORA_COMP_RES::Pass)
-  //   {
-  //     debug_good++;
-  //   }
-  //   else
-  //   {
-  //     debug_error++;
-  //   }
-  // }
+  all_comp_res.cmd_str = std::move(cmd_string);
+  all_comp_res.res_str = std::move(res_str);
+  compare_query_result(all_comp_res, explain_diff_id);
+
+//   /* Log the debug_error and debug_good. */
+//   for (auto &res : all_comp_res.v_res)
+//   {
+//     if (res.comp_res == ORA_COMP_RES::Pass)
+//     {
+//       debug_good++;
+//     }
+//     else
+//     {
+//       debug_error++;
+//     }
+//   }
 
   /* Some useful debug output. That could show what queries are being tested. */
   // stream_output_res(all_comp_res, cerr);
@@ -6011,6 +5903,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   else
   {
     /* Query being skipped, or all select stmts return error results. */
+    total_execs++;
   }
   total_execute++;
   return fault;
@@ -6473,7 +6366,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
 
 inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& query_str_no_marks_vec) {
 
-    if (query_str_vec.size() < 1 || query_str_no_marks_vec.size() < 1) {
+    if (query_str_vec.empty() || query_str_no_marks_vec.empty()) {
         return;
     }
 
@@ -6482,9 +6375,9 @@ inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& quer
         "SET SESSION optimizer_switch='index_merge=off,index_merge_union=off,index_merge_sort_union=off,engine_condition_pushdown=off,index_condition_pushdown=off';", 
         "SET SESSION optimizer_switch='mrr=off,mrr_cost_based=off,block_nested_loop=off';", 
         "SET SESSION optimizer_switch='batched_key_access=off,materialization=off,semijoin=off,loosescan=off,firstmatch=off,duplicateweedout=off';", 
-        "SET SESSION optimizer_switch= 'subquery_materialization_cost_based=off,use_index_extensions=off,condition_fanout_filter=off,derived_merge=off,use_invisible_indexes=off,skip_scan=off,hash_join=off,subquery_to_derived=off';", 
-        "SET SESSION optimizer_switch= 'prefer_ordering_index=off,hypergraph_optimizer=off,derived_condition_pushdown=off';",
-        "SET SESSION optimizer_switch= 'index_merge_intersection=off'; "
+        "SET SESSION optimizer_switch='subquery_materialization_cost_based=off,use_index_extensions=off,condition_fanout_filter=off,derived_merge=off,use_invisible_indexes=off,skip_scan=off,hash_join=off,subquery_to_derived=off';",
+        "SET SESSION optimizer_switch='prefer_ordering_index=off,hypergraph_optimizer=off,derived_condition_pushdown=off';",
+        "SET SESSION optimizer_switch='index_merge_intersection=off'; "
     };
 
     const string ori_query_str = query_str_vec[0];
@@ -6534,64 +6427,9 @@ static u8 fuzz_one(char **argv)
   u32 a_len = 0;
 
   vector<IR *> ori_ir_tree;
-  vector<IR*> v_oracle_select_stmts;
   vector<IR*> v_ir_stmts;
 
   string input;
-
-  // DEBUG
-  string ori_input_str;
-
-//  /* If this is a timeout query, skip it immediately. */
-//  if (queue_cur->is_timeout) {
-//    SAYF("\n" cLRD "[-] " cRST
-//                 "DEBUG: Skip test case due to its seeds' timeout .\n\n\n");
-//    return 1;
-//  }
-//
-//
-//#ifdef IGNORE_FINDS
-//
-//  /* In IGNORE_FINDS mode, skip any entries that weren't in the
-//     initial data set. */
-//
-//  if (queue_cur->depth > 1)
-//    return 1;
-//
-//#else
-//
-//  if (pending_favored)
-//  {
-//
-//    /* If we have any favored, non-fuzzed new arrivals in the queue,
-//       possibly skip to them at the expense of already-fuzzed or non-favored
-//       cases. */
-//
-//    if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
-//        UR(100) < SKIP_TO_NEW_PROB)
-//      return 1;
-//  }
-//  else if (!dumb_mode && !queue_cur->favored && queued_paths > 10)
-//  {
-//
-//    /* Otherwise, still possibly skip non-favored cases, albeit less often.
-//       The odds of skipping stuff are higher for already-fuzzed inputs and
-//       lower for never-fuzzed entries. */
-//
-//    if (queue_cycle > 1 && !queue_cur->was_fuzzed)
-//    {
-//
-//      if (UR(100) < SKIP_NFAV_NEW_PROB)
-//        return 1;
-//    }
-//    else
-//    {
-//
-//      if (UR(100) < SKIP_NFAV_OLD_PROB)
-//        return 1;
-//    }
-//  }
-// #endif /* ^IGNORE_FINDS */
 
   if (not_on_tty)
   {
@@ -6625,110 +6463,27 @@ static u8 fuzz_one(char **argv)
   memcpy(out_buf, in_buf, len);
   out_buf[len] = '\0';
 
-  stage_name = "mutate";
+  stage_name = "generate";
 
   int skip_count = 0;
   input.assign((const char *)out_buf, len);
 
-  // RSG modified from here.
-
+  // RSG modified from here. Rewrite the original input.
   input.clear();
   input = rsg_generate_query_sequence();
-
-  /* Now we modify the input queries, append multiple norec compatible select
-   * stmt to the end of the queries to achieve better testing efficiency.  */
-
-  // cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
-
   num_parse++;
-
-  // vector<string> tmp_vec = {input};
-  // common_fuzz_stuff(argv, tmp_vec, tmp_vec);
-  // return 0;
 
   ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
-  if (ret != 0 || ori_ir_tree.size() == 0)
+  vector<IR*> v_mutated_ir_root;
+
+  if (ret != 0 || ori_ir_tree.empty())
   {
     goto abandon_entry;
   }
 
-  IR* cur_root;
-  cur_root = ori_ir_tree.back();
-
-  // DEBUG: 
-  // ori_input_str = cur_root->to_string();
-
-  // cerr << "Getting the original parsing results. \n\n\n";
-  // g_mutator.debug(cur_root, 0);
-  // cerr << "\n\n\n";
-  // cerr << cur_root->to_string();
-  // cerr << "to_string finished. \n\n\n";
-  // cerr << "End\n\n\n";
-
-  /* Append Create stmts to the queue, if no create table stmts is found. */
-  // v_ir_stmts = IRWrapper::get_stmt_ir_vec(cur_root);
-  // int create_num, drop_num;
-  // bool is_missing_create;
-  // create_num = 0;
-  // drop_num = 0;
-
-  // for (IR* ir_stmts : v_ir_stmts) {
-  //   switch (ir_stmts->get_ir_type()) {
-  //     case kCreateTableStmt:
-  //       create_num++;
-  //       break;
-  //     case kDropTableStmt:
-  //       {
-  //         if (get_rand_int(2) < 1) {
-  //           /* 50% chance, remove drop stmt.  */
-  //           IRWrapper::set_ir_root(cur_root);
-  //           IRWrapper::remove_stmt_and_free(ir_stmts);
-  //         }
-  //       }
-  //       drop_num++;
-  //       break;
-  //   }
-  // }
-
-  // if (create_num == 0) {
-  //   // cur_root->deep_drop();
-  //   goto abandon_entry;
-  // }
-
-  // if (drop_num >= create_num && get_rand_int(2) < 1) {
-  //   // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
-  //   g_mutator.add_missing_create_table_stmt(cur_root);
-  //   // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
-  //   // goto abandon_entry;
-  // }
-  // v_ir_stmts.clear(); // No need to free. 
-
-  // cerr << "Before removing select stmt and added create. \n\n\n";
-  // // g_mutator.debug(cur_root, 0);
-  // // cerr << "\n\n\n";
-  // cerr << cur_root->to_string();
-  // cerr << "to_string finished. \n\n\n";
-  // cerr << "End\n\n\n";
-
-  // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
-//  p_oracle->remove_select_stmt_from_ir(cur_root);
-//  p_oracle->remove_explain_stmt_from_ir(cur_root);
-
-
-  // cerr << "After removing select stmt and added create. \n\n\n";
-  // // g_mutator.debug(cur_root, 0);
-  // // cerr << "\n\n\n";
-  // cerr << cur_root->to_string();
-  // cerr << "\nto_string finished. \n\n\n";
-  // cerr << "End\n\n\n";
-
-
-  ori_ir_tree.clear();
-  ori_ir_tree = IRWrapper::get_all_ir_node(cur_root);
-
-  stage_max = ori_ir_tree.size();
+  stage_max = 1;
   stage_cur = 0;
   stage_short = "SQL fuzz";
   stage_name = "MySQL fuzzing";
@@ -6744,279 +6499,123 @@ static u8 fuzz_one(char **argv)
   prev_cksum = queue_cur->exec_cksum;
   skip_count = 0;
 
-  v_oracle_select_stmts.clear();
-  get_oracle_select_stmts(v_oracle_select_stmts, 10);
+  if (stop_soon) {
+    goto abandon_entry;
+  }
 
-  // cerr << "After get_oracle_select_stmts. \n\n\n";
+  /* The mutated IR tree is deep_copied() */
+  v_mutated_ir_root.push_back(ori_ir_tree.back()->deep_copy());
 
-  for (int cur_mutation_count = 0; cur_mutation_count < max_mutation_count; cur_mutation_count++) {
-    if (stop_soon) {
-      goto abandon_entry;
+  for (IR* mutated_ir_root : v_mutated_ir_root) {
+
+    if (!mutated_ir_root) {
+      continue;
     }
 
-    IR* ir_to_mutate = vector_rand_ele(ori_ir_tree);
+    stage_name = "query_fix";
+    IR* cur_root = mutated_ir_root;
 
-    /* Log which statement are we mutating on.  */
-    IR* cur_mutating_stmt = IRWrapper::get_cur_stmt_ir_from_sub_ir(ir_to_mutate);  // Should not be NULL!
-    if (cur_mutating_stmt) {
-      // cerr << "Mutating on: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << ":" << ir_to_mutate->to_string() << " stmt: " << get_string_by_ir_type(cur_mutating_stmt->get_ir_type()) << ": " << cur_mutating_stmt->to_string() << "\n\n\n";
+    /*
+    ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
+    ** fix ir node, fill in concret values,
+    ** and transform from IR to multi-run strings.
+    */
+    vector<string> query_str_vec, query_str_no_marks_vec;
 
-      cur_mutating_stmt->is_mutating = true;
-    } else {
-      // cerr << "Mutating on: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << ":" << ir_to_mutate->to_string() << "\n";
-      // cerr << "Cur_mutating_stmt getting NULL?\n\n\n";
+    g_mutator.pre_validate(); // Reset global variables for query sequence.
 
-      cur_mutating_stmt = NULL;
-    }
-
-    // auto single_mutation_start_time = std::chrono::system_clock::now();
-
-    /* The mutated IR tree is deep_copied() */
-//    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, cur_mutating_stmt, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
-    vector<IR*> v_mutated_ir_root = {ori_ir_tree.back()->deep_copy()};
-
-    // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
-    // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
-    // cerr << "Single mutate_all function call time, used time: " << single_mutation_function_used_time.count() << "\n\n\n";
-
-    num_mutate_all++;
-
-    for (IR* mutated_ir_root : v_mutated_ir_root) {
-
-      if (!mutated_ir_root) {
-        continue;
-      }
-
-      string ir_str = mutated_ir_root->to_string();
-      stage_name = "query_fix";
-
-      /* Use to_string() here, validate() will be called just once, at the end of
-      * the query mutation. */
-      if (ir_str.size() == 0)
-      {
-        total_mutate_failed++;
-        skip_count++;
-        continue;
-      }
-
-      /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
-      * consider appending anything */
-
-      // auto single_reparse_start_time = std::chrono::system_clock::now();
-
-      // cerr << "Before reparsing, the mutated ir_str is: " << ir_str << "\n\n\n";
-
-      vector<IR *> cur_ir_tree;
-      ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
-      if (ret != 0 || cur_ir_tree.size() == 0) {
-        total_mutate_failed++;
-        skip_count++;
-        continue;
-      }
-
-      cur_ir_tree.back() -> deep_drop();
-      cur_ir_tree.clear();
-      IR* cur_root = mutated_ir_root;
-
-      num_reparse++;
-
-      // auto single_reparse_end_time = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_reparse_used_time = single_reparse_end_time  - single_reparse_start_time ;
-      // cerr << "Single reparse function call time, used time: " << single_reparse_used_time.count() << "\n\n\n";
-
-      // cerr << "After mutate and reparse, we get ori_str: \n" << ori_input_str << "\nmutated_str: " << cur_ir_tree.back()->to_string() << "\n\n\n";
-
-      // cerr << "IR size: " << cur_ir_tree.size() << "\n\n\n";
-
-      // auto single_append_stmt_start_time = std::chrono::system_clock::now();
-
-      for (IR* app_IR_node : v_oracle_select_stmts) {
-        IRWrapper::set_ir_root(cur_root);
-        IRWrapper::append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
-      }
-
-      // auto single_append_stmt_end_time = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_append_stmt_used_time = single_append_stmt_end_time  - single_append_stmt_start_time ;
-      // cerr << "Single append stmt function call time, used time: " << single_append_stmt_used_time.count() << "\n\n\n";
-
-      num_append++;
-
-      // auto single_validate_func_start_time = std::chrono::system_clock::now();
-
-      /*
-      ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
-      ** fix ir node, fill in concret values,
-      ** and transform from IR to multi-run strings.
-      */
-      vector<string> query_str_vec, query_str_no_marks_vec;
-
-      g_mutator.pre_validate(); // Reset global variables for query sequence.
-
-      // auto single_validate_func_start_time_2 = std::chrono::system_clock::now();
-      // pre_fix_transformation from the oracle.
-      vector<STMT_TYPE> stmt_type_vec;
-      vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
-
-      // auto single_validate_func_end_time_2 = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_validate_func_used_time_2 = single_validate_func_end_time_2  - single_validate_func_start_time_2 ;
-      // cerr << "Single validate function pre_fix_transform function call time, used time: " << single_validate_func_used_time_2.count() << "\n\n\n";
-
-      /* Debug  */
-      // cerr << "Just gone through pre_fix_transform, we have: \n";
-      // for (IR* cur_trans: all_pre_trans_vec) {
-      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-      //   if (cur_trans->parent_) {
-      //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
-      //   }
-      // }
-      // cerr << "Pre-fix transform end. \n\n\n";
-
-      // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
-
-      // auto single_validate_func_start_time_3 = std::chrono::system_clock::now();
-      /* Build dependency graph, fix ir node, fill in concret values */
-      for (IR* cur_trans_stmt : all_pre_trans_vec) {
-        g_mutator.validate(cur_trans_stmt);
-        if (get_rand_int(2) < 1) {
-//          g_mutator.correct_insert_stmt(cur_trans_stmt);
-        }
-      }
-      // auto single_validate_func_end_time_3 = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_validate_func_used_time_3 = single_validate_func_end_time_3  - single_validate_func_start_time_3 ;
-      // cerr << "Single validate function 3 main function call time, used time: " << single_validate_func_used_time_3.count() << "\n\n\n";
-
-
-      // cerr << "Just gone through validate functions, we have: \n";
-      // for (IR* cur_trans: all_pre_trans_vec) {
-      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-      //   if (cur_trans->parent_) {
-      //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
-      //   }
-      // }
-      // cerr << "Pre-fix transform end. \n\n\n";
-
-      // auto single_validate_func_start_time_4 = std::chrono::system_clock::now();
-      /* post_fix_transformation from the oracle. All deep_copied. */
-      vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
-
-      // auto single_validate_func_end_time_4 = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_validate_func_used_time_4 = single_validate_func_end_time_4  - single_validate_func_start_time_4 ;
-      // cerr << "Single validate function postfix_transform call time, used time: " << single_validate_func_used_time_4.count() << "\n\n\n";
-
-      for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
-
-        /* Debug */
-        // cerr << "After post-fix, we have: \n";
-        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
-        //   for (IR* cur_post: cur_post_trans) {
-        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
-        //   }
-        // }
-        // cerr << "Post-fix Done. \n";
-
-        // Final step, transform IR tree to string. Add marker to important statements.
-        pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
-        query_str_vec.push_back(query_str_pair.first);
-        query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
-      }
-
-      // for (auto query_str : query_str_vec) {
-      //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
-      // }
-      // cerr << "End\n\n\n";
-
-      /* Clean up allocated resource.  */
-      for (int i = 0; i < all_pre_trans_vec.size(); i++){
-        all_pre_trans_vec[i]->deep_drop();
-      }
-
-      for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
-        for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
-          for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
-            all_post_trans_vec_all_runs[i][j][k]->deep_drop();
-          }
-        }
-      }
-
-      num_validate++;
-
-      // if (cur_ir_tree.size() > 0){
-      //   cur_ir_tree.back()->deep_drop();
-      // }
-
-      // auto single_validate_func_end_time = std::chrono::system_clock::now();
-      // std::chrono::duration<double> single_validate_func_used_time = single_validate_func_end_time  - single_validate_func_start_time ;
-      // cerr << "Single validate function call time, used time: " << single_validate_func_used_time.count() << "\n\n\n";
-
-      /* Finished clean up */
-
-      if (query_str_vec.size() == 0)
-      {
-        total_append_failed++;
-        skip_count++;
-        continue;
-      } else if (query_str_vec[0] == "" ){
-        total_append_failed++;
-        skip_count++;
-        continue;
-      }
-      else
-      {
-        show_stats();
-        stage_name = "fuzz";
-
-        cur_ir_tree.clear();
-        ret = run_parser_multi_stmt(query_str_vec[0], cur_ir_tree);
-        if (ret != 0 || cur_ir_tree.size() == 0) {
-          total_mutate_failed++;
-          skip_count++;
-          continue;
-        }
-        cur_ir_tree.back() -> deep_drop();
-        cur_ir_tree.clear();
-
-        /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
-        // vector<string> small_query_testcases;
-        // split_queries_into_small_pieces(query_str, small_query_testcases);
-        // if (small_query_testcases.size() == 0) {
-        //   total_append_failed++;
-        //   skip_count++;
-        //   continue;
-        // }
-
-        // if (query_str_vec.size() > 0)
-        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
-
-        if (p_oracle->get_oracle_type() == "OPT") {
-            append_opt_stmts(query_str_vec, query_str_no_marks_vec);
-        }
-
-        if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
-        {
-            
-          // goto abandon_entry;
-          continue;
-        }
-        total_execute++;
-        stage_cur++;
-        show_stats();
-      }
-    } // v_mutated_ir_root
-
-    for (IR* mutated_ir_root : v_mutated_ir_root) {
-      mutated_ir_root->deep_drop();
-    }
-
-    if (cur_mutating_stmt) {
-      cur_mutating_stmt->is_mutating = false;
-    }
+    // auto single_validate_func_start_time_2 = std::chrono::system_clock::now();
+    // pre_fix_transformation from the oracle.
+    vector<STMT_TYPE> stmt_type_vec;
+    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
 
     // DEBUG
-    // auto single_mutation_end_time = std::chrono::system_clock::now();
-    // std::chrono::duration<double> single_mutation_used_time = single_mutation_end_time - single_mutation_start_time;
-    // cerr << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
+    // cerr << "Just gone through validate functions, we have: \n";
+    // for (IR* cur_trans: all_pre_trans_vec) {
+    //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+    //   if (cur_trans->parent_) {
+    //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+    //   }
+    // }
+    // cerr << "Pre-fix transform end. \n\n\n";
 
-  } // ir_set vector
+    /* post_fix_transformation from the oracle. All deep_copied. */
+    vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+
+    // cerr << "Single validate function postfix_transform call time, used time: " << single_validate_func_used_time_4.count() << "\n\n\n";
+
+    for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
+
+      /* Debug */
+      // cerr << "After post-fix, we have: \n";
+      // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+      //   for (IR* cur_post: cur_post_trans) {
+      //     cerr << "cur_post: " << cur_post->to_string() << "\n";
+      //   }
+      // }
+      // cerr << "Post-fix Done. \n";
+
+      // Final step, transform IR tree to string. Add marker to important statements.
+      pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+      query_str_vec.push_back(query_str_pair.first);
+      query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
+    }
+
+    // for (auto query_str : query_str_vec) {
+    //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
+    // }
+    // cerr << "End\n\n\n";
+
+    /* Clean up allocated resource.  */
+    for (int i = 0; i < all_pre_trans_vec.size(); i++){
+      all_pre_trans_vec[i]->deep_drop();
+    }
+
+    for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
+      for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
+        for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
+          all_post_trans_vec_all_runs[i][j][k]->deep_drop();
+        }
+      }
+    }
+
+    num_validate++;
+
+    /* Finished clean up */
+
+    if (query_str_vec.size() == 0)
+    {
+      total_append_failed++;
+      skip_count++;
+      continue;
+    } else if (query_str_vec[0] == "" ){
+      total_append_failed++;
+      skip_count++;
+      continue;
+    }
+    else
+    {
+      show_stats();
+      stage_name = "fuzz";
+
+      if (p_oracle->get_oracle_type() == "OPT") {
+          append_opt_stmts(query_str_vec, query_str_no_marks_vec);
+      }
+
+      if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
+      {
+        // goto abandon_entry;
+        continue;
+      }
+      total_execute++;
+      stage_cur++;
+      show_stats();
+    }
+  } // v_mutated_ir_root
+
+  for (IR* mutated_ir_root : v_mutated_ir_root) {
+    mutated_ir_root->deep_drop();
+  }
 
   stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
@@ -7032,12 +6631,6 @@ abandon_entry:
   if (ori_ir_tree.size() != 0) {
     ori_ir_tree.back()->deep_drop();
   }
-
-  /* Free the generated oracle SELECT stmt.  */
-  for (IR* app_ir_node : v_oracle_select_stmts) {
-    app_ir_node->deep_drop();
-  }
-  v_oracle_select_stmts.clear();
 
   splicing_with = -1;
 
