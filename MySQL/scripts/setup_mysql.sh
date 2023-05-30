@@ -1,6 +1,9 @@
 #!/bin/bash -e
 cd "$(dirname "$0")"/../docker
 
+# Copy the RSG folder to the target location
+cp -r ../../Common_Tootls/rsg ./rsg
+
 ## For debug purpose, keep all intermediate steps to fast reproduce the run results.
 #sudo docker build --rm=false -f ./Dockerfile -t sqlright_mysql .  
 

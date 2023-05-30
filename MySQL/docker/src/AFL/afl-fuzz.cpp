@@ -85,6 +85,7 @@
 #include <filesystem>
 
 #include "../oracle/mysql_oracle.h"
+#include "../rsg/rsg.h"
 
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
@@ -3925,11 +3926,14 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {
+      rsg_exec_failed();
       if (crash_mode)
         total_crashes++;
       return 0;
     }
+
+    rsg_exec_succeed();
 
     if (disable_coverage_feedback == 1)
     { // Disable feedbacks. Drop all queries.
@@ -4398,8 +4402,8 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
 
   fprintf(plot_file,
           /* Format */
-          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
+          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%d,%d,%llu,"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%zu"
           "\n", 
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -6493,7 +6497,24 @@ inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& quer
     return;
 }
 
+string rsg_generate_query_sequence() {
+    string res_query = "";
+    res_query += rsg_generate("create_table_stmt") + "; \n";
+    res_query += rsg_generate("create_table_stmt") + "; \n";
+    res_query += rsg_generate("insert_stmt") + "; \n";
+    res_query += rsg_generate("insert_stmt") + "; \n";
+    res_query += rsg_generate("stmt") + "; \n";
+    res_query += rsg_generate("stmt") + "; \n";
+    res_query += rsg_generate("stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
 
+    return res_query;
+}
 
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
@@ -6609,6 +6630,11 @@ static u8 fuzz_one(char **argv)
   int skip_count = 0;
   input.assign((const char *)out_buf, len);
 
+  // RSG modified from here.
+
+  input.clear();
+  input = rsg_generate_query_sequence();
+
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
 
@@ -6687,8 +6713,8 @@ static u8 fuzz_one(char **argv)
   // cerr << "End\n\n\n";
 
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
-  p_oracle->remove_select_stmt_from_ir(cur_root);
-  p_oracle->remove_explain_stmt_from_ir(cur_root);
+//  p_oracle->remove_select_stmt_from_ir(cur_root);
+//  p_oracle->remove_explain_stmt_from_ir(cur_root);
 
 
   // cerr << "After removing select stmt and added create. \n\n\n";
@@ -6746,7 +6772,8 @@ static u8 fuzz_one(char **argv)
     // auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
-    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, cur_mutating_stmt, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
+//    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, cur_mutating_stmt, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
+    vector<IR*> v_mutated_ir_root = {ori_ir_tree.back()->deep_copy()};
 
     // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
     // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
@@ -8265,6 +8292,8 @@ int main(int argc, char *argv[])
   printf("\n\n\n%s\n\n\n", argv[0]);
   //test_mutate();
   // ff_debug = 0;
+
+  rsg_initialize();
 
   p_oracle = nullptr;
 

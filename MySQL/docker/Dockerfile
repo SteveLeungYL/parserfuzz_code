@@ -118,9 +118,30 @@ RUN make -j$(nproc)
 USER root
 RUN make install
 
+## RSG
+### Setup the Golang compilation
+USER mysql
+WORKDIR /home/mysql/
+RUN wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz && \
+    tar -xf go1.20.4.linux-amd64.tar.gz
+USER root
+RUN cp -r /home/mysql/go /usr/local/go
+
+### RSG source folder
+USER root
+COPY rsg /home/mysql/rsg
+RUN chown -R mysql:mysql /home/mysql/rsg
+
+USER mysql 
+WORKDIR /home/mysql/rsg
+RUN echo 'export PATH="/usr/local/go/bin:$PATH"' >> ~/.bashrc
+ENV PATH="/usr/local/go/bin:$PATH"
+RUN bash ./build.sh
+
 # Compile MySQL Fuzzer.
 USER mysql
 WORKDIR /home/mysql/src
+RUN cp /home/mysql/rsg/rsg_helper.* ./rsg/
 RUN make
 
 
@@ -140,6 +161,12 @@ RUN chown -R mysql:mysql /home/mysql/scripts
 USER root
 COPY fuzz_root /home/mysql/fuzzing/fuzz_root
 RUN chown -R mysql:mysql /home/mysql/fuzzing/
+
+# setup the rsg required libraries
+USER mysql
+WORKDIR /home/mysql/fuzzing/fuzz_root
+RUN mkdir -p rsg && cp -r /home/mysql/rsg/rsg_helper.so ./rsg
+RUN cp /home/mysql/src/mysql_sql.y ./mysql_sql.y
 
 # Not sure why, but user MySQL doesn't have the permission to open the database.
 USER root
