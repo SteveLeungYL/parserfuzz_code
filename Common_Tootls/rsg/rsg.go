@@ -1192,7 +1192,7 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 					rootPathNode.Children = []*PathNode{}
 					continue
 				} else if tokenStr == "subquery" {
-					ret = append(ret, " select 'abc' ")
+					ret = append(ret, " (select 'abc') ")
 					rootPathNode.ExprProds = nil
 					rootPathNode.Children = []*PathNode{}
 					continue
