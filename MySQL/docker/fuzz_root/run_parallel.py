@@ -15,6 +15,7 @@ import libtmux
 from afl_config import *
 
 server = libtmux.Server()
+all_mysql_server_tmux_window = []
 
 session = server.new_session(session_name="mysql_server_debug", kill_session=True, attach=False)
 
@@ -104,7 +105,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     fuzzing_command = [
         # "strace -s 2000 -o afl-fuzz-strace_output_" + str(cur_inst_id - starting_core_id),
-        "gdb --ex=run --args",
+        # "gdb --ex=run --args",
         "./afl-fuzz",
         "-t", "2000",
         "-m", "none",
@@ -151,7 +152,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # mysql_command = "__AFL_SHM_ID=" + cur_shm_str + " " + mysql_bin_dir + " --basedir=" + mysql_root_dir + " --datadir=" + cur_mysql_data_dir_str + " --port=" + str(cur_port_num) + " --socket=" + socket_path + " & "
 
     mysql_command = [
-        "gdb --ex=run --args",
+        #"gdb --ex=run --args",
         # "strace -s 2000 -o mysqld_strace_output_" + str(cur_inst_id - starting_core_id),
         "env __AFL_SHM_ID=" + cur_shm_str,
         mysql_bin_dir,
@@ -159,7 +160,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "--datadir=" + cur_mysql_data_dir_str,
         "--port=" + str(cur_port_num),
         "--socket=" + socket_path,
-        "--performance_schema=OFF"
+        "--performance_schema=OFF",
+        " & " # run in the background
      ]
 
     # mysql_modi_env = dict()
@@ -172,6 +174,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     cur_window = session.new_window(attach=True, window_name="mysql_test_"+str(cur_inst_id - starting_core_id))
     cur_pane = cur_window.attached_pane
     cur_pane.send_keys(mysql_command) 
+
+    all_mysql_server_tmux_window.append([cur_window, mysql_command])
     
     time.sleep(1)
 
@@ -180,4 +184,27 @@ print("Finished launching the fuzzing. ")
 
 # Avoid script exist
 while True:
-    time.sleep(100)
+    time.sleep(10)
+
+    # Go through all the created window, check whether the mysqld process is still active. 
+    for cur_window, mysql_command in all_mysql_server_tmux_window:
+        is_crash = False
+
+        cur_pane = cur_window.attached_pane
+
+        cur_pane.send_keys("jobs -l &> mysqld_background_pid")
+
+        time.sleep(1)
+
+        with open("./mysqld_background_pid", "r") as pid_file:
+            pid_file_str = pid_file.read()
+            if "mysqld" in pid_file_str and "Running" in pid_file_str:
+                is_crash = False
+            else:
+                is_crash = True
+
+        os.remove("./mysqld_background_pid")
+        
+        if is_crash:
+            cur_pane.send_keys(mysql_command)
+        
