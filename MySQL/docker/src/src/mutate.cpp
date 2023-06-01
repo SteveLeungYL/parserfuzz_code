@@ -331,27 +331,9 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
   vector<IR*> all_trans_vec;
   vector<IR*> all_statements_vec = IRWrapper::get_stmt_ir_vec();
 
-  // cerr << "In func: Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec), we have all_statements_vec size(): "
-  //     << all_statements_vec.size() << "\n\n\n";
-
   for (IR* cur_stmt : all_statements_vec) {
     /* Identify oracle related statements. Ready for transformation. */
-    bool is_oracle_select = false, is_oracle_normal = false;
-    if (p_oracle->is_oracle_normal_stmt(cur_stmt)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
-    else if (p_oracle->is_oracle_select_stmt(cur_stmt)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
-    else {stmt_type_vec.push_back(NOT_ORACLE);}
-
-    /* Apply pre_fix_transformation functions. */
-    IR* trans_IR = nullptr;
-    if (is_oracle_normal) {
-      trans_IR = p_oracle->pre_fix_transform_normal_stmt(cur_stmt); // Deep_copied
-    } else if (is_oracle_select) {
-      trans_IR = p_oracle->pre_fix_transform_select_stmt(cur_stmt); // Deep_copied
-    }
-    /* If no pre_fix_transformation is needed, directly use the original cur_root. */
-    if (trans_IR == nullptr ){
-      trans_IR = cur_stmt->deep_copy(); 
-    }
+    IR* trans_IR = cur_stmt->deep_copy();
     all_trans_vec.push_back(trans_IR);
   }
 
@@ -385,36 +367,10 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
     vector<IR*> post_trans_stmt_vec;
     assert(cur_pre_trans_ir != nullptr);
 
-    bool is_oracle_normal = false, is_oracle_select = false;
-    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
-    else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
+    post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
 
-    if (is_oracle_normal) {
-      post_trans_stmt_vec = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_ir, run_count); // All deep_copied
-    } else if (is_oracle_select) {
-      post_trans_stmt_vec = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_ir, run_count); // All deep_copied
-    } else {
-      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
-    }
-    
-    if (post_trans_stmt_vec.size() > 0){
-      all_post_trans_vec.push_back(post_trans_stmt_vec);
-    } else {
-      /* Debug */
-      // cerr << "DEBUG: stmt: " << cur_pre_trans_ir->to_string() << " returns empty. \n";
-
-      v_stmt_to_rov.push_back(i);
-    }
+    all_post_trans_vec.push_back(post_trans_stmt_vec);
   }
-
-  vector<STMT_TYPE> new_stmt_type_vec;
-  for (int i = 0; i < stmt_type_vec.size(); i++) {
-    if (find(v_stmt_to_rov.begin(), v_stmt_to_rov.end(), i) != v_stmt_to_rov.end()) {
-      continue;
-    }
-    new_stmt_type_vec.push_back(stmt_type_vec[i]);
-  }
-  stmt_type_vec = new_stmt_type_vec;
 
   return all_post_trans_vec;
 }

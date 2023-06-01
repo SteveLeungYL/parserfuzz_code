@@ -62,26 +62,6 @@ public:
 
   virtual string get_oracle_type() {return "SQL_ORACLE";};
 
-  /* 
-  ** Transformation function for select statements. pre_fix_* functions work before concret value has been filled in to the 
-  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
-  ** Mutator::fix())
-  ** If no transform is necessary, return empty vector. 
-  */
-  virtual IR* pre_fix_transform_select_stmt(IR* cur_stmt) {return nullptr;}
-  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
-  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt) {return this->post_fix_transform_select_stmt(cur_stmt, 0);}
-
-  /* 
-  ** Transformation function for normal (non-select) statements. pre_fix_* functions work before concret value has been filled in to the 
-  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
-  ** Mutator::fix())
-  ** If no transform is necessary, return empty vector. 
-  */
-  virtual IR* pre_fix_transform_normal_stmt(IR* cur_stmt) {return nullptr;} //non-select stmt pre_fix transformation. 
-  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
-  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
-
   /* Debug */
   unsigned long total_rand_valid = 0;
   unsigned long total_temp = 0;
