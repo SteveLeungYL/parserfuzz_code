@@ -4372,7 +4372,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
   fprintf(plot_file,
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%d,%d,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%zu"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%u"
           "\n", 
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,

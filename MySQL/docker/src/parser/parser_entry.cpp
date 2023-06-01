@@ -11,7 +11,7 @@
 using std::vector;
 using std::string;
 
-MySQLGrammarCovVisitor gram_cov_visitor;
+static MySQLGrammarCovVisitor gram_cov_visitor;
 
 u32 get_total_grammar_edge_cov_size_num() {
   return gram_cov_visitor.gram_cov.get_total_edge_cov_size_num();
@@ -29,6 +29,7 @@ int run_parser(string str_in, vector<IR*>& ir_vec, bool is_debug = false) {
   MySQLParser::QueryContext* tree = parser.query();
 
   gram_cov_visitor.set_parser(&parser);
+  gram_cov_visitor.gram_cov.reset_edge_cov_map();
   gram_cov_visitor.visitQuery(tree);
   gram_cov_visitor.gram_cov.has_new_grammar_bits(false, str_in);
 #ifdef DEBUG

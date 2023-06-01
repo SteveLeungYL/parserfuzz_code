@@ -8,11 +8,11 @@
 #include <iostream>
 #include <cstring>
 #include <filesystem>
+#include <mutex>
 
 #include "../MySQLBaseCommon.h"
 #include "./grammar_cov_hash_header.h"
 #include "../grammar/MySQLParserBaseVisitor.h"
-#include "../..//AFL/types.h"
 
 using namespace std;
 using namespace parsers;
@@ -20,6 +20,9 @@ using namespace parsers;
 //#define DEBUG
 
 class GramCovMap {
+
+private:
+  std::mutex edge_map_mutex;
 
 public:
   GramCovMap() {
@@ -30,6 +33,7 @@ public:
 
     this->edge_cov_map = new unsigned char[MAP_SIZE]();
     memset(this->edge_cov_map, 0, MAP_SIZE);
+    
     this->edge_virgin_map = new unsigned char[MAP_SIZE]();
     memset(this->edge_virgin_map, 0xff, MAP_SIZE);
     edge_prev_cov = 0;
@@ -48,6 +52,7 @@ public:
   
   u8 has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
                                     bool is_debug, const string in) {
+  edge_map_mutex.lock();
   
 #if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
@@ -116,27 +121,34 @@ public:
         virgin++;
       }
     
+      edge_map_mutex.unlock();
       return ret;
-      }
+  }
 
   void reset_block_cov_map() { memset(this->block_cov_map, 0, MAP_SIZE); }
-  void reset_block_virgin_map() { memset(this->block_virgin_map, 0, MAP_SIZE); }
+  void reset_block_virgin_map() { memset(this->block_virgin_map, 0xff, MAP_SIZE); }
 
   void reset_edge_cov_map() {
+    edge_map_mutex.lock();
     memset(this->edge_cov_map, 0, MAP_SIZE);
     edge_prev_cov = 0;
+    edge_map_mutex.unlock();
   }
   void reset_edge_virgin_map() {
-    memset(this->edge_virgin_map, 0, MAP_SIZE);
+    edge_map_mutex.lock();
+    memset(this->edge_virgin_map, 0xff, MAP_SIZE);
     edge_prev_cov = 0;
+    edge_map_mutex.unlock();
   }
 
   void log_cov_map(unsigned int cur_cov) {
+    edge_map_mutex.lock();
     unsigned int offset = (edge_prev_cov ^ cur_cov);
     if (edge_cov_map[offset] < 0xff) {
       edge_cov_map[offset]++;
     }
     edge_prev_cov = (cur_cov >> 1);
+    edge_map_mutex.unlock();
 
     if (block_cov_map[cur_cov] < 0xff) {
       block_cov_map[cur_cov]++;
@@ -144,10 +156,12 @@ public:
   }
 
   void log_edge_cov_map(unsigned int prev_cov, unsigned int cur_cov) {
+    edge_map_mutex.lock();
     unsigned int offset = ((prev_cov >> 1) ^ cur_cov);
     if (edge_cov_map[offset] < 0xff) {
       edge_cov_map[offset]++;
     }
+    edge_map_mutex.unlock();
     return;
   }
 
@@ -160,11 +174,16 @@ public:
   }
 
   inline double get_total_edge_cov_size() {
+    edge_map_mutex.lock();
     u32 t_bytes = this->count_non_255_bytes(this->edge_virgin_map);
+    edge_map_mutex.unlock();
     return ((double)t_bytes * 100.0) / MAP_SIZE;
   }
   inline u32 get_total_edge_cov_size_num() {
-    return this->count_non_255_bytes(this->edge_virgin_map);
+    edge_map_mutex.lock();
+    u32 res = this->count_non_255_bytes(this->edge_virgin_map);
+    edge_map_mutex.unlock();
+    return res;
   }
 
   unsigned char *get_edge_cov_map() { return this->edge_cov_map; }
@@ -248,8 +267,7 @@ private:
 
 class MySQLGrammarCovVisitor: public parsers::MySQLParserBaseVisitor {
 private:
-  unsigned char cov_map[262144];
-  // A randomly generated but fixed Hash Array.
+  // A randomly generated beforehand but runtime fixed Hash Array.
   HASHARRAYDEFINE;
   
   MySQLParser* p_parser;
@@ -259,10 +277,6 @@ public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}
   
   GramCovMap gram_cov;
-
-  MySQLGrammarCovVisitor() {
-    memset(cov_map, 0, 262144);
-  }
 
   virtual std::any visitQuery(MySQLParser::QueryContext *ctx) override {
     if (ctx->parent == NULL) {
