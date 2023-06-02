@@ -7,6 +7,8 @@
 #include <cstring>
 #include <algorithm>
 
+#include <../rsg/rsg.h>
+
 using namespace std;
 
 void trim_string(string &res){
@@ -201,6 +203,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
     if (ret != 0 || ir_vec_single.size() == 0) {
 //      cerr << "String parsing failed: " << cur_cmd_str << "\n\n\n";
+      rsg_exec_failed();
       continue;
     }
 
