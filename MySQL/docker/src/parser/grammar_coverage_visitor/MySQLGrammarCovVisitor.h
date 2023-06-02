@@ -18,6 +18,8 @@ using namespace std;
 using namespace parsers;
 
 //#define DEBUG
+// Only for debugging purpose.
+//#define LOGBLOCKCOV
 
 class GramCovMap {
 
@@ -46,7 +48,10 @@ public:
   }
 
   u8 has_new_grammar_bits(bool is_debug = false, const string in = "") {
-//    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
+#ifdef LOGBLOCKCOV
+    // Only for debugging purpose.
+    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, true, in);
+#endif
     return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug, in);
   }
   
@@ -161,6 +166,11 @@ public:
     if (edge_cov_map[offset] < 0xff) {
       edge_cov_map[offset]++;
     }
+#ifdef LOGBLOCKCOV
+    if (block_cov_map[cur_cov] < 0xff) {
+      block_cov_map[cur_cov]++;
+    }
+#endif
     edge_map_mutex.unlock();
     return;
   }
