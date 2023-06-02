@@ -211,8 +211,6 @@ func (r *RSG) isMySQLCompNode(_ string, nodeValue string) bool {
 	case "subquery":
 		fallthrough
 	case "expr":
-		fallthrough
-	case "query_specification":
 		return true
 	}
 	return false
@@ -2783,6 +2781,10 @@ func (r *RSG) generateMySQL(root string, rootPathNode *PathNode, parentHash uint
 				v = []string{" SEMIJOIN "}
 			case "SET_VAR_HINT":
 				v = []string{" SET_VAR "}
+			case "SET_VAR":
+				v = []string{" = "}
+			case "@":
+				v = []string{" "}
 			case "SUBQUERY_HINT":
 				v = []string{" SUBQUERY "}
 			case "DERIVED_MERGE_HINT":
