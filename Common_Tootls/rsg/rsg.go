@@ -515,6 +515,12 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		}
 	}
 
+	if dbmsName == "mysql" {
+		// Special handling for the SELECT statement.
+		r.allNormProds["query_primary"] = append(r.allNormProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
+		r.allCompProds["query_primary"] = append(r.allCompProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
+	}
+
 }
 
 func (r *RSG) CheckEdgeCov(prevHash uint32, curHash uint32) bool {

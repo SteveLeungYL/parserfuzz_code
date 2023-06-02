@@ -5806,7 +5806,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   string cmd_string = cmd_string_vec[0];
 
   /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
-  cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
+  cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; \nCREATE TABLE v1099(c1100 INT); \n" + cmd_string;
 
   // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
 
@@ -6394,11 +6394,20 @@ string rsg_generate_query_sequence() {
     string res_query = "";
     res_query += rsg_generate("create_table_stmt") + "; \n";
     res_query += rsg_generate("create_table_stmt") + "; \n";
+    res_query += rsg_generate("create_table_stmt") + "; \n";
+    res_query += rsg_generate("insert_stmt") + "; \n";
+    res_query += rsg_generate("insert_stmt") + "; \n";
     res_query += rsg_generate("insert_stmt") + "; \n";
     res_query += rsg_generate("insert_stmt") + "; \n";
     res_query += rsg_generate("simple_statement") + "; \n";
     res_query += rsg_generate("simple_statement") + "; \n";
     res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("simple_statement") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
+    res_query += rsg_generate("select_stmt") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
     res_query += rsg_generate("select_stmt") + "; \n";
