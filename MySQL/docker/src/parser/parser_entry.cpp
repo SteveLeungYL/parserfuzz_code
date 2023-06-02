@@ -17,7 +17,7 @@ u32 get_total_grammar_edge_cov_size_num() {
   return gram_cov_visitor.gram_cov.get_total_edge_cov_size_num();
 }
 
-int run_parser(string str_in, vector<IR*>& ir_vec, bool is_debug = false) {
+int run_parser(string str_in, vector<IR*>& ir_vec, bool is_debug) {
 
   antlr4::ANTLRInputStream input(str_in);
   MySQLLexer lexer(&input);
