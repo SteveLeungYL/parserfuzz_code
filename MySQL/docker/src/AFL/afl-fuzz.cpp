@@ -369,6 +369,11 @@ public:
     stringstream result_string_stream;
     int status = 0;
     MYSQL_RES *result;
+    string ret_str;
+
+    if (mysql_errno(m_)) {
+      ret_str = "Error: " + string(mysql_error(m_)) + "\n";
+    }
 
     do
     {
@@ -418,12 +423,7 @@ public:
     // }
     // cerr << "\n\n";
 
-    string ret_str;
-    if (mysql_errno(m_)) {
-      ret_str = string(mysql_error(m_)) + "  " + result_string_stream.str();
-    } else {
-      ret_str = result_string_stream.str();
-    }
+    ret_str += result_string_stream.str();
     return ret_str;
   }
 
