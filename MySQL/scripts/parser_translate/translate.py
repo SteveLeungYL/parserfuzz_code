@@ -1,6 +1,8 @@
+import json
 import os.path
+import re
+import sys
 from typing import List
-import pandas as pd
 
 import click
 from loguru import logger
@@ -11,30 +13,122 @@ default_ir_type = "kUnknown"
 
 saved_ir_type = []
 
-all_term_keyword_mapping = dict()
+all_rule_maps = dict()
 
-with open("./assets/keyword_mapping.csv", 'r') as km_fd:
-    km_pd = pd.read_csv(km_fd)
+custom_additional_keywords = {
+    "/* nothing */",
+    "/* Nothing */",
+    "/* Nothing*/",
+    "/* empty */",
+    "/* Empty */",
+    "{}",
+    # "{",
+    # "}",
+    "'!'",
+    "'.'",
+    "%prec",
+}
 
-    for idx, cur_km in km_pd.iterrows():
-        all_term_keyword_mapping[cur_km['Symbol']] = cur_km['Value']
+custom_additional_keywords_mapping = {
+    "%prec": "",
+    # "/* nothing */": "",
+    # "/* Nothing */": "",
+    # "/* Nothing*/": "",
+    # "/* empty */": "",
+    # "/* Empty */": "",
+}
 
-    print(all_term_keyword_mapping)
+with open("assets/keywords_mapping.json") as f:
+    keywords_mapping = json.load(f)
+    keywords_mapping.update(custom_additional_keywords_mapping)
 
-def is_token_terminating_keyword(token: str) -> bool:
-    if "'" in token:
-        return True
-    return token in all_term_keyword_mapping
+total_keywords = set()
+with open("assets/keywords.json") as f:
+    total_keywords |= set(json.load(f))
+total_keywords |= custom_additional_keywords
+
+total_tokens = set()
+if os.path.exists("assets/tokens.json"):
+    with open("assets/tokens.json") as f:
+        total_tokens |= set(json.load(f))
+
+manually_translation = {
+    "opt_returning_type": """
+opt_returning_type:
+
+    // The default returning type is CHAR(512). (The max length of 512
+    // is chosen so that the returned values are not handled as BLOBs
+    // internally. See CONVERT_IF_BIGGER_TO_BLOB.)
+    {
+        res = new IR(kOptReturningType, OP3("", "", ""));
+        $$ = res;
+    }
+
+    | RETURNING_SYM cast_type {
+        auto tmp1 = $2;
+        res = new IR(kOptReturningType, OP3("RETURNING", "", ""), tmp1);
+        $$ = res;
+    }
+
+;
+
+"""
+}
+
+
+class Token:
+    def __init__(self, word, index):
+        self.word = word
+        self.index = index
+        self._is_keyword = None
+
+    @property
+    def is_keyword(self):
+        if self._is_keyword is not None:
+            return self._is_keyword
+
+        if "'" in self.word:
+            self._is_keyword = True
+            return self._is_keyword
+
+        self._is_keyword = self.word in total_keywords
+        return self._is_keyword
+
+    def __str__(self) -> str:
+        if self.is_keyword:
+            if self.word.startswith("'") and self.word.endswith("'"):
+                return self.word.strip("'")
+            if self.word in keywords_mapping:
+                return keywords_mapping[self.word]
+
+        return self.word
+
+    def __repr__(self) -> str:
+        return '{prefix}("{word}")'.format(
+            prefix="Keyword" if self.is_keyword else "Token", word=self.word
+        )
+
+    def __gt__(self, other):
+        other_index = -1
+        if isinstance(other, Token):
+            other_index = other.index
+
+        return self.index > other_index
+
 
 def snake_to_camel(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
+
 
 def camel_to_snake(word):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 
-def tokenize(line) -> List[str]:
+def tokenize(line) -> List[Token]:
     line = line.strip()
+    if line.startswith("/*") and line.endswith("*/"):
+        # HACK for empty grammar eg. /* EMPTY */
+        return [Token(line, 0)]
 
     words = [word.strip() for word in line.split()]
     words = [word for word in words if word]
@@ -44,22 +138,27 @@ def tokenize(line) -> List[str]:
         if word == "%prec":
             # ignore everything after %prec
             break
-        token_sequence.append(word)
+        token_sequence.append(Token(word, idx))
 
     return token_sequence
 
 
-def replace_terminating_keyword_from_mapping(token_seq: List[str]):
+def repace_special_keyword_with_token(line):
+    words = [word.strip() for word in line.split()]
+    words = [word for word in words if word]
 
     seq = []
-    for cur_token in token_seq:
-        cur_token = cur_token.strip()
-        if cur_token in all_term_keyword_mapping:
-            cur_token = all_term_keyword_mapping[cur_token]
+    for word in words:
+        word = word.strip()
+        if not word:
+            continue
+        # if word in keywords_mapping:
+        #     word = keywords_mapping[word]
 
-        seq.append(cur_token)
+        seq.append(word)
 
     return " ".join(seq)
+
 
 def prefix_tabs(text, tabs_num):
     result = []
@@ -110,12 +209,24 @@ def ir_type_str_rewrite(cur_types) -> str:
 
 
 def translate_single_line(line, parent):
+    global all_rule_maps
+
     token_sequence = tokenize(line)
 
     i = 0
     tmp_num = 1
     body = ""
     need_more_ir = False
+
+    cur_token_seq = []
+    for cur_token in token_sequence:
+        if cur_token.is_keyword == False:
+            cur_token_seq.append(cur_token.word)
+    if parent in all_rule_maps:
+        all_rule_maps[parent].append(cur_token_seq)
+    else:
+        all_rule_maps[parent] = [cur_token_seq]
+
     while i < len(token_sequence):
         left_token, left_keywords = search_next_keyword(token_sequence, i)
         logger.debug(f"Left tokens: '{left_token}', Left keywords: '{left_keywords}'")
@@ -144,8 +255,8 @@ def translate_single_line(line, parent):
             body += "PUSH(res);\n"
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += (
-                f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
-                + "\n"
+                    f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
+                    + "\n"
             )
             tmp_num += 1
 
@@ -153,8 +264,8 @@ def translate_single_line(line, parent):
                 body += "PUSH(res);\n"
                 body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
                 body += (
-                    f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
-                    + "\n"
+                        f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
+                        + "\n"
                 )
                 tmp_num += 1
 
@@ -162,8 +273,8 @@ def translate_single_line(line, parent):
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
             body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
-                + "\n"
+                    f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
+                    + "\n"
             )
 
             tmp_num += 2
@@ -171,25 +282,25 @@ def translate_single_line(line, parent):
         elif left_token:
             # Only single one keywords here.
             if (
-                not body
-                and left_token.index == len(token_sequence) - 1
-                and token_sequence[left_token.index].word in total_keywords
+                    not body
+                    and left_token.index == len(token_sequence) - 1
+                    and token_sequence[left_token.index].word in total_keywords
             ):
                 # the only one keywords is a comment
                 if left_keywords_str.startswith("/*") and left_keywords_str.endswith(
-                    "*/"
+                        "*/"
                 ):
                     # HACK for empty grammar eg. /* EMPTY */
                     left_keywords_str = ""
                 body += (
-                    f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
-                    + "\n"
+                        f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
+                        + "\n"
                 )
                 break
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
-                + "\n"
+                    f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
+                    + "\n"
             )
 
             tmp_num += 1
@@ -218,11 +329,11 @@ def translate_single_line(line, parent):
 def find_first_alpha_index(data, start_index):
     for idx, c in enumerate(data[start_index:]):
         if (
-            c.isalpha()
-            or c == "'"
-            or c == "{"
-            or c == "/"
-            and data[start_index + idx + 1] == "*"
+                c.isalpha()
+                or c == "'"
+                or c == "{"
+                or c == "/"
+                and data[start_index + idx + 1] == "*"
         ):
             return start_index + idx
 
@@ -240,7 +351,7 @@ def remove_original_actions(data):
             right_index = idx + 1
             length = right_index - left_index
             clean_data = (
-                clean_data[:left_index] + " " * length + clean_data[right_index:]
+                    clean_data[:left_index] + " " * length + clean_data[right_index:]
             )
 
             if not left_bracket_stack:
@@ -248,13 +359,13 @@ def remove_original_actions(data):
                 left_data = clean_data[:left_index]
                 right_data = clean_data[left_index + 2 :]
                 is_middle_action = (
-                    right_data.strip()
-                    and right_data.strip()[0]
-                    not in [
-                        ";",
-                        "|",
-                    ]
-                    and not right_data.strip().startswith("/*")
+                        right_data.strip()
+                        and right_data.strip()[0]
+                        not in [
+                            ";",
+                            "|",
+                        ]
+                        and not right_data.strip().startswith("/*")
                 )
 
                 is_empty_action = right_data.strip().startswith(
@@ -264,9 +375,9 @@ def remove_original_actions(data):
                     clean_data = left_data + "{}" + right_data
                 elif is_empty_action:
                     clean_data = (
-                        clean_data[:left_index]
-                        + "{}\n".rjust(length)
-                        + clean_data[right_index:]
+                            clean_data[:left_index]
+                            + "{}\n".rjust(length)
+                            + clean_data[right_index:]
                     )
 
     # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
@@ -339,8 +450,8 @@ def translate(data):
 
     first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
     first_child_element = data[
-        first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
-    ]
+                          first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
+                          ]
     first_child_element = remove_comments_inside_statement(first_child_element)
     first_child_body = translate_single_line(first_child_element, parent_element)
 
@@ -443,6 +554,278 @@ def get_gram_tokens():
         if elem in gram_tokens:
             gram_tokens.remove(elem)
 
+    custom_additional_tokens = [
+        "group_replication_plugin_auth",
+        "opt_with_roles",
+        "opt_group_replication_start_options",
+        "view_suid",
+        "opt_grant_as",
+        "change_replication_source_tls_version",
+        "equal",
+        "table_lock",
+        "grant_options",
+        "opt_ssl",
+        "import_stmt",
+        "table_to_table_list",
+        "group_replication_user",
+        "opt_all",
+        "change_replication_source_delay",
+        "execute_var_ident",
+        "table_or_tables",
+        "opt_savepoint",
+        "execute_var_list",
+        "purge_option",
+        "connect_option",
+        "change_replication_source_port",
+        "opt_if_exists_ident",
+        "view_replace",
+        "sp_proc_stmt_unlabeled",
+        "sp_pdparams",
+        "sp_proc_stmt_if",
+        "opt_value",
+        "sp_proc_stmt_statement",
+        "prepare_src",
+        "binlog_from",
+        "table_to_table",
+        "prepare",
+        "require_list",
+        "sf_tail",
+        "source_tls_ciphersuites_def",
+        "change_replication_source_auto_position",
+        "use",
+        "sp_pdparam",
+        "sp_block_content",
+        "master_or_binary",
+        "init_lex_create_info",
+        "opt_table",
+        "opt_account_lock_password_expire_option",
+        "reset",
+        "opt_outer",
+        "change_replication_source_user",
+        "source_file_def",
+        "resignal_stmt",
+        "opt_of",
+        "opt_create_database_options",
+        "ev_ends",
+        "else_clause_opt",
+        "drop_procedure_stmt",
+        "opt_column",
+        "change_replication_source_get_source_public_key",
+        "group_replication_password",
+        "not",
+        "opt_work",
+        "alter_function_stmt",
+        "drop_function_stmt",
+        "drop_tablespace_stmt",
+        "nchar",
+        "drop_user_stmt",
+        "varchar",
+        "opt_default_auth_option",
+        "get_diagnostics",
+        "create_database_options",
+        "searched_case_stmt",
+        "view_tail",
+        "ignore_server_id_list",
+        "opt_INTO",
+        "purge",
+        "create_user_list",
+        "character_set",
+        "simple_statement_or_begin",
+        "alter_database_stmt",
+        "rename_list",
+        "opt_storage",
+        "change_replication_source_heartbeat_period",
+        "sp_fetch_list",
+        "drop_undo_tablespace_stmt",
+        "event_tail",
+        "sp_labeled_block",
+        "change_replication_source_tls_ciphersuites",
+        "opt_account_lock_password_expire_options",
+        "source_reset_options",
+        "sp_proc_stmt_open",
+        "opt_user_option",
+        "view_query_block",
+        "grant",
+        "require_list_element",
+        "opt_user_attribute",
+        "group_replication_start_options",
+        "flush_options",
+        "not2",
+        "view_algorithm",
+        "checksum",
+        "drop_database_stmt",
+        "sp_unlabeled_control",
+        "start_entry",
+        "change_replication_source_connect_retry",
+        "change_replication_source",
+        "server_option",
+        "sp_c_chistic",
+        "sp_elseifs",
+        "connect_option_list",
+        "drop_view_stmt",
+        "drop_event_stmt",
+        "rollback",
+        "assign_gtids_to_anonymous_transactions_def",
+        "opt_comma",
+        "change_replication_source_ssl_crl",
+        "require_clause",
+        "sp_hcond_element",
+        "view_or_trigger_or_sp_or_event",
+        "definer_tail",
+        "sp_proc_stmt_close",
+        "change_replication_source_ssl_crlpath",
+        "revoke",
+        "sp_proc_stmt",
+        "searched_when_clause_list",
+        "connect_options",
+        "change_replication_source_ssl_cert",
+        "stop_replica_stmt",
+        "alter_procedure_stmt",
+        "definer_opt",
+        "trigger_tail",
+        "opt_as",
+        "drop_server_stmt",
+        "opt_generated_always",
+        "definer",
+        "no_definer_tail",
+        "release",
+        "sp_tail",
+        "create_database_option",
+        "sp_proc_stmt_fetch",
+        "commit",
+        "flush_option",
+        "savepoint",
+        "from_or_in",
+        "ignore_server_id",
+        "sp_proc_stmts1",
+        "execute_using",
+        "sp_proc_stmt_leave",
+        "create",
+        "ev_starts",
+        "alter_database_options",
+        "change_replication_source_public_key",
+        "opt_replica_until",
+        "deallocate_or_drop",
+        "sp_proc_stmts",
+        "help",
+        "change_replication_source_password",
+        "group_replication",
+        "deallocate",
+        "drop_table_stmt",
+        "opt_plugin_dir_option",
+        "sp_proc_stmt_return",
+        "alter_user_list",
+        "sp_c_chistics",
+        "alter_database_option",
+        "no_definer",
+        "change_replication_source_zstd_compression_level",
+        "simple_when_clause_list",
+        "opt_end_of_input",
+        "opt_equal",
+        "change_replication_source_retry_count",
+        "alter_view_stmt",
+        "simple_when_clause",
+        "start_replica_stmt",
+        "opt_privileges",
+        "change_replication_source_ssl_verify_server_cert",
+        "reset_options",
+        "sp_if",
+        "alter_logfile_stmt",
+        "flush",
+        "alter_undo_tablespace_stmt",
+        "start",
+        "udf_tail",
+        "filter_defs",
+        "source_log_pos",
+        "privilege_check_def",
+        "flush_options_list",
+        "sp_fdparam_list",
+        "kill_option",
+        "ev_sql_stmt_inner",
+        "rename",
+        "signal_stmt",
+        "opt_default",
+        "and",
+        "source_defs",
+        "change_replication_source_ssl_cipher",
+        "opt_account_lock_password_expire_option_list",
+        "group_replication_start_option",
+        "change_replication_source_ssl_ca",
+        "unlock",
+        "alter_server_stmt",
+        "grant_ident",
+        "lock",
+        "opt_wild",
+        "reset_option",
+        "opt_and",
+        "source_log_file",
+        "opt_inner",
+        "opt_flush_lock",
+        "change_replication_source_ssl_capath",
+        "change_replication_source_bind",
+        "drop_trigger_stmt",
+        "table_primary_key_check_def",
+        "key_or_index",
+        "purge_options",
+        "value_or_values",
+        "sp_suid",
+        "alter_user_command",
+        "begin_stmt",
+        "searched_when_clause",
+        "drop_logfile_stmt",
+        "sp_unlabeled_block",
+        "group_replication_start",
+        "replica_until",
+        "optional_braces",
+        "lines_or_rows",
+        "opt_primary",
+        "change",
+        "sp_fdparam",
+        "describe_command",
+        "kill",
+        "table_lock_list",
+        "sp_pdparam_list",
+        "sp_opt_fetch_noise",
+        "keys_or_index",
+        "view_replace_or_algorithm",
+        "change_replication_source_compression_algorithm",
+        "begin_or_start",
+        "opt_to",
+        "opt_replica_reset_options",
+        "dec_num",
+        "clone_stmt",
+        "case_stmt_specification",
+        "xa",
+        "opt_PRECISION",
+        "ev_sql_stmt",
+        "opt_password_option",
+        "source_def",
+        "alter_event_stmt",
+        "binlog_base64_event",
+        "install",
+        "sp_a_chistics",
+        "ev_schedule_time",
+        "simple_case_stmt",
+        "sp_labeled_control",
+        "opt_key_or_index",
+        "alter_user_stmt",
+        "change_replication_source_ssl_key",
+        "sp_chistic",
+        "dec_num_error",
+        "sql_statement.y.y",
+        "execute",
+        "sp_proc_stmt_iterate",
+        "change_replication_source_ssl",
+        "change_replication_source_host",
+        "sp_fdparams",
+        "nvarchar",
+        "alter_tablespace_stmt",
+        "filter_def",
+        "replica",
+        "server_options_list",
+        "uninstall",
+    ]
+
     total_tokens |= gram_tokens
     total_tokens |= set(custom_additional_tokens)
     with open("assets/tokens.json", "w") as f:
@@ -530,7 +913,7 @@ def remove_comments_if_necessary(text, need_remove):
             length = right_index - left_index
 
             clean_text = (
-                clean_text[:left_index] + " " * length + clean_text[right_index:]
+                    clean_text[:left_index] + " " * length + clean_text[right_index:]
             )
 
         index += 1
@@ -638,6 +1021,37 @@ def mark_statement_location(data):
 
     return marked_lines, extract_tokens
 
+def calc_total_edge_num():
+    global all_rule_maps
+
+    total_edge_num = 0
+
+    logger.info("Inside calc_total_edge_num")
+
+    for root, list_token_seq in all_rule_maps.items():
+        print(list_token_seq)
+        for token_seq in list_token_seq:
+            all_token_enum = 0
+            pre_token_enum = 0
+            idx = 0
+            for cur_token in token_seq:
+                if cur_token in all_rule_maps:
+                    idx += 1
+                    if pre_token_enum == 0:
+                        pre_token_enum = len(all_rule_maps[cur_token])
+                        continue
+                    all_token_enum += len(all_rule_maps[cur_token]) * pre_token_enum
+                    pre_token_enum = len(all_rule_maps[cur_token])
+
+            if idx == 1:
+                all_token_enum += pre_token_enum
+            if pre_token_enum == 0:
+                all_token_enum += 1
+
+            print("for root: %s, rule: %s, getting edge: %d" % (root, token_seq, all_token_enum))
+            total_edge_num += all_token_enum
+
+    print("Getting total edge number: %s" % (total_edge_num))
 
 @click.command()
 @click.option("-o", "--output", default="bison_parser_2.y")
@@ -655,7 +1069,10 @@ def run(output, remove_comments):
     marked_lines, extract_tokens = mark_statement_location(data)
 
     for token_name, extract_token in extract_tokens.items():
-        translation = translate(extract_token)
+        if token_name in manually_translation:
+            translation = manually_translation[token_name]
+        else:
+            translation = translate(extract_token)
 
         marked_lines = marked_lines.replace(
             f"=== {token_name.strip()} ===", translation, 1
@@ -664,6 +1081,7 @@ def run(output, remove_comments):
     with open(output, "w") as f:
         f.write("/*\n")
         f.write(marked_lines)
+    calc_total_edge_num()
 
 
 def get_keywords_mapping():
@@ -684,6 +1102,7 @@ def get_keywords_mapping():
     mapping.update(additional_mapping)
     with open("assets/keywords_mapping.json", "w") as f:
         json.dump(mapping, f, indent=2, sort_keys=True)
+
 
 
 if __name__ == "__main__":
