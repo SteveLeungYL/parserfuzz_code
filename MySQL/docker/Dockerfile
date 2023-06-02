@@ -192,7 +192,7 @@ WORKDIR /home/mysql/scripts
 RUN python3 setup_database.py
 
 USER root
-RUN echo -e "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf
+RUN echo "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf
 
 
 USER root
