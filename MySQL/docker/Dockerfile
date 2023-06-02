@@ -101,6 +101,7 @@ RUN chown -R mysql:mysql /home/mysql/src
 
 # Setup the MySQL fuzzer compilation requirements.
 USER root
+RUN apt -y update
 RUN apt -y install curl openjdk-11-jdk
 
 ## antlr4
@@ -189,6 +190,9 @@ RUN mv data data_all/ori_data
 USER mysql
 WORKDIR /home/mysql/scripts
 RUN python3 setup_database.py
+
+USER root
+RUN echo -e "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf
 
 
 USER root
