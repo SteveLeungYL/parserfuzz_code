@@ -94,7 +94,10 @@ private:
 
   inline IR* gen_special_terminated_token_ir(antlr4::tree::ParseTree* child) {
     auto spec_type = dynamic_cast<antlr4::tree::TerminalNode*>(child)->getSymbol()->getType();
-    auto str = string(dynamic_cast<antlr4::tree::TerminalNode*>(child)->getSymbol()->getText());
+    string str = string(dynamic_cast<antlr4::tree::TerminalNode*>(child)->getSymbol()->getText());
+    if (str.empty()) {
+      return new IR(kUnknown, OP3("", "", ""));
+    }
     if (spec_type == MySQLParser::IDENTIFIER) {
       return new IR(kIdentifier, str, DATATYPE::kDataWhatever, 0, DATAFLAG::kFlagUnknown);
     } else if (spec_type == MySQLParser::SINGLE_QUOTED_TEXT) {

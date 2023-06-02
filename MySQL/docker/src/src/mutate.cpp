@@ -401,7 +401,7 @@ void Mutator::add_ir_to_library_no_deepcopy(IR * cur){
 
 
 void Mutator::init_common_string(string filename){
-    common_string_library_.push_back("DO_NOT_BE_EMPTY");
+    common_string_library_.push_back("'DO_NOT_BE_EMPTY'");
     if(filename != ""){
         ifstream input_string(filename);
         string s;
@@ -512,20 +512,20 @@ void Mutator::init_library() {
 
 
   // Initialize the common_string_library();
-  common_string_library_.push_back("HELLO");
-  common_string_library_.push_back("WORLD");
-  common_string_library_.push_back("test");
-  common_string_library_.push_back("files");
-  common_string_library_.push_back("music");
-  common_string_library_.push_back("score");
-  common_string_library_.push_back("green");
-  common_string_library_.push_back("red");
-  common_string_library_.push_back("right");
-  common_string_library_.push_back("left");
-  common_string_library_.push_back("plot");
-  common_string_library_.push_back("cov");
-  common_string_library_.push_back("bug");
-  common_string_library_.push_back("sample");
+  common_string_library_.push_back("'HELLO'");
+  common_string_library_.push_back("'WORLD'");
+  common_string_library_.push_back("'test'");
+  common_string_library_.push_back("'files'");
+  common_string_library_.push_back("'music'");
+  common_string_library_.push_back("'score'");
+  common_string_library_.push_back("'green'");
+  common_string_library_.push_back("'red'");
+  common_string_library_.push_back("'right'");
+  common_string_library_.push_back("'left'");
+  common_string_library_.push_back("'plot'");
+  common_string_library_.push_back("'cov'");
+  common_string_library_.push_back("'bug'");
+  common_string_library_.push_back("'sample'");
 
 }
 

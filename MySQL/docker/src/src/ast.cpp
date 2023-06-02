@@ -105,6 +105,10 @@ std::string IR::to_string_core(){
 
   // }
 
+  if (str_val_ != "") {
+    return " " + str_val_ + " ";
+  }
+
   std::string res;
 
   if( op_!= NULL && op_->prefix_ != "" ){
@@ -119,14 +123,7 @@ std::string IR::to_string_core(){
   if( op_!= NULL && op_->middle_ != "") {
     res += op_->middle_ + " ";
   }
-  if (
-      get_ir_type() == kTextStringLiteral
-  ) {
-    res += " '" + str_val_ + "' ";
-  }
-  else if (str_val_ != "") {
-    res += " " + str_val_ + " ";
-  }
+
 
 
   if(right_ != NULL) {
