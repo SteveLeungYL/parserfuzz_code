@@ -375,8 +375,8 @@ void MySQLIRConstructor::set_iden_type_from_qualified_iden(IR* in, DATATYPE data
 
   // TODO: Not sure here. Need more testing.
   IR* cur_iden = v_iden_node.back();
-  cur_iden->set_data_type(kDataFunctionName);
-  cur_iden->set_data_flag(kFlagUnknown);
+  cur_iden->set_data_type(data_type);
+  cur_iden->set_data_flag(data_flag);
 
 }
 
@@ -782,7 +782,11 @@ void MySQLIRConstructor::handle_table_ref(IR* node, DATAFLAG data_flag) {
   }
   assert(!v_iden.empty());
 
-  this->handle_identifier_non_term_rule_node(v_iden.front(), kDataTableName, data_flag);
+  this->handle_identifier_non_term_rule_node(v_iden.back(), kDataTableName, data_flag);
+
+  if (v_iden.size() > 1) {
+    this->handle_identifier_non_term_rule_node(v_iden.front(), kDataDatabase, kUse);
+  }
 }
 
 void MySQLIRConstructor::handle_create_table(IR* node) {
