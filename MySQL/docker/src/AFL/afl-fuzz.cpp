@@ -182,6 +182,8 @@ fstream map_id_out_f;
 
 string socket_path = "";
 
+static int is_reset_database = 0;
+
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
 
@@ -265,6 +267,8 @@ public:
   bool fix_database()
   {
     MYSQL tmp_m;
+
+    is_reset_database = 1;
 
     database_id += 1;
     if (mysql_init(&tmp_m) == NULL)
@@ -486,44 +490,30 @@ public:
     // cerr << "\n\n\nQuery terminated!!!!\n\n\n";
   }
 
-  SQLSTATUS execute(const char *cmd, string& res_str)
+  SQLSTATUS execute(string cmd_str, string full_valid_input, string& res_str)
   {
     // fix_database();
 
     auto conn = connect();
 
-    if(!conn){
-      string previous_inputs = "";
-      for(auto i: g_previous_input) previous_inputs += string(i) + "\n\n";
-      previous_inputs += "-------------\n\n";
-      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());  
-    }
-    
     int retry_time = 0;
     while(!conn){
-      //cout << "reconnecting..." << endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(30));
       conn = connect();
       if(!conn)
         fix_database();
     }
-    //cout << "connect succeed!" << endl;
 
     res_str = "";
 
-    if( !reset_database() ) { // Return true for no error, false for errors. 
+    if( is_reset_database && !reset_database() ) { // Return true for no error, false for errors.
       res_str += "Reset database ERROR!!!\n\n\n";
     }
 
-    string cmd_str = cmd;
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
+    std::replace(full_valid_input.begin(), full_valid_input.end(), '\n', ' ');
 
-    /* For debug purpose */
-    // cmd_str = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_str;
-
-    vector<string> v_cmd_str = string_splitter(cmd_str, ";");
-
-    // v_cmd_str = {"BEGIN; ", "create table v0(v1 text)", "COMMIT;"};
+    vector<string> v_cmd_str = string_splitter(full_valid_input, ";");
 
     SQLSTATUS correctness;
     int server_response;
@@ -536,19 +526,34 @@ public:
 
     has_new_bits(virgin_bits, "123");
 
-    bool is_mutate_error = false;
+    if (is_reset_database == true) {
+      for (string cur_cmd_str : v_cmd_str) {
+        server_response =
+            mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+        correctness = clean_up_connection(m_);
 
-    bool is_oracle_select = false;
+        if (server_response == 0) {
+          debug_good++;
+        } else {
+          debug_error++;
+        }
 
-    for (string cur_cmd_str : v_cmd_str) {
+        if (server_response == CR_SERVER_LOST) {
+          cerr << "Server Lost or Server Crashes! \n\n\n";
+          break;
+        }
+      }
+    } else {
+      // is_reset_database == false
+      string cur_cmd_str = cmd_str;
 
-      // cerr << "Testing with normal cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
-
-      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      server_response =
+          mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
       res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
-      if (server_response == 0 ) {
+      if (server_response == 0) {
         debug_good++;
       } else {
         debug_error++;
@@ -556,18 +561,10 @@ public:
 
       if (server_response == CR_SERVER_LOST) {
         cerr << "Server Lost or Server Crashes! \n\n\n";
-        break;
       }
-
     }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
-
-    /* For debug purpose */
-    if (res_str.find("Test_ID") == string::npos) {
-      cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
-      // FATAL("RESULT NOT RETURN CORRECTLY!");
-    }
 
     if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
       disconnect();
@@ -578,36 +575,25 @@ public:
     // res = correctness;  
 
     auto check_res = check_server_alive();
-    if(check_res == false){
+    if(!check_res){
       disconnect();
       sleep(2); // waiting for server to be up again
+      is_reset_database = 1;
       return kServerCrash;
     }
 
     timeout_mutex.lock();
     timeout_id++;
     if (is_timeout) {
+      is_reset_database = 1;
       res = kTimeout;
     }
     is_timeout = false;
     timeout_mutex.unlock();
 
-    // if (res == kSyntaxError) {
-    //   syntax_err_num++;
-    // } else if (res == kSemanticError) {
-    //   semantic_err_num++;
-    // } else {
-    //   correct_num++;
-    // }
-
-    if (is_mutate_error) {
-      res = kSyntaxError;
-    }
-
     counter_++;
     disconnect();
     return res;
-
   }
 
   bool check_server_alive()
@@ -632,6 +618,8 @@ public:
   int reset_database()
   {
     MYSQL tmp_m;
+
+    is_reset_database = 1;
 
     database_id += 1;
     if (mysql_init(&tmp_m) == NULL)
@@ -1615,7 +1603,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
         /* Looks like we have not found any new bytes yet; see if any non-zero
            bytes in current[] are pristine in virgin[]. */
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
@@ -1865,7 +1853,7 @@ EXP_ST void init_count_class16(void)
           count_class_lookup8[b2];
 }
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
 static inline void classify_counts(u64 *mem)
 {
@@ -3076,9 +3064,7 @@ static void reboot_server(u32 prev_timed_out)
 
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
-
-int counter;
-static u8 run_target(char **argv, u32 timeout, const string& cmd_string, string& res_str)
+static u8 run_target(char **argv, u32 timeout, const string& cmd_string, const string& full_valid_input, string& res_str)
 {
 
   static struct itimerval it;
@@ -3096,12 +3082,7 @@ static u8 run_target(char **argv, u32 timeout, const string& cmd_string, string&
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
-  // auto single_execution_start_time = std::chrono::system_clock::now();
-  auto result = g_mysqlclient.execute(cmd_string.c_str(), res_str);
-  // DEBUG
-  // auto single_execution_end_time = std::chrono::system_clock::now();
-  // std::chrono::duration<double> single_executon_used_time = single_execution_end_time - single_execution_start_time;
-  // cerr << "\n\nFor single execution of inputs, used time: " << single_executon_used_time.count() << ". \n\n\n";
+  auto result = g_mysqlclient.execute(cmd_string, full_valid_input, res_str);
 
 #ifdef COUNT_ERROR
   execute_result = result;
@@ -3118,13 +3099,9 @@ BEGIN:
   else if (result == kConnectFailed)
   {
     cout << "Connection Failed!" << endl;
+    is_reset_database = 1;
     sleep(1);
     goto BEGIN;
-  }
-
-  else if (result == kSyntaxError) {
-    /* Dirty fix, treat it as TIMEOUT now. */
-    status = FAULT_TMOUT;
   }
 
   else
@@ -3132,13 +3109,11 @@ BEGIN:
     status = FAULT_NONE;
   }
 
-//  total_execs++;
-
   MEM_BARRIER();
 
   tb4 = *(u32 *)trace_bits;
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
   classify_counts((u64 *)trace_bits);
 #else
   classify_counts((u32 *)trace_bits);
@@ -3197,8 +3172,10 @@ static void write_with_gap(void *mem, u32 len, u32 skip_at, u32 skip_len)
 }
 
 static void show_stats(void);
-u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
-                      char **argv, u32 tmout);
+u8 execute_cmd_string(string& cmd_string, string& full_valid_input, string& full_input,
+                      string& res_str,
+                      vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout = exec_tmout);
 
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
@@ -3269,8 +3246,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
 
     vector<int> dummy_vec;
     ALL_COMP_RES dummy_all_comp_res;
-    vector<string> program_input_str_vec {program_input_str};
-    fault = execute_cmd_string(program_input_str_vec, dummy_vec, dummy_all_comp_res, argv, use_tmout);
+    string res_str;
+    fault = execute_cmd_string(program_input_str, program_input_str, program_input_str, res_str, dummy_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3958,14 +3935,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     queue_top->exec_cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
 
-    /* Try to calibrate inline; this also calls update_bitmap_score() when
-       successful. */
-
-    // res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
-
-    // if (res == FAULT_ERROR)
-    //   FATAL("Unable to execute target application");
-
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
@@ -3989,68 +3958,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     cerr << "Timeout skipped. \n\n\n";
 
     return keeping;
-
-//     total_tmouts++;
-
-//     if (unique_hangs >= KEEP_UNIQUE_HANG)
-//       return keeping;
-
-//     if (!dumb_mode)
-//     {
-
-// #ifdef __x86_64__
-//       simplify_trace((u64 *)trace_bits);
-// #else
-//       simplify_trace((u32 *)trace_bits);
-// #endif /* ^__x86_64__ */
-
-//       show_stats();
-
-//       if (!has_new_bits(virgin_tmout))
-//         return keeping;
-//     }
-
-//     unique_tmouts++;
-
-//     // /* Before saving, we make sure that it's a genuine hang by re-running
-//     //      the target with a more generous timeout (unless the default timeout
-//     //      is already generous). */
-
-//     // if (exec_tmout < hang_tmout)
-//     // {
-
-//     //   u8 new_fault;
-//     //   write_to_testcase(mem, len);
-//     //   new_fault = run_target(argv, hang_tmout);
-
-//     //   /* A corner case that one user reported bumping into: increasing the
-//     //        timeout actually uncovers a crash. Make sure we don't discard it if
-//     //        so. */
-
-//     //   if (!stop_soon && new_fault == FAULT_CRASH)
-//     //     goto keep_as_crash;
-
-//     //   if (stop_soon || new_fault != FAULT_TMOUT)
-//     //     return keeping;
-//     // }
-
-// #ifndef SIMPLE_FILES
-
-//     fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir,
-//                       unique_hangs, describe_op(0));
-
-// #else
-
-//     fn = alloc_printf("%s/hangs/id_%06llu", out_dir,
-//                       unique_hangs);
-
-// #endif /* ^!SIMPLE_FILES */
-
-//     unique_hangs++;
-
-//     last_hang_time = get_cur_time();
-
-//     break;
 
   case FAULT_CRASH:
 
@@ -5406,135 +5313,6 @@ static u32 next_p2(u32 val)
   return ret;
 }
 
-// /* Trim all new test cases to save cycles when doing deterministic checks. The
-//    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
-//    file size, to keep the stage short and sweet. */
-
-// static u8 trim_case(char **argv, struct queue_entry *q, u8 *in_buf)
-// {
-
-//   static u8 tmp[64];
-//   static u8 clean_trace[MAP_SIZE];
-
-//   u8 needs_write = 0, fault = 0;
-//   u32 trim_exec = 0;
-//   u32 remove_len;
-//   u32 len_p2;
-
-//   /* Although the trimmer will be less useful when variable behavior is
-//      detected, it will still work to some extent, so we don't check for
-//      this. */
-
-//   if (q->len < 5)
-//     return 0;
-
-//   stage_name = tmp;
-//   bytes_trim_in += q->len;
-
-//   /* Select initial chunk len, starting with large steps. */
-
-//   len_p2 = next_p2(q->len);
-
-//   remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
-
-//   /* Continue until the number of steps gets too high or the stepover
-//      gets too small. */
-
-//   while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES))
-//   {
-
-//     u32 remove_pos = remove_len;
-
-//     sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
-
-//     stage_cur = 0;
-//     stage_max = q->len / remove_len;
-
-//     while (remove_pos < q->len)
-//     {
-
-//       u32 trim_avail = MIN(remove_len, q->len - remove_pos);
-//       u32 cksum;
-
-//       write_with_gap(in_buf, q->len, remove_pos, trim_avail);
-
-//       fault = run_target(argv, exec_tmout);
-//       trim_execs++;
-
-//       if (stop_soon || fault == FAULT_ERROR)
-//         goto abort_trimming;
-
-//       /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
-
-//       cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
-
-//       /* If the deletion had no impact on the trace, make it permanent. This
-//          isn't perfect for variable-path inputs, but we're just making a
-//          best-effort pass, so it's not a big deal if we end up with false
-//          negatives every now and then. */
-
-//       if (cksum == q->exec_cksum)
-//       {
-
-//         u32 move_tail = q->len - remove_pos - trim_avail;
-
-//         q->len -= trim_avail;
-//         len_p2 = next_p2(q->len);
-
-//         memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail,
-//                 move_tail);
-
-//         /* Let's save a clean trace, which will be needed by
-//            update_bitmap_score once we're done with the trimming stuff. */
-
-//         if (!needs_write)
-//         {
-
-//           needs_write = 1;
-//           memcpy(clean_trace, trace_bits, MAP_SIZE);
-//         }
-//       }
-//       else
-//         remove_pos += remove_len;
-
-//       /* Since this can be slow, update the screen every now and then. */
-
-//       if (!(trim_exec++ % stats_update_freq))
-//         show_stats();
-//       stage_cur++;
-//     }
-
-//     remove_len >>= 1;
-//   }
-
-//   /* If we have made changes to in_buf, we also need to update the on-disk
-//      version of the test case. */
-
-//   if (needs_write)
-//   {
-
-//     s32 fd;
-
-//     unlink(q->fname); /* ignore errors */
-
-//     fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
-
-//     if (fd < 0)
-//       PFATAL("Unable to create '%s'", q->fname);
-
-//     ck_write(fd, in_buf, q->len, q->fname);
-//     close(fd);
-
-//     memcpy(trace_bits, clean_trace, MAP_SIZE);
-//     update_bitmap_score(q);
-//   }
-
-// abort_trimming:
-
-//   bytes_trim_out += q->len;
-//   return fault;
-// }
-
 void extract_query_result(const string &res, vector<string> &res_vec_out,
                           const string &begin_sign, const string &end_sign)
 {
@@ -5735,6 +5513,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
   {
     out << "Query: \n";
     out << all_comp_res.cmd_str << "\n";
+    out << "is_reset_database: " << is_reset_database << "\n";
     out << "Result string: \n";
     out << all_comp_res.res_str << "\n";
     out << "\nFinal_res: " << all_comp_res.final_res << "\n";
@@ -5796,25 +5575,18 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
 }
 
 
-u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
-                      char **argv, u32 tmout = exec_tmout)
+u8 execute_cmd_string(string& cmd_string, string& full_valid_input, string& full_input,
+                      string& res_str,
+                      vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout)
 {
 
   u8 fault;
 
-  /* Compare results between different validation stmts in a single run. */
-  string cmd_string = cmd_string_vec[0];
-
-  /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
-  cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; \nCREATE TABLE v1099(c1100 INT); \n" + cmd_string;
-
-  // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
-
   trim_string(cmd_string);
 
-  string res_str = "";
-  fault = run_target(argv, tmout, cmd_string, res_str);
-  // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n";
+  fault = run_target(argv, tmout, cmd_string, full_valid_input, res_str);
+
   if (stop_soon)
     return fault;
   if (fault == FAULT_TMOUT)
@@ -5838,25 +5610,12 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     return fault;
   }
 
-  all_comp_res.cmd_str = std::move(cmd_string);
-  all_comp_res.res_str = std::move(res_str);
+  all_comp_res.cmd_str = full_valid_input + cmd_string;
+  all_comp_res.res_str = res_str;
   compare_query_result(all_comp_res, explain_diff_id);
 
-//   /* Log the debug_error and debug_good. */
-//   for (auto &res : all_comp_res.v_res)
-//   {
-//     if (res.comp_res == ORA_COMP_RES::Pass)
-//     {
-//       debug_good++;
-//     }
-//     else
-//     {
-//       debug_error++;
-//     }
-//   }
-
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+//   stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
@@ -5887,36 +5646,38 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
     string bug_output_dir =
         "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
-    // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
 
     outputfile.close();
 
-    total_execs++;
-
   }
   else if (all_comp_res.final_res == ORA_COMP_RES::Pass)
   {
-    total_execs++;
+    // Ignored
   }
   else
   {
     /* Query being skipped, or all select stmts return error results. */
-    total_execs++;
   }
+
+  if (fault == FAULT_NONE) {
+    is_reset_database = 0;
+  } else {
+    is_reset_database = 1;
+  }
+
+  total_execs++;
   total_execute++;
   return fault;
 }
-
-
 
 
 /* Write a modified test case, run program, process results. Handle
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<string> &query_str_no_marks_vec) 
+EXP_ST u8 common_fuzz_stuff(char **argv, string& input, string& full_valid_input, string& full_input, string& res_str)
 {
 
   u8 fault;
@@ -5925,7 +5686,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   ALL_COMP_RES all_comp_res;
   all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
 
-  fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv, exec_tmout);
+  fault = execute_cmd_string(input, full_valid_input, full_input, res_str, explain_diff_id, all_comp_res, argv, exec_tmout);
 
   if (stop_soon)
     return 1;
@@ -5959,11 +5720,9 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   }
 
   /* This handles FAULT_ERROR for us: */
-  //cout << num ++ << ":" << out_buf << endl;
-  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault);
+  int should_keep = save_if_interesting(argv, full_input, fault);
   queued_discovered += should_keep;
 
-  //cout << "OK" << endl;
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
 
@@ -6390,30 +6149,19 @@ inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& quer
     return;
 }
 
-string rsg_generate_query_sequence() {
-    string res_query = "";
-    res_query += rsg_generate("create_table_stmt") + "; \n";
-    res_query += rsg_generate("create_table_stmt") + "; \n";
-    res_query += rsg_generate("create_table_stmt") + "; \n";
-    res_query += rsg_generate("insert_stmt") + "; \n";
-    res_query += rsg_generate("insert_stmt") + "; \n";
-    res_query += rsg_generate("insert_stmt") + "; \n";
-    res_query += rsg_generate("insert_stmt") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("simple_statement") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
-    res_query += rsg_generate("select_stmt") + "; \n";
+string rsg_generate_query_sequence(int stmt_idx) {
+    string res_query;
+    if (stmt_idx < 3) {
+        res_query += rsg_generate("create_table_stmt") + "; \n";
+    }
+    else if (stmt_idx < 7) {
+        res_query += rsg_generate("insert_stmt") + "; \n";
+    }
+    else if (stmt_idx < 13) {
+        res_query += rsg_generate("simple_statement") + "; \n";
+    } else {
+        res_query += rsg_generate("select_stmt") + "; \n";
+    }
 
     return res_query;
 }
@@ -6438,7 +6186,7 @@ static u8 fuzz_one(char **argv)
   vector<IR *> ori_ir_tree;
   vector<IR*> v_ir_stmts;
 
-  string input;
+  string input, full_valid_input, full_input;
 
   if (not_on_tty)
   {
@@ -6474,156 +6222,86 @@ static u8 fuzz_one(char **argv)
 
   stage_name = "generate";
 
-  int skip_count = 0;
-  input.assign((const char *)out_buf, len);
-
-  // RSG modified from here. Rewrite the original input.
-  input.clear();
-  input = rsg_generate_query_sequence();
-  num_parse++;
-
-  ori_ir_tree.clear();
-  int ret = run_parser_multi_stmt(input, ori_ir_tree);
-
-  vector<IR*> v_mutated_ir_root;
-
-  if (ret != 0 || ori_ir_tree.empty())
-  {
-    goto abandon_entry;
-  }
-
-  stage_max = 1;
+  stage_max = 23;
   stage_cur = 0;
   stage_short = "SQL fuzz";
   stage_name = "MySQL fuzzing";
 
-  // orig_perf = perf_score = calculate_score(queue_cur);
+  int skip_count = 0;
 
-  doing_det = 1;
+  g_mutator.pre_validate(); // Reset global variables for query sequence.
 
-  stage_val_type = STAGE_VAL_NONE;
+  is_reset_database = 1;
 
-  orig_hit_cnt = queued_paths + unique_crashes;
+  string res_str;
+  input = "create table v1099(c1100 INT);";
+  common_fuzz_stuff(argv, input, full_valid_input, full_input, res_str);
+  full_valid_input += input + "\n";
+  full_input += input + "\n";
 
-  prev_cksum = queue_cur->exec_cksum;
-  skip_count = 0;
+  for (int stmt_idx = 0; stmt_idx < stage_max; stmt_idx++) {
+    res_str.clear();
 
-  if (stop_soon) {
-    goto abandon_entry;
-  }
+    input.clear();
+    input = rsg_generate_query_sequence(stmt_idx);
 
-  /* The mutated IR tree is deep_copied() */
-  v_mutated_ir_root.push_back(ori_ir_tree.back()->deep_copy());
+    num_parse++;
 
-  for (IR* mutated_ir_root : v_mutated_ir_root) {
+    ori_ir_tree.clear();
+    int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
-    if (!mutated_ir_root) {
+    if (ret != 0 || ori_ir_tree.empty()) {
+       continue;
+    }
+
+    doing_det = 1;
+
+    stage_val_type = STAGE_VAL_NONE;
+
+    orig_hit_cnt = queued_paths + unique_crashes;
+
+    prev_cksum = queue_cur->exec_cksum;
+    skip_count = 0;
+
+    if (stop_soon) {
+      ori_ir_tree.back()->deep_drop();
+      goto abandon_entry;
+    }
+
+    IR *ori_ir_root = ori_ir_tree.back();
+    vector<IR*> stmt_ir_vec = IRWrapper::get_stmt_ir_vec(ori_ir_root);
+
+    if (stmt_ir_vec.size() == 0) {
+      ori_ir_tree.back()->deep_drop();
       continue;
     }
 
     stage_name = "query_fix";
-    IR* cur_root = mutated_ir_root;
 
-    /*
-    ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
-    ** fix ir node, fill in concret values,
-    ** and transform from IR to multi-run strings.
-    */
-    vector<string> query_str_vec, query_str_no_marks_vec;
+    IR* cur_stmt = stmt_ir_vec.front()->deep_copy();
 
-    g_mutator.pre_validate(); // Reset global variables for query sequence.
-
-    // auto single_validate_func_start_time_2 = std::chrono::system_clock::now();
-    // pre_fix_transformation from the oracle.
-    vector<STMT_TYPE> stmt_type_vec;
-    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
-
-    // DEBUG
-    // cerr << "Just gone through validate functions, we have: \n";
-    // for (IR* cur_trans: all_pre_trans_vec) {
-    //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-    //   if (cur_trans->parent_) {
-    //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
-    //   }
-    // }
-    // cerr << "Pre-fix transform end. \n\n\n";
-
-    /* post_fix_transformation from the oracle. All deep_copied. */
-    vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
-
-    // cerr << "Single validate function postfix_transform call time, used time: " << single_validate_func_used_time_4.count() << "\n\n\n";
-
-    for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
-
-      /* Debug */
-      // cerr << "After post-fix, we have: \n";
-      // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
-      //   for (IR* cur_post: cur_post_trans) {
-      //     cerr << "cur_post: " << cur_post->to_string() << "\n";
-      //   }
-      // }
-      // cerr << "Post-fix Done. \n";
-
-      // Final step, transform IR tree to string. Add marker to important statements.
-      pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
-      query_str_vec.push_back(query_str_pair.first);
-      query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
-    }
-
-    // for (auto query_str : query_str_vec) {
-    //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
-    // }
-    // cerr << "End\n\n\n";
-
-    /* Clean up allocated resource.  */
-    for (int i = 0; i < all_pre_trans_vec.size(); i++){
-      all_pre_trans_vec[i]->deep_drop();
-    }
-
-    for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
-      for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
-        for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
-          all_post_trans_vec_all_runs[i][j][k]->deep_drop();
-        }
-      }
-    }
+    g_mutator.validate(cur_stmt, false);
 
     num_validate++;
 
-    /* Finished clean up */
+    input = cur_stmt->to_string() + "; ";
 
-    if (query_str_vec.size() == 0)
+    show_stats();
+    stage_name = "fuzz";
+
+    if (common_fuzz_stuff(argv, input, full_valid_input, full_input, res_str))
     {
-      total_append_failed++;
-      skip_count++;
-      continue;
-    } else if (query_str_vec[0] == "" ){
-      total_append_failed++;
-      skip_count++;
       continue;
     }
-    else
-    {
-      show_stats();
-      stage_name = "fuzz";
 
-      if (p_oracle->get_oracle_type() == "OPT") {
-          append_opt_stmts(query_str_vec, query_str_no_marks_vec);
-      }
-
-      if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
-      {
-        // goto abandon_entry;
-        continue;
-      }
-      total_execute++;
-      stage_cur++;
-      show_stats();
+    if (!findStringIn(res_str, "error")) {
+      full_valid_input += input + "\n";
     }
-  } // v_mutated_ir_root
+    full_input += input + "\n";
 
-  for (IR* mutated_ir_root : v_mutated_ir_root) {
-    mutated_ir_root->deep_drop();
+    total_execute++;
+    stage_cur++;
+    show_stats();
   }
 
   stage_cur = stage_max = 0;
@@ -6636,11 +6314,6 @@ static u8 fuzz_one(char **argv)
 
 abandon_entry:
   
-  /* Free the original ir tree */
-  if (ori_ir_tree.size() != 0) {
-    ori_ir_tree.back()->deep_drop();
-  }
-
   splicing_with = -1;
 
   /* Update pending_not_fuzzed count if we made it through the calibration
@@ -6785,7 +6458,8 @@ static void sync_fuzzers(char **argv)
 
         string cmd_str = (char*) mem;
         string dummy_res;
-        fault = run_target(argv, exec_tmout, cmd_str, dummy_res);
+        string res_str;
+        fault = run_target(argv, exec_tmout, cmd_str, dummy_res, res_str);
 
         if (stop_soon)
           return;

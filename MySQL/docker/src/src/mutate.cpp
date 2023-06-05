@@ -1037,7 +1037,7 @@ bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
       cerr << "Trying to fix stmt: " << cur_stmt->to_string() << " \n";
     }
 
-    if (!fix_one_stmt(cur_stmt, is_debug_info)) {  // Pass in kStmt, not kSpecificStatementType. 
+    if (!fix_one_stmt(cur_stmt, is_debug_info)) {  // Pass kSpecificStatementType.
       return false;
     }
     if (is_debug_info) {
