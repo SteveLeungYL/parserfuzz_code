@@ -493,6 +493,12 @@ void MySQLIRConstructor::handle_table_name_node(IR* node, DATAFLAG data_flag) {
   iden_node->set_data_type(kDataTableName);
   iden_node->set_data_flag(data_flag);
 
+  if (v_iden.size() > 1) {
+    IR* iden_node = v_iden.front();
+    iden_node->set_data_type(kDataDatabase);
+    iden_node->set_data_flag(kUse);
+  }
+
 }
 
 void MySQLIRConstructor::handle_index_ref_node(IR* node, DATAFLAG data_flag) {
