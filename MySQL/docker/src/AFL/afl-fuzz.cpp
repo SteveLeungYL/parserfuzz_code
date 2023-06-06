@@ -6290,6 +6290,10 @@ static u8 fuzz_one(char **argv)
     }
     full_input += input + "\n";
 
+    if (findStringIn(res_str, "error")) {
+      g_mutator.rollback_data_library();
+    }
+
     total_execute++;
     stage_cur++;
     show_stats();

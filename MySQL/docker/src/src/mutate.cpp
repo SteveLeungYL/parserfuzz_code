@@ -47,6 +47,19 @@ vector<int> Mutator::v_int_literals;
 vector<double> Mutator::v_float_literals;
 vector<string> Mutator::v_string_literals;
 
+map<string, vector<string>> Mutator::m_tables_backup;               // Table name to column name mapping.
+map<string, vector<string>> Mutator::m_table2index_backup;          // Table name to index mapping.
+vector<string> Mutator::v_table_names_backup;                       // All saved table names
+vector<string> Mutator::v_statistics_name_backup;                   // All statistic names defined in the current stmt.
+vector<string> Mutator::v_sequence_name_backup;                     // All sequence names defined in the current SQL.
+vector<string> Mutator::v_view_name_backup;                         // All saved view names.
+vector<string> Mutator::v_constraint_name_backup;                   // All constraint names defined in the current SQL.
+vector<string> Mutator::v_foreign_table_name_backup;                // All foreign table names defined inthe current SQL.
+vector<string> Mutator::v_table_with_partition_name_backup;
+vector<int> Mutator::v_int_literals_backup;
+vector<double> Mutator::v_float_literals_backup;
+vector<string> Mutator::v_string_literals_backup;
+
 
 IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
     IR * left = NULL, * right = NULL, * copy_res;
@@ -955,6 +968,44 @@ Mutator::~Mutator(){
   }
 }
 
+void Mutator::rollback_data_library() {
+  m_tables = m_tables_backup;
+  v_table_names = v_table_names_backup;
+  m_table2index = m_table2index_backup;
+  v_statistics_name = v_statistics_name_backup;
+  v_sequence_name = v_sequence_name_backup;
+  v_view_name = v_view_name_backup;
+  v_constraint_name = v_constraint_name_backup;
+  v_foreign_table_name = v_foreign_table_name_backup;
+  v_table_with_partition_name = v_table_with_partition_name_backup;
+  v_int_literals = v_int_literals_backup;
+  v_float_literals = v_float_literals_backup;
+  v_string_literals = v_string_literals_backup;
+  //  m_table2alias_single = m_table2alias_single_backup;
+  //  v_table_names_single = v_table_names_single_backup;
+  //  v_create_table_names_single = v_create_table_names_single_backup;
+  //  v_alias_names_single = v_alias_names_single_backup;
+  //  v_column_names_single = v_column_names_single_backup;
+  //  v_table_name_follow_single = v_table_name_follow_single_backup;
+  //  v_create_foreign_table_names_single = v_create_foreign_table_names_single_backup;
+  //  v_database_name_follow_single = v_database_name_follow_single_backup;
+}
+
+void Mutator::backup_data_library() {
+  m_tables_backup = m_tables;
+  v_table_names_backup = v_table_names;
+  m_table2index_backup = m_table2index;
+  v_statistics_name_backup = v_statistics_name;
+  v_sequence_name_backup = v_sequence_name;
+  v_view_name_backup = v_view_name;
+  v_constraint_name_backup = v_constraint_name;
+  v_foreign_table_name_backup = v_foreign_table_name;
+  v_table_with_partition_name_backup = v_table_with_partition_name;
+  v_int_literals_backup = v_int_literals;
+  v_float_literals_backup = v_float_literals;
+  v_string_literals_backup = v_string_literals;
+}
+
 void Mutator::reset_data_library(){
     // data_library_.clear();
     // data_library_2d_.clear();
@@ -1019,6 +1070,7 @@ string Mutator::parse_data(string &input) {
 bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
 
     reset_data_library_single_stmt();
+    backup_data_library();
 
     bool res = true;
     if (cur_stmt->type_ == kQuery) {
