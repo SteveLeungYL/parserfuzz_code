@@ -294,24 +294,47 @@ public:
 """
 
 visit_body_str = """\
-    if (ctx->parent == NULL) {
-      // ROOT
-      visitChildren(ctx);
-      return 0;
-    } else {
-      // Child node.
-      unsigned int cur_idx = hash_array[ctx->getRuleIndex()];
-      unsigned int parent_idx = hash_array[dynamic_cast<antlr4::ParserRuleContext*>(ctx->parent)->getRuleIndex()];
+    unsigned int cur_node_hash = hash_array[ctx->getRuleIndex()];
+    unsigned int term_token_hash = 0;
+    for (antlr4::tree::ParseTree* cur_child: ctx->children) {
+        if (antlr4::ParserRuleContext* tmp = dynamic_cast<antlr4::ParserRuleContext*>(cur_child)) {
+           unsigned int child_rule_hash = hash_array[tmp->getRuleIndex()];
+           this->gram_cov.log_edge_cov_map(cur_node_hash, child_rule_hash); 
 #ifdef DEBUG
-      cerr << "Parent rule: " << p_parser->getRuleNames()[dynamic_cast<antlr4::ParserRuleContext*>(ctx->parent)->getRuleIndex()] << "\\n";
-      cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
-      cerr << "branch hash: " << ((parent_idx >> 1) ^ cur_idx) << "\\n\\n\\n";
+            cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+            cerr << "Child rule: " << p_parser->getRuleNames()[tmp->getRuleIndex()] << "\\n";
+            cerr << "branch hash: " << ((cur_node_hash >> 1) ^ child_rule_hash) << "\\n\\n\\n";
 #endif
-      this->gram_cov.log_edge_cov_map(parent_idx, cur_idx);
-      visitChildren(ctx);
-      return 0;
+        } else {
+            antlr4::tree::TerminalNode* tmp_token = dynamic_cast<antlr4::tree::TerminalNode*>(cur_child);
+            unsigned int cur_token_idx = tmp_token->getSymbol()->getType();
+#ifdef DEBUG
+            cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+            cerr << "Child token type: " << cur_token_idx << "\\n\\n\\n";
+#endif
+            cur_token_idx += 1000; // Avoid collision with parser rule's index.
+            if (cur_token_idx < 2000) {
+                term_token_hash = ((term_token_hash >> 1) ^ hash_array[cur_token_idx]);
+            }
+        }
     }
+    
+    if (term_token_hash != 0) {
+#ifdef DEBUG
+        cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+        cerr << "Child token hash: " << term_token_hash << "\\n";
+        cerr << "branch hash: " << ((cur_node_hash >> 1) ^ term_token_hash) << "\\n\\n\\n";
+#endif 
+        this->gram_cov.log_edge_cov_map(cur_node_hash, term_token_hash); 
+    }
+    
+    // Iterate to the child node.
+    visitChildren(ctx);
+    
+    return 0;
+    
   }
+
 """
 
 suffix_str = """\
