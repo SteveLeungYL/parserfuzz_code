@@ -529,6 +529,10 @@ public:
 
     if (is_reset_database != 0) {
       for (string cur_cmd_str : v_cmd_str) {
+        trim_string(cur_cmd_str);
+        if (cur_cmd_str.empty()) {
+          continue;
+        }
         server_response =
             mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
         res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
