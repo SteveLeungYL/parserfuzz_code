@@ -1152,9 +1152,9 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataSequenceName,
     kDataViewName, kDataSequenceName,
     kDataDatabase, kDataDatabaseFollow, kDataTableNameFollow,
-    kDataColumnNameFollow
+    kDataColumnNameFollow, kDataAliasTableName
     // kDataRelOption, kDataTableNameFollow, kDataColumnNameFollow, kDataStatisticName, kDataForeignTableName, kDataConstraintName,
-    // kDataStatisticName, kDataAliasTableName,
+    // kDataStatisticName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
