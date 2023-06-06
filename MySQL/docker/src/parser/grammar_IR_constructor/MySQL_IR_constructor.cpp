@@ -347,6 +347,13 @@ void MySQLIRConstructor::special_handling_rule_name(IR* root, IRTYPE ir_type) {
   case kKeyPart:
     handle_key_part(root);
     break;
+  case kUpdateStatement:
+    handle_update_statement(root);
+    break;
+  case kUpdateElement:
+    handle_update_element(root);
+    break;
+
 
   default:
     // Do nothing.
@@ -1467,7 +1474,15 @@ void MySQLIRConstructor::handle_field_identifier(IR* node, DATATYPE data_type, D
   assert(!v_iden.empty());
 
   // TODO: Not sure here.
-  this->handle_identifier_non_term_rule_node(v_iden.front(), data_type, data_flag);
+  this->handle_identifier_non_term_rule_node(v_iden.back(), data_type, data_flag);
+
+  if (v_iden.size() == 2) {
+    this->handle_identifier_non_term_rule_node(v_iden.front(), kDataTableName, kUse);
+  }
+  if (v_iden.size() == 3) {
+    this->handle_identifier_non_term_rule_node(v_iden.front(), kDataDatabase, kUse);
+    this->handle_identifier_non_term_rule_node(v_iden[1], kDataTableName, kUse);
+  }
 
 }
 
@@ -1786,6 +1801,15 @@ void MySQLIRConstructor::handle_update_statement(IR* node) {
 
   for (IR* cur_iden: v_iden) {
     this->handle_table_reference_list(cur_iden, kUse);
+  }
+}
+
+void MySQLIRConstructor::handle_update_element(IR* node) {
+  vector<IR *> v_iden = IRWrapper::get_ir_node_in_stmt_with_type_one_level(
+      node, kColumnRef);
+
+  for (IR* cur_iden: v_iden) {
+    this->handle_column_ref(cur_iden, kUse);
   }
 }
 

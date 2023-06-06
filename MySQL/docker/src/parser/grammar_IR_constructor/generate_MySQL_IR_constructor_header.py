@@ -269,6 +269,7 @@ private:
   void handle_constraint_name(IR* node);
   void handle_references(IR* node);
   void handle_key_part(IR* node);
+  void handle_update_element(IR* node);
 
 public:
   void set_parser(MySQLParser* in) {this->p_parser = in;}

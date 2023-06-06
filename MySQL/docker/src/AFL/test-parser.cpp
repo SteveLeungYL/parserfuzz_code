@@ -105,6 +105,7 @@ bool try_validate_query(IR* cur_root) {
 
   vector<string> valid_split = string_splitter(validity, ";");
   cout << "validate: >\n";
+  cout << "CREATE TABLE v1099(c1100 INT); \n";
   for (string str : valid_split) {
     trim_string(str);
     if (str.empty()) {
