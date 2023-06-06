@@ -514,6 +514,7 @@ public:
     std::replace(full_valid_input.begin(), full_valid_input.end(), '\n', ' ');
 
     vector<string> v_cmd_str = string_splitter(full_valid_input, ";");
+    v_cmd_str.push_back(cmd_str);
 
     SQLSTATUS correctness;
     int server_response;
@@ -526,7 +527,7 @@ public:
 
     has_new_bits(virgin_bits, "123");
 
-    if (is_reset_database == true) {
+    if (is_reset_database != 0) {
       for (string cur_cmd_str : v_cmd_str) {
         server_response =
             mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
