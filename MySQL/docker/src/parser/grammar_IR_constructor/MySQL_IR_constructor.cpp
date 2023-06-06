@@ -382,8 +382,12 @@ void MySQLIRConstructor::set_iden_type_from_qualified_iden(IR* in, DATATYPE data
 
   // TODO: Not sure here. Need more testing.
   IR* cur_iden = v_iden_node.back();
-  cur_iden->set_data_type(data_type);
-  cur_iden->set_data_flag(data_flag);
+  handle_identifier_non_term_rule_node(cur_iden, data_type, data_flag);
+
+  if (v_iden_node.size() == 2) {
+    cur_iden = v_iden_node.front();
+    handle_identifier_non_term_rule_node(cur_iden, kDataDatabase, kUse);
+  }
 
 }
 
@@ -726,13 +730,13 @@ void MySQLIRConstructor::handle_alter_undo_table_space(IR* node) {
 
 void MySQLIRConstructor::handle_view_ref(IR* node, DATAFLAG data_flag) {
 
-  vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kIdentifierRule, false, false);
+  vector<IR*> v_iden = IRWrapper::get_ir_node_in_stmt_with_type(node, kQualifiedIdentifier, false, false);
   if (v_iden.empty()) {
     return;
   }
   assert(!v_iden.empty());
 
-  this->handle_identifier_non_term_rule_node(v_iden.front(), kDataViewName, data_flag);
+  this->set_iden_type_from_qualified_iden(v_iden.front(), kDataViewName, data_flag);
 
 }
 
