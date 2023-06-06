@@ -3902,21 +3902,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
 
-    stage_name = "add_to_library";
-
-    vector<IR*> ir_tree;
-    int ret = run_parser_multi_stmt(query_str, ir_tree);
-    if (ret != 0 || ir_tree.size() == 0) {
-      return keeping;
-    }
-
-    IR * tmp_ir = ir_tree.back();
-    g_mutator.extract_struct(tmp_ir);
-    g_mutator.add_all_to_library(
-        tmp_ir->to_string(),
-        explain_diff_id);
-    ir_tree.back()->deep_drop();
-
 #ifndef SIMPLE_FILES
 
     fn = alloc_printf("%s/queue/id:%06u,%s", out_dir, queued_paths,
@@ -5725,7 +5710,8 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string& input, string& full_valid_input
   }
 
   /* This handles FAULT_ERROR for us: */
-  int should_keep = save_if_interesting(argv, full_input, fault);
+  string full_input_with_cur = full_input + input;
+  int should_keep = save_if_interesting(argv, full_input_with_cur, fault);
   queued_discovered += should_keep;
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
