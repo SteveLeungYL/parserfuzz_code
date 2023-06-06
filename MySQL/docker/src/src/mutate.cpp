@@ -1708,7 +1708,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
 
       /* Assume all kAlias are alias to Table name.  */
-      if (ir_to_fix->data_type_ == kDataAliasName) {
+      if (ir_to_fix->data_type_ == kDataAliasTableName) {
 
         string closest_table_name = "";
 
