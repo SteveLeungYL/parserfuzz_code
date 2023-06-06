@@ -234,13 +234,10 @@ public:
     m_ = mysql_init(m_);
 
     if (m_ == NULL) {
-      // cerr << "mysql init failed. returned. \n";
-      // mysql_close(&m_);
       return false;
     }
 
     dbname = "test_sqlright1";
-    // cerr << "Using socket: " << socket_path << "\n\n\n";
     if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
@@ -248,13 +245,7 @@ public:
       counter_++;
       return false;
     }
-    
-    // string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + "; USE test" + std::to_string(database_id) + "; SELECT 'Successful'; ";
-    // mysql_real_query(m_, cmd.c_str(), cmd.size());
-    // cerr << "Fix_database results connect: "  << retrieve_query_results(m_) << "\n\n\n";
 
-    // mysql_close(m_);
-    
     return true;
   }
 
@@ -492,9 +483,10 @@ public:
 
   SQLSTATUS execute(string cmd_str, string full_valid_input, string& res_str)
   {
-    // fix_database();
-
-    auto conn = connect();
+    bool conn = true;
+    if (m_ == NULL) {
+      conn = connect();
+    }
 
     int retry_time = 0;
     while(!conn){
@@ -506,8 +498,17 @@ public:
 
     res_str = "";
 
-    if( is_reset_database && !reset_database() ) { // Return true for no error, false for errors.
-      res_str += "Reset database ERROR!!!\n\n\n";
+    if( is_reset_database) { // Return true for no error, false for errors.
+      reset_database();
+      disconnect();
+      m_ = NULL;
+      conn = false;
+      while (!conn) {
+//        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        conn = connect();
+        if (!conn)
+          fix_database();
+      }
     }
 
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
@@ -597,7 +598,7 @@ public:
     timeout_mutex.unlock();
 
     counter_++;
-    disconnect();
+//    disconnect();
     return res;
   }
 
@@ -646,7 +647,7 @@ public:
         is_error = true;
       }
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
-      retrieve_query_results(m_, "");
+      retrieve_query_results(&tmp_m, "");
       clean_up_connection(&tmp_m);
     }
 
