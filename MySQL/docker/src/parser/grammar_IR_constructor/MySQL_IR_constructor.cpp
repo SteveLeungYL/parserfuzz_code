@@ -1317,7 +1317,12 @@ void MySQLIRConstructor::handle_table_ref_with_wildcard(IR* node, DATATYPE data_
   }
   assert(!v_iden.empty());
 
-  this->handle_identifier_non_term_rule_node(v_iden.front(), kDataAliasTableName, kUse);
+  this->handle_identifier_non_term_rule_node(v_iden.back(), kDataAliasTableName, data_flag);
+
+  if (v_iden.size() == 2) {
+    this->handle_identifier_non_term_rule_node(v_iden.front(),
+                                               kDataDatabase, kUse);
+  }
 }
 
 void MySQLIRConstructor::handle_table_alias_ref_list(IR* node, DATAFLAG data_flag) {
