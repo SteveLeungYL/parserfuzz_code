@@ -499,8 +499,8 @@ public:
     res_str = "";
 
     if( is_reset_database) { // Return true for no error, false for errors.
-      reset_database();
       disconnect();
+      reset_database();
       m_ = NULL;
       conn = false;
       while (!conn) {
@@ -646,7 +646,6 @@ public:
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
       }
-      // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       retrieve_query_results(&tmp_m, "");
       clean_up_connection(&tmp_m);
     }
