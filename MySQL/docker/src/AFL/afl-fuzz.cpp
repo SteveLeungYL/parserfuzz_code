@@ -6277,6 +6277,9 @@ static u8 fuzz_one(char **argv)
 
     input = cur_stmt->to_string() + "; ";
 
+    cur_stmt->deep_drop();
+    ori_ir_root->deep_drop();
+
     show_stats();
     stage_name = "fuzz";
 

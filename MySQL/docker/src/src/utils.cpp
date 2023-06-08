@@ -96,51 +96,43 @@ uint64_t fucking_hash ( const void * key, int len )
 	h ^= h >> r;
 
 	return h;
-} 
-
-vector<string> get_all_files_in_dir( const char * dir_name  )
-{
-        vector<string> file_list;
-         if( NULL == dir_name  )
-         {
-               cout<<" dir_name is null ! "<<endl;
-                 return file_list;
-                  
-         }
-          
-          struct stat s;
-           lstat( dir_name , &s  );
-            if( ! S_ISDIR( s.st_mode  )  )
-            {
-                  cout<<"dir_name is not a valid directory !"<<endl;
-                    return file_list;
-                     
-            }
-             
-             struct dirent * filename;    // return value for readdir()
-               DIR * dir;                   // return value for opendir()
-                dir = opendir( dir_name  );
-                 if( NULL == dir  )
-                 {
-                       cout<<"Can not open dir "<<dir_name<<endl;
-                         return file_list;
-                          
-                 }
-                  cout<<"Successfully opened the dir !"<<endl;
-                   
-                   while( ( filename = readdir(dir)  ) != NULL  )
-                   {
-                         if( strcmp( filename->d_name , "."  ) == 0 || 
-                                    strcmp( filename->d_name , ".." ) == 0    )
-                                continue;
-                           cout<<filename->d_name <<endl;
-                                   file_list.push_back(string(filename->d_name));
-                                    
-                   }
-                       return file_list;
-                       
 }
 
+vector<string> get_all_files_in_dir(const char *dir_name) {
+        vector<string> file_list;
+        if (NULL == dir_name) {
+                cout << " dir_name is null ! " << endl;
+                return file_list;
+        }
+
+        struct stat s;
+        lstat(dir_name, &s);
+        if (!S_ISDIR(s.st_mode)) {
+                cout << "dir_name is not a valid directory !" << endl;
+                return file_list;
+        }
+
+        struct dirent *filename; // return value for readdir()
+        DIR *dir;                // return value for opendir()
+        dir = opendir(dir_name);
+        if (NULL == dir) {
+                cout << "Can not open dir " << dir_name << endl;
+                return file_list;
+        }
+        cout << "Successfully opened the dir !" << endl;
+
+        while ((filename = readdir(dir)) != NULL) {
+                if (strcmp(filename->d_name, ".") == 0 ||
+                    strcmp(filename->d_name, "..") == 0)
+            continue;
+                cout << filename->d_name << endl;
+                file_list.push_back(string(filename->d_name));
+        }
+
+        closedir(dir);
+
+        return file_list;
+}
 
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle) {
