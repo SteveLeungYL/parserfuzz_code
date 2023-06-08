@@ -6285,6 +6285,7 @@ static u8 fuzz_one(char **argv)
 
     if (common_fuzz_stuff(argv, input, full_valid_input, full_input, res_str))
     {
+      full_input += input + "\n";
       continue;
     }
 
