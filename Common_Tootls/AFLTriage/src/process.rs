@@ -92,7 +92,7 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
                 .spawn()
         }?;
 
-        std::thread::sleep(Duration::from_secs(3));
+        std::thread::sleep(Duration::from_secs(10));
 
         // Run the client mysql. Pass in the query.
         let mut client_cmd = if input.is_none() {

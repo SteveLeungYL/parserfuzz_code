@@ -272,7 +272,7 @@ fn profile_target(
     let client_prog_args = util::expand_filepath_templates(client_binary_args, testcase);
 
     let input_file = if input_stdin {
-        Some(util::read_file_to_bytes(testcase)?)
+        Some(format!("{} {}", String::from("drop database if exists test_sqlright1; create database test_sqlright1; use test_sqlright1; create table v1099(c1100 int); \n"), String::from_utf8(util::read_file_to_bytes(testcase)?.clone()).unwrap()).as_bytes().to_vec())
     } else {
         None
     };
