@@ -5,6 +5,9 @@ cd "$(dirname "$0")"/../docker
 rm -rf ./rsg
 cp -r ../../Common_Tootls/rsg ./rsg
 
+rm -rf ./AFLTriage
+cp -r ../../Common_Tootls/AFLTriage ./AFLTriage
+
 ## For debug purpose, keep all intermediate steps to fast reproduce the run results.
 #sudo docker build --rm=false -f ./Dockerfile -t sqlright_mysql .  
 

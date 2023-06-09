@@ -523,7 +523,7 @@ impl GdbTriager {
 
         let gdb_run_command = String::from("run");
 
-        let input_file_raw = Some(read_file_to_bytes(input_file).unwrap());
+        let input_file_raw = Some(format!(String::from("drop database if exists test_sqlright1; create database test_sqlright1; use test_sqlright1; create table v1099(c1100 int); \n"), read_file_to_bytes(input_file).unwrap()));
 
         // TODO: memory limit?
         #[rustfmt::rustfmt_skip]
