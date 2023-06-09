@@ -7,6 +7,7 @@
 # Developed for the AFLTriage project
 import sys
 import os
+import platform
 
 try:
     import gdb
@@ -659,7 +660,8 @@ class GDBTriageCommand(gdb.Command):
         gdb.execute("set listsize 1", to_string=True)
 
         # XXX: only do this on i386/x86_64
-        gdb.execute("set disassembly-flavor intel", to_string=True)
+        if platform.machine() == "x86_64" or platform.machine() == "i386":
+            gdb.execute("set disassembly-flavor intel", to_string=True)
 
         # XXX: undo "set"'s to restore GDB state
         primary_thread = gdb.selected_thread()

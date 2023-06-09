@@ -125,6 +125,13 @@ fn setup_command_line() -> ArgMatches<'static> {
                                .multiple(true)
                                .required(true)
                                .help("The binary executable and args to execute. Use '@@' as a placeholder for the path to the input file or --stdin. Optionally use -- to delimit the start of the command."))
+                          .arg(Arg::with_name("client_command")
+                              .long("--client_command")
+                              .multiple(false)
+                              .takes_value(true)
+                              .required(true)
+                              .case_insensitive(false)
+                              .help("The client binary executable and args to execute. Use '@@' as a placeholder for the path to the input file or --stdin. Optionally use -- to delimit the start of the command."))
                           .arg(Arg::with_name("timeout")
                                .short("-t")
                                .long("--timeout")
@@ -253,6 +260,7 @@ struct ProfileResult {
 fn profile_target(
     gdb: &GdbTriager,
     binary_args: &[&str],
+    client_binary_args: &[&str],
     testcase: &str,
     debug: bool,
     input_stdin: bool,
@@ -261,6 +269,7 @@ fn profile_target(
     log::info!("Profiling target...");
 
     let prog_args = util::expand_filepath_templates(binary_args, testcase);
+    let client_prog_args = util::expand_filepath_templates(client_binary_args, testcase);
 
     let input_file = if input_stdin {
         Some(util::read_file_to_bytes(testcase)?)
@@ -270,7 +279,7 @@ fn profile_target(
 
     let start = Instant::now();
     let before_rss = util::get_peak_rss();
-    let process_result = process::execute_capture_output_timeout(&prog_args[0], &prog_args[1..], timeout_ms, input_file);
+    let process_result = process::execute_capture_output_timeout(&prog_args[0], &prog_args[1..], &client_prog_args, timeout_ms, input_file);
     let process_execution_time = start.elapsed();
     let after_process_rss = util::get_peak_rss();
     let process_rss = std::cmp::max(after_process_rss - before_rss, 1); // round up to 1kb
@@ -279,7 +288,7 @@ fn profile_target(
         process_execution_time, process_rss);
 
     let start = Instant::now();
-    let triage_result = triage_test_case(gdb, binary_args, testcase, debug, input_stdin, timeout_ms);
+    let triage_result = triage_test_case(gdb, binary_args, client_binary_args, testcase, debug, input_stdin, timeout_ms);
     let debugger_execution_time = start.elapsed();
     let after_debugger_rss = util::get_peak_rss();
 
@@ -310,18 +319,17 @@ fn profile_target(
 fn triage_test_case(
     gdb: &GdbTriager,
     binary_args: &[&str],
+    client_binary_args: &[&str],
     testcase: &str,
     debug: bool,
     input_stdin: bool,
     timeout_ms: u64,
 ) -> TriageResult {
     let prog_args = util::expand_filepath_templates(binary_args, testcase);
-
-    // Whether to pass a file in via GDB stdin
-    let input_file = if input_stdin { Some(testcase) } else { None };
+    let client_prog_args = util::expand_filepath_templates(client_binary_args, testcase);
 
     let triage_result: GdbTriageResult =
-        match gdb.triage_program(&prog_args, input_file, debug, timeout_ms) {
+        match gdb.triage_program(&prog_args, &client_prog_args, testcase, debug, timeout_ms) {
             Ok(triage_result) => triage_result,
             Err(e) => {
                 if e.error_kind == GdbTriageErrorKind::Timeout {
@@ -683,6 +691,8 @@ fn main_wrapper() -> i32 {
     };
 
     let binary_args: Vec<&str> = args.values_of("command").unwrap().collect();
+    let client_binary_args_tmp: Vec<&str> = args.values_of("client_command").unwrap().collect();
+    let client_binary_args: Vec<&str> = client_binary_args_tmp[0].split_whitespace().collect();
     let gdb: GdbTriager = GdbTriager::new(aenv.gdb_path.to_string());
 
     if !environment_check(&gdb, &binary_args) {
@@ -690,7 +700,7 @@ fn main_wrapper() -> i32 {
     }
 
     let input_stdin = args.is_present("stdin");
-    let has_atat = binary_args.iter().any(|s| *s == "@@");
+    let has_atat = client_binary_args.iter().any(|s| *s == "@@");
 
     if input_stdin {
         log::info!("Providing testcase input via stdin");
@@ -707,6 +717,7 @@ fn main_wrapper() -> i32 {
     }
 
     log::info!("Image triage cmdline: {}", util::shell_join(&binary_args));
+    log::info!("Image client cmdline: {}", util::shell_join(&client_binary_args));
 
     let output = args.value_of("output").unwrap();
 
@@ -781,7 +792,7 @@ fn main_wrapper() -> i32 {
 
     if !args.is_present("skip_profile") {
         let first_testcase_path = all_testcases[0].path.to_str().unwrap();
-        let profile_result = profile_target(&gdb, &binary_args, first_testcase_path, debug, input_stdin, timeout_ms);
+        let profile_result = profile_target(&gdb, &binary_args, &client_binary_args, first_testcase_path, debug, input_stdin, timeout_ms);
 
         if let Ok(profile_result) = profile_result {
             if let std::io::Result::Err(e) = profile_result.process_result {
@@ -903,7 +914,7 @@ fn main_wrapper() -> i32 {
         }
 
         let path = testcase.path.to_str().unwrap();
-        let result = triage_test_case(&gdb, &binary_args, path, debug, input_stdin, timeout_ms);
+        let result = triage_test_case(&gdb, &binary_args, &client_binary_args, path, debug, input_stdin, timeout_ms);
 
         // Do not reorder. Avoid long computations with this lock held
         let mut state = state.lock().unwrap();

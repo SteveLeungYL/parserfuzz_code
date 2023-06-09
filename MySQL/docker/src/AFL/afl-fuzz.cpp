@@ -5605,7 +5605,7 @@ u8 execute_cmd_string(string& cmd_string, string& full_valid_input, string& full
   compare_query_result(all_comp_res, explain_diff_id);
 
   /* Some useful debug output. That could show what queries are being tested. */
-//   stream_output_res(all_comp_res, cerr);
+   stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */

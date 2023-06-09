@@ -10,6 +10,7 @@ use std::io::{Result, Error, ErrorKind};
 use std::process::{Command, ExitStatus, Output};
 use async_process::unix::CommandExt;
 use std::time::Duration;
+use libc::sleep;
 
 #[derive(Debug)]
 pub struct ChildResult {
@@ -65,41 +66,60 @@ unsafe fn pre_execute() {
 pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
     command: &str,
     args: &[S],
+    client_command_and_args: &[S],
     timeout_ms: u64,
     input: Option<Vec<u8>>
 ) -> Result<ChildResult> {
+
+    /* TODO: Use lsof to monitor the MySQL-Server starting process. */
+    // let mut cmd_check_signal = async_process::Command::new("lsof")
+    //     .stdin(async_process::Stdio::null())
+    //     .stdout(async_process::Stdio::null())
+    //     .stderr(async_process::Stdio::null())
+    //     .args(["-l"])
+    //     .spawn();
+    // let check_signal_out = cmd_check_signal.output();
+
     let output: Output = block_on(async {
         // SAFETY: only pre_exec call back is unsafe
-        let mut cmd = if input.is_none() {
-            unsafe {
-                async_process::Command::new(command)
-                    .stdin(async_process::Stdio::null())
-                    .stdout(async_process::Stdio::piped())
-                    .stderr(async_process::Stdio::piped())
-                    .pre_exec(|| Ok(pre_execute()) )
-                    .args(args)
-                    .spawn()
-            }
+        let cmd = unsafe {
+            async_process::Command::new(command)
+                .stdin(async_process::Stdio::null())
+                .stdout(async_process::Stdio::piped())
+                .stderr(async_process::Stdio::piped())
+                .pre_exec(|| Ok(pre_execute()) )
+                .args(args)
+                .spawn()
+        }?;
+
+        std::thread::sleep(Duration::from_secs(3));
+
+        // Run the client mysql. Pass in the query.
+        let mut client_cmd = if input.is_none() {
+            async_process::Command::new(&client_command_and_args[0])
+                .stdin(async_process::Stdio::null())
+                .stdout(async_process::Stdio::null())
+                .stderr(async_process::Stdio::null())
+                .args(&client_command_and_args[1..])
+                .spawn()
         } else {
-            unsafe {
-                async_process::Command::new(command)
-                    .stdin(async_process::Stdio::piped())
-                    .stdout(async_process::Stdio::piped())
-                    .stderr(async_process::Stdio::piped())
-                    .pre_exec(|| Ok(pre_execute()) )
-                    .args(args)
-                    .spawn()
-            }
+            async_process::Command::new(&client_command_and_args[0])
+                .stdin(async_process::Stdio::piped())
+                .stdout(async_process::Stdio::null())
+                .stderr(async_process::Stdio::null())
+                .args(&client_command_and_args[1..])
+                .spawn()
         }?;
 
         let pid = cmd.id();
 
         if let Some(data) = input {
-            let mut stdin: async_process::ChildStdin = cmd.stdin.take().unwrap();
+            let mut stdin: async_process::ChildStdin = client_cmd.stdin.take().unwrap();
 
             // XXX: this can deadlock
             stdin.write_all(data.as_ref()).await?;
         }
+        let _ = client_cmd.output();
 
         let output = cmd.output();
 

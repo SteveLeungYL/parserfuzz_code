@@ -36,6 +36,7 @@ use std::rc::Rc;
 use std::os::unix::process::ExitStatusExt;
 
 use crate::util::shell_join;
+use crate::util::read_file_to_bytes;
 use crate::process;
 use crate::platform::linux::signal_to_string;
 
@@ -498,7 +499,8 @@ impl GdbTriager {
     pub fn triage_program(
         &self,
         prog_args: &[String],
-        input_file: Option<&str>,
+        client_prog_args: &[String],
+        input_file: &str,
         show_raw_output: bool,
         timeout_ms: u64,
     ) -> Result<GdbTriageResult, GdbTriageError> {
@@ -508,16 +510,20 @@ impl GdbTriager {
             panic!("Unsupported triage script path")
         };
 
-        let gdb_run_command = match input_file {
-            // GDB overwrites args in the format (damn you)
-            // Using this version of run uses the shell to run the command.
-            // Not ideal, but since we don't have a clean TTY for the target, this will have to do
-            Some(file) => format!("run {} < {}",
-                    shell_join(&prog_args[1..]),
-                    shlex::quote(file)
-                ),
-            None => String::from("run"),
-        };
+        // let gdb_run_command = match input_file {
+        //     // GDB overwrites args in the format (damn you)
+        //     // Using this version of run uses the shell to run the command.
+        //     // Not ideal, but since we don't have a clean TTY for the target, this will have to do
+        //     Some(file) => format!("run {} < {}",
+        //             shell_join(&prog_args[1..]),
+        //             shlex::quote(file)
+        //         ),
+        //     None => String::from("run"),
+        // };
+
+        let gdb_run_command = String::from("run");
+
+        let input_file_raw = Some(read_file_to_bytes(input_file).unwrap());
 
         // TODO: memory limit?
         #[rustfmt::rustfmt_skip]
@@ -548,10 +554,11 @@ impl GdbTriager {
         );
 
         let gdb_cmdline = &[&gdb_args[..], prog_args].concat();
+        let client_cmdline = &[client_prog_args].concat();
 
         // Never write to stdin for GDB as it can pass testcases to the target using "run < FILE"
         let output =
-            match process::execute_capture_output_timeout(&self.gdb_path, gdb_cmdline, timeout_ms, None) {
+            match process::execute_capture_output_timeout(&self.gdb_path, gdb_cmdline, client_cmdline, timeout_ms, input_file_raw) {
                 Ok(o) => o,
                 Err(e) => {
                     return if e.kind() == ErrorKind::TimedOut {
