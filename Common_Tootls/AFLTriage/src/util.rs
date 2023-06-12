@@ -6,6 +6,8 @@ use regex::Regex;
 use std::io::{self, Read, BufRead};
 use std::fs;
 use std::path::{Path, PathBuf};
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
 
 lazy_static! {
     static ref ALLOWED_CHARS: Regex = Regex::new(r#"[^A-Za-z0-9_-]"#).unwrap();
@@ -89,6 +91,25 @@ pub fn list_sorted_files_at(path: &Path) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+pub fn expand_filepath_templates_client(args: &[&str], value: &str) -> Vec<String> {
+    let mut expanded_args: Vec<String> = Vec::new();
+
+    for arg in args.iter() {
+        if *arg == "@@" {
+            expanded_args.push(value.to_string());
+        } else {
+            expanded_args.push((*arg).to_string());
+        }
+    }
+
+    let cur_mysqld_idx = rayon::current_thread_index().unwrap_or(0);
+
+    expanded_args.push(format!("--port={}", 7000 + cur_mysqld_idx).to_string());
+    expanded_args.push(format!("--socket=/tmp/mysql_{}.sock", cur_mysqld_idx).to_string());
+
+    expanded_args
+}
+
 pub fn expand_filepath_templates(args: &[&str], value: &str) -> Vec<String> {
     let mut expanded_args: Vec<String> = Vec::new();
 
@@ -99,6 +120,12 @@ pub fn expand_filepath_templates(args: &[&str], value: &str) -> Vec<String> {
             expanded_args.push((*arg).to_string());
         }
     }
+
+    let cur_mysqld_idx = rayon::current_thread_index().unwrap_or(0);
+
+    expanded_args.push(format!("--port={}", 7000 + cur_mysqld_idx).to_string());
+    expanded_args.push(format!("--socket=/tmp/mysql_{}.sock", cur_mysqld_idx).to_string());
+    expanded_args.push(format!("--datadir=/home/mysql/mysql-server/bld/data_all/data_{}", cur_mysqld_idx).to_string());
 
     expanded_args
 }

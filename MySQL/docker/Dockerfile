@@ -153,6 +153,24 @@ FROM sqlright_src
 
 # Finished setup the SQLRight source code.
 
+# Setup the MySQL crash decuplication code. 
+USER mysql
+WORKDIR /home/mysql/
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+ENV PATH="/home/mysql/.cargo/bin:${PATH}"
+
+# Copy the AFLTriage src.
+USER root
+RUN apt -y install lsof
+COPY AFLTriage /home/mysql/AFLTriage
+RUN chown -R mysql:mysql /home/mysql/AFLTriage
+
+# Install
+USER mysql
+WORKDIR /home/mysql/AFLTriage
+RUN cargo build
+
+
 # Copy all the required helper script to the container.
 USER root
 COPY scripts /home/mysql/scripts

@@ -7,10 +7,10 @@ use futures_lite::io::AsyncWriteExt;
 use smol_timeout::TimeoutExt;
 use std::ffi::OsStr;
 use std::io::{Result, Error, ErrorKind};
+use std::process;
 use std::process::{Command, ExitStatus, Output};
 use async_process::unix::CommandExt;
 use std::time::Duration;
-use libc::sleep;
 
 #[derive(Debug)]
 pub struct ChildResult {
@@ -60,6 +60,28 @@ unsafe fn pre_execute() {
     libc::sigprocmask(libc::SIG_BLOCK, &mut set, core::ptr::null_mut());
 }
 
+pub fn check_mysql_server_online() -> bool {
+
+    let mut cur_mysqld_idx = rayon::current_thread_index().unwrap_or(0);
+    cur_mysqld_idx += 7000;
+    let mut cur_mysql_idx_str:String = ":".to_owned();
+    cur_mysql_idx_str.push_str(cur_mysqld_idx.to_string().as_str());
+
+    let mut cmd_check_signal = process::Command::new("lsof")
+        .args(["-i", "-P"])
+        .output().unwrap().stdout;
+
+    let mut cmd_check_signal_str = std::str::from_utf8(&cmd_check_signal).unwrap();
+
+    // log::info!("Debug: lsof, getting cmd res: {}, matching with mysql_idx_str: {}\n\n\n", cmd_check_signal_str, cur_mysql_idx_str);
+
+    return if cmd_check_signal_str.find(cur_mysql_idx_str.as_str()) != None {
+        true
+    } else {
+        false
+    }
+}
+
 /// Execute a `command` with `args` while enforcing a timeout of `timeout_ms`, after which the
 /// target process is killed. `input` can be passed if input is to be given to the process via
 /// STDIN
@@ -71,14 +93,11 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
     input: Option<Vec<u8>>
 ) -> Result<ChildResult> {
 
-    /* TODO: Use lsof to monitor the MySQL-Server starting process. */
-    // let mut cmd_check_signal = async_process::Command::new("lsof")
-    //     .stdin(async_process::Stdio::null())
-    //     .stdout(async_process::Stdio::null())
-    //     .stderr(async_process::Stdio::null())
-    //     .args(["-l"])
-    //     .spawn();
-    // let check_signal_out = cmd_check_signal.output();
+    while check_mysql_server_online() {
+        // Server is still up? Wait for a couple seconds.
+        // log::warn!("Warning: For command: {:?}, server is still up. ", command);
+        std::thread::sleep(Duration::from_secs(5));
+    }
 
     let output: Output = block_on(async {
         // SAFETY: only pre_exec call back is unsafe
@@ -92,7 +111,12 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
                 .spawn()
         }?;
 
-        std::thread::sleep(Duration::from_secs(10));
+        std::thread::sleep(Duration::from_secs(3));
+        while !check_mysql_server_online() {
+            // Server is still up? Wait for a couple seconds.
+            // log::info!("Info: For command: {:?}, DBMS server is still waiting to wake up. ", command);
+            std::thread::sleep(Duration::from_secs(3));
+        }
 
         // Run the client mysql. Pass in the query.
         let mut client_cmd = if input.is_none() {
@@ -111,15 +135,20 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
                 .spawn()
         }?;
 
-        let pid = cmd.id();
-
         if let Some(data) = input {
             let mut stdin: async_process::ChildStdin = client_cmd.stdin.take().unwrap();
 
             // XXX: this can deadlock
             stdin.write_all(data.as_ref()).await?;
+
+            // log::info!("Passing in client cmd: {}", String::from_utf8(data).unwrap());
         }
-        let _ = client_cmd.output();
+
+        // let client_cmd_str_stdout = client_cmd.output().await?.stdout;
+        // log::info!("Debug: client_cmd_str_stdout: {:?} \n\n\n", client_cmd_str_stdout);
+
+        let pid = cmd.id();
+        let client_pid = client_cmd.id();
 
         let output = cmd.output();
 
@@ -130,6 +159,7 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
                 || {
                     // this is racy, but its honestly the best we can do without crazy logic
                     kill_gracefully(pid as i32);
+                    kill_gracefully(client_pid as i32);
 
                     // give the child sometime to clean up (with a debugger this means ending the
                     // process tree)
@@ -137,6 +167,7 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
 
                     // once again very racy
                     kill_forcefully(pid as i32);
+                    kill_forcefully(client_pid as i32);
 
                     // wait for the background async_process thread to wait() on the PID
                     // this is also pretty racy
@@ -146,6 +177,12 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
                 },
                 |r| r,
             );
+
+        while check_mysql_server_online() {
+            // Server is still up? Wait for a couple seconds.
+            // log::warn!("Warning: For command: {:?}, DBMS server is not killed after finishing debugging. ", command);
+            std::thread::sleep(Duration::from_secs(3));
+        }
 
         result
     })?;
