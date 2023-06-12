@@ -277,8 +277,8 @@ fn profile_target(
         None
     };
 
-    log::info!("Running mysqld command: {:?}", prog_args);
-    log::info!("Running client command: {:?}", client_prog_args);
+    // log::info!("Running mysqld command: {:?}", prog_args);
+    // log::info!("Running client command: {:?}", client_prog_args);
 
     let start = Instant::now();
     let before_rss = util::get_peak_rss();
