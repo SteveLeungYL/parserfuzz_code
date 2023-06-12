@@ -123,8 +123,8 @@ RUN make install
 ### Setup the Golang compilation
 USER mysql
 WORKDIR /home/mysql/
-RUN wget https://go.dev/dl/go1.20.4.linux-arm64.tar.gz && \
-    tar -xf go1.20.4.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz && \
+    tar -xf go1.20.4.linux-amd64.tar.gz
 USER root
 RUN cp -r /home/mysql/go /usr/local/go
 
