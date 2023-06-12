@@ -27,7 +27,10 @@ for i in range (100):
 
 print("""
 Copy finished. Now executing the following script: 
-    cd /home/mysql/AFLTriage/target/debug
-    ./afltriage -i ./crash -o outputs -t 20000 --stdin --debug --client_command '/home/mysql/mysql-server/bld/bin/mysql --port=7000 -f --user=root --socket=/tmp/mysql_0.sock ' /home/mysql/mysql-server/bld/bin/mysqld --basedir=/home/mysql/mysql-server/bld/ --datadir=/home/mysql/mysql-server/bld/data_all/ori_data --port=7000  --socket=/tmp/mysql_0.sock --mysqlx=OFF --performance_schema=OFF
+
+```bash
+cd /home/mysql/AFLTriage/target/debug
+./afltriage -i ./crash -o outputs -t 60000 --stdin --debug --client_command '/home/mysql/mysql-server/bld/bin/mysql -f --user=root ' /home/mysql/mysql-server/bld/bin/mysqld --basedir=/home/mysql/mysql-server/bld/ --mysqlx=OFF --performance_schema=OFF
+```
 """)
 
