@@ -12,6 +12,7 @@ prefix_str = """\
 #include <cstring>
 #include <filesystem>
 #include <mutex>
+#include <set>
 
 #include "../MySQLBaseCommon.h"
 #include "./grammar_cov_hash_header.h"
@@ -296,22 +297,37 @@ public:
 visit_body_str = """\
     unsigned int cur_node_hash = hash_array[ctx->getRuleIndex()];
     unsigned int term_token_hash = 0;
+    set <unsigned int> seen_token_set;
     for (antlr4::tree::ParseTree* cur_child: ctx->children) {
         if (antlr4::ParserRuleContext* tmp = dynamic_cast<antlr4::ParserRuleContext*>(cur_child)) {
            unsigned int child_rule_hash = hash_array[tmp->getRuleIndex()];
            this->gram_cov.log_edge_cov_map(cur_node_hash, child_rule_hash); 
 #ifdef DEBUG
-            cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
-            cerr << "Child rule: " << p_parser->getRuleNames()[tmp->getRuleIndex()] << "\\n";
-            cerr << "branch hash: " << ((cur_node_hash >> 1) ^ child_rule_hash) << "\\n\\n\\n";
+            if (this->gram_cov.has_new_grammar_bits() == 2) {
+                cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+                cerr << "Child rule: " << p_parser->getRuleNames()[tmp->getRuleIndex()] << "\\n";
+                cerr << "branch hash: " << ((cur_node_hash >> 1) ^ child_rule_hash) << "\\n";
+                cerr << "Triggers new grammar bits. " << this->gram_cov.get_total_edge_cov_size_num() << "\\n\\n\\n";
+//            } else {
+//                cerr << "Parent and child rule edge seen before. \\n\\n\\n";
+//                cerr << "Parent and child rule edge seen before. " << this->gram_cov.get_total_edge_cov_size_num() << "\\n\\n\\n";
+            }
 #endif
         } else {
             antlr4::tree::TerminalNode* tmp_token = dynamic_cast<antlr4::tree::TerminalNode*>(cur_child);
             unsigned int cur_token_idx = tmp_token->getSymbol()->getType();
+            if (seen_token_set.count(cur_token_idx) != 0) {
 #ifdef DEBUG
-            cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
-            cerr << "Child token type: " << cur_token_idx << "\\n\\n\\n";
+//                cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+//                cerr << "Child token type (repeated, not saved): " << cur_token_idx << "\\n\\n\\n";
+#endif 
+                continue;
+            }
+#ifdef DEBUG
+//            cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+//            cerr << "Child token type: " << cur_token_idx << "\\n\\n\\n";
 #endif
+            seen_token_set.insert(cur_token_idx);
             cur_token_idx += 1000; // Avoid collision with parser rule's index.
             if (cur_token_idx < 2000) {
                 term_token_hash = ((term_token_hash >> 1) ^ hash_array[cur_token_idx]);
@@ -320,12 +336,20 @@ visit_body_str = """\
     }
     
     if (term_token_hash != 0) {
-#ifdef DEBUG
-        cerr << "Current rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
-        cerr << "Child token hash: " << term_token_hash << "\\n";
-        cerr << "branch hash: " << ((cur_node_hash >> 1) ^ term_token_hash) << "\\n\\n\\n";
-#endif 
         this->gram_cov.log_edge_cov_map(cur_node_hash, term_token_hash); 
+#ifdef DEBUG
+        if (this->gram_cov.has_new_grammar_bits() == 2) {
+            cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
+            cerr << "Getting token sequence: ";
+            for (auto it = seen_token_set.begin(); it != seen_token_set.end(); it++ ) {
+                cerr << " " << *it;
+            }
+            cerr << "\\n";
+            cerr << "Child token hash: " << term_token_hash << "\\n";
+            cerr << "branch hash: " << ((cur_node_hash >> 1) ^ term_token_hash) << "\\n";
+            cerr << "Triggers new grammar bits. " << this->gram_cov.get_total_edge_cov_size_num() << "\\n\\n\\n";
+        }
+#endif 
     }
     
     // Iterate to the child node.
