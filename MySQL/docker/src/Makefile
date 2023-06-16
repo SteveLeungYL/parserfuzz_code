@@ -13,7 +13,7 @@ MYSQL_LIB_PATH =
 
 export CC = g++
 export DEBUG = -g
-export OPT = -O0
+export OPT = -O3
 export PARSER_FLAGS = -I/usr/local/include/antlr4-runtime -pthread
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS) $(PARSER_FLAGS)
 LDFLAGS = -ldl -lmysqlclient -L/usr/local/lib/ -Wl,-R/usr/local/lib -lantlr4-runtime -lpthread
