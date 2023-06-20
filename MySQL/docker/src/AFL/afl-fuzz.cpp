@@ -203,6 +203,9 @@ EXP_ST u8 disable_coverage_feedback = 0;
                                * 1: Drop all queries. 
                                * 2: Randomly save queries. 
                                * 3: Save all queries. */
+EXP_ST u8 disable_rsg_coverage_feedback = 0; /* 0: not disabled,
+                                              * 1: disabled.
+                                              */
 static bool is_using_non_deter = 0; /* Is using non-deterministic queries. Default No. */
 
 
@@ -3862,6 +3865,11 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   u8 hnb;
   s32 fd;
   u8 keeping = 0, res;
+
+  if (disable_rsg_coverage_feedback != 0) {
+    // Do not save the rsg generated query to the rsg queue.
+    rsg_clear_chosen_expr();
+  }
 
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
@@ -7591,7 +7599,7 @@ int main(int argc, char *argv[])
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:w")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:wG")) > 0)
 
     switch (opt)
     {
@@ -7625,6 +7633,11 @@ int main(int argc, char *argv[])
         FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
       }
     } break;
+
+    case 'G': { /* Disable RSG code coverage feedback. */
+      disable_rsg_coverage_feedback = 1;
+    }
+      break;
 
     case 's': /* server's path */
       if (g_server_path)
