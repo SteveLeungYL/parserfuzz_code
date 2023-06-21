@@ -23,7 +23,7 @@ for i in range (100):
         if "README.txt" in cur_file:
             continue
         cur_file_creation_time = os.path.getctime(os.path.join(cur_crash_dir, cur_file))
-        shutil.copy(os.path.join(cur_crash_dir, cur_file), os.path.join(dest_copy_dir, f"{round(cur_file_creation_time)}_{i}_"+cur_file))
+        shutil.copy2(os.path.join(cur_crash_dir, cur_file), os.path.join(dest_copy_dir, f"{round(cur_file_creation_time)}_{i}_"+cur_file))
         print(f'Copy from {os.path.join(cur_crash_dir, cur_file)} to {os.path.join(dest_copy_dir, f"{round(cur_file_creation_time)}_{i}_"+cur_file)}\n\n')
 
 print("""
