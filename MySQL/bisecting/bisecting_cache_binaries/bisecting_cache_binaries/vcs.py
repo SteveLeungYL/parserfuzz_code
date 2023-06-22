@@ -12,13 +12,13 @@ _all_commits_from_tags = []
 
 
 def get_first_commit():
-    cmd = 'git log --no-pager --pretty="%H" --reverse | head -1'
+    cmd = 'git --no-pager log --topo-order --pretty="%H" --reverse | head -1'
     commit, _, _ = utils.execute_command(cmd, cwd=MYSQL_ROOT)
     return commit.strip()
 
 
 def get_commits_between_tags(left_tag, right_tag):
-    cmd = f'git --no-pager log --pretty="%H" {left_tag}...{right_tag}'
+    cmd = f'git --no-pager log --topo-order --pretty="%H" {left_tag}...{right_tag}'
     commits, _, _ = utils.execute_command(cmd, cwd=MYSQL_ROOT)
     commits = commits.splitlines()
     commits = list(map(lambda c: c.strip(), commits))
