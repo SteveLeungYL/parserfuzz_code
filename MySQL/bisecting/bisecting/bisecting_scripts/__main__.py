@@ -17,12 +17,6 @@ def setup_logger(debug_level):
         rotation="100 MB",
     )
 
-def setup_env():
-    """ remove and re-create the unique bug output directory """
-    if os.path.isdir(constants.UNIQUE_BUG_OUTPUT_DIR):
-        utils.remove_directory(constants.UNIQUE_BUG_OUTPUT_DIR)
-    os.mkdir(constants.UNIQUE_BUG_OUTPUT_DIR)
-
 def enter_bisecting_mode():
     """ Main bisecting logic. """
 
@@ -42,7 +36,6 @@ def main():
 
     debug_level = "DEBUG"
     setup_logger(debug_level)
-    setup_env()
 
     enter_bisecting_mode()
 

@@ -7,12 +7,12 @@ import shutil
 
 def checkout_and_clean_mysql_repo(hexsha: str):
     checkout_cmd = f"git checkout {hexsha} --force && git clean -xdf"
-    utils.execute_command(checkout_cmd, cwd=constants.MYSQL_ROOT)
+    utils.execute_command(checkout_cmd, cwd=constants.MYSQL_SRC)
 
     logger.debug(f"Checkout commit completed: {hexsha}")
 
 def compile_mysql_source(hexsha: str):
-    BLD_PATH = os.path.join(constants.MYSQL_ROOT, "bld")
+    BLD_PATH = os.path.join(constants.MYSQL_SRC, "bld")
     boost_setup_command = "ln -s /home/mysql/boost_versions /home/mysql/mysql-server/boost"
     utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
@@ -37,8 +37,8 @@ def compile_mysql_source(hexsha: str):
 
 def copy_binaries (hexsha: str):
     # Setup the output folder. 
-    cur_output_dir = os.path.join(constants.OUTPUT_DIR, hexsha)
-    utils.execute_command("mkdir -p %s" % (cur_output_dir), cwd = constants.OUTPUT_DIR)
+    cur_output_dir = os.path.join(constants.MYSQL_ROOT, hexsha)
+    utils.execute_command("mkdir -p %s" % (cur_output_dir), cwd = constants.MYSQL_ROOT)
 
 
     if os.path.isfile("/home/mysql/mysql-server/bld/scripts/mysql_install_db"):
@@ -99,8 +99,11 @@ def setup_mysql_commit(hexsha: str):
     """Entry function. Pass in the target mysql commit hash, and the function will build the mysql binary from source and then return. """
 
     # First of all, check whether the pre-compiled binary exists in the destination directory.
-    if os.path.isdir(constants.OUTPUT_DIR):
-        cur_output_dir = os.path.join(constants.OUTPUT_DIR, hexsha)
+    if not os.path.isdir(constants.MYSQL_ROOT):
+        os.mkdir(constants.MYSQL_ROOT)
+
+    if os.path.isdir(constants.MYSQL_ROOT):
+        cur_output_dir = os.path.join(constants.MYSQL_ROOT, hexsha)
         if os.path.isdir(cur_output_dir):
             cur_output_binary = os.path.join(cur_output_dir, "bin/mysql")
             old_cur_output_binary = os.path.join(cur_output_dir, "bin/client/mysql")
@@ -119,7 +122,7 @@ def setup_mysql_commit(hexsha: str):
 
     logger.debug("Checkout and clean up MySQL root dir.")
     checkout_and_clean_mysql_repo(hexsha)
-    utils.execute_command("mkdir -p bld", cwd=constants.MYSQL_ROOT)
+    utils.execute_command("mkdir -p bld", cwd=constants.MYSQL_SRC)
 
     logger.debug("Compile MySQL root dir.")
     is_success = compile_mysql_source(hexsha)

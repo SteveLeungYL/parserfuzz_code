@@ -32,7 +32,9 @@ def get_mysqld_binary(cur_dir:str):
 def check_mysql_server_alive() -> bool:
     p = subprocess.run("lsof -i -P",
                         shell=True,
-                        stdin=subprocess.DEVNULL
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT
                         )
     
     res = p.stdout.decode()
@@ -54,7 +56,7 @@ def start_mysqld_server(hexsha: str):
                         stdin=subprocess.DEVNULL
                         )
     
-    while (check_mysql_server_alive):
+    while (check_mysql_server_alive()):
         time.sleep(2)
         p = subprocess.run("pkill -9 mysqld",
                         shell=True,
@@ -103,7 +105,7 @@ def start_mysqld_server(hexsha: str):
     # Do not block the Popen, let it run and return. We will later use `pkill` to kill the mysqld process.
 
     time.sleep(3)
-    while (not check_mysql_server_alive):
+    while (not check_mysql_server_alive()):
         logger.debug("mysql server not alive after 3 seconds. ")
         time.sleep(3)
     

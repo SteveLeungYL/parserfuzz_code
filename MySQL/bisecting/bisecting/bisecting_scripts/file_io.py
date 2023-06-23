@@ -19,11 +19,7 @@ def read_queries_from_files():
 
     def debug_print_queries(queries):
         logger.debug("print queries for debug purpose. \n")
-        for cur_output_query in queries:
-            for cur_query in cur_output_query:
-                logger.debug(cur_query)
-
-            logger.debug("\n\n\n")
+        logger.debug(queries)
 
     mysql_samples = Path(constants.BUG_SAMPLES_PATH)
     sample_files = [sample for sample in mysql_samples.glob("*")]

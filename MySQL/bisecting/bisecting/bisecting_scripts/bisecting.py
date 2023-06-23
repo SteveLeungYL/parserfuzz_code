@@ -11,7 +11,7 @@ def start_bisect(file_name: str, queries: str, all_commits):
         utils.dump_buggy_commit(current_bisecting_result)
         return True
 
-    current_bisecting_result = bisecting_commits(queries, all_commits)
+    current_bisecting_result = bisecting_commits(file_name, queries, all_commits)
     if current_bisecting_result.is_bisecting_error:
         logger.error("Bisecting Error!")
         return False

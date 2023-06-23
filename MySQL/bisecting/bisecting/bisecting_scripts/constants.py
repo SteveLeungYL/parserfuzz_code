@@ -3,6 +3,7 @@ import os
 
 BISECTING_SCRIPTS_ROOT = "/home/mysql/bisecting_scripts"
 MYSQL_ROOT = "/home/mysql/mysql_binary"
+MYSQL_SRC = "/home/mysql/mysql-server"
 
 BUG_SAMPLES_PATH = os.path.join(BISECTING_SCRIPTS_ROOT, "bug_samples")
 LOG_OUTPUT_FILE = os.path.join(BISECTING_SCRIPTS_ROOT, "logs.txt")
