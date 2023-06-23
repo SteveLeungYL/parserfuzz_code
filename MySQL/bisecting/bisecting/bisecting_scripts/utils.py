@@ -62,6 +62,10 @@ def execute_query_helper(
 
     return output, error_msg, process_handle.returncode
 
+def execute_command(command_line: str, cwd=None, timeout=100000, input_contents="", failed_message="", output_file=None
+):
+    return execute_query_helper(command_line=command_line, cwd=cwd, timeout=timeout, input_contents=input_contents, failed_message=failed_message, output_file=output_file)
+
 
 def remove_file(file: Path):
     if file.exists():

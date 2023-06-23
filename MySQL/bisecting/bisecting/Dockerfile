@@ -81,5 +81,9 @@ RUN chown -R mysql:mysql /home/mysql/bisecting_scripts
 COPY scripts /home/mysql/scripts
 RUN chown -R mysql:mysql /home/mysql/scripts
 
+USER mysql
+WORKDIR /home/mysql/
+RUN mkdir -p boost_versions && cd boost_versions && cp /home/mysql/scritps/download_boost.sh ./download_boost.sh && bash download_boost.sh
+
 USER root
 WORKDIR /home/mysql
