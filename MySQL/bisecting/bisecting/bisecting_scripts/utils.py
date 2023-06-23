@@ -11,19 +11,7 @@ import time
 import constants
 from loguru import logger
 
-
-def json_dump(json_obj, json_file, sort_keys=False):
-    with open(json_file, "w") as f:
-        json.dump(json_obj, f, indent=2, sort_keys=sort_keys)
-
-
-def json_load(json_file):
-    with open(json_file) as f:
-        obj = json.load(f)
-    return obj
-
-
-def execute_command(
+def execute_query_helper(
     command_line: str, cwd=None, timeout=100000, input_contents="", failed_message="", output_file=None
 ):
     """Run a command, returning its output."""
@@ -66,13 +54,13 @@ def execute_command(
     finally:
         process_handle.kill()
 
-    if error_msg:
-        logger.error(error_msg)
+    # if error_msg:
+    #     logger.error(error_msg)
 
     if process_handle.returncode != 0 and failed_message:
         logger.error(failed_message)
 
-    return output, process_handle.returncode, error_msg
+    return output, error_msg, process_handle.returncode
 
 
 def remove_file(file: Path):
@@ -130,7 +118,6 @@ def copy_directory(src: str, dest: str):
         logger.warning("Copy directory src: %s not exists. " % (src))
     return
 
-
 def is_string_only_whitespace(string: str):
     pattern = r"""^[\s]*$"""
     flags = re.MULTILINE | re.IGNORECASE
@@ -138,30 +125,64 @@ def is_string_only_whitespace(string: str):
     return bool(matched)
 
 
-#def load_failed_commit() -> List[str]:
-#    return (
-#        json_load(constants.FAILED_COMPILE_COMMITS)
-#        if constants.FAILED_COMPILE_COMMITS.exists()
-#        else []
-#    )
+def json_dump(json_obj, json_file, sort_keys=False):
+    with open(json_file, "w") as f:
+        json.dump(json_obj, f, indent=2, sort_keys=sort_keys)
+
+def json_load(json_file):
+    with open(json_file) as f:
+        obj = json.load(f)
+    return obj
+
+def load_failed_commit() -> List[str]:
+   return (
+       json_load(constants.FAILED_COMPILE_COMMITS)
+       if os.path.isfile(constants.FAILED_COMPILE_COMMITS)
+       else []
+   )
+
+def is_failed_commit(hexsha: str) -> bool:
+   commits = load_failed_commit()
+   return hexsha.strip() in commits
+
+def dump_failed_commit(hexsha: str):
+   hexsha = hexsha.strip()
+   commits = load_failed_commit()
+   if hexsha not in commits:
+       commits.append(hexsha)
+       json_dump(commits, constants.FAILED_COMPILE_COMMITS)
 
 
-#def is_failed_commit(hexsha: str) -> bool:
-#    commits = load_failed_commit()
-#    return hexsha.strip() in commits
+def load_buggy_commit():
+    return (
+       json_load(constants.UNIQUE_BUG_JSON)
+       if os.path.isfile(constants.UNIQUE_BUG_JSON)
+       else []
+    )
 
+def is_buggy_commit(hexsha: str) -> bool:
+    all_buggy_commit = load_buggy_commit()
+    for cur_buggy_commit in all_buggy_commit:
+        if hexsha == cur_buggy_commit["first_buggy_commit_id"]:
+            return True
 
-#def dump_failed_commit(hexsha: str):
-#    hexsha = hexsha.strip()
-#    commits = load_failed_commit()
-#    if hexsha not in commits:
-#        commits.append(hexsha)
-#        json_dump(commits, constants.FAILED_COMPILE_COMMITS)
-#
-#
-#def remove_failed_commit(hexsha: str):
-#    hexsha = hexsha.strip()
-#    commits = load_failed_commit()
-#    if hexsha in commits:
-#        commits.remove(hexsha)
-#        json_dump(commits, constants.FAILED_COMPILE_COMMITS)
+    return False
+
+def dump_buggy_commit(buggy_commit: constants.BisectingResults):
+    hexsha = hexsha.strip()
+    all_buggy_commit = load_buggy_commit()
+    for cur_buggy_commit in all_buggy_commit:
+        if hexsha == cur_buggy_commit["first_buggy_commit_id"]:
+            # known buggy commit.
+            cur_buggy_commit["srcs"].append(buggy_commit.src)
+            json_dump(all_buggy_commit, constants.UNIQUE_BUG_JSON)
+            return
+
+    # else, not known buggy commit.
+    buggy_commit_map = dict()
+    buggy_commit_map["srcs"] = [buggy_commit.src]
+    buggy_commit_map["first_buggy_commit_id"] = buggy_commit.first_buggy_commit_id
+    buggy_commit_map["first_corr_commit_id"] = buggy_commit.first_corr_commit_id
+    all_buggy_commit.append(buggy_commit_map)
+
+    json_dump(all_buggy_commit, constants.UNIQUE_BUG_JSON)
