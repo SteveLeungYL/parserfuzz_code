@@ -8,12 +8,15 @@ from constants import *
 from rich.progress import track
 from loguru import logger
 
+logger.remove()
+logger.add(sys.stdout, level="INFO")
+
 # Get all the basic information first
 all_commit_hash = vcs.get_all_commits_hexsha()
 all_tags = vcs.get_all_sorted_tags()
 all_tags_commit = vcs.get_all_commits_from_tags()
 
-logger.debug("Before cutting, getting all_commit_hash size: %d" % (len(all_commit_hash)))
+logger.info("Before cutting, getting all_commit_hash size: %d" % (len(all_commit_hash)))
 
 # Cut the latest and earliest commit from list.
 late_idx = 0
@@ -54,5 +57,5 @@ for cur_commit_hash in filtered_commit_hash:
     if mysql_builder.setup_mysql_commit(hexsha=cur_commit_hash):
         logger.debug("MySQL version %s compilation succeed" % (cur_commit_hash))
     else:
-        logger.debug("MySQL version %s compilation failed" % (cur_commit_hash))
-        exit(1)
+        logger.error("MySQL version %s compilation failed" % (cur_commit_hash))
+        continue

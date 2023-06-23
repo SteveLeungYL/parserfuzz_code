@@ -17,7 +17,7 @@ def compile_mysql_source(hexsha: str):
     boost_setup_command = "ln -s /home/mysql/boost_versions /home/mysql/mysql-server/boost"
     utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
-    run_cmake = "CC=gcc-6 CXX=g++-6 cmake .. -DWITH_BOOST=../boost -DDOWNLOAD_BOOST=1 -DCMAKE_INSTALL_PREFIX=$(pwd)"
+    run_cmake = "CC=gcc-9 CXX=g++-9 cmake .. -DWITH_BOOST=../boost -DDOWNLOAD_BOOST=1 -DCMAKE_INSTALL_PREFIX=$(pwd)"
     utils.execute_command(run_cmake, cwd=BLD_PATH)
 
     run_make = "make install -j$(nproc)"
@@ -44,35 +44,49 @@ def copy_binaries (hexsha: str):
 
     if os.path.isfile("/home/mysql/mysql-server/bld/scripts/mysql_install_db"):
         # This is the old version of the code. Need several more folders to be copied. 
-        utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
-        utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
-        shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
-        shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
-        shutil.copytree("/home/mysql/mysql-server/bld/extra", os.path.join(cur_output_dir, "extra"))
-        shutil.copytree("/home/mysql/mysql-server/bld/support-files", os.path.join(cur_output_dir, "support-files"))
-        shutil.copytree("/home/mysql/mysql-server/bld/share", os.path.join(cur_output_dir, "share"))
+        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
+            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
+        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysql"):
+            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
+
+        if os.path.isdir("/home/mysql/mysql-server/bld/bin"):
+            shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/scripts"):
+            shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/extra"):
+            shutil.copytree("/home/mysql/mysql-server/bld/extra", os.path.join(cur_output_dir, "extra"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/support-files"):
+            shutil.copytree("/home/mysql/mysql-server/bld/support-files", os.path.join(cur_output_dir, "support-files"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/share"):
+            shutil.copytree("/home/mysql/mysql-server/bld/share", os.path.join(cur_output_dir, "share"))
 
         return True
 
     elif os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
         cur_output_bin = os.path.join(cur_output_dir, "bin")
-        utils.execute_command("mkdir -p %s" % (cur_output_bin), cwd = cur_output_dir)
+        # utils.execute_command("mkdir -p %s" % (cur_output_bin), cwd = cur_output_dir)
 
-        utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
-        utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
-        shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
-        shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
-        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysql_ssl_rsa_setup"):
-            shutil.copy("/home/mysql/mysql-server/bld/bin/mysql_ssl_rsa_setup", cur_output_bin)
-        for lib_file in os.listdir("/home/mysql/mysql-server/bld/library_output_directory"):
-            if "libprotobuf-lite" in lib_file:
-                shutil.copy(os.path.join("/home/mysql/mysql-server/bld/library_output_directory", lib_file), cur_output_bin)
+        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
+            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
+        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysql"):
+            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
+        if os.path.isdir("/home/mysql/mysql-server/bld/bin"):
+            shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/scripts"):
+            shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
+            for lib_file in os.listdir("/home/mysql/mysql-server/bld/library_output_directory"):
+                if "libprotobuf-lite" in lib_file:
+                    shutil.copy(os.path.join("/home/mysql/mysql-server/bld/library_output_directory", lib_file), os.path.join(cur_output_bin, lib_file))
 
         # Slightly older version, such as MySQL 5.7. Copy a few more folders in advanced. 
         if os.path.isfile("/home/mysql/mysql-server/bld/sql/mysqld"):
             utils.execute_command("strip /home/mysql/mysql-server/bld/sql/mysqld", cwd=cur_output_bin)
+        if os.path.isfile("/home/mysql/mysql-server/bld/client/mysql"):
             utils.execute_command("strip /home/mysql/mysql-server/bld/client/mysql", cwd=cur_output_bin)
+        if os.path.isdir("/home/mysql/mysql-server/bld/sql"):
             shutil.copytree("/home/mysql/mysql-server/bld/sql", os.path.join(cur_output_bin, "sql"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/client"):
             shutil.copytree("/home/mysql/mysql-server/bld/client", os.path.join(cur_output_bin, "client"))
 
         return True
