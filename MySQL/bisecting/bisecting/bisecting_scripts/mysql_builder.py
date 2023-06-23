@@ -16,7 +16,7 @@ def compile_mysql_source(hexsha: str):
     boost_setup_command = "ln -s /home/mysql/boost_versions /home/mysql/mysql-server/boost"
     utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
-    run_cmake = "CC=gcc-9 CXX=g++-9 cmake .. -DWITH_BOOST=../boost -DDOWNLOAD_BOOST=1 -DCMAKE_INSTALL_PREFIX=$(pwd)"
+    run_cmake = "CC=gcc-9 CXX=g++-9 cmake .. -DWITH_BOOST=../boost -DDOWNLOAD_BOOST=1 -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_DEBUG=1"
     utils.execute_command(run_cmake, cwd=BLD_PATH)
 
     run_make = "make install -j$(nproc)"
