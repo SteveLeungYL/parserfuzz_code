@@ -106,7 +106,7 @@ def generate_mysql_data_dir():
     if not os.path.isdir(cur_data_dir):
         os.mkdir(cur_data_dir)
 
-    if os.path.isdir(os.path.join(cur_dir, "share")):
+    if os.path.isfile(os.path.join(cur_dir, "scripts/mysql_install_db")):
         # The third scenario, has (bin, extra, scripts, share, support-files)
         command = "chmod +x ./scripts/mysql_install_db && ./scripts/mysql_install_db --user=mysql --basedir=./ --datadir=./data"
         utils.execute_command(command, cwd=cur_dir)
