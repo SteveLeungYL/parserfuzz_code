@@ -41,7 +41,7 @@ RUN pip3 install click
 RUN pip3 install pathlib
 RUN apt -y install libaio1
 RUN apt -y install zip
-RUN apt -y install openjdk-8-jdk
+RUN apt -y install openjdk-8-jdk lsof
 
 RUN apt -y install llvm
 RUN apt -y install clang
