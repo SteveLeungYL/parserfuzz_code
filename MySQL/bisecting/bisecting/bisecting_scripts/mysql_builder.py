@@ -16,7 +16,7 @@ def compile_mysql_source(hexsha: str):
     boost_setup_command = "ln -s /home/mysql/boost_versions /home/mysql/mysql-server/boost"
     utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
-    run_cmake = "CC=gcc-6 CXX=g++-6 cmake .. -DWITH_BOOST=../boost -DDOWNLOAD_BOOST=1 -DWITH_DEBUG=1"
+    run_cmake = "CC=gcc-6 CXX=g++-6 cmake .. -DWITH_BOOST=../boost -DWITH_DEBUG=1"
     utils.execute_command(run_cmake, cwd=BLD_PATH)
 
     run_make = "make -j$(nproc)"
@@ -94,6 +94,46 @@ def copy_binaries (hexsha: str):
         logger.error("The mysqld output file not found. Compilation Failed?")
         return False
 
+def generate_mysql_data_dir():
+    cur_dir = os.path.join(constants.MYSQL_SRC, "bld")
+    if not os.path.isdir(cur_dir):
+        return
+    cur_bin_dir = os.path.join(cur_dir, "bin")
+
+    cur_data_dir = os.path.join(cur_dir, "data")
+    if os.path.isdir(cur_data_dir):
+        shutil.rmtree(cur_data_dir)
+    if not os.path.isdir(cur_data_dir):
+        os.mkdir(cur_data_dir)
+
+    if os.path.isdir(os.path.join(cur_dir, "share")):
+        # The third scenario, has (bin, extra, scripts, share, support-files)
+        command = "chmod +x ./scripts/mysql_install_db && ./scripts/mysql_install_db --user=mysql --basedir=./ --datadir=./data"
+        utils.execute_command(command, cwd=cur_dir)
+        if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
+            return False
+
+    elif os.path.isdir(os.path.join(cur_bin_dir, "client")):
+        # The second scenario, has (client, scripts and sql)
+        command = "./bin/sql/mysqld --initialize-insecure --user=mysql --datadir=./data"
+        utils.execute_command(command, cwd=cur_dir)
+        if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
+            return False
+    else:
+        # The first scenario, all binaries directly in bin dir.
+        command = "./bin/mysqld --initialize-insecure --user=mysql --datadir=./data"
+        utils.execute_command(command, cwd=cur_dir)
+        if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
+            return False
+
+    cur_data_all_dir = os.path.join(cur_dir, "data_all")
+    if os.path.isdir(cur_data_all_dir):
+        shutil.rmtree(cur_data_all_dir)
+    os.mkdir(cur_data_all_dir)
+
+    shutil.move(cur_data_dir, os.path.join(cur_data_all_dir, "ori_data"))
+
+    return True
 
 def setup_mysql_commit(hexsha: str):
     """Entry function. Pass in the target mysql commit hash, and the function will build the mysql binary from source and then return. """
@@ -129,6 +169,12 @@ def setup_mysql_commit(hexsha: str):
 
     if not is_success:
         logger.warning("Failed to compile MySQL with commit %s directly." % (hexsha))
+        return False
+
+    # Generate the MySQL data folder. 
+    is_success = generate_mysql_data_dir()
+    if not is_success:
+        logger.warning("Failed to generate data folder with commit %s." % (hexsha))
         return False
 
     # Copy the necessary files to the output repo. 
