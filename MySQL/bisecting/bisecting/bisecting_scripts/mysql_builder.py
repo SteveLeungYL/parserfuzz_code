@@ -17,7 +17,10 @@ def compile_mysql_source(hexsha: str):
     utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
     run_cmake = "CC=gcc-6 CXX=g++-6 cmake .. -DWITH_BOOST=../boost -DWITH_DEBUG=1"
-    utils.execute_command(run_cmake, cwd=BLD_PATH)
+    _, stderr, _ = utils.execute_command(run_cmake, cwd=BLD_PATH)
+    if "GCC" in stderr and "or newer" in stderr:
+        run_cmake = "rm -rf ./* && CC=gcc-9 CXX=g++-9 cmake .. -DWITH_BOOST=../boost -DWITH_DEBUG=1"
+        utils.execute_command(run_cmake, cwd=BLD_PATH)
 
     run_make = "make -j$(nproc)"
     utils.execute_command(run_make, cwd=BLD_PATH)
@@ -59,6 +62,11 @@ def copy_binaries (hexsha: str):
         if os.path.isdir("/home/mysql/mysql-server/bld/share"):
             shutil.copytree("/home/mysql/mysql-server/bld/share", os.path.join(cur_output_dir, "share"))
 
+        if os.path.isdir("/home/mysql/mysql-server/bld/data_all"):
+            shutil.copytree("/home/mysql/mysql-server/bld/data_all", os.path.join(cur_output_dir, "data_all"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
+            shutil.copytree("/home/mysql/mysql-server/bld/library_output_directory", os.path.join(cur_output_dir, "library_output_directory"))
+
         return True
 
     elif os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
@@ -87,6 +95,11 @@ def copy_binaries (hexsha: str):
             shutil.copytree("/home/mysql/mysql-server/bld/sql", os.path.join(cur_output_bin, "sql"))
         if os.path.isdir("/home/mysql/mysql-server/bld/client"):
             shutil.copytree("/home/mysql/mysql-server/bld/client", os.path.join(cur_output_bin, "client"))
+        
+        if os.path.isdir("/home/mysql/mysql-server/bld/data_all"):
+            shutil.copytree("/home/mysql/mysql-server/bld/data_all", os.path.join(cur_output_dir, "data_all"))
+        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
+            shutil.copytree("/home/mysql/mysql-server/bld/library_output_directory", os.path.join(cur_output_dir, "library_output_directory"))
 
         return True
 

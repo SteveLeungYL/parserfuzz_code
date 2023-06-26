@@ -9,7 +9,7 @@ BUG_SAMPLES_PATH = os.path.join(BISECTING_SCRIPTS_ROOT, "bug_samples")
 LOG_OUTPUT_FILE = os.path.join(BISECTING_SCRIPTS_ROOT, "logs.txt")
 FAILED_COMPILE_COMMITS = os.path.join(BISECTING_SCRIPTS_ROOT, "FAILED_COMPILE_COMMITS.json")
 
-UNIQUE_BUG_JSON = os.path.join(BISECTING_SCRIPTS_ROOT, "bug_samples/unique_bug.json")
+UNIQUE_BUG_JSON = os.path.join(BISECTING_SCRIPTS_ROOT, "unique_bug.json")
 MYSQL_SORTED_COMMITS = os.path.join( BISECTING_SCRIPTS_ROOT, "assets/sorted_commits.json")
 
 MYSQL_SERVER_SOCKET = "/tmp/mysql_0.sock"

@@ -21,7 +21,7 @@ def execute_query_helper(
     output = ""
     error_msg = ""
 
-    logger.debug(f"Start to execute shell command: {command_line}")
+    logger.debug(f"Start to execute shell command: {command_line}, from path: {cwd}")
     if output_file:
         with open(output_file, "w+") as output_pipe:
             process_handle = subprocess.Popen(
@@ -173,12 +173,12 @@ def is_buggy_commit(hexsha: str) -> bool:
     return False
 
 def dump_buggy_commit(buggy_commit: constants.BisectingResults):
-    hexsha = hexsha.strip()
     all_buggy_commit = load_buggy_commit()
-    for cur_buggy_commit in all_buggy_commit:
-        if hexsha == cur_buggy_commit["first_buggy_commit_id"]:
+    for cur_saved_buggy_commit in all_buggy_commit:
+        if buggy_commit.first_buggy_commit_id == cur_saved_buggy_commit["first_buggy_commit_id"]:
             # known buggy commit.
-            cur_buggy_commit["srcs"].append(buggy_commit.src)
+            cur_saved_buggy_commit["srcs"].append(buggy_commit.src)
+            logger.debug(f"Dumping known json commit: {buggy_commit.first_buggy_commit_id} from {buggy_commit.src}.")
             json_dump(all_buggy_commit, constants.UNIQUE_BUG_JSON)
             return
 
@@ -188,5 +188,6 @@ def dump_buggy_commit(buggy_commit: constants.BisectingResults):
     buggy_commit_map["first_buggy_commit_id"] = buggy_commit.first_buggy_commit_id
     buggy_commit_map["first_corr_commit_id"] = buggy_commit.first_corr_commit_id
     all_buggy_commit.append(buggy_commit_map)
+    logger.debug(f"Dumping new json commit: {buggy_commit.first_buggy_commit_id} from {buggy_commit.src}.")
 
     json_dump(all_buggy_commit, constants.UNIQUE_BUG_JSON)

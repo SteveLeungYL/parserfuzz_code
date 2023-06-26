@@ -45,31 +45,29 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
         # Approximate towards 0 (older).
         tmp_commit_index = int((newer_commit_index + older_commit_index) / 2)
 
-        is_successfully_executed = False
-        while not is_successfully_executed:
-            commit_ID = all_commits_str[tmp_commit_index]
+        commit_ID = all_commits_str[tmp_commit_index]
 
-            rn_correctness = mysql.execute_queries(query, commit_ID)
+        rn_correctness = mysql.execute_queries(query, commit_ID)
 
-            if rn_correctness == constants.RESULT.PASS:  # The correct version.
-                # Good commit.
-                older_commit_index = tmp_commit_index
-                logger.debug(f"For commit {commit_ID}. Bisecting Pass. \n")
-                break
-            elif rn_correctness == constants.RESULT.FAIL_TO_COMPILE:
-                # Treated as buggy commit.
-                newer_commit_index = tmp_commit_index
-                logger.debug(f"For commit {commit_ID}. Bisecting FAIL_TO_COMPILE. \n")
-                utils.dump_failed_commit(commit_ID)
-                break
-            else:
-                # SEG_FAULT
-                # Buggy commit.
-                older_commit_index = tmp_commit_index
-                logger.debug(
-                    f"For commit {commit_ID}, Bisecting Segmentation Fault. \n"
-                )
-                break
+        if rn_correctness == constants.RESULT.PASS:  # The correct version.
+            # Good commit.
+            older_commit_index = tmp_commit_index
+            logger.debug(f"For commit {commit_ID}. Bisecting Pass. \n")
+            continue
+        elif rn_correctness == constants.RESULT.FAIL_TO_COMPILE:
+            # Treated as buggy commit.
+            newer_commit_index = tmp_commit_index
+            logger.debug(f"For commit {commit_ID}. Bisecting FAIL_TO_COMPILE. \n")
+            utils.dump_failed_commit(commit_ID)
+            continue
+        else:
+            # SEG_FAULT
+            # Buggy commit.
+            newer_commit_index = tmp_commit_index
+            logger.debug(
+                f"For commit {commit_ID}, Bisecting Segmentation Fault. \n"
+            )
+            continue
 
     logger.info(
         "Found the bug introduced commit: %s \n\n\n"
