@@ -6,8 +6,8 @@ import stats_bugs
 
 def start_bisect(file_name: str, queries: str, all_commits):
 
-    res = stats_bugs.filter_known_bugs(queries, file_name=file_name)
-    if res is not None:
+    current_bisecting_result = stats_bugs.filter_known_bugs(queries, file_name=file_name)
+    if current_bisecting_result is not None:
         utils.dump_buggy_commit(current_bisecting_result)
         return True
 
