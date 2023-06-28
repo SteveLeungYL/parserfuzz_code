@@ -42,7 +42,7 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
             is_buggy_commit_found = True
             break
 
-        # Approximate towards 0 (older).
+        # Approximate towards 0 (newer).
         tmp_commit_index = int((newer_commit_index + older_commit_index) / 2)
 
         commit_ID = all_commits_str[tmp_commit_index]
@@ -55,10 +55,10 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
             logger.debug(f"For commit {commit_ID}. Bisecting Pass. \n")
             continue
         elif rn_correctness == constants.RESULT.FAIL_TO_COMPILE:
-            # Treated as buggy commit.
-            newer_commit_index = tmp_commit_index
             logger.debug(f"For commit {commit_ID}. Bisecting FAIL_TO_COMPILE. \n")
             utils.dump_failed_commit(commit_ID)
+            del all_commits_str[tmp_commit_index]
+            older_commit_index -= 1
             continue
         else:
             # SEG_FAULT
