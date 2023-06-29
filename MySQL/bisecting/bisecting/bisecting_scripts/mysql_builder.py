@@ -38,7 +38,35 @@ def compile_mysql_source(hexsha: str):
 
     return is_success
 
+def strip_binary_helper(cur_file_path: str):
+
+    command = "strip " + cur_file_path
+    p = subprocess.Popen(command, shell=True)
+    _, _ = p.communicate()
+    print(f"Stripped {cur_file_path}")
+    return
+
+def check_is_binary(cur_file_path: str):
+    command = "file " + cur_file_path
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    out = out.decode()
+    if "ELF" in out:
+        return True
+    else:
+        return False
+
+def strip_all_binary(cur_file_folder: str):
+    for root, dirs, files in os.walk(cur_file_folder):
+        for cur_file_name in files:
+            cur_file_path = root + "/" + cur_file_name
+            if check_is_binary(cur_file_path):
+                strip_binary_helper(cur_file_path)
+
 def copy_binaries (hexsha: str):
+
+    strip_all_binary("/home/mysql/mysql-server/bld")
+
     # Setup the output folder. 
     cur_output_dir = os.path.join(constants.MYSQL_ROOT, hexsha)
     utils.execute_command("mkdir -p %s" % (cur_output_dir), cwd = constants.MYSQL_ROOT)
