@@ -77,7 +77,7 @@ RUN cp -r sqlite sqlite_ori
 
 ## Build instrumented SQLite3
 WORKDIR /home/sqlite/sqlite
-#RUN git checkout version-3.34.0
+#RUN git checkout version-3.41.0
 RUN git checkout master
 RUN python3 /home/sqlite/scripts/modify_sqlite_shell.py
 ENV CXX=/home/sqlite/AFL/afl-clang-fast++

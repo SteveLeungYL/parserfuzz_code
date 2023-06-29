@@ -5,7 +5,6 @@
 #include "../include/mutate.h"
 #include "../include/utils.h"
 #include "../include/ir_wrapper.h"
-#include "sql/sql_ir_define.h"
 
 #include <string>
 #include <vector>
@@ -50,38 +49,18 @@ public:
      rewrite_2.
       If the results are all errors, return -1, all consistent, return 1, found
      inconsistent, return 0. */
-  virtual void compare_results(ALL_COMP_RES &res_out) = 0;
+  virtual void compare_results(ALL_COMP_RES &res_out) {};
 
   virtual IR* get_random_mutated_select_stmt();
 
   /* Helper function. */
   void set_mutator(Mutator *mutator);
 
-  virtual string get_template_select_stmts() = 0;
+  virtual string get_template_select_stmts() {return "select * from v0;";}
 
   virtual unsigned get_mul_run_num() { return 1; }
 
-  virtual string get_oracle_type() = 0;
-
-  /* 
-  ** Transformation function for select statements. pre_fix_* functions work before concret value has been filled in to the 
-  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
-  ** Mutator::fix())
-  ** If no transform is necessary, return empty vector. 
-  */
-  virtual IR* pre_fix_transform_select_stmt(IR* cur_stmt) {return nullptr;}
-  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
-  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt) {return this->post_fix_transform_select_stmt(cur_stmt, 0);}
-
-  /* 
-  ** Transformation function for normal (non-select) statements. pre_fix_* functions work before concret value has been filled in to the 
-  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
-  ** Mutator::fix())
-  ** If no transform is necessary, return empty vector. 
-  */
-  virtual IR* pre_fix_transform_normal_stmt(IR* cur_stmt) {return nullptr;} //non-select stmt pre_fix transformation. 
-  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
-  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
+  virtual string get_oracle_type() {return "SQL_ORACLE";};
 
   /* Debug */
   unsigned long total_rand_valid = 0;
@@ -89,17 +68,15 @@ public:
 
   /* IRWrapper related */
   /* Everytime we need to modify the IR tree, we need to call this function first. */
-  virtual bool init_ir_wrapper(IR* ir_root) {this->ir_wrapper.set_ir_root(ir_root); return true;}
+  virtual bool init_ir_wrapper(IR* ir_root) {IRWrapper::set_ir_root(ir_root); return true;}
   virtual bool init_ir_wrapper(vector<IR*> ir_vec) {return this->init_ir_wrapper(ir_vec.back());}
-
-  IRWrapper ir_wrapper;
 
   /* Debug */
   int num_oracle_select_mutate = 0;
   int num_oracle_select_succeed = 0;
 
 protected:
-  Mutator *g_mutator;
+  Mutator *g_mutator = nullptr;
 
   virtual bool mark_node_valid(IR *root);
 };

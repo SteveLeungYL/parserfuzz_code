@@ -1,0 +1,4 @@
+*.o
+
+afl-clang-dfsan
+afl-clang-dfsan++

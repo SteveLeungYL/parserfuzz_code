@@ -15,6 +15,32 @@ using std::string;
 #define vector_rand_ele_safe(a) (a.size()!=0?a[get_rand_int(a.size())]:gen_id_name())
 #define vector_rand_ele(a) (a[get_rand_int(a.size())])
 
+
+#define MUTATESTART                                                            \
+  IR *res;                                                                     \
+  res = nullptr;                                                               \
+  auto randint = get_rand_int(3);                                              \
+  switch (randint) {
+
+#define DOLEFT case 0: {
+
+#define DORIGHT                                                                \
+  break;                                                                       \
+  }                                                                            \
+                                                                               \
+  case 1: {
+
+#define DOBOTH                                                                 \
+  break;                                                                       \
+  }                                                                            \
+  case 2: {
+
+#define MUTATEEND                                                              \
+  }                                                                            \
+  }                                                                            \
+                                                                               \
+  return res;
+
 static std::random_device rd; // random device engine, usually based on
                               // /dev/random on UNIX-like systems
 // initialize Mersennes' twister using rd to generate the seed
@@ -128,7 +154,7 @@ vector<string> get_all_files_in_dir(const char * dir_name);
 
 
 std::vector<string> string_splitter(const string &input_string,
-                                     const char delimiter_re);
+                                     string delimiter_re);
 bool is_str_empty(string input_str);
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);

@@ -73,17 +73,17 @@ FROM sqlright_mysql_tools AS sqlright_mysql_source_build
 # build MySQL instrumented by afl-clang-fast
 USER mysql
 WORKDIR /home/mysql/
-RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.30.zip
-RUN unzip mysql-8.0.30.zip
-RUN mv mysql-server-mysql-8.0.30 mysql-server
+RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.33.zip
+RUN unzip mysql-8.0.33.zip
+RUN mv mysql-server-mysql-8.0.33 mysql-server
 WORKDIR /home/mysql/mysql-server
-# MySQL version 8.0.30
+# MySQL version 8.0.33
 # RUN git checkout 3290a66c89eb1625a7058e0ef732432b6952b435 
 RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_UNIT_TESTS=OFF -DUSE_LD_GOLD=1
+RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_UNIT_TESTS=OFF -DUSE_LD_GOLD=1 -DWITH_DEBUG=1
 RUN make -j$(nproc)
 
 # Recover the original compiler. 
@@ -97,33 +97,53 @@ FROM sqlright_mysql_source_build AS sqlright_src
 # Install SQLRight MySQL
 USER root
 COPY src /home/mysql/src
-WORKDIR /home/mysql/src/parser
-RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.27.zip
-RUN unzip mysql-8.0.27.zip 
-RUN mv mysql-server-mysql-8.0.27 mysql-server
 RUN chown -R mysql:mysql /home/mysql/src
 
-# Add SQLRight modification to the MySQL source code.
-USER mysql
-WORKDIR /home/mysql/src/parser/patches
-RUN bash ./replace-changed-code.sh
-
-# Compile the build-in MySQL source code.
-WORKDIR /home/mysql/src/parser/mysql-server
-RUN mkdir bld
-RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
-RUN tar -xf boost_1_73_0.tar.gz
-WORKDIR /home/mysql/src/parser/mysql-server/bld
-
-# Mute the Warning information. The modified version of the MySQL does return many Warnings while compiling. Known problem, ignore them. 
-RUN cmake .. -DWITH_BOOST=../boost_1_73_0
-RUN make -j$(nproc)
-
-WORKDIR /home/mysql/src
-RUN make
-
+# Setup the MySQL fuzzer compilation requirements.
 USER root
-RUN cp /home/mysql/src/parser/mysql-server/bld/library_output_directory/libserver_unittest_library.so /usr/lib/
+RUN apt -y update
+RUN apt -y install curl openjdk-11-jdk
+
+## antlr4
+USER mysql
+WORKDIR /home/mysql
+RUN curl -O https://www.antlr.org/download/antlr-4.12.0-complete.jar
+## antlr4 runtime.
+RUN wget https://github.com/antlr/antlr4/archive/4.12.0.zip
+RUN unzip 4.12.0.zip
+WORKDIR /home/mysql/antlr4-4.12.0/runtime/Cpp/
+RUN mkdir -p bld
+WORKDIR /home/mysql/antlr4-4.12.0/runtime/Cpp/bld
+RUN cmake .. -DANTLR_JAR_LOCATION=/home/mysql/antlr-4.12.0-complete.jar -DWITH_DEMO=False
+RUN make -j$(nproc)
+USER root
+RUN make install
+
+## RSG
+### Setup the Golang compilation
+USER mysql
+WORKDIR /home/mysql/
+RUN wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz && \
+    tar -xf go1.20.4.linux-amd64.tar.gz
+USER root
+RUN cp -r /home/mysql/go /usr/local/go
+
+### RSG source folder
+USER root
+COPY rsg /home/mysql/rsg
+RUN chown -R mysql:mysql /home/mysql/rsg
+
+USER mysql 
+WORKDIR /home/mysql/rsg
+RUN echo 'export PATH="/usr/local/go/bin:$PATH"' >> ~/.bashrc
+ENV PATH="/usr/local/go/bin:$PATH"
+RUN bash ./build.sh
+
+# Compile MySQL Fuzzer.
+USER mysql
+WORKDIR /home/mysql/src
+RUN cp /home/mysql/rsg/rsg_helper.* ./rsg/
+RUN make
 
 
 # Setup other SQLRight configurations.
@@ -132,6 +152,24 @@ RUN cp /home/mysql/src/parser/mysql-server/bld/library_output_directory/libserve
 FROM sqlright_src
 
 # Finished setup the SQLRight source code.
+
+# Setup the MySQL crash decuplication code. 
+USER mysql
+WORKDIR /home/mysql/
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+ENV PATH="/home/mysql/.cargo/bin:${PATH}"
+
+# Copy the AFLTriage src.
+USER root
+RUN apt -y install lsof
+COPY AFLTriage /home/mysql/AFLTriage
+RUN chown -R mysql:mysql /home/mysql/AFLTriage
+
+# Install
+USER mysql
+WORKDIR /home/mysql/AFLTriage
+RUN cargo build
+
 
 # Copy all the required helper script to the container.
 USER root
@@ -142,6 +180,12 @@ RUN chown -R mysql:mysql /home/mysql/scripts
 USER root
 COPY fuzz_root /home/mysql/fuzzing/fuzz_root
 RUN chown -R mysql:mysql /home/mysql/fuzzing/
+
+# setup the rsg required libraries
+USER mysql
+WORKDIR /home/mysql/fuzzing/fuzz_root
+RUN mkdir -p rsg && cp -r /home/mysql/rsg/rsg_helper.so ./rsg
+RUN cp /home/mysql/src/mysql_sql.y ./mysql_sql.y
 
 # Not sure why, but user MySQL doesn't have the permission to open the database.
 USER root
@@ -165,6 +209,8 @@ USER mysql
 WORKDIR /home/mysql/scripts
 RUN python3 setup_database.py
 
+USER root
+RUN echo "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf
 
 USER root
 WORKDIR /home/mysql/fuzzing/fuzz_root
