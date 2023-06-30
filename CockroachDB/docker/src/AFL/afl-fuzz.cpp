@@ -3602,6 +3602,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         !disable_coverage_feedback) {
       if (crash_mode)
         total_crashes++;
+      rsg_exec_failed();
       return 0;
     }
 
@@ -3622,6 +3623,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     /* If disable_coverage_feedback == 3, always go through save_if_interesting.
      */
+
+    rsg_exec_succeed();
 
     char *tmp_name = stage_name;
     //[modify] add

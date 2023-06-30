@@ -31,6 +31,8 @@ string rsg_generate(const string& input_str) {
 
   do {
 
+    rsg_clear_chosen_expr()
+
     GoString gostr_input = {input_str.c_str(), long(input_str.size())};
 
     // Actual Parsing.
