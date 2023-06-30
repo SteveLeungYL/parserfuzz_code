@@ -62,7 +62,7 @@ RUN chown -R mysql:mysql /home/mysql
 
 USER mysql
 WORKDIR /home/mysql/AFL 
-RUN make
+RUN AFL_NO_X86=1 make
 WORKDIR /home/mysql/AFL/llvm_mode
 # ENV LLVM_CONFIG=llvm-config-6.0
 RUN make 
@@ -123,8 +123,8 @@ RUN make install
 ### Setup the Golang compilation
 USER mysql
 WORKDIR /home/mysql/
-RUN wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz && \
-    tar -xf go1.20.4.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.20.4.linux-arm64.tar.gz && \
+    tar -xf go1.20.4.linux-arm64.tar.gz
 USER root
 RUN cp -r /home/mysql/go /usr/local/go
 
@@ -170,7 +170,6 @@ USER mysql
 WORKDIR /home/mysql/AFLTriage
 RUN cargo build
 
-
 # Copy all the required helper script to the container.
 USER root
 COPY scripts /home/mysql/scripts
@@ -215,4 +214,4 @@ RUN echo "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/m
 USER root
 WORKDIR /home/mysql/fuzzing/fuzz_root
 
-#ENTRYPOINT ../afl-fuzz -t 2000 -m 2000 -i ./crashes -o ../output /usr/local/pgsql/bin/postgres --single -D /usr/local/pgsql/data main
+#ENTRYPOINT ../afl-fuzz -t 2000 -m 2000 -i ./crashes -o ../output /usr/local/pgsql/bin/postgres --single -D /usr/local/pgsql/data main 

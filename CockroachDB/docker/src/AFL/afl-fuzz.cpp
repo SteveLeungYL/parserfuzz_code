@@ -5423,76 +5423,6 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
   return 0;
 }
 
-void get_oracle_select_stmts(vector<IR *> &v_oracle_select_stmts,
-                             int valid_max_num = 10) {
-
-  // cout << "get_oracle_select_stmt" << endl;
-  // exit(0);
-  int trial = 0;
-  int num_select = 0;
-  int max_trial =
-      valid_max_num * 10; // For each select stmt, we have on average 10
-                          // chances to append the stmt and check.
-
-  // cerr << "Entering get_oracle_select_stmt func. \n";
-
-  while (num_select < valid_max_num) {
-
-    if (trial++ >= max_trial) { // Give on average 3 chances per select stmts.
-      // cerr << "Break due to exceeding max_trial. \n";
-      break;
-    }
-    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
-    IR *new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
-    if (new_oracle_select_stmts == NULL) {
-      continue;
-    }
-    v_oracle_select_stmts.push_back(std::move(new_oracle_select_stmts));
-
-    num_select++;
-    num_valid++;
-  }
-
-  // cerr << "DEBUG: v_oracle_select_stmts.size() is: " <<
-  // v_oracle_select_stmts.size() << ". \n"; for (IR* v_oracle_select :
-  // v_oracle_select_stmts) {
-  //   cerr << "DEBUG: Getting oracle select: " << v_oracle_select->to_string()
-  //   << "\n";
-  // }
-  // cerr << "\n\n\n";
-  return;
-}
-
-void split_queries_into_small_pieces(string &large_query,
-                                     vector<string> &v_small_queries) {
-
-  string database_queries = "";
-  vector<string> oracle_queries;
-
-  vector<string> queries = string_splitter(large_query, ';');
-  for (string tmp_str : queries) {
-    if (p_oracle->is_oracle_select_stmt(tmp_str)) {
-      oracle_queries.push_back(tmp_str + ";");
-    } else {
-      database_queries += tmp_str + ";";
-    }
-  }
-
-  // cout << "database: " << database_queries << endl;
-  // for (string tmp_str: oracle_queries) {
-  //   cout << "oracle: " << tmp_str << endl;
-  // }
-
-  if (oracle_queries.size() == 0) {
-    return;
-  }
-
-  for (string oracle_str : oracle_queries) {
-    v_small_queries.push_back(database_queries + oracle_str);
-    // cout << "new: " << database_queries + oracle_str << endl;
-  }
-}
-
 /* Output logical bugs to the bug reporting folder. */
 void log_logical_bug(string buggy_query_str) {
   ofstream outputfile;
@@ -5521,6 +5451,28 @@ void log_logical_bug(string buggy_query_str) {
   outputfile.close();
 }
 
+string rsg_generate_query_sequence(int stmt_idx) {
+  string rsg_query;
+  if (stmt_idx < 3) {
+    if (get_rand_int(2)) {
+      rsg_query += rsg_generate("create_table_stmt") + "; \n";
+    } else {
+      rsg_query += rsg_generate("create_table_as_stmt") + "; \n";
+    }
+  }
+  else if (stmt_idx < 7) {
+    rsg_query += rsg_generate("insert_stmt") + "; \n";
+  }
+  else if (stmt_idx < 13) {
+    rsg_query += rsg_generate("stmt_without_legacy_transaction") + "; \n";
+  }
+  else {
+    rsg_query += rsg_generate("select_stmt") + "; \n";
+  }
+
+  return rsg_query;
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -5538,50 +5490,12 @@ static u8 fuzz_one(char **argv) {
   IR *program;
 
   vector<IR *> ori_ir_tree;
-  vector<IR *> v_oracle_select_stmts;
   vector<IR *> v_ir_stmts;
   v_ir_stmts.clear();
+
   char *tmp_name = stage_name;
   int skip_count;
   string input;
-
-#ifdef IGNORE_FINDS
-
-  /* In IGNORE_FINDS mode, skip any entries that weren't in the
-     initial data set. */
-
-  if (queue_cur->depth > 1)
-    return 1;
-
-#else
-
-  if (pending_favored) {
-
-    /* If we have any favored, non-fuzzed new arrivals in the queue,
-       possibly skip to them at the expense of already-fuzzed or non-favored
-       cases. */
-
-    if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
-        UR(100) < SKIP_TO_NEW_PROB)
-      return 1;
-  } else if (!dumb_mode && !queue_cur->favored && queued_paths > 10) {
-
-    /* Otherwise, still possibly skip non-favored cases, albeit less often.
-       The odds of skipping stuff are higher for already-fuzzed inputs and
-       lower for never-fuzzed entries. */
-
-    if (queue_cycle > 1 && !queue_cur->was_fuzzed) {
-
-      if (UR(100) < SKIP_NFAV_NEW_PROB)
-        return 1;
-    } else {
-
-      if (UR(100) < SKIP_NFAV_OLD_PROB)
-        return 1;
-    }
-  }
-
-#endif /* ^IGNORE_FINDS */
 
   if (not_on_tty) {
     ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
@@ -5619,590 +5533,460 @@ static u8 fuzz_one(char **argv) {
   out_buf[len] = '\0';
 
   //[modify] add
-  stage_name = "mutate";
+  stage_name = "generate";
 
   skip_count = 0;
-  input = (const char *)out_buf;
 
-  /* Now we modify the input queries, append multiple select
-   * stmts to the end of the queries to achieve better testing efficiency.  */
+  // Reset the database data.
+  reset_database_without_restart(argv);
 
-  num_parse++;
-
-  ori_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
-  if (ori_ir_tree.size() == 0) {
-    total_input_failed++;
-    goto abandon_entry;
-  }
-
-  IR *cur_root;
-  cur_root = ori_ir_tree.back();
-
-  // Remove all SELECT statement or ORACLE related statements from the query.
-  p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
-  p_oracle->remove_select_stmt_from_ir(cur_root);
-  p_oracle->remove_set_stmt_from_ir(cur_root);
-
-  /* Append random statements required by the oracle. */
-  for (int app_idx = 0; app_idx < p_oracle->get_random_append_stmts_num();
-       app_idx++) {
-    // Randomly append oracle statements to the query sequence.
-    // Append to random query location.
-    IR *app_stmt = p_oracle->get_random_append_stmts(g_mutator);
-    p_oracle->ir_wrapper.set_ir_root(cur_root);
-    p_oracle->ir_wrapper.append_stmt_at_idx(
-        app_stmt, get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
-  }
-
-  /* Append random `SET` statements to the query set. */
+  /* Run random `SET` statements to the query set first. */
   for (int app_idx = 0; app_idx < 3; app_idx++) {
     // Randomly append SET statements at the beginning of the query sequence.
     IR *app_stmt = g_mutator.constr_rand_set_stmt();
-    p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, -1);
+    // Do not restart the server
+    run_target(argv, exec_tmout,
+               app_stmt->to_string(), 0);
+    app_stmt->deep_drop();
   }
 
-  /* Append Create stmts to the queue, if no create table stmts is found. */
-  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
-  int create_num, drop_num;
-  bool is_missing_create;
-  create_num = 0;
-  drop_num = 0;
+  g_mutator.pre_validate(); // Reset global variables for query sequence.
 
-  for (IR *ir_stmts : v_ir_stmts) {
-    switch (ir_stmts->get_ir_type()) {
-    case TypeCreateTable:
-      create_num++;
-      break;
-    case TypeDropTable:
-      drop_num++;
-      break;
+  // Variable for each statement's instantiation.
+  string whole_query_seq;
+  string whole_query_seq_with_next; // Whole query sequence with next stmt. Abort if error.
+  bool is_prev_stmt_error = false;
+  constexpr int max_trial = 4;
+
+  for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
+    input = rsg_generate_query_sequence(stmt_idx);
+
+    ori_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
+    if (ori_ir_tree.empty()) {
+      total_input_failed++;
+      continue;
     }
-  }
+    num_parse++;
 
-  if (drop_num >= create_num) {
-    g_mutator.add_missing_create_table_stmt(cur_root);
-  }
-  v_ir_stmts.clear(); // No need to free.
+    IR *cur_root;
+    cur_root = ori_ir_tree.back();
 
-  /* Because we deleted some stmts, we need to re-gather all the existing node
-   * in the vector */
-  ori_ir_tree.clear();
-  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
+    stage_short = "SQL fuzz";
+    stage_max = 1;
+    stage_name = "validating";
 
-  stage_max = ori_ir_tree.size();
-  stage_cur = 0;
+    stage_val_type = STAGE_VAL_NONE;
 
-  doing_det = 1;
+    orig_hit_cnt = queued_paths + unique_crashes;
 
-  stage_short = "SQL fuzz";
-  stage_max = len << 3;
-  stage_name = "fuzzing";
+    prev_cksum = queue_cur->exec_cksum;
 
-  stage_val_type = STAGE_VAL_NONE;
-
-  orig_hit_cnt = queued_paths + unique_crashes;
-
-  prev_cksum = queue_cur->exec_cksum;
-
-  int cur_reparse;
-  cur_reparse = 0;
-
-  for (IR *ir_to_mutate : ori_ir_tree) {
-
-    v_oracle_select_stmts.clear();
+    int cur_reparse;
+    cur_reparse = 0;
 
     if (stop_soon) {
       goto abandon_entry;
     }
 
-    /* The mutated IR tree is deep_copied() */
-    vector<IR *> v_mutated_ir_root =
-        g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate,
-                             total_mutate_failed, total_mutate_num);
-
-    for (IR *mutated_ir_root : v_mutated_ir_root) {
-
-      if (stop_soon) {
-        continue;
-      }
-
-      if (!mutated_ir_root) {
-        continue;
-      }
-
-      string ir_str = mutated_ir_root->to_string();
-      stage_name = "query_fix";
-
-      /* Use to_string() here, validate() will be called just once, at the end
-       * of the query mutation. */
-      if (ir_str.size() == 0) {
-        total_mutate_failed++;
-        skip_count++;
-        continue;
-      }
-
-      /* Check whether the mutated normal (non-select) query makes sense, if
-       * not, do not even consider appending anything */
-      vector<IR *> cur_ir_tree = g_mutator.parse_query_str_get_ir_set(ir_str);
-      if (cur_ir_tree.size() == 0) {
-        total_mutate_failed++;
-        skip_count++;
-        continue;
-      }
-      num_reparse++;
-      cur_reparse++;
-
-      /* Get some oracle compatible SELECT stmts.  */
-      v_oracle_select_stmts.clear();
-      get_oracle_select_stmts(v_oracle_select_stmts, 120);
-
-      for (IR *app_IR_node : v_oracle_select_stmts) {
-        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
-        p_oracle->ir_wrapper.append_stmt_at_end(
-            app_IR_node->deep_copy()); // Append the already generated and
-                                       // cached SELECT stmts.
-      }
-
-      num_append++;
-
-      /*
-      ** Pre_Post_fix_transformation from the oracle across runs, build
-      *  dependency graph,
-      ** fix ir node, fill in concret values,
-      ** and transform from IR to multi-run strings.
-      */
-      vector<string> query_str_vec, query_str_no_marks_vec;
-
-      IR *cur_root = cur_ir_tree.back();
-
-      g_mutator.pre_validate(); // Reset global variables for query sequence.
-
-      // pre_fix_transformation from the oracle.
-      vector<STMT_TYPE> stmt_type_vec;
-      vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
-          cur_root, stmt_type_vec); // All deep_copied.
-
-      // No need for the original cur_root anymore.
-      cur_root->deep_drop();
-
-      /* Build dependency information, fix ir node, fill in concrete values */
-
-      // Before fixing all the statements, reset the database data.
-      reset_database_without_restart(argv);
-
-      // Variable for each statement's instantiation.
-      string whole_query_seq = "";
-      string whole_query_seq_with_next =
-          ""; // Whole query sequence with next stmt. Abort if error.
-      bool is_prev_stmt_error = false;
-      constexpr int max_trial = 4;
-
-      for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
-        // Prepare for a new statement of instantiation.
-        // Set the savepoint for instantiation library rollback.
-        g_mutator.reset_data_library_single_stmt();
-
-        IR *cur_trans_stmt = all_pre_trans_vec[stmt_idx];
-
-        // Avoid modifying the required nodes for the oracle.
-        p_oracle->mark_all_valid_node(cur_trans_stmt);
-        g_mutator.validate(cur_trans_stmt);
-
-        int ret_res = FAULT_NONE;
-
-        string cur_stmt_str = cur_trans_stmt->to_string();
-
-        if (p_oracle->is_oracle_select_stmt(cur_stmt_str)) {
-          // The current attached statement IS A SELECT statement.
-          // Attach the SELECT statement at the end of the query sequence.
-          // Execute it, and then log the code coverage information.
-          // This SELECT will never be saved into the whole_query_seq.
-
-          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-
-          if (is_prev_stmt_error) {
-            // If the previous statement contains error, we need to reset the
-            // server.
-            ret_res = run_target(argv, exec_tmout,
-                                 whole_query_seq + "SAVEPOINT foo; \n" +
-                                     cur_stmt_str + "; \n",
-                                 1);
-          } else {
-            // If the previous statement is OK, we can directly execute the
-            // SELECT without resetting.
-            ret_res =
-                run_target(argv, exec_tmout,
-                           "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
-          }
-
-          int dyn_fix_trial = 0;
-          bool is_select_error = false;
-
-          while (likely(!disable_dyn_instan) &&
-                 p_oracle->is_res_str_error(g_cockroach_output) &&
-                 dyn_fix_trial < max_trial) {
-            // Check whether the statement execution contains SQL errors.
-            // If yes, use the dynamic fixing to try to fix the statement.
-            total_instan_num++;
-
-#ifdef DEBUG
-            cerr << "\n\n\nDEBUG: getting stmt: \n"
-                 << cur_stmt_str << "\n, getting result: \n"
-                 << g_cockroach_output << "\n";
-            cerr << "debug_error: " << debug_error
-                 << ", debug_good: " << debug_good << "\n\n\n";
-#endif /* DEBUG */
-
-            // No need to set up the error flag here.
-            // We always rollback the transaction.
-
-            // Iterate the counter.
-            dyn_fix_trial++;
-
-            // Parse the query string and then apply dynamic fixing.
-            vector<IR *> v_new_parsed =
-                g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
-            if (v_new_parsed.size() == 0) {
-              // The instantiated query cannot pass the parser.
-              // Ignore current stmt.
-              g_mutator.rollback_instan_lib_changes();
-              cur_trans_stmt = NULL;
-              break;
-            }
-
-            IR *new_parsed_root = v_new_parsed.back();
-            IR *new_parsed_stmt = new_parsed_root->get_left()
-                                      ->get_left()
-                                      ->get_left()
-                                      ->deep_copy();
-            new_parsed_stmt->parent_ = NULL;
-            new_parsed_root->deep_drop();
-
-            // Avoid modifying the required nodes for the oracle.
-            p_oracle->mark_all_valid_node(new_parsed_stmt);
-
-            // Apply the dynamic fixing.
-            g_mutator.rollback_instan_lib_changes();
-            g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
-                                       dyn_fix_trial, false);
-
-            // The dynamic fixed stmt will be passed out from the cur_stmt_str
-            // string variable.
-            cur_stmt_str = new_parsed_stmt->to_string();
-            // Left nothing behind.
-            new_parsed_stmt->deep_drop();
-
-            whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-            // We have to reset the server, because the previous query execution
-            // is very frequently contains error.
-            string tmp_g_cockroach_output_backup = g_cockroach_output;
-            ret_res =
-                run_target(argv, exec_tmout,
-                           "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
-            g_cockroach_output = tmp_g_cockroach_output_backup;
-          }
-
-          //          if (dyn_fix_trial != 0) {
-          //              cerr << "After dynamic fixing: " << cur_stmt_str <<
-          //              "\nres: \n" << g_cockroach_output << "\n\n\n";
-          //          }
-
-          if (p_oracle->is_res_str_error(g_cockroach_output)) {
-            // Be careful, after the last dyn_fixing, the query could still be
-            // semantic error.
-            is_select_error = true;
-
-            SemanticErrorType err_type =
-                p_oracle->detect_semantic_error_type(g_cockroach_output);
-            if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
-              total_data_type_error_num++;
-              total_select_error_num++;
-            } else if (err_type == SemanticErrorType::AliasRelatedError) {
-              total_alias_type_error_num++;
-              total_select_error_num++;
-            } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
-              total_instan_caused_error_num++;
-              total_select_error_num++;
-            } else if (err_type == SemanticErrorType::OtherUndefinedError) {
-#ifdef DEBUG
-                cerr << "DEBUG: Getting other types of semantic error: \n" << cur_stmt_str << "\n, res: \n" << g_cockroach_output << "\n\n\n";
-#endif
-              total_select_error_num++;
-            }
-
-            debug_error++;
-#ifdef DEBUG
-            if (dyn_fix_trial != 0) {
-              cerr << "DEBUG: For ERROR AFTER FIXING stmt: \n"
-                   << cur_stmt_str << ", after fixing, getting result: \n"
-                   << g_cockroach_output << "\n";
-              cerr << "debug_error: " << debug_error
-                   << ", debug_good: " << debug_good << "\n\n\n";
-            }
-#endif /* DEBUG */
-
-            string tmp_g_cockroach_output_backup = g_cockroach_output;
-            ret_res = run_target(argv, exec_tmout,
-                                 "ROLLBACK TO SAVEPOINT FOO; \n", 0);
-            g_cockroach_output = tmp_g_cockroach_output_backup;
-          } else {
-            debug_good++;
-            total_instan_succeed_num++;
-#ifdef DEBUG
-            if (dyn_fix_trial != 0) {
-              cerr << "DEBUG: For GOOD AFTER FIXING stmt: \n"
-                   << cur_stmt_str << ", after fixing, getting result: \n"
-                   << g_cockroach_output << "\n";
-              cerr << "debug_error: " << debug_error
-                   << ", debug_good: " << debug_good << "\n\n\n";
-            }
-#endif /* DEBUG */
-          }
-          total_instan_num++;
-
-          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-            // If the query execution triggers an Internal Error,
-            // log the buggy query string.
-            log_logical_bug(whole_query_seq_with_next);
-
-            is_select_error = true;
-
-            // Rollback to the previous savepoint, so no need to worry about the
-            // is_prv_stmt_error.
-            string tmp_g_cockroach_output_backup = g_cockroach_output;
-            ret_res = run_target(argv, exec_tmout,
-                                 "ROLLBACK TO SAVEPOINT FOO; \n", 0);
-            g_cockroach_output = tmp_g_cockroach_output_backup;
-            is_prev_stmt_error = false;
-          }
-
-          // Setup the is_prev_stmt_error flag.
-          if (ret_res == FAULT_NONE) {
-            // Log the error flag. Hint the fuzzer to reset the database on next
-            // execution.
-            is_prev_stmt_error = false;
-          } else {
-            // If crashes, revert the changes, and reset the database on new
-            // execution.
-            is_prev_stmt_error = true;
-            g_mutator.rollback_instan_lib_changes();
-          }
-
-          record_code_coverage(argv);
-
-          // Check whether the statement contains new code coverage.
-          // The save_if_interesting also handles the crashing.
-          ALL_COMP_RES tmp_all_comp_res;
-          tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
-          tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
-          tmp_all_comp_res.res_str = g_cockroach_output;
-          tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-          if (!is_select_error) {
-            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-                                tmp_all_comp_res, true);
-          } else {
-            // If the SELECT is causing semantic error, do not auto-detect the
-            // date types from the query expressions or subqueries.
-            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-                                tmp_all_comp_res, false);
-          }
-
-          // Here, also test whether the non-OPT version of the query could
-          // contain errors. The non-opt code path of the Cockroach code already
-          // causes a lot of bugs in CockroachDB.
-          string whole_query_seq_no_opt =
-              no_opt_sql_str + whole_query_seq_with_next;
-          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
-
-          if (ret_res == FAULT_CRASH) {
-            tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-            tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-            tmp_all_comp_res.res_str = g_cockroach_output;
-            tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-            save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
-                                tmp_all_comp_res);
-          }
-
-          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-            // If the no opt query execution triggers an Internal Error,
-            // log the buggy query string.
-            log_logical_bug(whole_query_seq_no_opt);
-          }
-
-          // Because we change the setting of the execution, we should rerun the
-          // whole query statement in the next round of the fuzzing. Use
-          // is_prev_stmt_error to trigger query rerun for the next round.
-          is_prev_stmt_error = true;
-
-          total_execs++;
-          show_stats();
-
-        } else {
-          // For non-SELECT statements.
-          // Attach the current non-select statement at the end of the query
-          // sequence. Execute it, but no need to check the code coverage. (only
-          // check with SELECT stmt) If no errors, the new non-SELECT statement
-          // will be saved into whole_query_seq. If errors, and cannot be fixed
-          // with dyn_fixing, abort the new statement.
-
-          if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
-            // If the stmt is TRANSACTION related, ignored.
-            continue;
-          }
-
-          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-
-          if (is_prev_stmt_error) {
-            // If the previous statement contains error, we need to reset the
-            // server.
-            ret_res =
-                run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-          } else {
-            // If the previous statement is OK, we can directly execute the
-            // SELECT without resetting.
-            ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
-          }
-
-          int dyn_fix_trial = 0;
-
-          while (likely(!disable_dyn_instan) &&
-                 p_oracle->is_res_str_error(g_cockroach_output) &&
-                 dyn_fix_trial < max_trial) {
-            // Check whether the statement execution contains SQL errors.
-            // If yes, use the dynamic fixing to try to fix the statement.
-            total_instan_num++;
-
-            // Setup the error flag first.
-            ret_res = FAULT_SQLERROR;
-
-            // Iterate the counter.
-            dyn_fix_trial++;
-
-            // Parse the query string and then apply dynamic fixing.
-            vector<IR *> v_new_parsed =
-                g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
-            if (v_new_parsed.size() == 0) {
-              // The instantiated query cannot pass the parser.
-              // Ignore current stmt.
-              g_mutator.rollback_instan_lib_changes();
-              cur_trans_stmt = NULL;
-              break;
-            }
-
-            IR *new_parsed_root = v_new_parsed.back();
-            IR *new_parsed_stmt = new_parsed_root->get_left()
-                                      ->get_left()
-                                      ->get_left()
-                                      ->deep_copy();
-            new_parsed_stmt->parent_ = NULL;
-            new_parsed_root->deep_drop();
-
-            // Avoid modifying the required nodes for the oracle.
-            p_oracle->mark_all_valid_node(new_parsed_stmt);
-
-            // Apply the dynamic fixing.
-            g_mutator.rollback_instan_lib_changes();
-            g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
-                                       dyn_fix_trial, false);
-
-            // The dynamic fixed stmt will be passed out from the cur_stmt_str
-            // string variable.
-            cur_stmt_str = new_parsed_stmt->to_string();
-            // Left nothing behind.
-            new_parsed_stmt->deep_drop();
-
-            whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-            // We have to reset the server, because the previous query execution
-            // contains error.
-            auto single_exec_begin_time = std::chrono::system_clock::now();
-            ret_res =
-                run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-          }
-
-          if (p_oracle->is_res_str_error(g_cockroach_output)) {
-            // Be careful, after the last dyn_fixing, the query could still be
-            // semantic error.
-            ret_res = FAULT_SQLERROR;
-          } else {
-            total_instan_succeed_num++;
-          }
-
-          total_instan_num++;
-
-          //          if (is_tried_dyn_fix) {
-          //              cerr << "After dynamic fixing: " << cur_stmt_str <<
-          //              "\nres: \n" << g_cockroach_output << "\n\n\n";
-          //          }
-
-          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-            // If the query execution triggers an Internal Error,
-            // log the buggy query string.
-            log_logical_bug(whole_query_seq_with_next);
-            ret_res = FAULT_ERROR;
-            is_prev_stmt_error = true;
-          }
-
-          // Setup the is_prev_stmt_error flag.
-          if (ret_res == FAULT_NONE) {
-            // Log the error flag. Hint the fuzzer to reset the database on next
-            // execution.
-            is_prev_stmt_error = false;
-          } else {
-            // Revert the changes.
-            is_prev_stmt_error = true;
-            g_mutator.rollback_instan_lib_changes();
-          }
-
-          if (ret_res == FAULT_CRASH) {
-            // Check whether the statement contains new code coverage.
-            ALL_COMP_RES tmp_all_comp_res;
-            tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
-            tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
-            tmp_all_comp_res.res_str = g_cockroach_output;
-            tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-                                tmp_all_comp_res);
-          }
-
-          if (is_prev_stmt_error) {
-            // On error, no need to save anything.
-          } else {
-            // Without error, save the current stmt to the whole_query_seq.
-            // But no need to check the code coverage here.  (only check with
-            // SELECT stmt)
-            whole_query_seq = whole_query_seq_with_next;
-          }
-        }
-      } // Finished the whole query sequences (with multiple SELECTs
-        // executions).
-
-      // After executing all the statements from one sequence, reset the
-      // database data. Just for safety purposes.
-      reset_database_without_restart(argv);
-
-      /* Clean up allocated resource.  */
-      for (int i = 0; i < all_pre_trans_vec.size(); i++) {
-        all_pre_trans_vec[i]->deep_drop();
-      }
-
-      /* Free the generated oracle SELECT stmt. */
-      for (IR *app_ir_node : v_oracle_select_stmts) {
-        app_ir_node->deep_drop();
-      }
-      v_oracle_select_stmts.clear();
-
-      total_execute++;
-      stage_cur++;
-      show_stats();
-
-    } // v_mutated_ir_root
-
-    for (IR *mutated_ir_root : v_mutated_ir_root) {
-      mutated_ir_root->deep_drop();
+    if (stop_soon) {
+      continue;
     }
 
-  } // ir_set vector
+    // pre_fix_transformation from the oracle.
+    vector<STMT_TYPE> stmt_type_vec;
+    vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
+        cur_root, stmt_type_vec); // All deep_copied.
 
+    // No need for the original cur_root anymore.
+    cur_root->deep_drop();
+
+    if (all_pre_trans_vec.empty()) {
+      cerr << "Error: g_mutator.pre_fix_transform returns empty statement vector. \n\n\n";
+      continue;
+    }
+
+    /* Build dependency information, fix ir node, fill in concrete values */
+    IR* cur_trans_stmt = all_pre_trans_vec.front();
+
+    // Prepare for a new statement of instantiation.
+    // Set the savepoint for instantiation library rollback.
+    g_mutator.reset_data_library_single_stmt();
+
+    // Avoid modifying the required nodes for the oracle.
+    p_oracle->mark_all_valid_node(cur_trans_stmt);
+    g_mutator.validate(cur_trans_stmt);
+
+    int ret_res = FAULT_NONE;
+
+    string cur_stmt_str = cur_trans_stmt->to_string();
+
+    if (p_oracle->is_oracle_select_stmt(cur_stmt_str)) {
+      // The current attached statement IS A SELECT statement.
+      // Attach the SELECT statement at the end of the query sequence.
+      // Execute it, and then log the code coverage information.
+      // This SELECT will never be saved into the whole_query_seq.
+
+      whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+
+      if (is_prev_stmt_error) {
+        // If the previous statement contains error, we need to reset the
+        // server.
+        ret_res = run_target(argv, exec_tmout,
+                             whole_query_seq + "SAVEPOINT foo; \n" +
+                             cur_stmt_str + "; \n",
+                             1);
+      } else {
+        // If the previous statement is OK, we can directly execute the
+        // SELECT without resetting.
+        ret_res =
+            run_target(argv, exec_tmout,
+                       "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
+      }
+
+      int dyn_fix_trial = 0;
+      bool is_select_error = false;
+
+      while (likely(!disable_dyn_instan) &&
+             p_oracle->is_res_str_error(g_cockroach_output) &&
+             dyn_fix_trial < max_trial) {
+        // Check whether the statement execution contains SQL errors.
+        // If yes, use the dynamic fixing to try to fix the statement.
+        total_instan_num++;
+
+#ifdef DEBUG
+        cerr << "\n\n\nDEBUG: getting stmt: \n"
+                   << cur_stmt_str << "\n, getting result: \n"
+                   << g_cockroach_output << "\n";
+              cerr << "debug_error: " << debug_error
+                   << ", debug_good: " << debug_good << "\n\n\n";
+#endif /* DEBUG */
+
+        // No need to set up the error flag here.
+        // We always rollback the transaction.
+
+        // Iterate the counter.
+        dyn_fix_trial++;
+
+        // Parse the query string and then apply dynamic fixing.
+        vector<IR *> v_new_parsed =
+            g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
+        if (v_new_parsed.size() == 0) {
+          // The instantiated query cannot pass the parser.
+          // Ignore current stmt.
+          g_mutator.rollback_instan_lib_changes();
+          cur_trans_stmt = NULL;
+          break;
+        }
+
+        IR *new_parsed_root = v_new_parsed.back();
+        IR *new_parsed_stmt = new_parsed_root->get_left()
+            ->get_left()
+            ->get_left()
+            ->deep_copy();
+        new_parsed_stmt->parent_ = NULL;
+        new_parsed_root->deep_drop();
+
+        // Avoid modifying the required nodes for the oracle.
+        p_oracle->mark_all_valid_node(new_parsed_stmt);
+
+        // Apply the dynamic fixing.
+        g_mutator.rollback_instan_lib_changes();
+        g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
+                                   dyn_fix_trial, false);
+
+        // The dynamic fixed stmt will be passed out from the cur_stmt_str
+        // string variable.
+        cur_stmt_str = new_parsed_stmt->to_string();
+        // Left nothing behind.
+        new_parsed_stmt->deep_drop();
+
+        whole_query_seq_with_next =
+            whole_query_seq + cur_stmt_str + "; \n";
+        // We have to reset the server, because the previous query execution is very frequently contains error.
+        string tmp_g_cockroach_output_backup = g_cockroach_output;
+        ret_res =
+            run_target(argv, exec_tmout,
+                       "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
+        g_cockroach_output = tmp_g_cockroach_output_backup;
+      }
+
+      //          if (dyn_fix_trial != 0) {
+      //              cerr << "After dynamic fixing: " << cur_stmt_str <<
+      //              "\nres: \n" << g_cockroach_output << "\n\n\n";
+      //          }
+
+      if (p_oracle->is_res_str_error(g_cockroach_output)) {
+        // Be careful, after the last dyn_fixing, the query could still be
+        // semantic error.
+        is_select_error = true;
+
+        SemanticErrorType err_type =
+            p_oracle->detect_semantic_error_type(g_cockroach_output);
+        if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
+          total_data_type_error_num++;
+          total_select_error_num++;
+        } else if (err_type == SemanticErrorType::AliasRelatedError) {
+          total_alias_type_error_num++;
+          total_select_error_num++;
+        } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
+          total_instan_caused_error_num++;
+          total_select_error_num++;
+        } else if (err_type == SemanticErrorType::OtherUndefinedError) {
+#ifdef DEBUG
+          cerr << "DEBUG: Getting other types of semantic error: \n"
+                     << cur_stmt_str << "\n, res: \n"
+                     << g_cockroach_output << "\n\n\n";
+#endif
+          total_select_error_num++;
+        }
+
+        debug_error++;
+#ifdef DEBUG
+        if (dyn_fix_trial != 0) {
+                cerr << "DEBUG: For ERROR AFTER FIXING stmt: \n"
+                     << cur_stmt_str << ", after fixing, getting result: \n"
+                     << g_cockroach_output << "\n";
+                cerr << "debug_error: " << debug_error
+                     << ", debug_good: " << debug_good << "\n\n\n";
+              }
+#endif /* DEBUG */
+
+        string tmp_g_cockroach_output_backup = g_cockroach_output;
+        ret_res = run_target(argv, exec_tmout,
+                             "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+        g_cockroach_output = tmp_g_cockroach_output_backup;
+      } else {
+        debug_good++;
+        total_instan_succeed_num++;
+#ifdef DEBUG
+        if (dyn_fix_trial != 0) {
+                cerr << "DEBUG: For GOOD AFTER FIXING stmt: \n"
+                     << cur_stmt_str << ", after fixing, getting result: \n"
+                     << g_cockroach_output << "\n";
+                cerr << "debug_error: " << debug_error
+                     << ", debug_good: " << debug_good << "\n\n\n";
+              }
+#endif /* DEBUG */
+      }
+      total_instan_num++;
+
+      if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+        // If the query execution triggers an Internal Error,
+        // log the buggy query string.
+        log_logical_bug(whole_query_seq_with_next);
+
+        is_select_error = true;
+
+        // Rollback to the previous savepoint, so no need to worry about the is_prv_stmt_error.
+        string tmp_g_cockroach_output_backup = g_cockroach_output;
+        ret_res = run_target(argv, exec_tmout,
+                             "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+        g_cockroach_output = tmp_g_cockroach_output_backup;
+        is_prev_stmt_error = false;
+      }
+
+      // Setup the is_prev_stmt_error flag.
+      if (ret_res == FAULT_NONE) {
+        // Log the error flag. Hint the fuzzer to reset the database on next execution.
+        is_prev_stmt_error = false;
+      } else {
+        // If crashes, revert the changes, and reset the database on new
+        // execution.
+        is_prev_stmt_error = true;
+        g_mutator.rollback_instan_lib_changes();
+      }
+
+      record_code_coverage(argv);
+
+      // Check whether the statement contains new code coverage.
+      // The save_if_interesting also handles the crashing.
+      ALL_COMP_RES tmp_all_comp_res;
+      tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+      tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+      tmp_all_comp_res.res_str = g_cockroach_output;
+      tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
+      if (!is_select_error) {
+        save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                            tmp_all_comp_res, true);
+      } else {
+        // If the SELECT is causing semantic error, do not auto-detect the
+        // date types from the query expressions or subqueries.
+        save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                            tmp_all_comp_res, false);
+      }
+
+      // Here, also test whether the non-OPT version of the query could
+      // contain errors. The non-opt code path of the Cockroach code already causes a lot of bugs in CockroachDB.
+      string whole_query_seq_no_opt =
+          no_opt_sql_str + whole_query_seq_with_next;
+      ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
+
+      if (ret_res == FAULT_CRASH) {
+        tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+        tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+        tmp_all_comp_res.res_str = g_cockroach_output;
+        tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
+        save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
+                            tmp_all_comp_res);
+      }
+
+      if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+        // If the no opt query execution triggers an Internal Error,
+        // log the buggy query string.
+        log_logical_bug(whole_query_seq_no_opt);
+      }
+
+      // Because we change the setting of the execution, we should rerun the whole query statement in the next round of the fuzzing. Use
+      // is_prev_stmt_error to trigger query rerun for the next round.
+      is_prev_stmt_error = true;
+
+      total_execs++;
+      show_stats();
+
+    } else {
+      // For non-SELECT statements.
+      // Attach the current non-select statement at the end of the query
+      // sequence. Execute it, but no need to check the code coverage. (only check with SELECT stmt) If no errors, the new non-SELECT statement will be saved into whole_query_seq. If errors, and cannot be fixed with dyn_fixing, abort the new statement.
+
+      if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
+        // If the stmt is TRANSACTION related, ignored.
+        continue;
+      }
+
+      whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+
+      if (is_prev_stmt_error) {
+        // If the previous statement contains error, we need to reset the
+        // server.
+        ret_res =
+            run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+      } else {
+        // If the previous statement is OK, we can directly execute the
+        // SELECT without resetting.
+        ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
+      }
+
+      int dyn_fix_trial = 0;
+
+      while (likely(!disable_dyn_instan) &&
+             p_oracle->is_res_str_error(g_cockroach_output) &&
+             dyn_fix_trial < max_trial) {
+        // Check whether the statement execution contains SQL errors.
+        // If yes, use the dynamic fixing to try to fix the statement.
+        total_instan_num++;
+
+        // Setup the error flag first.
+        ret_res = FAULT_SQLERROR;
+
+        // Iterate the counter.
+        dyn_fix_trial++;
+
+        // Parse the query string and then apply dynamic fixing.
+        vector<IR *> v_new_parsed =
+            g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
+        if (v_new_parsed.size() == 0) {
+          // The instantiated query cannot pass the parser.
+          // Ignore current stmt.
+          g_mutator.rollback_instan_lib_changes();
+          cur_trans_stmt = NULL;
+          break;
+        }
+
+        IR *new_parsed_root = v_new_parsed.back();
+        IR *new_parsed_stmt = new_parsed_root->get_left()
+            ->get_left()
+            ->get_left()
+            ->deep_copy();
+        new_parsed_stmt->parent_ = NULL;
+        new_parsed_root->deep_drop();
+
+        // Avoid modifying the required nodes for the oracle.
+        p_oracle->mark_all_valid_node(new_parsed_stmt);
+
+        // Apply the dynamic fixing.
+        g_mutator.rollback_instan_lib_changes();
+        g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
+                                   dyn_fix_trial, false);
+
+        // The dynamic fixed stmt will be passed out from the cur_stmt_str
+        // string variable.
+        cur_stmt_str = new_parsed_stmt->to_string();
+        // Left nothing behind.
+        new_parsed_stmt->deep_drop();
+
+        whole_query_seq_with_next =
+            whole_query_seq + cur_stmt_str + "; \n";
+        // We have to reset the server, because the previous query execution contains error.
+        auto single_exec_begin_time = std::chrono::system_clock::now();
+        ret_res =
+            run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+      }
+
+      if (p_oracle->is_res_str_error(g_cockroach_output)) {
+        // Be careful, after the last dyn_fixing, the query could still be
+        // semantic error.
+        ret_res = FAULT_SQLERROR;
+      } else {
+        total_instan_succeed_num++;
+      }
+
+      total_instan_num++;
+
+      //          if (is_tried_dyn_fix) {
+      //              cerr << "After dynamic fixing: " << cur_stmt_str <<
+      //              "\nres: \n" << g_cockroach_output << "\n\n\n";
+      //          }
+
+      if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+        // If the query execution triggers an Internal Error,
+        // log the buggy query string.
+        log_logical_bug(whole_query_seq_with_next);
+        ret_res = FAULT_ERROR;
+        is_prev_stmt_error = true;
+      }
+
+      // Setup the is_prev_stmt_error flag.
+      if (ret_res == FAULT_NONE) {
+        // Log the error flag. Hint the fuzzer to reset the database on next execution.
+        is_prev_stmt_error = false;
+      } else {
+        // Revert the changes.
+        is_prev_stmt_error = true;
+        g_mutator.rollback_instan_lib_changes();
+      }
+
+      if (ret_res == FAULT_CRASH) {
+        // Check whether the statement contains new code coverage.
+        ALL_COMP_RES tmp_all_comp_res;
+        tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+        tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+        tmp_all_comp_res.res_str = g_cockroach_output;
+        tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
+        save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                            tmp_all_comp_res);
+      }
+
+      if (is_prev_stmt_error) {
+        // On error, no need to save anything.
+      } else {
+        // Without error, save the current stmt to the whole_query_seq.
+        // But no need to check the code coverage here.  (only check with
+        // SELECT stmt)
+        whole_query_seq = whole_query_seq_with_next;
+      }
+    }
+
+    /* Clean up allocated resource.  */
+    for (int i = 0; i < all_pre_trans_vec.size(); i++) {
+      all_pre_trans_vec[i]->deep_drop();
+    }
+
+    show_stats();
+
+  } // stmt_idx loop
+
+  total_execute++;
+  stage_cur++;
   stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP1] += ori_ir_tree.size() - skip_count;
@@ -6218,12 +6002,6 @@ abandon_entry:
   if (ori_ir_tree.size() != 0) {
     ori_ir_tree.back()->deep_drop();
   }
-
-  /* Free the generated oracle SELECT stmt.  */
-  for (IR *app_ir_node : v_oracle_select_stmts) {
-    app_ir_node->deep_drop();
-  }
-  v_oracle_select_stmts.clear();
 
   splicing_with = -1;
 

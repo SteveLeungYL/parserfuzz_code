@@ -12,25 +12,20 @@ using std::string;
  */
 
 void rsg_initialize() {
-  RSGInitialize();
+  const string parser_file_str = "./cockroach_sql_modi.y";
+  GoString parser_file_gostr = {parser_file_str.c_str(),
+                                long(parser_file_str.size())};
+
+  const string dbms_name = "cockroachdb";
+  GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
+
+  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3);
   return;
 }
 
-/*
- * From the RSG, generate one random query statement.
- */
-string rsg_generate(const IRTYPE type) {
+string rsg_generate(const string& input_str) {
 
-  // Convert the test string to GoString format.
-  // Only supporting TypeSelect and TypeStmt.
-  string input_str = "";
-  if (type == TypeSelect) {
-    input_str = "select_stmt";
-  } else {
-    input_str = "stmt";
-  }
-
-  string res_str = "";
+  string res_str;
   int gen_trial = 0;
   const int gen_trial_max = 100;
 
@@ -50,7 +45,24 @@ string rsg_generate(const IRTYPE type) {
     }
     free(gores.r0);
 
-  } while (res_str == "" && gen_trial++ < gen_trial_max);
+  } while (res_str.empty() && gen_trial++ < gen_trial_max);
 
   return res_str;
+}
+
+/*
+ * From the RSG, generate one random query statement.
+ */
+string rsg_generate(const IRTYPE type) {
+
+  // Convert the test string to GoString format.
+  // Only supporting TypeSelect and TypeStmt.
+  string input_str;
+  if (type == TypeSelect) {
+    input_str = "select_stmt";
+  } else {
+    input_str = "stmt_without_legacy_transaction";
+  }
+
+  return rsg_generate(input_str);
 }
