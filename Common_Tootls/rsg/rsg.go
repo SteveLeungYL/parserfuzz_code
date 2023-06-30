@@ -201,6 +201,16 @@ func (r *RSG) isSqliteCompNode(_ string, nodeValue string) bool {
 	return false
 }
 
+func (r *RSG) isCockroachDBCompNode(_ string, nodeValue string) bool {
+
+	if strings.Contains(nodeValue, "expr") ||
+		strings.Contains(nodeValue, "select_") ||
+		strings.Contains(nodeValue, "table_ref") {
+		return true
+	}
+	return false
+}
+
 func (r *RSG) isMySQLCompNode(_ string, nodeValue string) bool {
 
 	if strings.Contains(nodeValue, "expr") || strings.Contains(nodeValue, "subquery") ||
@@ -363,6 +373,33 @@ type RSG struct {
 	allTriggerEdges []uint8
 }
 
+func (r *RSG) RemoveUnimplementedRule(inputProds map[string][]*yacc.ExpressionNode) {
+	// map in GoLang is passed by reference. Any changes inside the function will affect the original values.
+	var trimmedInputProds map[string][]*yacc.ExpressionNode = make(map[string][]*yacc.ExpressionNode)
+	for rootStr, rules := range inputProds {
+		var trimmedRules []*yacc.ExpressionNode
+		for _, curRule := range rules {
+			isErrorRule := false
+			for _, curTerm := range curRule.Items {
+				if curTerm.Value == "error" {
+					isErrorRule = true
+					break
+				}
+			}
+			if !isErrorRule {
+				trimmedRules = append(trimmedRules, curRule)
+			}
+		}
+		trimmedInputProds[rootStr] = trimmedRules
+	}
+
+	for rootStr, trimmedRules := range trimmedInputProds {
+		inputProds[rootStr] = trimmedRules
+	}
+
+	return
+}
+
 func (r *RSG) ClassifyEdges(dbmsName string) {
 	// Construct the terminating or nested Productions (Grammar Edges)
 
@@ -374,6 +411,8 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		isCompNode = r.isMySQLCompNode
 	} else if dbmsName == "mysqlSquirrel" {
 		isCompNode = r.isMySQLSquirrelCompNode
+	} else if dbmsName == "cockroachdb" {
+		isCompNode = r.isCockroachDBCompNode
 	} else {
 		// Default placeholder.
 		isCompNode = func(_ string, in string) bool {
@@ -519,6 +558,13 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		// Special handling for the SELECT statement.
 		r.allNormProds["query_primary"] = append(r.allNormProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
 		r.allCompProds["query_primary"] = append(r.allCompProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
+	} else if dbmsName == "cockroachdb" {
+		r.RemoveUnimplementedRule(r.allProds)
+		r.RemoveUnimplementedRule(r.allTermProds)
+		r.RemoveUnimplementedRule(r.allNormProds)
+		r.RemoveUnimplementedRule(r.allCompProds)
+		r.RemoveUnimplementedRule(r.allCompNonRecursiveProds)
+		r.RemoveUnimplementedRule(r.allCompRecursiveProds)
 	}
 
 }
@@ -813,7 +859,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		resStr = r.generatePostgres(root, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {
 		// TODO: Implement replaying mode.
-		resStr = r.generateCockroach(root, depth, rootDepth)
+		resStr = r.generateCockroach(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "mysql" {
 		resStr = r.generateMySQL(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "mysqlSquirrel" {
@@ -3236,97 +3282,114 @@ func (r *RSG) generateMySQLSquirrel(root string, rootPathNode *PathNode, parentH
 	return ret
 }
 
-func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string {
-	// Initialize to an empty slice instead of nil because nil is the signal
-	// that the depth has been exceeded.
-	ret := make([]string, 0)
-	prods := r.allProds[root]
-	if len(prods) == 0 {
-		return []string{root}
-	}
+func (r *RSG) generateCockroach(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
 
-	var prod *yacc.ExpressionNode = nil
-	for idx := 0; idx < 10; idx++ {
-		// Check whether the chosen prod contains unimplemented or error related
-		// rule. If yes, do not choose this path.
+	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
+	replayingMode := false
+	isChooseCompRule := false
+	isFavPathNode := false
 
-		tmpProd := r.MABChooseArm(prods)
-
-		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
-			continue
-		}
-		if strings.Contains(tmpProd.Command, "SKIP DOC") {
-			continue
-		}
-
-		isError := false
-		for _, item := range tmpProd.Items {
-			if item.Value == "error" {
-				isError = true
-				break
-			}
-		}
-		if !isError {
-			prod = tmpProd
-			break
-		}
-
-		continue
-	}
-
-	if prod == nil {
+	if rootPathNode == nil {
+		fmt.Printf("\n\n\nError: rootPathNode is nil. \n\n\n")
+		// Return nil is different from return an empty array.
+		// Return nil represent error.
 		return nil
 	}
 
-	for _, item := range prod.Items {
+	if len(r.allProds[root]) == 0 {
+		// It is indeed possible to have 0 length rules for the CockroachDB parser.
+		// For example:
+		/* alter_unsupported_stmt:
+		  ALTER DOMAIN error
+		  {
+		    return unimplemented(sqllex, "alter domain")
+		  }
+		| ALTER AGGREGATE error
+		  {
+		    return unimplementedWithIssueDetail(sqllex, 74775, "alter aggregate")
+		  }
+		*/
+		return make([]string, 0)
+	}
+
+	// Initialize to an empty slice instead of nil because nil means error.
+	ret := make([]string, 0)
+
+	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d, depth: %d \n\n\n", root, len(r.allProds[root]), depth)
+	var curChosenRule *yacc.ExpressionNode
+	if rootPathNode.ExprProds == nil {
+		// Not in the replaying mode, choose one node using MABChooseARM and proceed.
+		replayingMode = false
+
+		curRuleSet := r.PrioritizeParserRules(root, parentHash, depth)
+
+		curChosenRule = r.MABChooseArm(curRuleSet)
+
+		// Mark the current parent to child rule as triggered.
+		r.MarkEdgeCov(parentHash, curChosenRule.UniqueHash)
+
+		// Check whether all rules in the current root keyword is triggered.
+		// If not all are triggered, set is isFav = true
+		isFavPathNode = r.CheckIsFav(root, parentHash)
+
+		// Check whether the chosen rule is complex rule, i.e., select, expr, nexpr etc.
+		for _, val := range r.allCompProds[root] {
+			if val == curChosenRule {
+				//fmt.Printf("\n\n\nDebugging: Complex rule matched: val: %v, curChosenRule: %v\n\n\n", val.Items, curChosenRule.Items)
+				isChooseCompRule = true
+				break
+			}
+		}
+		rootPathNode.ExprProds = curChosenRule
+		rootPathNode.Children = []*PathNode{}
+	} else {
+		// Replay mode, directly reuse the previous chosen rule.
+		replayingMode = true
+		curChosenRule = rootPathNode.ExprProds
+	}
+
+	if curChosenRule == nil {
+		fmt.Printf("\n\n\nERROR: getting nil curChosenRule. \n\n\n")
+		return nil
+	}
+
+	rootHash := curChosenRule.UniqueHash
+
+	replayExprIdx := 0
+
+	for _, item := range curChosenRule.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
 			v := item.Value[1 : len(item.Value)-1]
 			ret = append(ret, v)
 			continue
 		case yacc.TypToken:
+
 			var v []string
-			switch item.Value {
+			tokenStr := item.Value
+
+			if depth < 0 {
+				if tokenStr == "simple_select" || tokenStr == "select_no_parens" {
+					ret = append(ret, " SELECT 'abc' ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "c_expr" || tokenStr == "a_expr" || tokenStr == "b_expr" {
+					tokenStr = "d_expr"
+				} else if tokenStr == "d_expr" {
+					v = []string{`'string'`}
+					ret = append(ret, v...)
+					continue
+				} else if tokenStr == "table_ref" {
+					v = []string{` v0 `}
+					ret = append(ret, v...)
+					continue
+				}
+			}
+
+			switch tokenStr {
 			case "IDENT":
 				v = []string{"ident"}
-
-				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
-				// to d_expr would cause a lot of syntax errors.
-				/*
-				   //case "a_expr":
-				       //fallthrough
-				   //case "b_expr":
-				       //fallthrough
-				*/
-				// If the recursion reaches specific depth, do not expand on `c_expr`,
-				// directly refer to `d_expr`.
-			case "c_expr":
-				if (rootDepth-3) > 0 &&
-					depth > (rootDepth-3) {
-					v = r.generateCockroach(item.Value, depth-1, rootDepth)
-				} else if depth > 0 {
-					v = r.generateCockroach("d_expr", depth-1, rootDepth)
-				} else {
-					v = []string{`'string'`}
-				}
-
-				if v == nil {
-					v = []string{`'string'`}
-				}
-
-			// If the recursion reaches specific depth, do not expand on `d_expr`,
-			// directly use string literals.
-			case "d_expr":
-				if (rootDepth-5) > 0 &&
-					depth > (rootDepth-5) {
-					v = r.generateCockroach(item.Value, depth-1, rootDepth)
-				} else {
-					v = []string{`'string'`}
-				}
-
-				if v == nil {
-					v = []string{`'string'`}
-				}
 
 			case "SCONST":
 				v = []string{`'string'`}
@@ -3344,13 +3407,56 @@ func (r *RSG) generateCockroach(root string, depth int, rootDepth int) []string 
 				v = []string{"FOR", `'string'`}
 			case "overlay_placing":
 				v = []string{"PLACING", `'string'`}
+			case "error":
+				v = []string{}
 			default:
-				if depth == 0 {
-					return nil
+
+				isFirstUpperCase := false
+				// The only way to get a rune from the string seems to be retrieved from for
+				for _, c := range item.Value {
+					isFirstUpperCase = unicode.IsUpper(c)
+					break
 				}
-				v = r.generateCockroach(item.Value, depth-1, rootDepth)
+
+				if isFirstUpperCase {
+					ret = append(ret, item.Value)
+					continue
+				}
+
+				var newChildPathNode *PathNode
+				if !replayingMode {
+					newChildPathNode = &PathNode{
+						Id:        r.pathId,
+						Parent:    rootPathNode,
+						ExprProds: nil,
+						Children:  []*PathNode{},
+						IsFav:     isFavPathNode,
+						// Debug
+						//ParentStr: root,
+					}
+					r.pathId += 1
+					rootPathNode.Children = append(rootPathNode.Children, newChildPathNode)
+					if isChooseCompRule {
+						// Choosing the complex rules, depth - 1.
+						v = r.generateCockroach(item.Value, newChildPathNode, rootHash, depth-1, rootDepth)
+					} else {
+						// If not choosing the complex rules, depth not decrease.
+						v = r.generateCockroach(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+					}
+				} else {
+					if replayExprIdx >= len(rootPathNode.Children) {
+						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+						return nil
+					}
+					newChildPathNode = rootPathNode.Children[replayExprIdx]
+					replayExprIdx += 1
+					// We won't decrease depth number in replaying mode.
+					v = r.generateCockroach(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+				}
+
 			}
 			if v == nil {
+				fmt.Printf("\n\n\nError: v == nil in the RSG. Root: %s, item: %s\n\n\n", root, item.Value)
 				return nil
 			}
 			ret = append(ret, v...)
