@@ -3,6 +3,7 @@ import utils
 from loguru import logger
 import os
 import shutil
+import subprocess
 
 
 def checkout_and_clean_mysql_repo(hexsha: str):
