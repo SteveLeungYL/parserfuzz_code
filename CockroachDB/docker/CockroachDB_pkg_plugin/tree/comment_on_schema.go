@@ -42,6 +42,7 @@ func (node *CommentOnSchema) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "COMMENT ON SCHEMA "
 
 	schemaNode := &SQLRightIR{
+		NodeHash:    144284,
 		IRType:      TypeIdentifier,
 		DataType:    DataSchemaName,
 		ContextFlag: ContextUse,
@@ -53,6 +54,7 @@ func (node *CommentOnSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 136541,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    schemaNode,
@@ -67,6 +69,7 @@ func (node *CommentOnSchema) LogCurrentNode(depth int) *SQLRightIR {
 		commentStr = *(node.Comment)
 	}
 	commentNode := &SQLRightIR{
+		NodeHash: 261789,
 		IRType:   TypeStringLiteral,
 		DataType: DataLiteral,
 		Prefix:   "",
@@ -77,6 +80,7 @@ func (node *CommentOnSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 182122,
 		IRType:   TypeCommentOnSchema,
 		DataType: DataNone,
 		LNode:    rootIR,

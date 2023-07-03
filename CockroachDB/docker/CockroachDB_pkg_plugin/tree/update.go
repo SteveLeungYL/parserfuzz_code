@@ -70,6 +70,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 	tableNode := node.Table.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 165974,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    withNode,
@@ -85,6 +86,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 	exprsNode := node.Exprs.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 249491,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -100,6 +102,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		fromNode := node.From.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 168207,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -116,6 +119,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		whereNode := node.Where.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 98973,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -131,6 +135,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " "
 		orderByNode := node.OrderBy.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 10253,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -145,6 +150,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " "
 		limitNode := node.Limit.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 206288,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -162,6 +168,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		returnningNode := node.Returning.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 259684,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -196,7 +203,8 @@ func (node *UpdateExprs) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 11648}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -209,6 +217,7 @@ func (node *UpdateExprs) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 189971,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -229,6 +238,7 @@ func (node *UpdateExprs) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 35913,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -284,6 +294,7 @@ func (node *UpdateExpr) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 39977,
 		IRType:   TypeUpdateExpr,
 		DataType: DataNone,
 		LNode:    nameNode,

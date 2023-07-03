@@ -58,6 +58,7 @@ func (node *Discard) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 70054,
 		IRType:   TypeDiscard,
 		DataType: DataNone,
 		Prefix:   prefix,

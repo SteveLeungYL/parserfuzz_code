@@ -129,12 +129,14 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 117445}
 	for i, n := range *node {
 
 		if i == 0 {
 			// Take care of the first two nodes.
 			LNode := &SQLRightIR{
+				NodeHash:    70091,
 				IRType:      TypeIdentifier,
 				DataType:    dataType,
 				ContextFlag: ContextUse,
@@ -149,6 +151,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 			if len(*node) >= 2 {
 				infix = ", "
 				tmpRNode := &SQLRightIR{
+					NodeHash:    200087,
 					IRType:      TypeIdentifier,
 					DataType:    dataType,
 					ContextFlag: ContextUse,
@@ -161,6 +164,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 				RNode = tmpRNode
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 186450,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -179,6 +183,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 			// Right node is the new cmd.
 			LNode := tmpIR
 			RNode := &SQLRightIR{
+				NodeHash:    18594,
 				IRType:      TypeIdentifier,
 				DataType:    dataType,
 				ContextFlag: ContextUse,
@@ -190,6 +195,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 			}
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 99482,
 				IRType:   TypeUnknown,
 				DataType: dataType,
 				LNode:    LNode,
@@ -250,6 +256,7 @@ func (node *ArraySubscript) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 189108,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    beginNode,
@@ -267,6 +274,7 @@ func (node *ArraySubscript) LogCurrentNode(depth int) *SQLRightIR {
 			endNode = node.End.LogCurrentNode(depth + 1)
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 9357,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -352,6 +360,7 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 				idenStr = "*"
 			}
 			curNode := &SQLRightIR{
+				NodeHash:    89816,
 				IRType:      TypeIdentifier,
 				DataType:    DataColumnName,
 				ContextFlag: ContextUse,
@@ -376,6 +385,7 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 				dataFlag = ContextUse
 			}
 			curNode := &SQLRightIR{
+				NodeHash:    80961,
 				IRType:      TypeIdentifier,
 				DataType:    dataType,
 				ContextFlag: dataFlag,
@@ -396,7 +406,8 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 144391}
 	for i, n := range nodeList {
 
 		if i == 0 {
@@ -411,6 +422,7 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (nodeList[1])
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 6235,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -431,6 +443,7 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 256403,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,

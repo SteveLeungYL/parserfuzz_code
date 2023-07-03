@@ -37,6 +37,7 @@ func (node *AlterIndex) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF EXISTS "
 	}
 	tmpNode := &SQLRightIR{
+		NodeHash: 4578,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -51,6 +52,7 @@ func (node *AlterIndex) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.Index.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 90465,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -64,6 +66,7 @@ func (node *AlterIndex) LogCurrentNode(depth int) *SQLRightIR {
 	RNode = node.Cmds.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 250692,
 		IRType:   TypeAlterIndex,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -95,7 +98,8 @@ func (node *AlterIndexCmds) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 228921}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -108,6 +112,7 @@ func (node *AlterIndexCmds) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 222904,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -127,6 +132,7 @@ func (node *AlterIndexCmds) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 62644,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tmpIR,
@@ -173,6 +179,7 @@ func (node *AlterIndexPartitionBy) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.PartitionByIndex.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 218529,
 		IRType:   TypeAlterIndexPartitionBy,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -217,6 +224,7 @@ func (node *AlterIndexVisible) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF EXISTS "
 	}
 	tmpNode := &SQLRightIR{
+		NodeHash: 73559,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -234,6 +242,7 @@ func (node *AlterIndexVisible) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 164110,
 		IRType:   TypeAlterIndexVisible,
 		DataType: DataNone,
 		LNode:    LNode,

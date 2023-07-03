@@ -78,6 +78,7 @@ func (node *UnionClause) LogCurrentNode(depth int) *SQLRightIR {
 	rNode := node.Right.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 57341,
 		IRType:   TypeUnionClause,
 		DataType: DataNone,
 		LNode:    lNode,

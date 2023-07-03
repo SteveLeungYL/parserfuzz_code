@@ -43,6 +43,7 @@ func (node *DropOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 	var pDropBehaviorNode *SQLRightIR
 	if node.DropBehavior != DropDefault {
 		dropBehaviorNode := &SQLRightIR{
+			NodeHash: 180033,
 			IRType:   TypeDropBehavior,
 			DataType: DataNone,
 			Prefix:   node.DropBehavior.String(),
@@ -54,6 +55,7 @@ func (node *DropOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 53849,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    roleNode,

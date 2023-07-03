@@ -39,6 +39,7 @@ func (node *AlterSequence) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 116262,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -50,6 +51,7 @@ func (node *AlterSequence) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	sequenceNameNode := &SQLRightIR{
+		NodeHash:    49364,
 		IRType:      TypeIdentifier,
 		DataType:    DataSequenceName,
 		ContextFlag: ContextUse,
@@ -61,6 +63,7 @@ func (node *AlterSequence) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 201946,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -74,6 +77,7 @@ func (node *AlterSequence) LogCurrentNode(depth int) *SQLRightIR {
 	optionNode := node.Options.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 55591,
 		IRType:   TypeAlterSequence,
 		DataType: DataNone,
 		LNode:    rootIR,

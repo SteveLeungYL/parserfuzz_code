@@ -60,6 +60,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 	tableNode := node.Table.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 44726,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    withNode,
@@ -75,6 +76,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 		whereNode := node.Where.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 132181,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -89,6 +91,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.OrderBy) > 0 {
 		orderByNode := node.OrderBy.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 133171,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -102,6 +105,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Limit != nil {
 		limitNode := node.Limit.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 35934,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -115,6 +119,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 	if HasReturningClause(node.Returning) {
 		returningNode := node.Returning.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 183148,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

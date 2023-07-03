@@ -30,6 +30,7 @@ func (node *AlterType) LogCurrentNode(depth int) *SQLRightIR {
 
 	typeStr := node.Type.String()
 	typeNode := &SQLRightIR{
+		NodeHash:    129603,
 		IRType:      TypeIdentifier,
 		DataType:    DataTypeName,
 		ContextFlag: ContextUse,
@@ -43,6 +44,7 @@ func (node *AlterType) LogCurrentNode(depth int) *SQLRightIR {
 	cmdNode := node.Cmd.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 184733,
 		IRType:   TypeAlterType,
 		DataType: DataNone,
 		LNode:    typeNode,
@@ -113,6 +115,7 @@ func (node *AlterTypeAddValue) LogCurrentNode(depth int) *SQLRightIR {
 		optIfNotExistStr = "IF NOT EXISTS "
 	}
 	ifNotExistsNode := &SQLRightIR{
+		NodeHash: 95424,
 		IRType:   TypeOptIfNotExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -126,6 +129,7 @@ func (node *AlterTypeAddValue) LogCurrentNode(depth int) *SQLRightIR {
 	newValNode := node.NewVal.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 46000,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifNotExistsNode,
@@ -145,6 +149,7 @@ func (node *AlterTypeAddValue) LogCurrentNode(depth int) *SQLRightIR {
 		}
 		existingValNode := node.Placement.ExistingVal.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 198395,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -198,6 +203,7 @@ func (node *AlterTypeRenameValue) LogCurrentNode(depth int) *SQLRightIR {
 	infix := "TO "
 
 	rootIR := &SQLRightIR{
+		NodeHash: 171898,
 		IRType:   TypeAlterTypeRenameValue,
 		DataType: DataNone,
 		LNode:    oldValNode,
@@ -234,6 +240,7 @@ func (node *AlterTypeDropValue) LogCurrentNode(depth int) *SQLRightIR {
 	valNode := node.Val.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 201064,
 		IRType:   TypeAlterTypeDropValue,
 		DataType: DataNone,
 		LNode:    valNode,
@@ -269,6 +276,7 @@ func (node *AlterTypeRename) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := " RENAME TO "
 	newNameStr := node.NewName.String()
 	newnameNode := &SQLRightIR{
+		NodeHash:    176106,
 		IRType:      TypeIdentifier,
 		DataType:    DataTypeName,
 		ContextFlag: ContextReplaceDefine,
@@ -280,6 +288,7 @@ func (node *AlterTypeRename) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 210686,
 		IRType:   TypeAlterTypeRename,
 		DataType: DataNone,
 		LNode:    newnameNode,
@@ -314,6 +323,7 @@ func (node *AlterTypeSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := " SET SCHEMA "
 	schemaNameStr := node.Schema.String()
 	schemaNameNode := &SQLRightIR{
+		NodeHash:    55090,
 		IRType:      TypeIdentifier,
 		DataType:    DataSchemaName,
 		ContextFlag: ContextUse,
@@ -325,6 +335,7 @@ func (node *AlterTypeSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 203042,
 		IRType:   TypeAlterTypeSetSchema,
 		DataType: DataNone,
 		LNode:    schemaNameNode,
@@ -360,6 +371,7 @@ func (node *AlterTypeOwner) LogCurrentNode(depth int) *SQLRightIR {
 	newnameNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 6408,
 		IRType:   TypeAlterTypeOwner,
 		DataType: DataNone,
 		LNode:    newnameNode,

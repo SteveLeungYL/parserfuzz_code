@@ -40,6 +40,7 @@ func (node *Export) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "EXPORT INTO "
 
 	fileFormatNode := &SQLRightIR{
+		NodeHash: 96336,
 		IRType:   TypeFileFormat,
 		DataType: DataNone,
 		Prefix:   node.FileFormat,
@@ -57,6 +58,7 @@ func (node *Export) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 81038,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    fileFormatNode,
@@ -72,6 +74,7 @@ func (node *Export) LogCurrentNode(depth int) *SQLRightIR {
 	fromNode := node.Query.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 87118,
 		IRType:   TypeExport,
 		DataType: DataNone,
 		LNode:    rootIR,

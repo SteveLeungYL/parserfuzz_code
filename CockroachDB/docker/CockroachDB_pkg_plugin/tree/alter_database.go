@@ -31,6 +31,7 @@ func (node *AlterDatabaseOwner) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseOwner) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    163669,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -45,6 +46,7 @@ func (node *AlterDatabaseOwner) LogCurrentNode(depth int) *SQLRightIR {
 
 	RNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 	rootIR := &SQLRightIR{
+		NodeHash: 203649,
 		IRType:   TypeAlterDatabaseOwner,
 		DataType: DataNone,
 		LNode:    tmpNode,
@@ -82,6 +84,7 @@ func (node *AlterDatabaseAddRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    241621,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -98,6 +101,7 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF NOT EXISTS "
 	}
 	tmpNode = &SQLRightIR{
+		NodeHash: 70565,
 		IRType:   TypeOptIfNotExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -110,6 +114,7 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 40309,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -121,6 +126,7 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    254416,
 		IRType:      TypeIdentifier,
 		DataType:    DataRegionName,
 		ContextFlag: ContextDefine,
@@ -133,6 +139,7 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode = tmpNode
 
 	rootIR = &SQLRightIR{
+		NodeHash: 88705,
 		IRType:   TypeAlterDatabaseAddRegion,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -170,6 +177,7 @@ func (node *AlterDatabaseDropRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    62716,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -186,6 +194,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF EXISTS "
 	}
 	tmpRNode := &SQLRightIR{
+		NodeHash: 232031,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		Prefix:   tmpStr,
@@ -196,6 +205,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpRNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 49059,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -207,6 +217,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    21835,
 		IRType:      TypeIdentifier,
 		DataType:    DataRegionName,
 		ContextFlag: ContextUndefine,
@@ -219,6 +230,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode = tmpNode
 
 	rootIR = &SQLRightIR{
+		NodeHash: 237379,
 		IRType:   TypeAlterDatabaseDropRegion,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -252,6 +264,7 @@ func (node *AlterDatabasePrimaryRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabasePrimaryRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    165426,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -264,6 +277,7 @@ func (node *AlterDatabasePrimaryRegion) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    103728,
 		IRType:      TypeIdentifier,
 		DataType:    DataRegionName,
 		ContextFlag: ContextUse,
@@ -276,6 +290,7 @@ func (node *AlterDatabasePrimaryRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 245635,
 		IRType:   TypeAlterChangeFeed,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -309,6 +324,7 @@ func (node *AlterDatabaseSurvivalGoal) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseSurvivalGoal) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    75647,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -323,6 +339,7 @@ func (node *AlterDatabaseSurvivalGoal) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.SurvivalGoal.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 97774,
 		IRType:   TypeAlterDatabaseSurvivalGoal,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -356,6 +373,7 @@ func (node *AlterDatabasePlacement) Format(ctx *FmtCtx) {
 func (node *AlterDatabasePlacement) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    256705,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -370,6 +388,7 @@ func (node *AlterDatabasePlacement) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.Placement.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 17684,
 		IRType:   TypeAlterDatabasePlacement,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -412,6 +431,7 @@ func (node *AlterDatabaseAddSuperRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    22720,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -424,6 +444,7 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    66584,
 		IRType:      TypeIdentifier,
 		DataType:    DataSuperRegion,
 		ContextFlag: ContextUse,
@@ -436,6 +457,7 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 261229,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -449,6 +471,7 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 	for i, n := range node.Regions {
 
 		tmpNode = &SQLRightIR{
+			NodeHash:    138100,
 			IRType:      TypeIdentifier,
 			DataType:    DataRegionName,
 			ContextFlag: ContextUse,
@@ -465,6 +488,7 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 			infix = ", "
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 176900,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -502,6 +526,7 @@ func (node *AlterDatabaseDropSuperRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseDropSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    134134,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -514,6 +539,7 @@ func (node *AlterDatabaseDropSuperRegion) LogCurrentNode(depth int) *SQLRightIR 
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    179787,
 		IRType:      TypeIdentifier,
 		DataType:    DataSuperRegion,
 		ContextFlag: ContextUse,
@@ -526,6 +552,7 @@ func (node *AlterDatabaseDropSuperRegion) LogCurrentNode(depth int) *SQLRightIR 
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 174166,
 		IRType:   TypeAlterDatabaseDropSuperRegion,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -568,6 +595,7 @@ func (node *AlterDatabaseAlterSuperRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    208037,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -580,6 +608,7 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    194885,
 		IRType:      TypeIdentifier,
 		DataType:    DataSuperRegion,
 		ContextFlag: ContextUse,
@@ -592,6 +621,7 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 138855,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -605,6 +635,7 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 	for i, n := range node.Regions {
 
 		tmpNode = &SQLRightIR{
+			NodeHash:    95238,
 			IRType:      TypeIdentifier,
 			DataType:    DataRegionName,
 			ContextFlag: ContextUse,
@@ -621,6 +652,7 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 			infix = ", "
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 152244,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -659,6 +691,7 @@ func (node *AlterDatabaseSecondaryRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseSecondaryRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    164355,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -671,6 +704,7 @@ func (node *AlterDatabaseSecondaryRegion) LogCurrentNode(depth int) *SQLRightIR 
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    123880,
 		IRType:      TypeIdentifier,
 		DataType:    DataRegionName,
 		ContextFlag: ContextUse,
@@ -683,6 +717,7 @@ func (node *AlterDatabaseSecondaryRegion) LogCurrentNode(depth int) *SQLRightIR 
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 233079,
 		IRType:   TypeAlterDatabaseSecondaryRegion,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -719,6 +754,7 @@ func (node *AlterDatabaseDropSecondaryRegion) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseDropSecondaryRegion) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    250543,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -735,6 +771,7 @@ func (node *AlterDatabaseDropSecondaryRegion) LogCurrentNode(depth int) *SQLRigh
 		tmpStr = "IF EXISTS "
 	}
 	tmpNode = &SQLRightIR{
+		NodeHash: 208874,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		Prefix:   tmpStr,
@@ -745,6 +782,7 @@ func (node *AlterDatabaseDropSecondaryRegion) LogCurrentNode(depth int) *SQLRigh
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 44179,
 		IRType:   TypeAlterDatabaseDropSecondaryRegion,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -797,6 +835,7 @@ func (node *AlterDatabaseSetZoneConfigExtension) Format(ctx *FmtCtx) {
 func (node *AlterDatabaseSetZoneConfigExtension) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    110075,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -818,6 +857,7 @@ func (node *AlterDatabaseSetZoneConfigExtension) LogCurrentNode(depth int) *SQLR
 		if node.RegionName != "" {
 			infix = " IN "
 			tmpNode = &SQLRightIR{
+				NodeHash:    57993,
 				IRType:      TypeIdentifier,
 				DataType:    DataRegionName,
 				ContextFlag: ContextUnknown,
@@ -834,6 +874,7 @@ func (node *AlterDatabaseSetZoneConfigExtension) LogCurrentNode(depth int) *SQLR
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 222717,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -847,6 +888,7 @@ func (node *AlterDatabaseSetZoneConfigExtension) LogCurrentNode(depth int) *SQLR
 	RNode = node.ZoneConfigSettings.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 14200,
 		IRType:   TypeAlterDatabaseSetZoneConfigExtension,
 		DataType: DataNone,
 		LNode:    rootIR,

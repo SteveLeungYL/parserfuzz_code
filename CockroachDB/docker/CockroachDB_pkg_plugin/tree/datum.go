@@ -519,6 +519,7 @@ func (node *DBool) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := strconv.FormatBool(bool(*node))
 
 	rootIR := &SQLRightIR{
+		NodeHash: 41257,
 		IRType:   TypeDBool,
 		DataType: DataLiteral,
 		Prefix:   prefix,
@@ -698,6 +699,7 @@ func (d *DBitArray) Format(ctx *FmtCtx) {
 func (node *DBitArray) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     23677,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIBIT,
@@ -876,6 +878,7 @@ func (node *DInt) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash:     252795,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
@@ -1069,6 +1072,7 @@ func (d *DFloat) Format(ctx *FmtCtx) {
 func (node *DFloat) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     69810,
 		IRType:       TypeFloatLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIFLOAT,
@@ -1270,6 +1274,7 @@ func (node *DDecimal) LogCurrentNode(depth int) *SQLRightIR {
 	str_val_ := prefix + node.Decimal.String() + infix
 
 	rootIR := &SQLRightIR{
+		NodeHash:     87528,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIDECIMAL,
@@ -1432,6 +1437,7 @@ func (d *DString) Format(ctx *FmtCtx) {
 func (node *DString) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     49020,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFISTRING,
@@ -1528,6 +1534,7 @@ func (node *DCollatedString) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := node.Contents + " COLLATE " + node.Locale
 
 	rootIR := &SQLRightIR{
+		NodeHash: 216564,
 		IRType:   TypeDCollatedString,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1739,6 +1746,7 @@ func (d *DBytes) Format(ctx *FmtCtx) {
 func (node *DBytes) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     57468,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIBYTES,
@@ -1828,6 +1836,7 @@ func (d *DEncodedKey) Format(ctx *FmtCtx) {
 func (node *DEncodedKey) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     16133,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIUNKNOWN, // TODO:: FIXME:: Doesn't know what the affinity should be.
@@ -1974,6 +1983,7 @@ func (d *DUuid) Format(ctx *FmtCtx) {
 func (node *DUuid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     15851,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIUUID,
@@ -2163,6 +2173,7 @@ func (d *DIPAddr) Format(ctx *FmtCtx) {
 func (node *DIPAddr) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     205876,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINET,
@@ -2441,6 +2452,7 @@ func FormatDate(d pgdate.Date, ctx *FmtCtx) {
 func (node *DDate) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     225537,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIDATE,
@@ -2587,6 +2599,7 @@ func (d *DTime) Format(ctx *FmtCtx) {
 func (node *DTime) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     129042,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFITIME,
@@ -2780,6 +2793,7 @@ func (d *DTimeTZ) Format(ctx *FmtCtx) {
 func (node *DTimeTZ) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     224306,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFITIMETZ,
@@ -3096,6 +3110,7 @@ func (d *DTimestamp) Format(ctx *FmtCtx) {
 func (node *DTimestamp) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     201069,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFITIMESTAMP,
@@ -3297,6 +3312,7 @@ func (d *DTimestampTZ) Format(ctx *FmtCtx) {
 func (node *DTimestampTZ) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     85055,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFITIMESTAMPTZ,
@@ -3548,6 +3564,7 @@ func (d *DInterval) Format(ctx *FmtCtx) {
 func (node *DInterval) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     218032,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINTERVAL,
@@ -3687,6 +3704,7 @@ func (d *DGeography) Format(ctx *FmtCtx) {
 func (node *DGeography) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     147712,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIGEOGRAPHY,
@@ -3826,6 +3844,7 @@ func (d *DGeometry) Format(ctx *FmtCtx) {
 func (node *DGeometry) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     224943,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIGEOMETRY,
@@ -3965,6 +3984,7 @@ func (d *DBox2D) Format(ctx *FmtCtx) {
 func (node *DBox2D) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     173887,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIBOX2D,
@@ -4213,6 +4233,7 @@ func (d *DJSON) Format(ctx *FmtCtx) {
 func (node *DJSON) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     54644,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIJSONB,
@@ -4539,6 +4560,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 				nullType := tupleContents[i]
 				infix := "::"
 				typeNode := &SQLRightIR{
+					NodeHash:    176524,
 					IRType:      TypeIdentifier,
 					DataType:    DataTypeName,
 					ContextFlag: ContextUndefine,
@@ -4549,6 +4571,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 					Str:         nullType.SQLString(),
 				}
 				tmpDatumNode := &SQLRightIR{
+					NodeHash: 64776,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    datumNode,
@@ -4576,6 +4599,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (datumList)[1]
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 259303,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -4596,6 +4620,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n
 
 			rootIR = &SQLRightIR{
+				NodeHash: 220801,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -4631,6 +4656,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 		for i := range typ.TupleLabels() {
 			nameStr := (*Name)(&typ.TupleLabels()[i]).String()
 			nameNode := &SQLRightIR{
+				NodeHash:    125412,
 				IRType:      TypeIdentifier,
 				DataType:    DataUnknownType, // TODO: FIXME: Data type unknown.
 				ContextFlag: ContextUnknown,
@@ -4654,6 +4680,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 					RNode = nameList[1]
 				}
 				finalNameNode = &SQLRightIR{
+					NodeHash: 64446,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -4674,6 +4701,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 				RNode := n
 
 				finalNameNode = &SQLRightIR{
+					NodeHash: 110708,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -4687,6 +4715,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 82483,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -4886,6 +4915,7 @@ func (node dNull) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "NULL"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 76576,
 		IRType:   TypedNull,
 		DataType: DataLiteral,
 		Prefix:   prefix,
@@ -5128,6 +5158,7 @@ func (node DArray) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (node.Array)[1].LogCurrentNode(depth + 1)
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 89934,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -5148,6 +5179,7 @@ func (node DArray) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 141033,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -5314,6 +5346,7 @@ func (d *DVoid) Format(ctx *FmtCtx) {
 func (node *DVoid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     103762,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIVOID,
@@ -5784,6 +5817,7 @@ func (d *DOid) Format(ctx *FmtCtx) {
 func (node *DOid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     100771,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIOID,
@@ -5978,6 +6012,7 @@ func (d *DOidWrapper) Format(ctx *FmtCtx) {
 func (node *DOidWrapper) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:     67071,
 		IRType:       TypeStringLiteral, // TODO: FIXME: Unsure
 		DataType:     DataLiteral,
 		DataAffinity: AFFIOIDWRAPPER,

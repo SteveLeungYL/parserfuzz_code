@@ -44,6 +44,7 @@ func (node *StreamIngestion) LogCurrentNode(depth int) *SQLRightIR {
 	fromNode := node.From.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 140550,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    targetNode,
@@ -60,6 +61,7 @@ func (node *StreamIngestion) LogCurrentNode(depth int) *SQLRightIR {
 		asNode := node.AsTenant.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 201170,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

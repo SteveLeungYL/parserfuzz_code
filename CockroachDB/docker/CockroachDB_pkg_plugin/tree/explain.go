@@ -172,6 +172,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 	var explainMode *SQLRightIR
 	if node.Mode != ExplainPlan {
 		explainMode = &SQLRightIR{
+			NodeHash: 130692,
 			IRType:   TypeExplainMode,
 			DataType: DataNone,
 			Prefix:   node.Mode.String(),
@@ -185,6 +186,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 3365,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    explainMode,
@@ -197,6 +199,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 	for f := ExplainFlag(1); f <= numExplainFlags; f++ {
 		if node.Flags[f] {
 			explainFlagNode := &SQLRightIR{
+				NodeHash: 144847,
 				IRType:   TypeExplainFlag,
 				DataType: DataNone,
 				Prefix:   f.String(),
@@ -205,6 +208,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:    depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 43522,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -226,6 +230,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 68838,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -290,6 +295,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 	var explainMode *SQLRightIR
 	if node.Mode != ExplainPlan {
 		explainMode = &SQLRightIR{
+			NodeHash: 52129,
 			IRType:   TypeExplainMode,
 			DataType: DataNone,
 			Prefix:   node.Mode.String(),
@@ -303,6 +309,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 245399,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    explainMode,
@@ -315,6 +322,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 	for f := ExplainFlag(1); f <= numExplainFlags; f++ {
 		if node.Flags[f] {
 			explainFlagNode := &SQLRightIR{
+				NodeHash: 195662,
 				IRType:   TypeExplainFlag,
 				DataType: DataNone,
 				Prefix:   f.String(),
@@ -323,6 +331,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:    depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 195735,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -344,6 +353,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 18903,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,

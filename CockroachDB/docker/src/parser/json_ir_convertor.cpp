@@ -27,6 +27,7 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
   int i_val = 0;
   unsigned long u_val = 0;
   double f_val = 0.0;
+  unsigned int node_hash = 0;
 
   // special iterator member functions for objects
   for (json::iterator it = curJsonNode.begin(); it != curJsonNode.end(); ++it) {
@@ -77,6 +78,9 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
     } else if (it.key() == "FValue") {
       f_val = it.value();
       continue;
+    } else if (it.key() == "NodeHash") {
+      node_hash = it.value();
+      continue;
     } else {
       // pass and ignored.
       continue;
@@ -115,6 +119,10 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
     curRootIR->set_data_type(datatype);
     curRootIR->set_data_flag(dataflag);
     curRootIR->set_str_val(str);
+  }
+
+  if (node_hash != 0) {
+    curRootIR->set_node_hash(node_hash);
   }
 
   return curRootIR;

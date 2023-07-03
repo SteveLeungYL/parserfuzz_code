@@ -61,6 +61,7 @@ func (node *ControlJobs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 226446,
 		IRType:   TypeControlJobs,
 		DataType: DataNone,
 		LNode:    jobsNode,
@@ -99,6 +100,7 @@ func (node *CancelQueries) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 113959,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -112,6 +114,7 @@ func (node *CancelQueries) LogCurrentNode(depth int) *SQLRightIR {
 	queriesNode := node.Queries.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 232263,
 		IRType:   TypeCancelQueries,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -150,6 +153,7 @@ func (node *CancelSessions) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 65848,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -163,6 +167,7 @@ func (node *CancelSessions) LogCurrentNode(depth int) *SQLRightIR {
 	queriesNode := node.Sessions.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 213526,
 		IRType:   TypeCancelSessions,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -223,6 +228,7 @@ func (node *ControlSchedules) LogCurrentNode(depth int) *SQLRightIR {
 	scheduleNode := node.Schedules.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 237260,
 		IRType:   TypeControlSchedules,
 		DataType: DataNone,
 		LNode:    scheduleNode,
@@ -264,6 +270,7 @@ func (node *ControlJobsOfType) LogCurrentNode(depth int) *SQLRightIR {
 	prefix += " ALL "
 
 	typeNode := &SQLRightIR{
+		NodeHash:    259296,
 		IRType:      TypeIdentifier,
 		DataType:    DataTypeName,
 		ContextFlag: ContextUse,
@@ -277,6 +284,7 @@ func (node *ControlJobsOfType) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " JOBS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 122770,
 		IRType:   TypeControlJobsOfType,
 		DataType: DataNone,
 		LNode:    typeNode,
@@ -305,6 +313,7 @@ func (node *ControlJobsForSchedules) LogCurrentNode(depth int) *SQLRightIR {
 	schedulesNode := node.Schedules.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 199412,
 		IRType:   TypeControlJobsForSchedules,
 		DataType: DataNone,
 		LNode:    schedulesNode,

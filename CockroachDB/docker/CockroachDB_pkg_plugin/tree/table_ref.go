@@ -57,6 +57,7 @@ func (n *TableRef) Format(ctx *FmtCtx) {
 
 func (node *TableRef) LogCurrentNodeHelper(depth int, tableID int64) *SQLRightIR {
 	tableNode := &SQLRightIR{
+		NodeHash:     50896,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
@@ -75,6 +76,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 
 	prefix := "["
 	tableIDNode := &SQLRightIR{
+		NodeHash:     167616,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral, // TODO: FIXME: Data type unknown.
 		DataAffinity: AFFIINT,
@@ -97,6 +99,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 					RNode = node.LogCurrentNodeHelper(depth+1, int64((node.Columns)[1]))
 				}
 				tmpIR = &SQLRightIR{
+					NodeHash: 240946,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -118,6 +121,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 				RNode := node.LogCurrentNodeHelper(depth+1, int64(n))
 
 				tmpIR = &SQLRightIR{
+					NodeHash: 11895,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -133,6 +137,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 202610,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    tableIDNode,
@@ -149,6 +154,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 		asNode := node.As.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 141734,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

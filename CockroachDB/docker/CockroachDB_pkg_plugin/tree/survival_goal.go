@@ -54,6 +54,7 @@ func (node *SurvivalGoal) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 49383,
 		IRType:   TypeSurvivalGoal,
 		DataType: DataNone,
 		//LNode:    LNode,

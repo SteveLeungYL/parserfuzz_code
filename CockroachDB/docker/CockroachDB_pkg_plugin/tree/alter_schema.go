@@ -32,6 +32,7 @@ func (node *AlterSchema) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.Cmd.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 81881,
 		IRType:   TypeAlterSchema,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -69,6 +70,7 @@ func (node *AlterSchemaRename) Format(ctx *FmtCtx) {
 func (node *AlterSchemaRename) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    159640,
 		IRType:      TypeIdentifier,
 		DataType:    DataSchemaName,
 		ContextFlag: ContextDefine,
@@ -81,6 +83,7 @@ func (node *AlterSchemaRename) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 79682,
 		IRType:   TypeAlterSchemaRename,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -112,6 +115,7 @@ func (node *AlterSchemaOwner) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 167534,
 		IRType:   TypeAlterSchemaOwner,
 		DataType: DataNone,
 		LNode:    LNode,

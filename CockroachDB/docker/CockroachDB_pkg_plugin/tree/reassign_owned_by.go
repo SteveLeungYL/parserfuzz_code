@@ -48,6 +48,7 @@ func (node *ReassignOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (node.OldRoles)[1].LogCurrentNode(depth+1, ContextUse)
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 60167,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -68,6 +69,7 @@ func (node *ReassignOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth+1, ContextUse)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 69603,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -83,6 +85,7 @@ func (node *ReassignOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 	newRoleNode := node.NewRole.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 171710,
 		IRType:   TypeReassignOwnedBy,
 		DataType: DataNone,
 		LNode:    rootIR,

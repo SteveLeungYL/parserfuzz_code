@@ -42,6 +42,7 @@ func (node *ReturningExprs) LogCurrentNode(depth int) *SQLRightIR {
 	selectStmt := (*SelectExprs)(node).LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 9383,
 		IRType:   TypeReturningExprs,
 		DataType: DataNone,
 		LNode:    selectStmt,
@@ -71,6 +72,7 @@ func (node *ReturningNothing) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "RETURNING NOTHING"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 76606,
 		IRType:   TypeReturningNothing,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -96,6 +98,7 @@ func (*NoReturningClause) Format(_ *FmtCtx) {}
 func (node *NoReturningClause) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash: 54589,
 		IRType:   TypeNoReturningClause,
 		DataType: DataNone,
 		Prefix:   "",

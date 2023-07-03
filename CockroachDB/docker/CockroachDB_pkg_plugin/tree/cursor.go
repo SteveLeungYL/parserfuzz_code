@@ -52,6 +52,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "DECLARE "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    163785,
 		IRType:      TypeIdentifier,
 		DataType:    DataCursorName,
 		ContextFlag: ContextDefine,
@@ -67,6 +68,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	var optBinaryNode *SQLRightIR
 	if node.Binary {
 		optBinaryNode = &SQLRightIR{
+			NodeHash: 109967,
 			IRType:   TypeOptBinary,
 			DataType: DataNone,
 			Prefix:   "BINARY ",
@@ -76,6 +78,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		optBinaryNode = &SQLRightIR{
+			NodeHash: 148486,
 			IRType:   TypeOptBinary,
 			DataType: DataNone,
 			Prefix:   "",
@@ -86,6 +89,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 248525,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -102,6 +106,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Sensitivity != UnspecifiedSensitivity {
 		prefix = node.Sensitivity.String() + " "
 		optSensitivity = &SQLRightIR{
+			NodeHash: 255141,
 			IRType:   TypeOptSensitivity,
 			DataType: DataNone,
 			Prefix:   prefix,
@@ -111,6 +116,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		optSensitivity = &SQLRightIR{
+			NodeHash: 203349,
 			IRType:   TypeOptSensitivity,
 			DataType: DataNone,
 			Prefix:   "",
@@ -121,6 +127,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 136674,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -134,6 +141,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	var optScrollNode *SQLRightIR
 	if node.Scroll != UnspecifiedScroll {
 		optScrollNode = &SQLRightIR{
+			NodeHash: 220854,
 			IRType:   TypeOptScroll,
 			DataType: DataNone,
 			Prefix:   node.Scroll.String(),
@@ -142,6 +150,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 18027,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -153,6 +162,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		optScrollNode = &SQLRightIR{
+			NodeHash: 71513,
 			IRType:   TypeOptScroll,
 			DataType: DataNone,
 			Prefix:   "",
@@ -161,6 +171,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 187581,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -181,6 +192,7 @@ func (node *DeclareCursor) LogCurrentNode(depth int) *SQLRightIR {
 	selectNode := node.Select.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 123869,
 		IRType:   TypeDeclareCursor,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -344,6 +356,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	fetchTypeStr := node.FetchType.String()
 
 	fetchTypeNode := &SQLRightIR{
+		NodeHash: 154656,
 		IRType:   TypeOptFetchType,
 		DataType: DataNone,
 		Prefix:   fetchTypeStr, // Could be empty string
@@ -356,6 +369,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	if node.FetchType.HasCount() {
 
 		intLiteral := &SQLRightIR{
+			NodeHash:     116231,
 			IRType:       TypeIntegerLiteral,
 			DataType:     DataLiteral,
 			DataAffinity: AFFIINT,
@@ -366,6 +380,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 			IValue:       node.Count,
 		}
 		countNode = &SQLRightIR{
+			NodeHash: 10790,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    intLiteral,
@@ -375,6 +390,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 63898,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    fetchTypeNode,
@@ -386,6 +402,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	nameNode := &SQLRightIR{
+		NodeHash:    97931,
 		IRType:      TypeIdentifier,
 		DataType:    DataCursorName,
 		ContextFlag: ContextUse,
@@ -397,6 +414,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 80339,
 		IRType:   TypeCursorStmt,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -424,6 +442,7 @@ func (node *FetchCursor) LogCurrentNode(depth int) *SQLRightIR {
 	cursorStmt := node.CursorStmt.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 99380,
 		IRType:   TypeFetchCursor,
 		DataType: DataNone,
 		LNode:    cursorStmt,
@@ -450,6 +469,7 @@ func (node *MoveCursor) LogCurrentNode(depth int) *SQLRightIR {
 	cursorStmt := node.CursorStmt.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 111075,
 		IRType:   TypeMoveCursor,
 		DataType: DataNone,
 		LNode:    cursorStmt,
@@ -488,6 +508,7 @@ func (node *CloseCursor) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "ALL"
 	} else {
 		tmpNameNode := &SQLRightIR{
+			NodeHash:    148495,
 			IRType:      TypeIdentifier,
 			DataType:    DataCursorName,
 			ContextFlag: ContextUndefine,
@@ -501,6 +522,7 @@ func (node *CloseCursor) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 131911,
 		IRType:   TypeCloseCursor,
 		DataType: DataNone,
 		LNode:    nameNode,

@@ -76,6 +76,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 		// root node with FOR ALL ROLES.
 		prefix = "FOR ALL ROLES "
 		rootNode = &SQLRightIR{
+			NodeHash: 212814,
 			IRType:   TypeOptForRole,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -91,6 +92,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 		LNode = node.Roles.LogCurrentNode(depth+1, ContextUse)
 
 		rootNode = &SQLRightIR{
+			NodeHash: 230723,
 			IRType:   TypeOptForRole,
 			DataType: DataNone,
 			LNode:    LNode,
@@ -104,6 +106,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		// Empty root node.
 		rootNode = &SQLRightIR{
+			NodeHash: 171245,
 			IRType:   TypeOptForRole,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -126,6 +129,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootNode = &SQLRightIR{
+		NodeHash: 26396,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    roleNode,
@@ -144,6 +148,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootNode = &SQLRightIR{
+		NodeHash: 141887,
 		IRType:   TypeAlterDefaultPrivileges,
 		DataType: DataNone,
 		LNode:    rootNode,
@@ -215,6 +220,7 @@ func (node *AbbreviatedGrant) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode := &SQLRightIR{
+		NodeHash: 63067,
 		IRType:   TypeGrantTarget,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -235,6 +241,7 @@ func (node *AbbreviatedGrant) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 219925,
 		IRType:   TypeAbbreviatedGrant,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -312,6 +319,7 @@ func (node *AbbreviatedRevoke) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode := &SQLRightIR{
+		NodeHash: 60551,
 		IRType:   TypeGrantTarget,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -327,6 +335,7 @@ func (node *AbbreviatedRevoke) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.Grantees.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 163368,
 		IRType:   TypeAbbreviatedRevoke,
 		DataType: DataNone,
 		LNode:    LNode,

@@ -37,6 +37,7 @@ func (node *AlterTenantSetClusterSetting) LogCurrentNode(depth int) *SQLRightIR 
 	var tenantNode *SQLRightIR
 	if node.TenantAll {
 		tmpNode := &SQLRightIR{
+			NodeHash: 126198,
 			IRType:   TypeTenantAllOrID,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -56,6 +57,7 @@ func (node *AlterTenantSetClusterSetting) LogCurrentNode(depth int) *SQLRightIR 
 	setClusterNode := node.SetClusterSetting.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 196595,
 		IRType:   TypeAlterTenantSetClusterSetting,
 		DataType: DataNone,
 		LNode:    tenantNode,
@@ -90,6 +92,7 @@ func (node *ShowTenantClusterSetting) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.TenantID.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 226276,
 		IRType:   TypeShowTenantClusterSetting,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -124,6 +127,7 @@ func (node *ShowTenantClusterSettingList) LogCurrentNode(depth int) *SQLRightIR 
 	RNode := node.TenantID.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 85410,
 		IRType:   TypeShowTenantClusterSettingList,
 		DataType: DataNone,
 		LNode:    LNode,

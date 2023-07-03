@@ -53,6 +53,7 @@ func (node *Truncate) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " "
 
 		tmpDropBehaviorNode := &SQLRightIR{
+			NodeHash: 80463,
 			IRType:   TypeDropBehavior,
 			DataType: DataNone,
 			Prefix:   node.DropBehavior.String(),
@@ -65,6 +66,7 @@ func (node *Truncate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 133173,
 		IRType:   TypeTruncate,
 		DataType: DataNone,
 		LNode:    tablesNode,

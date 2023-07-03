@@ -62,6 +62,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 	tableNode := node.Table.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 202087,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -77,6 +78,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 		columnNode := node.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 110886,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -92,6 +94,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 	var optStdin *SQLRightIR
 	if node.Stdin {
 		optStdin = &SQLRightIR{
+			NodeHash: 127794,
 			IRType:   TypeOptStdin,
 			DataType: DataNone,
 			Prefix:   "STDIN",
@@ -101,6 +104,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		optStdin = &SQLRightIR{
+			NodeHash: 57065,
 			IRType:   TypeOptStdin,
 			DataType: DataNone,
 			Prefix:   "",
@@ -111,6 +115,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 150335,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -129,6 +134,7 @@ func (node *CopyFrom) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 45112,
 		IRType:   TypeCopyFrom,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -208,6 +214,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		tmpCopy := &SQLRightIR{
+			NodeHash: 165298,
 			IRType:   TypeCopyFormat,
 			DataType: DataNone,
 			Prefix:   copyFormatStr,
@@ -220,6 +227,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 133888,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    copyFormatNode,
@@ -235,6 +243,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		delimiterNode := node.Delimiter.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 104086,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -253,6 +262,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		nullNode := node.Null.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 58323,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -271,6 +281,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		destinationNode := node.Destination.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 34647,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -289,6 +300,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		escapeNode := node.Destination.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 245785,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -305,6 +317,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		tmpInfix := infix + "HEADER "
 
 		rootIR = &SQLRightIR{
+			NodeHash: 158048,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

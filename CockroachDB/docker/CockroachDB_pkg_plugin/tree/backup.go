@@ -125,6 +125,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " "
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 214811,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pTargetsNode,
@@ -140,6 +141,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 		if node.Subdir != nil {
 			pSubdirNode := node.Subdir.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 65146,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -151,6 +153,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 			}
 		} else if node.AppendToLatest {
 			rootIR = &SQLRightIR{
+				NodeHash: 146160,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -163,6 +166,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		rootIR = &SQLRightIR{
+			NodeHash: 15208,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -175,6 +179,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 	}
 	pToNode := node.To.LogCurrentNode(depth + 1)
 	rootIR = &SQLRightIR{
+		NodeHash: 248783,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -188,6 +193,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 	if node.AsOf.Expr != nil {
 		pAsExprNode := node.AsOf.Expr.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 60944,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -202,6 +208,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 	if node.IncrementalFrom != nil {
 		pIncrementalFrom := node.IncrementalFrom.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 48224,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -216,6 +223,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 	if !node.Options.IsDefault() {
 		pOptionsNode := node.Options.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 182511,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -325,6 +333,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 81583,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pTargetNode,
@@ -341,6 +350,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 		subdirNode := node.Subdir.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 113133,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -360,6 +370,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 			infix = ", "
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 135492,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -374,6 +385,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 	if node.AsOf.Expr != nil {
 		pAsOfNode := node.AsOf.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 6838,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -388,6 +400,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 	if !node.Options.IsDefault() {
 		pOptionNode := node.Options.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 202420,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -415,6 +428,7 @@ type KVOption struct {
 func (node *KVOption) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    104604,
 		IRType:      TypeIdentifier,
 		DataType:    node.DataType,
 		ContextFlag: ContextUnknown,
@@ -433,6 +447,7 @@ func (node *KVOption) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " = "
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 226507,
 		IRType:   TypeKVOption,
 		DataType: node.DataType,
 		LNode:    LNode,
@@ -473,7 +488,8 @@ func (node *KVOptions) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 124773}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -486,6 +502,7 @@ func (node *KVOptions) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 52645,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -506,6 +523,7 @@ func (node *KVOptions) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 88855,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -542,7 +560,8 @@ func (node *StringOrPlaceholderOptList) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 242252}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -562,6 +581,7 @@ func (node *StringOrPlaceholderOptList) LogCurrentNode(depth int) *SQLRightIR {
 				suffixStr = ")"
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 256287,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -582,6 +602,7 @@ func (node *StringOrPlaceholderOptList) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 125275,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -663,6 +684,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 155403,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pCaptureNode,
@@ -684,6 +706,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 		passphraseNode := node.EncryptionPassphrase.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 243526,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -705,6 +728,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		detachedNode := &SQLRightIR{
+			NodeHash: 239210,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			//LNode:    ,
@@ -716,6 +740,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 149870,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -738,6 +763,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 		KMSURINode := node.EncryptionKMSURI.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 159055,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -761,6 +787,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 
 		incrementNode := node.IncrementalStorage.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 17725,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -937,6 +964,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 18656,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pEncryptionPassphrase,
@@ -958,6 +986,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		KMSURINode := node.DecryptionKMSURI.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 165175,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -981,6 +1010,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		intoDBNode := node.IntoDB.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 83136,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1005,6 +1035,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		debugNode := node.DebugPauseOn.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 220716,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1027,6 +1058,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "skip_missing_foreign_keys"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 177943,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1049,6 +1081,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "skip_missing_sequence_owners"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 86463,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1071,6 +1104,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "skip_missing_sequences"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 87534,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1093,6 +1127,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "skip_missing_views"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 86491,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1115,6 +1150,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "detached"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 20945,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1138,6 +1174,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "skip_localities_check"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 49479,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1163,6 +1200,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		newDBNode := node.NewDBName.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 239484,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1188,6 +1226,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		incrementNode := node.IncrementalStorage.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 160058,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1213,6 +1252,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		tenantNode := node.AsTenant.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 88470,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1236,6 +1276,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "schema_only"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 47397,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1259,6 +1300,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix += "verify_backup_table_data"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 79346,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1443,6 +1485,7 @@ func (node *BackupTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		databaseNode := node.Databases.LogCurrentNodeWithType(depth+1, DataDatabaseName)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 252712,
 			IRType:   TypeBackupTargetList,
 			DataType: DataNone,
 			LNode:    databaseNode,
@@ -1460,6 +1503,7 @@ func (node *BackupTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Databases.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 233156,
 			IRType:   TypeBackupTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -1475,6 +1519,7 @@ func (node *BackupTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		tenantNode := node.TenantID.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 186008,
 			IRType:   TypeBackupTargetList,
 			DataType: DataNone,
 			LNode:    tenantNode,
@@ -1494,6 +1539,7 @@ func (node *BackupTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		}
 		tablepatNode := node.Tables.TablePatterns.LogCurrentNode(depth + 1)
 		rootIR := &SQLRightIR{
+			NodeHash: 108298,
 			IRType:   TypeBackupTargetList,
 			DataType: DataNone,
 			LNode:    tablepatNode,

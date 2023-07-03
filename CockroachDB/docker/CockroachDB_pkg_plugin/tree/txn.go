@@ -173,6 +173,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 	var optIsolationLevelNode *SQLRightIR
 	if node.Isolation != UnspecifiedIsolation {
 		optIsolationLevelNode = &SQLRightIR{
+			NodeHash: 23704,
 			IRType:   TypeOptIsolationLevel,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -186,6 +187,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 		sep = ", "
 	} else {
 		optIsolationLevelNode = &SQLRightIR{
+			NodeHash: 174932,
 			IRType:   TypeOptIsolationLevel,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -200,6 +202,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 	var pPriorityNode *SQLRightIR
 	if node.UserPriority != UnspecifiedUserPriority {
 		priorityNode := &SQLRightIR{
+			NodeHash: 124176,
 			IRType:   TypeUserPriority,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -219,6 +222,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 		curSep = ", "
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 237721,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    optIsolationLevelNode,
@@ -231,6 +235,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.ReadWriteMode != UnspecifiedReadWriteMode {
 		readNode := &SQLRightIR{
+			NodeHash: 54024,
 			IRType:   TypeReadWriteMode,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -244,6 +249,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 		sep = ","
 
 		rootIR = &SQLRightIR{
+			NodeHash: 168528,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -259,6 +265,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 	if node.AsOf.Expr != nil {
 		asofNode := node.AsOf.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 149528,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -273,6 +280,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.Deferrable != UnspecifiedDeferrableMode {
 		deferNode := &SQLRightIR{
+			NodeHash: 27667,
 			IRType:   TypeDeferrable,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -285,6 +293,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 189093,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -370,6 +379,7 @@ func (node *BeginTransaction) LogCurrentNode(depth int) *SQLRightIR {
 
 	modeNodes := node.Modes.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 12991,
 		IRType:   TypeBeginTransaction,
 		DataType: DataNone,
 		LNode:    modeNodes,
@@ -395,6 +405,7 @@ func (node *CommitTransaction) Format(ctx *FmtCtx) {
 func (node *CommitTransaction) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash: 141532,
 		IRType:   TypeCommitTransaction,
 		DataType: DataNone,
 		//LNode:    modeNodes,
@@ -420,6 +431,7 @@ func (node *RollbackTransaction) Format(ctx *FmtCtx) {
 func (node *RollbackTransaction) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash: 13730,
 		IRType:   TypeRollbackTransaction,
 		DataType: DataNone,
 		//LNode:    modeNodes,
@@ -448,6 +460,7 @@ func (node *Savepoint) Format(ctx *FmtCtx) {
 func (node *Savepoint) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    36010,
 		IRType:      TypeIdentifier,
 		DataType:    DataSavePointName,
 		ContextFlag: ContextDefine,
@@ -459,6 +472,7 @@ func (node *Savepoint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 238439,
 		IRType:   TypeSavepoint,
 		DataType: DataNone,
 		Prefix:   "SAVEPOINT ",
@@ -486,6 +500,7 @@ func (node *ReleaseSavepoint) Format(ctx *FmtCtx) {
 func (node *ReleaseSavepoint) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    251419,
 		IRType:      TypeIdentifier,
 		DataType:    DataSavePointName,
 		ContextFlag: ContextUndefine,
@@ -497,6 +512,7 @@ func (node *ReleaseSavepoint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 65526,
 		IRType:   TypeReleaseSavepoint,
 		DataType: DataNone,
 		Prefix:   "RELEASE SAVEPOINT ",
@@ -524,6 +540,7 @@ func (node *RollbackToSavepoint) Format(ctx *FmtCtx) {
 func (node *RollbackToSavepoint) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    226977,
 		IRType:      TypeIdentifier,
 		DataType:    DataSavePointName,
 		ContextFlag: ContextUse,
@@ -535,6 +552,7 @@ func (node *RollbackToSavepoint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 112932,
 		IRType:   TypeRollbackToSavepoint,
 		DataType: DataNone,
 		Prefix:   "ROLLBACK TRANSACTION TO SAVEPOINT ",

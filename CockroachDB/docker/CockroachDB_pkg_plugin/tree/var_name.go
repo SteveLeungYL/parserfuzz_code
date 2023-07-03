@@ -59,6 +59,7 @@ func (node UnqualifiedStar) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "*"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 80850,
 		IRType:   TypeUnqualifiedStar,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -124,6 +125,7 @@ func (a *AllColumnsSelector) Format(ctx *FmtCtx) {
 func (node *AllColumnsSelector) LogCurrentNode(depth int) *SQLRightIR {
 
 	tableNameNode := &SQLRightIR{
+		NodeHash:    41905,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -137,6 +139,7 @@ func (node *AllColumnsSelector) LogCurrentNode(depth int) *SQLRightIR {
 	infix := ".*"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 184277,
 		IRType:   TypeAllColumnsSelector,
 		DataType: DataNone,
 		LNode:    tableNameNode,
@@ -195,6 +198,7 @@ func (node *ColumnItem) LogCurrentNode(depth int) *SQLRightIR {
 	var tableNode *SQLRightIR
 	if node.TableName != nil {
 		tmpTableNode := &SQLRightIR{
+			NodeHash:    104146,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -209,6 +213,7 @@ func (node *ColumnItem) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 275,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -219,6 +224,7 @@ func (node *ColumnItem) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	columnNode := &SQLRightIR{
+		NodeHash:    121705,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -230,6 +236,7 @@ func (node *ColumnItem) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 203775,
 		IRType:   TypeColumnItem,
 		DataType: DataNone,
 		LNode:    rootIR,

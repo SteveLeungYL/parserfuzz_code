@@ -56,6 +56,7 @@ func (node *Split) LogCurrentNode(depth int) *SQLRightIR {
 	rowNode := node.Rows.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 147428,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -71,6 +72,7 @@ func (node *Split) LogCurrentNode(depth int) *SQLRightIR {
 		expireNode := node.ExpireExpr.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 132305,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -137,6 +139,7 @@ func (node *Unsplit) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 117768,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -198,6 +201,7 @@ func (node *Relocate) LogCurrentNode(depth int) *SQLRightIR {
 	subjectNode := node.SubjectReplicas.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 181741,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -213,6 +217,7 @@ func (node *Relocate) LogCurrentNode(depth int) *SQLRightIR {
 	rowsNode := node.Rows.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 61312,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -273,6 +278,7 @@ func (node *Scatter) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " SCATTER"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 48399,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -289,6 +295,7 @@ func (node *Scatter) LogCurrentNode(depth int) *SQLRightIR {
 		fromNode := node.From.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 168716,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -306,6 +313,7 @@ func (node *Scatter) LogCurrentNode(depth int) *SQLRightIR {
 		suffix := ")"
 
 		rootIR = &SQLRightIR{
+			NodeHash: 58921,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

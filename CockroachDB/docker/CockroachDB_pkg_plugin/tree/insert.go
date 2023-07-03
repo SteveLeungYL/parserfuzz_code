@@ -98,6 +98,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 	tableNode := node.Table.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 184983,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    withNode,
@@ -114,6 +115,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 		columnNode := node.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 14557,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -128,6 +130,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 	if node.DefaultValues() {
 		tmpInfix := " DEFAULT VALUES"
 		rootIR = &SQLRightIR{
+			NodeHash: 123422,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -141,6 +144,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 		rowNode := node.Rows.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 200014,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -158,6 +162,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 		if node.OnConflict.Constraint != "" {
 			infix += " ON CONSTRAINT "
 			constraintName = &SQLRightIR{
+				NodeHash:    85048,
 				IRType:      TypeIdentifier,
 				DataType:    DataConstraintName,
 				ContextFlag: ContextUse,
@@ -169,6 +174,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 			}
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 135481,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -183,6 +189,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 			suffix := ")"
 			columnNode := node.OnConflict.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 			rootIR = &SQLRightIR{
+				NodeHash: 25037,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -198,6 +205,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 			predicateNode := node.OnConflict.ArbiterPredicate.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 147470,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -212,6 +220,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 			infix = " DO NOTHING"
 
 			rootIR = &SQLRightIR{
+				NodeHash: 197772,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -226,6 +235,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 			exprsNode := node.OnConflict.Exprs.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 170911,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -241,6 +251,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 				whereNode := node.OnConflict.Where.LogCurrentNode(depth + 1)
 
 				rootIR = &SQLRightIR{
+					NodeHash: 119704,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    rootIR,

@@ -54,6 +54,7 @@ func (node *DataPlacement) LogCurrentNode(depth int) *SQLRightIR {
 		panic(errors.AssertionFailedf("unknown data placement strategy: %d", *node))
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 61529,
 		IRType:   TypeDataPlacement,
 		DataType: DataNone,
 		//LNode:    LNode,

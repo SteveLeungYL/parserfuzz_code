@@ -66,6 +66,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 	var rootIR *SQLRightIR
 	if node == nil {
 		rootIR = &SQLRightIR{
+			NodeHash: 252219,
 			IRType:   TypeWith,
 			DataType: DataNone,
 			Prefix:   "",
@@ -82,6 +83,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 		recursiveStr = "RECURSIVE"
 	}
 	optRecursiveNode := &SQLRightIR{
+		NodeHash: 22948,
 		IRType:   TypeOptRecursive,
 		DataType: DataNone,
 		Prefix:   recursiveStr,
@@ -91,6 +93,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 227520,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    optRecursiveNode,
@@ -114,6 +117,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 			materializeStr += "MATERIALIZED "
 		}
 		materializeNode := &SQLRightIR{
+			NodeHash: 228549,
 			IRType:   TypeOptMaterialized,
 			DataType: DataNone,
 			Prefix:   materializeStr,
@@ -123,6 +127,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		cteClusterNode := &SQLRightIR{
+			NodeHash: 121625,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    nameNode,
@@ -136,6 +141,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 		stmtNode := cte.Stmt.LogCurrentNode(depth + 1)
 
 		cteClusterNode = &SQLRightIR{
+			NodeHash: 118858,
 			IRType:   TypeCTECluster,
 			DataType: DataNone,
 			LNode:    cteClusterNode,
@@ -154,6 +160,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 			infix = ", "
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 259037,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

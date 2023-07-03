@@ -81,6 +81,7 @@ func (node *CreateChangefeed) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 176719,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    targetNode,
@@ -96,6 +97,7 @@ func (node *CreateChangefeed) LogCurrentNode(depth int) *SQLRightIR {
 		optionNode := node.Options.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 109258,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -140,6 +142,7 @@ func (node *CreateChangefeed) LogCurrentNodeWithPredicates(depth int) *SQLRightI
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 107688,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    sinkNode,
@@ -154,6 +157,7 @@ func (node *CreateChangefeed) LogCurrentNodeWithPredicates(depth int) *SQLRightI
 		optionNode := node.Options.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 232114,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -169,6 +173,7 @@ func (node *CreateChangefeed) LogCurrentNodeWithPredicates(depth int) *SQLRightI
 	selectNode := node.Select.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 175565,
 		IRType:   TypeCreateChangefeed,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -211,6 +216,7 @@ func (node *ChangefeedTarget) LogCurrentNode(depth int) *SQLRightIR {
 	if node.FamilyName != "" {
 		infix = " FAMILY "
 		tmpFamilyNode := &SQLRightIR{
+			NodeHash:    74481,
 			IRType:      TypeIdentifier,
 			DataType:    DataFamilyName,
 			ContextFlag: ContextUse,
@@ -224,6 +230,7 @@ func (node *ChangefeedTarget) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 86274,
 		IRType:   TypeChangefeedTarget,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -255,7 +262,8 @@ func (node *ChangefeedTargets) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 103765}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -268,6 +276,7 @@ func (node *ChangefeedTargets) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 4057,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -288,6 +297,7 @@ func (node *ChangefeedTargets) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 30748,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,

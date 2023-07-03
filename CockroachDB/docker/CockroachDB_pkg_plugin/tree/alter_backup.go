@@ -42,6 +42,7 @@ func (node *AlterBackup) LogCurrentNode(depth int) *SQLRightIR {
 		LNode := node.Subdir.LogCurrentNode(depth + 1)
 		RNode := node.Backup.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 89349,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    LNode,
@@ -54,6 +55,7 @@ func (node *AlterBackup) LogCurrentNode(depth int) *SQLRightIR {
 
 		RNode = node.Cmds.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 168150,
 			IRType:   TypeAlterBackup,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -70,6 +72,7 @@ func (node *AlterBackup) LogCurrentNode(depth int) *SQLRightIR {
 		LNode := node.Backup.LogCurrentNode(depth + 1)
 		RNode := node.Cmds.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 45506,
 			IRType:   TypeAlterBackup,
 			DataType: DataNone,
 			LNode:    LNode,
@@ -102,7 +105,8 @@ func (node *AlterBackupCmds) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 36157}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -113,6 +117,7 @@ func (node *AlterBackupCmds) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 187690,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -132,6 +137,7 @@ func (node *AlterBackupCmds) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 17610,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tmpIR,
@@ -179,6 +185,7 @@ func (node *AlterBackupKMS) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.KMSInfo.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 169470,
 		IRType:   TypeAlterBackupKMS,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -204,6 +211,7 @@ func (node *BackupKMS) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.NewKMSURI.LogCurrentNode(depth + 1)
 	RNode := node.OldKMSURI.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 187515,
 		IRType:   TypeBackupKMS,
 		DataType: DataNone,
 		LNode:    LNode,

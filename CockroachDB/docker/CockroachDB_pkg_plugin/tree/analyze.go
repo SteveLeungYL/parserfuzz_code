@@ -29,6 +29,7 @@ func (node *Analyze) LogCurrentNode(depth int) *SQLRightIR {
 	tableExprNode := node.Table.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 93771,
 		IRType:   TypeAnalyze,
 		DataType: DataNone,
 		LNode:    tableExprNode,

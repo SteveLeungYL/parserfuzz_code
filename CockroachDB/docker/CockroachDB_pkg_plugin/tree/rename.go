@@ -39,6 +39,7 @@ func (node *RenameDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "ALTER DATABASE "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    221442,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextReplaceUndefine,
@@ -52,6 +53,7 @@ func (node *RenameDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " RENAME TO "
 
 	newNameNode := &SQLRightIR{
+		NodeHash:    102124,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextReplaceDefine,
@@ -63,6 +65,7 @@ func (node *RenameDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 204834,
 		IRType:   TypeRenameDatabase,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -96,6 +99,7 @@ func (node *ReparentDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "ALTER DATABASE "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    38591,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -109,6 +113,7 @@ func (node *ReparentDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " CONVERT TO SCHEMA WITH PARENT "
 
 	newNameNode := &SQLRightIR{
+		NodeHash:    87985,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -120,6 +125,7 @@ func (node *ReparentDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 119808,
 		IRType:   TypeReparentDatabase,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -191,6 +197,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 141806,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		Prefix:   optIfExistStr,
@@ -200,6 +207,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	nameNode := &SQLRightIR{
+		NodeHash:    105647,
 		IRType:      TypeIdentifier,
 		DataType:    dataType,
 		ContextFlag: ContextReplaceUndefine,
@@ -211,6 +219,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 96785,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -222,6 +231,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	newNameNode := &SQLRightIR{
+		NodeHash:    253239,
 		IRType:      TypeIdentifier,
 		DataType:    dataType,
 		ContextFlag: ContextReplaceDefine,
@@ -233,6 +243,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 179535,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -276,6 +287,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 221349,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -287,6 +299,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	indexNameNode := &SQLRightIR{
+		NodeHash:    235005,
 		IRType:      TypeIdentifier,
 		DataType:    DataIndexName,
 		ContextFlag: ContextReplaceUndefine,
@@ -298,6 +311,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 258172,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -311,6 +325,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " RENAME TO "
 
 	newNameNode := &SQLRightIR{
+		NodeHash:    218372,
 		IRType:      TypeIdentifier,
 		DataType:    DataIndexName,
 		ContextFlag: ContextReplaceDefine,
@@ -322,6 +337,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 77283,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -369,6 +385,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 184161,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -382,6 +399,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	tableNameNode := node.Table.LogCurrentNodeWithType(depth+1, DataTableName, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 188791,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -395,6 +413,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " RENAME COLUMN "
 
 	columnName := &SQLRightIR{
+		NodeHash:    69122,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextReplaceUndefine,
@@ -406,6 +425,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 98634,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -417,6 +437,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	newColumnName := &SQLRightIR{
+		NodeHash:    133406,
 		IRType:      TypeIdentifier,
 		DataType:    DataIndexName,
 		ContextFlag: ContextReplaceDefine,
@@ -428,6 +449,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 259409,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,

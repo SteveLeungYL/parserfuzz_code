@@ -48,6 +48,7 @@ func (node *TableName) LogCurrentNode(depth int) *SQLRightIR {
 func (node *TableName) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, flag SQLRightContextFlag) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash:    95386,
 		IRType:      TypeIdentifier,
 		DataType:    dataType,
 		ContextFlag: flag,
@@ -173,7 +174,8 @@ func (node *TableNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataT
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 53760}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -186,6 +188,7 @@ func (node *TableNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataT
 				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 53936,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -206,6 +209,7 @@ func (node *TableNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataT
 			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 255292,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -280,6 +284,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 
 	if node.Index == "" {
 		tableNode := &SQLRightIR{
+			NodeHash:    114228,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -290,6 +295,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 			Str:         node.Table.String(),
 		}
 		rootIR := &SQLRightIR{
+			NodeHash: 102699,
 			IRType:   TypeTableIndexName,
 			DataType: DataNone,
 			LNode:    tableNode,
@@ -304,6 +310,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 	if node.Table.ObjectName != "" {
 		// The table is specified.
 		tableNode := &SQLRightIR{
+			NodeHash:    230282,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -317,6 +324,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 		infix := "@"
 
 		indexNode := &SQLRightIR{
+			NodeHash:    181663,
 			IRType:      TypeIdentifier,
 			DataType:    datatype,
 			ContextFlag: contextFlag,
@@ -328,6 +336,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 		}
 
 		rootIR := &SQLRightIR{
+			NodeHash: 135524,
 			IRType:   TypeTableIndexName,
 			DataType: DataNone,
 			LNode:    tableNode,
@@ -351,6 +360,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 	// must be added for reserved keywords).
 
 	indexNode := &SQLRightIR{
+		NodeHash:    245296,
 		IRType:      TypeIdentifier,
 		DataType:    datatype,
 		ContextFlag: contextFlag,
@@ -362,6 +372,7 @@ func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightD
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 81697,
 		IRType:   TypeTableIndexName,
 		DataType: DataNone,
 		LNode:    prefixNode,
@@ -395,7 +406,8 @@ func (node *TableIndexNames) LogCurrentNodeWithType(depth int, dataType SQLRight
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 134033}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -408,6 +420,7 @@ func (node *TableIndexNames) LogCurrentNodeWithType(depth int, dataType SQLRight
 				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 164371,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -428,6 +441,7 @@ func (node *TableIndexNames) LogCurrentNodeWithType(depth int, dataType SQLRight
 			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 211632,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,

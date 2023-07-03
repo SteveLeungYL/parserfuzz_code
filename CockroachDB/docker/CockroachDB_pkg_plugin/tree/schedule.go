@@ -41,6 +41,7 @@ func (node *LabelSpec) LogCurrentNode(depth int) *SQLRightIR {
 		optIfNotExistStr = "IF NOT EXISTS "
 	}
 	ifNotExistsNode := &SQLRightIR{
+		NodeHash: 126674,
 		IRType:   TypeOptIfNotExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -59,6 +60,7 @@ func (node *LabelSpec) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 14404,
 		IRType:   TypeLabelSpec,
 		DataType: DataNone,
 		LNode:    ifNotExistsNode,
@@ -145,6 +147,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 71232,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pScheduleSchNode,
@@ -158,6 +161,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 	pToNode := node.To.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 223132,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -172,6 +176,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " WITH "
 		pBackupOptions := node.BackupOptions.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 101978,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -186,6 +191,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 	infix = " RECURRING "
 	if node.Recurrence == nil {
 		recurrenceNode := &SQLRightIR{
+			NodeHash: 10229,
 			IRType:   TypeRecurrence,
 			DataType: DataNone,
 			//LNode:    ,
@@ -197,6 +203,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 198396,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -210,6 +217,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 		pRecurrenceNode := node.Recurrence.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 7106,
 			IRType:   TypeRecurrence,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -228,6 +236,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 			pRecurrenceNode := node.FullBackup.Recurrence.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 70112,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -240,6 +249,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 
 		} else if node.FullBackup.AlwaysFull {
 			recurrenceNode := &SQLRightIR{
+				NodeHash: 255493,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				//LNode:    ,
@@ -251,6 +261,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 73338,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -268,6 +279,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 		schedleOptionNode := node.ScheduleOptions.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 164458,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

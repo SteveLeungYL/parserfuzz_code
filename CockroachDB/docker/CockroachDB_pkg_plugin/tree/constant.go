@@ -211,6 +211,7 @@ func (node *NumVal) LogCurrentNode(depth int) *SQLRightIR {
 
 	if intErr != nil && floatErr == nil {
 		rootIR := &SQLRightIR{
+			NodeHash:     239837,
 			IRType:       TypeFloatLiteral,
 			DataType:     DataLiteral,
 			DataAffinity: AFFIFLOAT,
@@ -223,6 +224,7 @@ func (node *NumVal) LogCurrentNode(depth int) *SQLRightIR {
 		return rootIR
 	} else {
 		rootIR := &SQLRightIR{
+			NodeHash:     113119,
 			IRType:       TypeIntegerLiteral,
 			DataType:     DataLiteral,
 			DataAffinity: AFFIINT,
@@ -565,6 +567,7 @@ func (node *StrVal) LogCurrentNode(depth int) *SQLRightIR {
 
 	/* Maybe we should not handle the affinity type here. */
 	rootIR := &SQLRightIR{
+		NodeHash:     92413,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIUNKNOWN, // TODO:: FIXME:: THIS IS NOT AFFIUNKNOWN. Need to FIX IT!!!

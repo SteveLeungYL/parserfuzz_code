@@ -98,6 +98,7 @@ func (node *Locality) LogCurrentNode(depth int) *SQLRightIR {
 		if node.TableRegion != "" {
 			tmpRegionStr := node.TableRegion.String()
 			LNode = &SQLRightIR{
+				NodeHash:    184029,
 				IRType:      TypeIdentifier,
 				DataType:    DataRegionName,
 				ContextFlag: ContextUse,
@@ -116,6 +117,7 @@ func (node *Locality) LogCurrentNode(depth int) *SQLRightIR {
 			prefix += " AS "
 			tmpRegionStr := node.RegionalByRowColumn.String()
 			LNode = &SQLRightIR{
+				NodeHash:    137004,
 				IRType:      TypeIdentifier,
 				DataType:    DataRegionName,
 				ContextFlag: ContextUse,
@@ -131,6 +133,7 @@ func (node *Locality) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 210662,
 		IRType:   TypeLocality,
 		DataType: DataNone,
 		LNode:    LNode,

@@ -39,6 +39,7 @@ func (node *Unlisten) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "* "
 	} else if node.ChannelName != nil {
 		tmpChannelNode := &SQLRightIR{
+			NodeHash:    240341,
 			IRType:      TypeIdentifier,
 			DataType:    DataChannelName,
 			ContextFlag: ContextUndefine,
@@ -52,6 +53,7 @@ func (node *Unlisten) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 59552,
 		IRType:   TypeUnlisten,
 		DataType: DataNone,
 		LNode:    channelNode,

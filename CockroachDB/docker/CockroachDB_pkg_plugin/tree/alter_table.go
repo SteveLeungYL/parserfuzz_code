@@ -40,6 +40,7 @@ func (node AlterTable) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpTableStr := node.Table.String()
 	LNode := &SQLRightIR{
+		NodeHash:    74296,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -58,6 +59,7 @@ func (node AlterTable) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 140772,
 		IRType:   TypeAlterTable,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -89,7 +91,8 @@ func (node *AlterTableCmds) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 250851}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -102,6 +105,7 @@ func (node *AlterTableCmds) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ","
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 117663,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -121,6 +125,7 @@ func (node *AlterTableCmds) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 140190,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tmpIR,
@@ -228,6 +233,7 @@ func (node *AlterTableAddColumn) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.ColumnDef.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 256218,
 		IRType:   TypeAlterTableAddColumn,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -345,6 +351,7 @@ func (node *AlterTableAddConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " NOT VALID"
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 110938,
 		IRType:   TypeAlterTableAddConstraint,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -391,6 +398,7 @@ func (node *AlterTableAlterColumnType) Format(ctx *FmtCtx) {
 func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    150521,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -404,6 +412,7 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 
 	typeStr := node.ToType.SQLString()
 	typeNode := &SQLRightIR{
+		NodeHash: 212055,
 		IRType:   TypeResolvableTypeReference,
 		DataType: DataNone,
 		Prefix:   "",
@@ -413,6 +422,7 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 248232,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    columnNode,
@@ -425,6 +435,7 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 
 	if len(node.Collation) > 0 {
 		collationNode := &SQLRightIR{
+			NodeHash:     153937,
 			IRType:       TypeStringLiteral,
 			DataType:     DataCollationName,
 			ContextFlag:  ContextUnknown,
@@ -437,6 +448,7 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 47842,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -451,6 +463,7 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Using != nil {
 		usingExpr := node.Using.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 58236,
 			IRType:   TypeUsingCluster,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -509,6 +522,7 @@ func (node *AlterTableAlterPrimaryKey) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 39143,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -523,6 +537,7 @@ func (node *AlterTableAlterPrimaryKey) LogCurrentNode(depth int) *SQLRightIR {
 		RNode = node.StorageParams.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 3232,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -570,6 +585,7 @@ func (node *AlterTableDropColumn) LogCurrentNode(depth int) *SQLRightIR {
 		prefix = "IF EXISTS "
 	}
 	LNode := &SQLRightIR{
+		NodeHash: 40836,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -581,6 +597,7 @@ func (node *AlterTableDropColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    211162,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUndefine,
@@ -598,6 +615,7 @@ func (node *AlterTableDropColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 8059,
 		IRType:   TypeAlterTableDropColumn,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -643,6 +661,7 @@ func (node *AlterTableDropConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		prefix = "IF EXISTS "
 	}
 	LNode := &SQLRightIR{
+		NodeHash: 99011,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -654,6 +673,7 @@ func (node *AlterTableDropConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    28197,
 		IRType:      TypeIdentifier,
 		DataType:    DataConstraintName,
 		ContextFlag: ContextUndefine,
@@ -671,6 +691,7 @@ func (node *AlterTableDropConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 146784,
 		IRType:   TypeAlterTableDropConstraint,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -704,6 +725,7 @@ func (node *AlterTableValidateConstraint) Format(ctx *FmtCtx) {
 func (node *AlterTableValidateConstraint) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    188804,
 		IRType:      TypeIdentifier,
 		DataType:    DataConstraintName,
 		ContextFlag: ContextUse,
@@ -716,6 +738,7 @@ func (node *AlterTableValidateConstraint) LogCurrentNode(depth int) *SQLRightIR 
 	LNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 33775,
 		IRType:   TypeAlterTableValidateConstraint,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -752,6 +775,7 @@ func (node *AlterTableRenameColumn) Format(ctx *FmtCtx) {
 func (node *AlterTableRenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    38020,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextReplaceUndefine,
@@ -764,6 +788,7 @@ func (node *AlterTableRenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    106928,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextReplaceDefine,
@@ -776,6 +801,7 @@ func (node *AlterTableRenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 192063,
 		IRType:   TypeAlterTableRenameColumn,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -812,6 +838,7 @@ func (node *AlterTableRenameConstraint) Format(ctx *FmtCtx) {
 func (node *AlterTableRenameConstraint) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    253300,
 		IRType:      TypeIdentifier,
 		DataType:    DataConstraintName,
 		ContextFlag: ContextReplaceUndefine,
@@ -824,6 +851,7 @@ func (node *AlterTableRenameConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	tmpNode = &SQLRightIR{
+		NodeHash:    84736,
 		IRType:      TypeIdentifier,
 		DataType:    DataConstraintName,
 		ContextFlag: ContextReplaceDefine,
@@ -836,6 +864,7 @@ func (node *AlterTableRenameConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 13478,
 		IRType:   TypeAlterTableRenameConstraint,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -882,6 +911,7 @@ func (node *AlterTableSetDefault) Format(ctx *FmtCtx) {
 func (node *AlterTableSetDefault) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    225755,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -903,6 +933,7 @@ func (node *AlterTableSetDefault) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 233630,
 		IRType:   TypeAlterTableSetDefault,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -949,6 +980,7 @@ func (node *AlterTableSetOnUpdate) Format(ctx *FmtCtx) {
 func (node *AlterTableSetOnUpdate) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    165271,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -970,6 +1002,7 @@ func (node *AlterTableSetOnUpdate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 27415,
 		IRType:   TypeAlterTableSetOnUpdate,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1014,6 +1047,7 @@ func (node *AlterTableSetVisible) Format(ctx *FmtCtx) {
 func (node *AlterTableSetVisible) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    31938,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -1031,6 +1065,7 @@ func (node *AlterTableSetVisible) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	tmpNode = &SQLRightIR{
+		NodeHash: 237837,
 		IRType:   TypeOptNot,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1043,6 +1078,7 @@ func (node *AlterTableSetVisible) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 260175,
 		IRType:   TypeAlterTableSetOnUpdate,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1083,6 +1119,7 @@ func (node *AlterTableSetNotNull) Format(ctx *FmtCtx) {
 func (node *AlterTableSetNotNull) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    260534,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -1095,6 +1132,7 @@ func (node *AlterTableSetNotNull) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 143695,
 		IRType:   TypeAlterTableSetNotNull,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1135,6 +1173,7 @@ func (node *AlterTableDropNotNull) Format(ctx *FmtCtx) {
 func (node *AlterTableDropNotNull) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    135657,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -1147,6 +1186,7 @@ func (node *AlterTableDropNotNull) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 115053,
 		IRType:   TypeAlterTableDropNotNull,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1187,6 +1227,7 @@ func (node *AlterTableDropStored) Format(ctx *FmtCtx) {
 func (node *AlterTableDropStored) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:    166052,
 		IRType:      TypeIdentifier,
 		DataType:    DataColumnName,
 		ContextFlag: ContextUse,
@@ -1199,6 +1240,7 @@ func (node *AlterTableDropStored) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 
 	rootIR := &SQLRightIR{
+		NodeHash: 224191,
 		IRType:   TypeAlterTableDropStored,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1234,6 +1276,7 @@ func (node *AlterTablePartitionByTable) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.PartitionByTable.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 102359,
 		IRType:   TypeAlterTablePartitionByTable,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1293,6 +1336,7 @@ func (node *AlterTableSetAudit) LogCurrentNode(depth int) *SQLRightIR {
 
 	prefix := node.Mode.String()
 	LNode := &SQLRightIR{
+		NodeHash: 238005,
 		IRType:   TypeAuditMode,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1304,6 +1348,7 @@ func (node *AlterTableSetAudit) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 209516,
 		IRType:   TypeAlterTableSetAudit,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1339,6 +1384,7 @@ func (node *AlterTableInjectStats) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.Stats.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 78506,
 		IRType:   TypeAlterTableInjectStats,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1375,6 +1421,7 @@ func (node *AlterTableSetStorageParams) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.StorageParams.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 96258,
 		IRType:   TypeAlterTableSetStorageParams,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1411,6 +1458,7 @@ func (node *AlterTableResetStorageParams) LogCurrentNode(depth int) *SQLRightIR 
 	LNode := node.Params.LogCurrentNodeWithType(depth+1, DataStorageParams)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 236498,
 		IRType:   TypeAlterTableResetStorageParams,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -1452,6 +1500,7 @@ func (node *AlterTableLocality) LogCurrentNode(depth int) *SQLRightIR {
 		prefix = "IF EXISTS "
 	}
 	LNode := &SQLRightIR{
+		NodeHash: 83047,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1464,6 +1513,7 @@ func (node *AlterTableLocality) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpTableStr := node.Name.String()
 	tmpRNode := &SQLRightIR{
+		NodeHash:    255435,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -1475,6 +1525,7 @@ func (node *AlterTableLocality) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 106761,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,    // IF EXISTS
@@ -1488,6 +1539,7 @@ func (node *AlterTableLocality) LogCurrentNode(depth int) *SQLRightIR {
 	RNode := node.Locality.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 174125,
 		IRType:   TypeAlterTableLocality,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -1552,6 +1604,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF EXISTS "
 	}
 	LNode := &SQLRightIR{
+		NodeHash: 13235,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1573,6 +1626,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	RNode := &SQLRightIR{
+		NodeHash:    186471,
 		IRType:      TypeIdentifier,
 		DataType:    nameDataType,
 		ContextFlag: ContextUnknown,
@@ -1584,6 +1638,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 180304,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,  // IF EXISTS
@@ -1596,6 +1651,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	RNode = &SQLRightIR{
+		NodeHash:    132860,
 		IRType:      TypeIdentifier,
 		DataType:    DataSchemaName,
 		ContextFlag: ContextUse,
@@ -1607,6 +1663,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 3306,
 		IRType:   TypeAlterTableSetSchema,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -1683,6 +1740,7 @@ func (node *AlterTableOwner) LogCurrentNode(depth int) *SQLRightIR {
 		tmpStr = "IF EXISTS "
 	}
 	LNode := &SQLRightIR{
+		NodeHash: 110287,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1704,6 +1762,7 @@ func (node *AlterTableOwner) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	RNode := &SQLRightIR{
+		NodeHash:    233262,
 		IRType:      TypeIdentifier,
 		DataType:    nameDataType,
 		ContextFlag: ContextUse,
@@ -1715,6 +1774,7 @@ func (node *AlterTableOwner) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 39551,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    LNode,  // IF EXISTS
@@ -1729,6 +1789,7 @@ func (node *AlterTableOwner) LogCurrentNode(depth int) *SQLRightIR {
 	tmpRNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 25540,
 		IRType:   TypeAlterTableOwner,
 		DataType: DataNone,
 		LNode:    rootIR,

@@ -60,6 +60,7 @@ func (node RoleSpecType) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 102095,
 		IRType:   TypeRoleSpecType,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -117,6 +118,7 @@ func (node *RoleSpec) LogCurrentNode(depth int, flag SQLRightContextFlag) *SQLRi
 	switch node.RoleSpecType {
 	case RoleName:
 		LNode := &SQLRightIR{
+			NodeHash:    173061,
 			IRType:      TypeIdentifier,
 			DataType:    DataRoleName,
 			ContextFlag: flag,
@@ -130,6 +132,7 @@ func (node *RoleSpec) LogCurrentNode(depth int, flag SQLRightContextFlag) *SQLRi
 		}
 
 		tmpNode := &SQLRightIR{
+			NodeHash: 145933,
 			IRType:   TypeRoleSpec,
 			DataType: DataNone,
 			LNode:    LNode,
@@ -145,6 +148,7 @@ func (node *RoleSpec) LogCurrentNode(depth int, flag SQLRightContextFlag) *SQLRi
 		LNode := node.RoleSpecType.LogCurrentNode(depth + 1)
 
 		tmpNode := &SQLRightIR{
+			NodeHash: 253304,
 			IRType:   TypeRoleSpec,
 			DataType: DataNone,
 			LNode:    LNode,
@@ -175,7 +179,8 @@ func (node *RoleSpecList) LogCurrentNode(depth int, flag SQLRightContextFlag) *S
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 46342}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -188,6 +193,7 @@ func (node *RoleSpecList) LogCurrentNode(depth int, flag SQLRightContextFlag) *S
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 171038,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -208,6 +214,7 @@ func (node *RoleSpecList) LogCurrentNode(depth int, flag SQLRightContextFlag) *S
 			RNode := n.LogCurrentNode(depth+1, flag)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 43941,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,

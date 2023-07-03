@@ -188,6 +188,7 @@ public:
     this->operand_num_ = ir->operand_num_;
     this->mutated_times_ = ir->mutated_times_;
     this->is_compact_expr = ir->is_compact_expr;
+    this->node_hash = ir->node_hash;
   }
 
   union {
@@ -219,6 +220,7 @@ public:
   unsigned int mutated_times_ = 0;
   bool is_instantiated = false;
   bool is_compact_expr = false;
+  unsigned int node_hash = 0;
 
   string to_string();
   void to_string_core(string &);
@@ -262,6 +264,9 @@ public:
   DATAFLAG get_data_flag();
   DATAAFFINITYTYPE get_data_affinity();
   RelOptionType get_rel_option_type();
+
+  unsigned int get_node_hash() {return this->node_hash;}
+  void set_node_hash(unsigned int in) {this->node_hash = in;}
 
   void mutate_literal_random_affinity();
   void mutate_literal(DATAAFFINITYTYPE data_affi) {

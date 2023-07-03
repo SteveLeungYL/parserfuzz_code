@@ -69,6 +69,7 @@ func (node *Scrub) LogCurrentNode(depth int) *SQLRightIR {
 	case ScrubTable:
 		prefix += "TABLE "
 		tableNode := &SQLRightIR{
+			NodeHash:    145038,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -82,6 +83,7 @@ func (node *Scrub) LogCurrentNode(depth int) *SQLRightIR {
 	case ScrubDatabase:
 		prefix += "DATABASE "
 		tableNode := &SQLRightIR{
+			NodeHash:    230878,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -104,6 +106,7 @@ func (node *Scrub) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 14797,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -120,6 +123,7 @@ func (node *Scrub) LogCurrentNode(depth int) *SQLRightIR {
 		optionNode := node.Options.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 5909,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -153,7 +157,8 @@ func (n *ScrubOptions) Format(ctx *FmtCtx) {
 func (node *ScrubOptions) LogCurrentNode(depth int) *SQLRightIR {
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 46948}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -166,6 +171,7 @@ func (node *ScrubOptions) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 158458,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -186,6 +192,7 @@ func (node *ScrubOptions) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 95275,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -251,6 +258,7 @@ func (node *ScrubOptionIndex) LogCurrentNode(depth int) *SQLRightIR {
 		infix := ")"
 
 		rootIR := &SQLRightIR{
+			NodeHash: 97748,
 			IRType:   TypeScrubOptionIndex,
 			DataType: DataNone,
 			LNode:    indexNameNode,
@@ -265,6 +273,7 @@ func (node *ScrubOptionIndex) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "ALL "
 
 		rootIR := &SQLRightIR{
+			NodeHash: 111849,
 			IRType:   TypeScrubOptionIndex,
 			DataType: DataNone,
 			Prefix:   prefix,
@@ -291,6 +300,7 @@ func (node *ScrubOptionPhysical) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "PHYSICAL"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 108903,
 		IRType:   TypeScrubOptionPhysical,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -332,6 +342,7 @@ func (node *ScrubOptionConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		infix := ")"
 
 		rootIR := &SQLRightIR{
+			NodeHash: 56631,
 			IRType:   TypeScrubOptionConstraint,
 			DataType: DataNone,
 			LNode:    constraintNode,
@@ -345,6 +356,7 @@ func (node *ScrubOptionConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		prefix += " ALL "
 		rootIR := &SQLRightIR{
+			NodeHash: 137845,
 			IRType:   TypeScrubOptionConstraint,
 			DataType: DataNone,
 			Prefix:   prefix,

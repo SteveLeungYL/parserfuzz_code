@@ -91,6 +91,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 	if node.NamedZone != "" {
 		prefix += "RANGE "
 		nameZoneNode := &SQLRightIR{
+			NodeHash:    86316,
 			IRType:      TypeIdentifier,
 			DataType:    DataZoneName,
 			ContextFlag: ContextUse,
@@ -102,6 +103,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR := &SQLRightIR{
+			NodeHash: 52134,
 			IRType:   TypeZoneSpecifier,
 			DataType: DataNone,
 			LNode:    nameZoneNode,
@@ -115,6 +117,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 	} else if node.Database != "" {
 		prefix += "DATABASE "
 		databaseName := &SQLRightIR{
+			NodeHash:    179486,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -126,6 +129,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR := &SQLRightIR{
+			NodeHash: 233080,
 			IRType:   TypeZoneSpecifier,
 			DataType: DataNone,
 			LNode:    databaseName,
@@ -143,6 +147,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 			infix = " OF "
 
 			partitionName = &SQLRightIR{
+				NodeHash:    117954,
 				IRType:      TypeIdentifier,
 				DataType:    DataPartitionName,
 				ContextFlag: ContextUse,
@@ -161,6 +166,7 @@ func (node *ZoneSpecifier) LogCurrentNode(depth int) *SQLRightIR {
 		nameNode := node.TableOrIndex.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 58734,
 			IRType:   TypeZoneSpecifier,
 			DataType: DataNone,
 			LNode:    partitionName,
@@ -206,6 +212,7 @@ func (node *ShowZoneConfig) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 235013,
 		IRType:   TypeShowZoneConfig,
 		DataType: DataNone,
 		LNode:    zoneNode,
@@ -249,6 +256,7 @@ func (node *SetZoneConfig) LogCurrentNode(depth int) *SQLRightIR {
 	zoneSetting := node.ZoneConfigSettings.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 80565,
 		IRType:   TypeSetZoneConfig,
 		DataType: DataNone,
 		LNode:    zoneNode,
@@ -304,6 +312,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 	if node.SetDefault {
 		prefix := "USING DEFAULT"
 		rootIR := &SQLRightIR{
+			NodeHash: 113695,
 			IRType:   TypeZoneConfigSettings,
 			DataType: DataNone,
 			Prefix:   prefix,
@@ -322,6 +331,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 			configNode = node.YAMLConfig.LogCurrentNode(depth + 1)
 		}
 		rootIR := &SQLRightIR{
+			NodeHash: 21511,
 			IRType:   TypeZoneConfigSettings,
 			DataType: DataNone,
 			LNode:    configNode,
@@ -339,6 +349,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 		kvOptions := node.Options
 		for _, kv := range kvOptions {
 			keyNode := &SQLRightIR{
+				NodeHash:    62359,
 				IRType:      TypeIdentifier,
 				DataType:    DataUnknownType, // TODO: FIXME: Data type unknown.
 				ContextFlag: ContextUse,
@@ -359,6 +370,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			optionNode := &SQLRightIR{
+				NodeHash: 11585,
 				IRType:   TypeUnknown,
 				DataType: DataNone, // TODO: FIXME: Data type unknown.
 				LNode:    keyNode,
@@ -384,6 +396,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 					RNode = (optionList)[1]
 				}
 				optionNode = &SQLRightIR{
+					NodeHash: 22420,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -404,6 +417,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 				RNode := n
 
 				optionNode = &SQLRightIR{
+					NodeHash: 206343,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -417,6 +431,7 @@ func (node *ZoneConfigSettings) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR := &SQLRightIR{
+			NodeHash: 2104,
 			IRType:   TypeZoneConfigSettings,
 			DataType: DataNone,
 			LNode:    optionNode,

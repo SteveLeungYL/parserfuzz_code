@@ -44,6 +44,7 @@ func (node *CommentOnIndex) LogCurrentNode(depth int) *SQLRightIR {
 	indexNode := node.Index.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 165300,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    indexNode,
@@ -58,6 +59,7 @@ func (node *CommentOnIndex) LogCurrentNode(depth int) *SQLRightIR {
 		commentStr = *(node.Comment)
 	}
 	commentNode := &SQLRightIR{
+		NodeHash: 134446,
 		IRType:   TypeStringLiteral,
 		DataType: DataLiteral,
 		Prefix:   "",
@@ -68,6 +70,7 @@ func (node *CommentOnIndex) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 230490,
 		IRType:   TypeCommentOnIndex,
 		DataType: DataNone,
 		LNode:    rootIR,

@@ -31,6 +31,7 @@ func (node *AlterChangefeed) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := node.Jobs.LogCurrentNode(depth + 1)
 	RNode := node.Cmds.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 53020,
 		IRType:   TypeAlterChangeFeed,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -62,7 +63,8 @@ func (node *AlterChangefeedCmds) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All TypeAlterChangefeedCmds are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 48851}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -73,6 +75,7 @@ func (node *AlterChangefeedCmds) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 227193,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -92,6 +95,7 @@ func (node *AlterChangefeedCmds) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 58916,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tmpIR,
@@ -158,6 +162,7 @@ func (node *AlterChangefeedAddTarget) LogCurrentNode(depth int) *SQLRightIR {
 		RNode = node.Options.LogCurrentNode(depth + 1)
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 86804,
 		IRType:   TypeAlterChangefeedAddTarget,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -187,6 +192,7 @@ func (node *AlterChangefeedDropTarget) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.Targets.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 227800,
 		IRType:   TypeAlterChangefeedDropTarget,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -216,6 +222,7 @@ func (node *AlterChangefeedSetOptions) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.Options.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 206182,
 		IRType:   TypeAlterChangefeedSetOptions,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -245,6 +252,7 @@ func (node *AlterChangefeedUnsetOptions) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.Options.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 164606,
 		IRType:   TypeAlterChangefeedUnsetOptions,
 		DataType: DataNone,
 		LNode:    LNode,

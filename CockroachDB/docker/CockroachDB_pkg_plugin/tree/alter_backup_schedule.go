@@ -36,6 +36,7 @@ func (node *AlterBackupSchedule) Format(ctx *FmtCtx) {
 func (node *AlterBackupSchedule) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
+		NodeHash:     10926,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
@@ -49,6 +50,7 @@ func (node *AlterBackupSchedule) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := tmpNode
 	RNode := node.Cmds.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 134415,
 		IRType:   TypeAlterBackupSchedule,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -80,7 +82,8 @@ func (node *AlterBackupScheduleCmds) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 139484}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -94,6 +97,7 @@ func (node *AlterBackupScheduleCmds) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 133737,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -113,6 +117,7 @@ func (node *AlterBackupScheduleCmds) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 176017,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tmpIR,
@@ -169,6 +174,7 @@ func (node *AlterBackupScheduleSetLabel) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.Label.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 230143,
 		IRType:   TypeAlterBackupScheduleSetLabel,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -198,6 +204,7 @@ func (node *AlterBackupScheduleSetInto) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.Into.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 215994,
 		IRType:   TypeAlterBackupScheduleSetInto,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -227,6 +234,7 @@ func (node *AlterBackupScheduleSetWith) LogCurrentNode(depth int) *SQLRightIR {
 
 	LNode := node.With.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 153314,
 		IRType:   TypeAlterBackupScheduleSetWith,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -266,6 +274,7 @@ func (node *AlterBackupScheduleSetRecurring) LogCurrentNode(depth int) *SQLRight
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 63829,
 		IRType:   TypeAlterBackupScheduleSetRecurring,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -306,6 +315,7 @@ func (node *AlterBackupScheduleSetFullBackup) LogCurrentNode(depth int) *SQLRigh
 		LNode = node.FullBackup.Recurrence.LogCurrentNode(depth + 1)
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 96287,
 		IRType:   TypeAlterBackupScheduleSetFullBackup,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -345,6 +355,7 @@ func (node *AlterBackupScheduleSetScheduleOption) LogCurrentNode(depth int) *SQL
 
 	LNode := node.Option.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 227030,
 		IRType:   TypeAlterBackupScheduleSetScheduleOption,
 		DataType: DataNone,
 		LNode:    LNode,

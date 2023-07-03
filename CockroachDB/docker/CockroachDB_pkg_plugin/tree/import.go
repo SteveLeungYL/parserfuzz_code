@@ -79,6 +79,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 228428,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    tableNode,
@@ -91,6 +92,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		infix = ""
 
 		fileFormat := &SQLRightIR{
+			NodeHash: 124318,
 			IRType:   TypeFileFormat,
 			DataType: DataNone, // TODO: FIXME: Data type unknown.
 			Prefix:   node.FileFormat,
@@ -100,6 +102,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 201403,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -113,6 +116,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		filesNode := node.Files.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 232493,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -138,6 +142,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 154345,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tableNode,
@@ -153,6 +158,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 			tableNode := node.Table.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 127885,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tableNode,
@@ -166,6 +172,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		infix = ""
 
 		fileFormatNode := &SQLRightIR{
+			NodeHash: 71781,
 			IRType:   TypeFileFormat,
 			DataType: DataNone, // TODO: FIXME: Data type unknown.
 			Prefix:   node.FileFormat,
@@ -175,6 +182,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 206427,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -188,6 +196,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		fileNode := node.Files.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 90583,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -204,6 +213,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		optionNode := node.Options.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 80662,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,

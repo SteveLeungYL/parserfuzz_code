@@ -52,6 +52,7 @@ func (node *AlterRole) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 203076,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -65,6 +66,7 @@ func (node *AlterRole) LogCurrentNode(depth int) *SQLRightIR {
 	nameNode := node.Name.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 58392,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -80,6 +82,7 @@ func (node *AlterRole) LogCurrentNode(depth int) *SQLRightIR {
 		kvOptionsNode := node.KVOptions.LogCurrentNodeAsRoleOptions(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 230911,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -147,6 +150,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 		optIfExistStr = "IF EXISTS "
 	}
 	ifExistsNode := &SQLRightIR{
+		NodeHash: 105581,
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		Prefix:   optIfExistStr,
@@ -158,6 +162,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 	var roleNameNode *SQLRightIR
 	if node.AllRoles {
 		tmpRoleNameNode := &SQLRightIR{
+			NodeHash:    44344,
 			IRType:      TypeIdentifier,
 			DataType:    DataRoleName,
 			ContextFlag: ContextUse,
@@ -173,6 +178,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 1980,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    ifExistsNode,
@@ -188,6 +194,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 		databaseName := node.DatabaseName.String()
 
 		databaseNameNode := &SQLRightIR{
+			NodeHash:    159587,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -199,6 +206,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 1155,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -213,6 +221,7 @@ func (node *AlterRoleSet) LogCurrentNode(depth int) *SQLRightIR {
 	setOrResetNode := node.SetOrReset.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 171150,
 		IRType:   TypeAlterRoleSet,
 		DataType: DataNone,
 		LNode:    rootIR,

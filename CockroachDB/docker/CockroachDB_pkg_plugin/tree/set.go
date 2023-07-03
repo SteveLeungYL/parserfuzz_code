@@ -68,6 +68,7 @@ func (node *SetVar) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.ResetAll {
 		rootIR := &SQLRightIR{
+			NodeHash: 60749,
 			IRType:   TypeSetVar,
 			DataType: DataNone,
 			//LNode:    ,
@@ -82,6 +83,7 @@ func (node *SetVar) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.Reset {
 		settingNameNode := &SQLRightIR{
+			NodeHash:    144286,
 			IRType:      TypeIdentifier,
 			DataType:    DataSettingName,
 			ContextFlag: ContextUse,
@@ -92,6 +94,7 @@ func (node *SetVar) LogCurrentNode(depth int) *SQLRightIR {
 			Str:         node.Name,
 		}
 		rootIR := &SQLRightIR{
+			NodeHash: 92464,
 			IRType:   TypeSetVar,
 			DataType: DataNone,
 			LNode:    settingNameNode,
@@ -117,6 +120,7 @@ func (node *SetVar) LogCurrentNode(depth int) *SQLRightIR {
 		pNameNode = node.Values.LogCurrentNode(depth + 1)
 	} else {
 		nameNode := &SQLRightIR{
+			NodeHash:    178073,
 			IRType:      TypeIdentifier,
 			DataType:    DataSettingName,
 			ContextFlag: ContextDefine,
@@ -134,6 +138,7 @@ func (node *SetVar) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 199868,
 		IRType:   TypeSetVar,
 		DataType: DataNone,
 		LNode:    pNameNode,
@@ -181,6 +186,7 @@ func (node *SetClusterSetting) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SET CLUSTER SETTING "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    200939,
 		IRType:      TypeIdentifier,
 		DataType:    DataNone,
 		ContextFlag: ContextDefine,
@@ -202,6 +208,7 @@ func (node *SetClusterSetting) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 218263,
 		IRType:   TypeSetClusterSetting,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -231,6 +238,7 @@ func (node *SetTransaction) LogCurrentNode(depth int) *SQLRightIR {
 
 	modeNodes := node.Modes.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 22590,
 		IRType:   TypeSetTransaction,
 		DataType: DataNone,
 		LNode:    modeNodes,
@@ -258,6 +266,7 @@ func (node *SetSessionAuthorizationDefault) Format(ctx *FmtCtx) {
 func (node *SetSessionAuthorizationDefault) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
+		NodeHash: 16606,
 		IRType:   TypeSetSessionAuthorizationDefault,
 		DataType: DataNone,
 		//LNode:    modeNodes,
@@ -287,6 +296,7 @@ func (node *SetSessionCharacteristics) LogCurrentNode(depth int) *SQLRightIR {
 
 	modeNodes := node.Modes.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 253183,
 		IRType:   TypeSetSessionCharacteristics,
 		DataType: DataNone,
 		LNode:    modeNodes,
@@ -320,6 +330,7 @@ func (node *SetTracing) LogCurrentNode(depth int) *SQLRightIR {
 
 	valueNodes := node.Values.LogCurrentNode(depth + 1)
 	rootIR := &SQLRightIR{
+		NodeHash: 62634,
 		IRType:   TypeSetTracing,
 		DataType: DataNone,
 		LNode:    valueNodes,

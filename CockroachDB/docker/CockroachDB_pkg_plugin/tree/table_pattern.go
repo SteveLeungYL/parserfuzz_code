@@ -78,6 +78,7 @@ func (node *AllTablesSelector) LogCurrentNode(depth int) *SQLRightIR {
 	infix += "*"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 77181,
 		IRType:   TypeAllTablesSelector,
 		DataType: DataNone,
 		LNode:    objectNode,
@@ -122,7 +123,8 @@ func (node *TablePatterns) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 156567}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -135,6 +137,7 @@ func (node *TablePatterns) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 129468,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -155,6 +158,7 @@ func (node *TablePatterns) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 154692,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,

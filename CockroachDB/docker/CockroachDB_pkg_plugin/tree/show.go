@@ -44,6 +44,7 @@ func (node *ShowVar) Format(ctx *FmtCtx) {
 func (node *ShowVar) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    169605,
 		IRType:      TypeIdentifier,
 		DataType:    DataSettingName,
 		ContextFlag: ContextUse,
@@ -55,6 +56,7 @@ func (node *ShowVar) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 17137,
 		IRType:   TypeShowVar,
 		DataType: DataNone,
 		Prefix:   "SHOW ",
@@ -86,6 +88,7 @@ func (node *ShowClusterSetting) Format(ctx *FmtCtx) {
 func (node *ShowClusterSetting) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    183441,
 		IRType:      TypeIdentifier,
 		DataType:    DataSettingName,
 		ContextFlag: ContextUse,
@@ -97,6 +100,7 @@ func (node *ShowClusterSetting) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 144826,
 		IRType:   TypeShowClusterSetting,
 		DataType: DataNone,
 		Prefix:   "SHOW CLUSTER SETTING ",
@@ -141,6 +145,7 @@ func (node *ShowClusterSettingList) LogCurrentNode(depth int) *SQLRightIR {
 	prefix += " CLUSTER SETTINGS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 187520,
 		IRType:   TypeShowClusterSettingList,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -222,6 +227,7 @@ func (node *ShowBackup) LogCurrentNode(depth int) *SQLRightIR {
 		inCollectionNode := node.InCollection.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 220014,
 			IRType:   TypeShowBackup,
 			DataType: DataNone,
 			LNode:    inCollectionNode,
@@ -259,6 +265,7 @@ func (node *ShowBackup) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 59578,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pathNode,
@@ -274,6 +281,7 @@ func (node *ShowBackup) LogCurrentNode(depth int) *SQLRightIR {
 		optionNode := node.Options.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 180502,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -310,6 +318,7 @@ func (node *ShowColumns) Format(ctx *FmtCtx) {
 func (node *ShowColumns) LogCurrentNode(depth int) *SQLRightIR {
 
 	nameNode := &SQLRightIR{
+		NodeHash:    164973,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -326,6 +335,7 @@ func (node *ShowColumns) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 135619,
 		IRType:   TypeShowColumns,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -362,6 +372,7 @@ func (node *ShowDatabases) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 243003,
 		IRType:   TypeShowDatabases,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -389,6 +400,7 @@ func (node *ShowEnums) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW ENUMS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 119287,
 		IRType:   TypeShowEnums,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -414,6 +426,7 @@ func (node *ShowTypes) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW TYPES"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 80720,
 		IRType:   TypeShowTypes,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -465,6 +478,7 @@ func (node *ShowTraceForSession) LogCurrentNode(depth int) *SQLRightIR {
 	prefix += " FOR SESSION"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 173776,
 		IRType:   TypeShowTraceForSession,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -498,6 +512,7 @@ func (node *ShowIndexes) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW INDEXES FROM "
 
 	tableNameNode := &SQLRightIR{
+		NodeHash:    259480,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -514,6 +529,7 @@ func (node *ShowIndexes) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 258694,
 		IRType:   TypeShowIndexes,
 		DataType: DataNone,
 		LNode:    tableNameNode,
@@ -549,6 +565,7 @@ func (node *ShowDatabaseIndexes) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW INDEXES FROM DATABASE "
 
 	databaseName := &SQLRightIR{
+		NodeHash:    204560,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -565,6 +582,7 @@ func (node *ShowDatabaseIndexes) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 231643,
 		IRType:   TypeShowDatabaseIndexes,
 		DataType: DataNone,
 		LNode:    databaseName,
@@ -611,6 +629,7 @@ func (node *ShowQueries) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 11854,
 		IRType:   TypeShowQueries,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -686,6 +705,7 @@ func (node *ShowJobs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 205695,
 		IRType:   TypeShowJobs,
 		DataType: DataNone,
 		LNode:    jobNode,
@@ -725,6 +745,7 @@ func (node *ShowChangefeedJobs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 16259,
 		IRType:   TypeShowChangefeedJobs,
 		DataType: DataNone,
 		LNode:    jobNode,
@@ -759,6 +780,7 @@ func (node *ShowSurvivalGoal) LogCurrentNode(depth int) *SQLRightIR {
 	var databaseNode *SQLRightIR
 	if node.DatabaseName != "" {
 		tmpNode := &SQLRightIR{
+			NodeHash:    34754,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -772,6 +794,7 @@ func (node *ShowSurvivalGoal) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 245768,
 		IRType:   TypeShowSurvivalGoal,
 		DataType: DataNone,
 		LNode:    databaseNode,
@@ -849,6 +872,7 @@ func (node *ShowRegions) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += " FROM DATABASE "
 		if node.DatabaseName != "" {
 			tmpDatabaseNode := &SQLRightIR{
+				NodeHash:    231123,
 				IRType:      TypeIdentifier,
 				DataType:    DataDatabaseName,
 				ContextFlag: ContextUse,
@@ -867,6 +891,7 @@ func (node *ShowRegions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 41102,
 		IRType:   TypeShowRegions,
 		DataType: DataNone,
 		LNode:    databaseNode,
@@ -913,6 +938,7 @@ func (node *ShowSessions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 238246,
 		IRType:   TypeShowSessions,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -947,6 +973,7 @@ func (node *ShowSchemas) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Database != "" {
 		prefix += " FROM "
 		dataNode := &SQLRightIR{
+			NodeHash:    50011,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -960,6 +987,7 @@ func (node *ShowSchemas) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 172932,
 		IRType:   TypeShowSchemas,
 		DataType: DataNone,
 		LNode:    pDatabaseNode,
@@ -995,6 +1023,7 @@ func (node *ShowSequences) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Database != "" {
 		prefix += " FROM "
 		dataNode := &SQLRightIR{
+			NodeHash:    47036,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -1008,6 +1037,7 @@ func (node *ShowSequences) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 131581,
 		IRType:   TypeShowSequences,
 		DataType: DataNone,
 		LNode:    pDatabaseNode,
@@ -1048,6 +1078,7 @@ func (node *ShowTables) LogCurrentNode(depth int) *SQLRightIR {
 	if node.ExplicitSchema {
 		prefix += " FROM "
 		dataNode := &SQLRightIR{
+			NodeHash:    215698,
 			IRType:      TypeIdentifier,
 			DataType:    DataSchemaName,
 			ContextFlag: ContextUse,
@@ -1066,6 +1097,7 @@ func (node *ShowTables) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 31889,
 		IRType:   TypeShowTables,
 		DataType: DataNone,
 		LNode:    pDatabaseNode,
@@ -1111,6 +1143,7 @@ func (node *ShowTransactions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 260965,
 		IRType:   TypeShowTransactions,
 		DataType: DataNone,
 		//LNode:    ,
@@ -1146,6 +1179,7 @@ func (node *ShowConstraints) LogCurrentNode(depth int) *SQLRightIR {
 
 	var pTableNode *SQLRightIR
 	tableNode := &SQLRightIR{
+		NodeHash:    192403,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -1163,6 +1197,7 @@ func (node *ShowConstraints) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 75464,
 		IRType:   TypeShowConstraints,
 		DataType: DataNone,
 		LNode:    pTableNode,
@@ -1221,6 +1256,7 @@ func (node *ShowGrants) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 178530,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pTargetNode,
@@ -1235,6 +1271,7 @@ func (node *ShowGrants) LogCurrentNode(depth int) *SQLRightIR {
 		grantNode := node.Grantees.LogCurrentNode(depth+1, ContextUse)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 81255,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1281,6 +1318,7 @@ func (node *ShowRoleGrants) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 63767,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    pRoleNode,
@@ -1296,6 +1334,7 @@ func (node *ShowRoleGrants) LogCurrentNode(depth int) *SQLRightIR {
 		grantNode := node.Grantees.LogCurrentNode(depth+1, ContextUse)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 30747,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1355,6 +1394,7 @@ func (node *ShowCreate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	nameNode := &SQLRightIR{
+		NodeHash:    141525,
 		IRType:      TypeIdentifier,
 		DataType:    DataDatabaseName,
 		ContextFlag: ContextUse,
@@ -1366,6 +1406,7 @@ func (node *ShowCreate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 191399,
 		IRType:   TypeShowCreate,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -1393,6 +1434,7 @@ func (node *ShowCreateAllSchemas) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW CREATE ALL SCHEMAS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 144073,
 		IRType:   TypeShowCreateAllSchemas,
 		DataType: DataNone,
 		//LNode:  nameNode,
@@ -1420,6 +1462,7 @@ func (node *ShowCreateAllTables) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW CREATE ALL TABLES"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 139735,
 		IRType:   TypeShowCreateAllTables,
 		DataType: DataNone,
 		//LNode:  nameNode,
@@ -1447,6 +1490,7 @@ func (node *ShowCreateAllTypes) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW CREATE ALL TYPES"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 169138,
 		IRType:   TypeShowCreateAllTypes,
 		DataType: DataNone,
 		//LNode:  nameNode,
@@ -1484,6 +1528,7 @@ func (node *ShowCreateSchedules) LogCurrentNode(depth int) *SQLRightIR {
 		scheduleNode := node.ScheduleID.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 68504,
 			IRType:   TypeShowCreateSchedules,
 			DataType: DataNone,
 			LNode:    scheduleNode,
@@ -1499,6 +1544,7 @@ func (node *ShowCreateSchedules) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW CREATE ALL SCHEDULES"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 196855,
 		IRType:   TypeShowCreateSchedules,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1537,6 +1583,7 @@ func (node *ShowSyntax) LogCurrentNode(depth int) *SQLRightIR {
 	infix := lexbase.EscapeSQLString(node.Statement)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 89988,
 		IRType:   TypeShowSyntax,
 		DataType: DataNone,
 		//LNode:  nameNode,
@@ -1565,6 +1612,7 @@ func (node *ShowTransactionStatus) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW TRANSACTION STATUS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 6220,
 		IRType:   TypeShowTransactionStatus,
 		DataType: DataNone,
 		//LNode:  nameNode,
@@ -1613,6 +1661,7 @@ func (node *ShowLastQueryStatistics) LogCurrentNode(depth int) *SQLRightIR {
 	columnNode := node.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 157984,
 		IRType:   TypeShowLastQueryStatistics,
 		DataType: DataNone,
 		LNode:    columnNode,
@@ -1641,6 +1690,7 @@ func (node *ShowFullTableScans) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW FULL TABLE SCANS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 65699,
 		IRType:   TypeShowFullTableScans,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1667,6 +1717,7 @@ func (node *ShowSavepointStatus) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW SAVEPOINT STATUS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 182652,
 		IRType:   TypeShowSavepointStatus,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1693,6 +1744,7 @@ func (node *ShowUsers) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW USERS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 40622,
 		IRType:   TypeShowUsers,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1719,6 +1771,7 @@ func (node *ShowRoles) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW ROLES"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 145962,
 		IRType:   TypeShowRoles,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -1761,6 +1814,7 @@ func (node *ShowRanges) LogCurrentNode(depth int) *SQLRightIR {
 	if node.DatabaseName != "" {
 		prefix += "DATABASE "
 		idenNode = &SQLRightIR{
+			NodeHash:    182129,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -1773,6 +1827,7 @@ func (node *ShowRanges) LogCurrentNode(depth int) *SQLRightIR {
 	} else if node.TableOrIndex.Index != "" {
 		prefix += "INDEX "
 		idenNode = &SQLRightIR{
+			NodeHash:    132074,
 			IRType:      TypeIdentifier,
 			DataType:    DataIndexName,
 			ContextFlag: ContextUse,
@@ -1785,6 +1840,7 @@ func (node *ShowRanges) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		prefix += "TABLE "
 		idenNode = &SQLRightIR{
+			NodeHash:    19197,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -1797,6 +1853,7 @@ func (node *ShowRanges) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 128508,
 		IRType:   TypeShowRanges,
 		DataType: DataNone,
 		LNode:    idenNode,
@@ -1838,6 +1895,7 @@ func (node *ShowRangeForRow) LogCurrentNode(depth int) *SQLRightIR {
 	if node.TableOrIndex.Index != "" {
 		prefix += "INDEX "
 		idenNode = &SQLRightIR{
+			NodeHash:    177273,
 			IRType:      TypeIdentifier,
 			DataType:    DataIndexName,
 			ContextFlag: ContextUse,
@@ -1850,6 +1908,7 @@ func (node *ShowRangeForRow) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		prefix += "TABLE "
 		idenNode = &SQLRightIR{
+			NodeHash:    107829,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -1866,6 +1925,7 @@ func (node *ShowRangeForRow) LogCurrentNode(depth int) *SQLRightIR {
 	suffix := ")"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 127017,
 		IRType:   TypeShowRangeForRow,
 		DataType: DataNone,
 		LNode:    idenNode,
@@ -1896,6 +1956,7 @@ func (node *ShowFingerprints) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW EXPERIMENTAL_FINGERPRINTS FROM TABLE "
 
 	tableNode := &SQLRightIR{
+		NodeHash:    146350,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -1907,6 +1968,7 @@ func (node *ShowFingerprints) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 62288,
 		IRType:   TypeShowFingerprints,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -1952,6 +2014,7 @@ func (node *ShowTableStats) LogCurrentNode(depth int) *SQLRightIR {
 	prefix += "FOR TABLE "
 
 	tableNode := &SQLRightIR{
+		NodeHash:    66402,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -1970,6 +2033,7 @@ func (node *ShowTableStats) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 23981,
 		IRType:   TypeShowTableStats,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -1999,6 +2063,7 @@ func (node *ShowHistogram) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW HISTOGRAM "
 
 	intLiteralNode := &SQLRightIR{
+		NodeHash:     173199,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
@@ -2010,6 +2075,7 @@ func (node *ShowHistogram) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 57754,
 		IRType:   TypeShowHistogram,
 		DataType: DataNone,
 		LNode:    intLiteralNode,
@@ -2057,6 +2123,7 @@ func (node *ShowPartitions) LogCurrentNode(depth int) *SQLRightIR {
 	if node.IsDB {
 		prefix += "SHOW PARTITIONS FROM DATABASE "
 		idenNode = &SQLRightIR{
+			NodeHash:    228856,
 			IRType:      TypeIdentifier,
 			DataType:    DataDatabaseName,
 			ContextFlag: ContextUse,
@@ -2069,6 +2136,7 @@ func (node *ShowPartitions) LogCurrentNode(depth int) *SQLRightIR {
 	} else if node.IsIndex {
 		prefix += "SHOW PARTITIONS FROM INDEX "
 		idenNode = &SQLRightIR{
+			NodeHash:    76404,
 			IRType:      TypeIdentifier,
 			DataType:    DataIndexName,
 			ContextFlag: ContextUse,
@@ -2081,6 +2149,7 @@ func (node *ShowPartitions) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		prefix += "SHOW PARTITIONS FROM TABLE "
 		idenNode = &SQLRightIR{
+			NodeHash:    198694,
 			IRType:      TypeIdentifier,
 			DataType:    DataTableName,
 			ContextFlag: ContextUse,
@@ -2093,6 +2162,7 @@ func (node *ShowPartitions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 57934,
 		IRType:   TypeShowPartitions,
 		DataType: DataNone,
 		LNode:    idenNode,
@@ -2202,6 +2272,7 @@ func (node ScheduleState) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 19690,
 		IRType:   TypeScheduleState,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -2253,6 +2324,7 @@ func (node *ShowSchedules) LogCurrentNode(depth int) *SQLRightIR {
 		exprNode := node.ScheduleID.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 59948,
 			IRType:   TypeShowSchedules,
 			DataType: DataNone,
 			LNode:    exprNode,
@@ -2273,6 +2345,7 @@ func (node *ShowSchedules) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 257483,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    optWhichSchedule,
@@ -2292,6 +2365,7 @@ func (node *ShowSchedules) LogCurrentNode(depth int) *SQLRightIR {
 		infix += " FOR "
 
 		userNode := &SQLRightIR{
+			NodeHash:    230426,
 			IRType:      TypeIdentifier,
 			DataType:    DataRoleName,
 			ContextFlag: ContextUse,
@@ -2305,6 +2379,7 @@ func (node *ShowSchedules) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 203516,
 		IRType:   TypeShowSchedules,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -2373,6 +2448,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 						RNode = (node.Roles)[1].LogCurrentNode(depth+1, ContextUse)
 					}
 					tmpNode = &SQLRightIR{
+						NodeHash: 12331,
 						IRType:   TypeUnknown,
 						DataType: DataNone,
 						LNode:    LNode,
@@ -2393,6 +2469,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 					RNode := role.LogCurrentNode(depth+1, ContextUse)
 
 					tmpNode = &SQLRightIR{
+						NodeHash: 136841,
 						IRType:   TypeUnknown,
 						DataType: DataNone,
 						LNode:    LNode,
@@ -2408,6 +2485,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	} else if node.ForAllRoles {
 		prefix += "FOR ALL ROLES "
 		tmpNode = &SQLRightIR{
+			NodeHash: 201616,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			//LNode:    LNode,
@@ -2421,6 +2499,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Schema.String() != "" {
 		prefix += "IN SCHEMA "
 		schemaNode := &SQLRightIR{
+			NodeHash:    10599,
 			IRType:      TypeIdentifier,
 			DataType:    DataSchemaName,
 			ContextFlag: ContextUse,
@@ -2432,6 +2511,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		tmpNode = &SQLRightIR{
+			NodeHash: 92966,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -2471,6 +2551,7 @@ func (node *ShowTransferState) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += " WITH "
 		// TRANSFER KEY.
 		strNode := &SQLRightIR{
+			NodeHash:     87646,
 			IRType:       TypeStringLiteral,
 			DataType:     DataLiteral,
 			DataAffinity: AFFIUNKNOWN,
@@ -2484,6 +2565,7 @@ func (node *ShowTransferState) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 233566,
 		IRType:   TypeShowTransferState,
 		DataType: DataNone,
 		LNode:    transferNode,
@@ -2520,6 +2602,7 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 		offsetInt = 0
 	}
 	offsetNode := &SQLRightIR{
+		NodeHash:     237109,
 		IRType:       TypeIntegerLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
@@ -2533,6 +2616,7 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 	statementStr := node.Statement.String()
 	// This is a whole SQL statement str.
 	statementNode := &SQLRightIR{
+		NodeHash:     77632,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIWHOLESTMT,
@@ -2544,6 +2628,7 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 177690,
 		IRType:   TypeShowCompletions,
 		DataType: DataNone,
 		LNode:    offsetNode,
@@ -2576,6 +2661,7 @@ func (node *ShowCreateFunction) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW CREATE FUNCTION "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    215527,
 		IRType:      TypeIdentifier,
 		DataType:    DataFunctionName,
 		ContextFlag: ContextUse,
@@ -2587,6 +2673,7 @@ func (node *ShowCreateFunction) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 172186,
 		IRType:   TypeShowCreateFunction,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -2625,6 +2712,7 @@ func (node *ShowCreateExternalConnections) LogCurrentNode(depth int) *SQLRightIR
 		connectionNode := node.ConnectionLabel.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 50795,
 			IRType:   TypeShowCreateExternalConnections,
 			DataType: DataNone,
 			LNode:    connectionNode,
@@ -2639,6 +2727,7 @@ func (node *ShowCreateExternalConnections) LogCurrentNode(depth int) *SQLRightIR
 	prefix := "SHOW CREATE ALL EXTERNAL CONNECTIONS"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 126433,
 		IRType:   TypeShowCreateExternalConnections,
 		DataType: DataNone,
 		//LNode:    connectionNode,

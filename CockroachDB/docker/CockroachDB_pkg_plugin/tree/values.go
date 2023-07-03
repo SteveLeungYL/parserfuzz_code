@@ -91,6 +91,7 @@ func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 				infix = "), ("
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 27863,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -111,6 +112,7 @@ func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 153317,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -149,7 +151,8 @@ func (node *LiteralValuesClause) Format(ctx *FmtCtx) {
 
 func (_ LiteralValuesClause) LogCurrentNodeHelper(depth int, node []*SQLRightIR) *SQLRightIR {
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 103225}
 	for i, n := range node {
 
 		if i == 0 {
@@ -162,6 +165,7 @@ func (_ LiteralValuesClause) LogCurrentNodeHelper(depth int, node []*SQLRightIR)
 				RNode = (node)[1]
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 3407,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -182,6 +186,7 @@ func (_ LiteralValuesClause) LogCurrentNodeHelper(depth int, node []*SQLRightIR)
 			RNode := n
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 56497,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -230,6 +235,7 @@ func (node *LiteralValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = node.LogCurrentNodeHelper(depth+1, (rowList)[1])
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 160602,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -250,6 +256,7 @@ func (node *LiteralValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := node.LogCurrentNodeHelper(depth+1, n)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 50804,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -263,6 +270,7 @@ func (node *LiteralValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 93719,
 		IRType:   TypeLiteralValuesClause,
 		DataType: DataNone,
 		LNode:    rootIR,

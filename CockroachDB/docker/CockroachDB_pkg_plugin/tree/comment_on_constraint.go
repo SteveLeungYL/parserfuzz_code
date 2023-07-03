@@ -45,6 +45,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "COMMENT ON CONSTRAINT "
 
 	constraintNode := &SQLRightIR{
+		NodeHash:    109756,
 		IRType:      TypeIdentifier,
 		DataType:    DataConstraintName,
 		ContextFlag: ContextUse,
@@ -58,6 +59,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " ON "
 
 	tableNode := &SQLRightIR{
+		NodeHash:    135878,
 		IRType:      TypeIdentifier,
 		DataType:    DataTableName,
 		ContextFlag: ContextUse,
@@ -69,6 +71,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 48984,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    constraintNode,
@@ -84,6 +87,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		commentStr = *(node.Comment)
 	}
 	commentNode := &SQLRightIR{
+		NodeHash: 228621,
 		IRType:   TypeStringLiteral,
 		DataType: DataLiteral,
 		Prefix:   "",
@@ -94,6 +98,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 132531,
 		IRType:   TypeCommentOnConstraint,
 		DataType: DataNone,
 		LNode:    rootIR,

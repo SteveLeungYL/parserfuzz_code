@@ -45,6 +45,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "PREPARE "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    237658,
 		IRType:      TypeIdentifier,
 		DataType:    DataStatementPreparedName,
 		ContextFlag: ContextDefine,
@@ -56,6 +57,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 39275,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -69,6 +71,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.Types) > 0 {
 		for _, t := range node.Types {
 			typeNode := &SQLRightIR{
+				NodeHash:    174072,
 				IRType:      TypeIdentifier,
 				DataType:    DataTypeName,
 				ContextFlag: ContextUse,
@@ -95,6 +98,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = tmpRNode
 			}
 			curTypeListRoot = &SQLRightIR{
+				NodeHash: 36741,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -115,6 +119,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n
 
 			curTypeListRoot = &SQLRightIR{
+				NodeHash: 166904,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -128,6 +133,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 234539,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -141,6 +147,7 @@ func (node *Prepare) LogCurrentNode(depth int) *SQLRightIR {
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 232764,
 		IRType:   TypePrepare,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -176,6 +183,7 @@ func (node *CannedOptPlan) LogCurrentNode(depth int) *SQLRightIR {
 	prefix += lexbase.EscapeSQLString(node.Plan)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 25619,
 		IRType:   TypeCannedOptPlan,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -216,6 +224,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "EXECUTE "
 
 	nameNode := &SQLRightIR{
+		NodeHash:    241211,
 		IRType:      TypeIdentifier,
 		DataType:    DataStatementPreparedName,
 		ContextFlag: ContextUse,
@@ -227,6 +236,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 59951,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -256,6 +266,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = paramList[1]
 			}
 			curParamListRoot = &SQLRightIR{
+				NodeHash: 195767,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -276,6 +287,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n
 
 			curParamListRoot = &SQLRightIR{
+				NodeHash: 80977,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -295,6 +307,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 		suffix = ")"
 	}
 	rootIR = &SQLRightIR{
+		NodeHash: 109576,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -308,6 +321,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 	var optDiscardRows *SQLRightIR
 	if node.DiscardRows {
 		optDiscardRows = &SQLRightIR{
+			NodeHash: 118635,
 			IRType:   TypeOptDiscardRows,
 			DataType: DataNone,
 			Prefix:   " DISCARD ROWS",
@@ -317,6 +331,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		optDiscardRows = &SQLRightIR{
+			NodeHash: 58994,
 			IRType:   TypeOptDiscardRows,
 			DataType: DataNone,
 			Prefix:   "",
@@ -327,6 +342,7 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 58168,
 		IRType:   TypeExecute,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -376,6 +392,7 @@ func (node *Deallocate) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "ALL "
 
 		rootIR := &SQLRightIR{
+			NodeHash: 77002,
 			IRType:   TypeDeallocate,
 			DataType: DataNone,
 			Prefix:   prefix,
@@ -387,6 +404,7 @@ func (node *Deallocate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	nameNode := &SQLRightIR{
+		NodeHash:    7285,
 		IRType:      TypeIdentifier,
 		DataType:    DataStatementPreparedName,
 		ContextFlag: ContextUndefine,
@@ -398,6 +416,7 @@ func (node *Deallocate) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 224190,
 		IRType:   TypeDeallocate,
 		DataType: DataNone,
 		LNode:    nameNode,

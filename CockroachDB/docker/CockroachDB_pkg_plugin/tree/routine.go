@@ -127,6 +127,7 @@ func (node *RoutineExpr) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ", "
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 252356,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -147,6 +148,7 @@ func (node *RoutineExpr) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 94787,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -160,6 +162,7 @@ func (node *RoutineExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	nameNode := &SQLRightIR{
+		NodeHash:    146971,
 		IRType:      TypeIdentifier,
 		DataType:    DataUnknownType, // TODO: FIXME: Data type unknown.
 		ContextFlag: ContextUnknown,
@@ -171,6 +174,7 @@ func (node *RoutineExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash:     258049,
 		IRType:       TypeStringLiteral,
 		DataType:     DataLiteral,
 		DataAffinity: AFFIUNKNOWN,

@@ -104,6 +104,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		databaseNode := node.Databases.LogCurrentNodeWithType(depth+1, DataDatabaseName)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 106430,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    databaseNode,
@@ -120,6 +121,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Schemas.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 150870,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -136,6 +138,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Schemas.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 143725,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -151,6 +154,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Schemas.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 98513,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -168,6 +172,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Schemas.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 65329,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -188,6 +193,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 			if i == 0 {
 				// Take care of the first two nodes.
 				LNode := &SQLRightIR{
+					NodeHash:    67326,
 					IRType:      TypeIdentifier,
 					DataType:    DataTypeName,
 					ContextFlag: ContextUse,
@@ -204,6 +210,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 				if len(node.Types) >= 2 {
 					infix = ", "
 					tmpRNode := &SQLRightIR{
+						NodeHash:    229367,
 						IRType:      TypeIdentifier,
 						DataType:    DataTypeName,
 						ContextFlag: ContextUse,
@@ -218,6 +225,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 					RNode = tmpRNode
 				}
 				tmpIR = &SQLRightIR{
+					NodeHash: 147855,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -236,6 +244,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 				// Right node is the new cmd.
 				LNode := tmpIR
 				RNode := &SQLRightIR{
+					NodeHash:    162910,
 					IRType:      TypeIdentifier,
 					DataType:    DataTypeName,
 					ContextFlag: ContextUse,
@@ -247,6 +256,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 				}
 
 				tmpIR = &SQLRightIR{
+					NodeHash: 115953,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    LNode,
@@ -267,6 +277,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.ExternalConnections.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 172003,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -282,6 +293,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		schemaNode := node.Functions.LogCurrentNode(depth+1, ContextUse)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 97159,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    schemaNode,
@@ -304,6 +316,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 		tablePatNode := node.Tables.TablePatterns.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 33240,
 			IRType:   TypeGrantTargetList,
 			DataType: DataNone,
 			LNode:    tablePatNode,
@@ -343,6 +356,7 @@ func (node *Grant) LogCurrentNode(depth int) *SQLRightIR {
 
 	privilegesStr := node.Privileges.String()
 	privilegesNode := &SQLRightIR{
+		NodeHash:    22451,
 		IRType:      TypeIdentifier,
 		DataType:    DataPrivilege,
 		ContextFlag: ContextUse,
@@ -361,6 +375,7 @@ func (node *Grant) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 78664,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    privilegesNode,
@@ -375,6 +390,7 @@ func (node *Grant) LogCurrentNode(depth int) *SQLRightIR {
 	grantNode := node.Grantees.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 86597,
 		IRType:   TypeGrant,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -423,6 +439,7 @@ func (node *GrantRole) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 9943,
 		IRType:   TypeGrantRole,
 		DataType: DataNone,
 		LNode:    roleNode,

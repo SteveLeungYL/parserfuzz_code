@@ -46,6 +46,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 	infix := " IS "
 
 	rootIR := &SQLRightIR{
+		NodeHash: 53845,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    columnItemNode,
@@ -61,6 +62,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 	var commentNode *SQLRightIR
 	if node.Comment != nil {
 		commentNode = &SQLRightIR{
+			NodeHash: 90273,
 			IRType:   TypeStringLiteral,
 			DataType: DataLiteral, // TODO: FIXME: Data type unknown.
 			Prefix:   "",
@@ -71,6 +73,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		commentNode = &SQLRightIR{
+			NodeHash: 238492,
 			IRType:   TypeStringLiteral,
 			DataType: DataLiteral, // TODO: FIXME: Data type unknown.
 			Prefix:   "",
@@ -82,6 +85,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 186829,
 		IRType:   TypeCommentOnColumn,
 		DataType: DataNone,
 		LNode:    rootIR,

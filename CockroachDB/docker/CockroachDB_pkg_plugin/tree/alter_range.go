@@ -44,6 +44,7 @@ func (node *RelocateSubject) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := node.String()
 
 	rootIR := &SQLRightIR{
+		NodeHash: 183029,
 		IRType:   TypeRelocateSubject,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -98,6 +99,7 @@ func (node *RelocateRange) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 160787,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    subjectNode,
@@ -111,6 +113,7 @@ func (node *RelocateRange) LogCurrentNode(depth int) *SQLRightIR {
 	toNode := node.ToStoreID.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 105538,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -124,6 +127,7 @@ func (node *RelocateRange) LogCurrentNode(depth int) *SQLRightIR {
 	rowNode := node.Rows.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 138521,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,

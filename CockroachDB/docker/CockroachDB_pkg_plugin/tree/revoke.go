@@ -57,6 +57,7 @@ func (node *Revoke) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	privilegeNode := &SQLRightIR{
+		NodeHash: 115454,
 		IRType:   TypePrivilege,
 		DataType: DataNone,
 		Prefix:   node.Privileges.String(),
@@ -73,6 +74,7 @@ func (node *Revoke) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 84149,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    privilegeNode,
@@ -87,6 +89,7 @@ func (node *Revoke) LogCurrentNode(depth int) *SQLRightIR {
 	grantNode := node.Grantees.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 106675,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -136,6 +139,7 @@ func (node *RevokeRole) LogCurrentNode(depth int) *SQLRightIR {
 	memberNode := node.Members.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 60979,
 		IRType:   TypeRevokeRole,
 		DataType: DataNone,
 		LNode:    roleNode,

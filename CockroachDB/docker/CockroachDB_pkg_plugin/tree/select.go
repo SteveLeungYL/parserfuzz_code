@@ -72,6 +72,7 @@ func (node *Select) LogCurrentNode(depth int) *SQLRightIR {
 	selectNode := node.Select.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 87117,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    withNode,
@@ -86,6 +87,7 @@ func (node *Select) LogCurrentNode(depth int) *SQLRightIR {
 		infix := " "
 		orderByNode := node.OrderBy.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 176329,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -101,6 +103,7 @@ func (node *Select) LogCurrentNode(depth int) *SQLRightIR {
 		infix := " "
 		limitNode := node.Limit.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 199394,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -115,6 +118,7 @@ func (node *Select) LogCurrentNode(depth int) *SQLRightIR {
 	lockingNode := node.Locking.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
+		NodeHash: 203358,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -151,6 +155,7 @@ func (node *ParenSelect) LogCurrentNode(depth int) *SQLRightIR {
 	selectNode := node.Select.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 16077,
 		IRType:   TypeParenSelect,
 		DataType: DataNone,
 		LNode:    selectNode,
@@ -251,6 +256,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		tableNode0 := node.From.Tables.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 121123,
 			IRType:   TypeSelectClause,
 			DataType: DataNone,
 			LNode:    tableNode0,
@@ -272,6 +278,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 			if node.DistinctOn != nil {
 				distinceOnNode := node.DistinctOn.LogCurrentNode(depth + 1)
 				tmpOptDistinctNode := &SQLRightIR{
+					NodeHash: 78025,
 					IRType:   TypeOptDistinct,
 					DataType: DataNone,
 					LNode:    distinceOnNode,
@@ -284,6 +291,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 				optDistinctNode = tmpOptDistinctNode
 			} else {
 				tmpOptDistinctNode := &SQLRightIR{
+					NodeHash: 257702,
 					IRType:   TypeOptDistinct,
 					DataType: DataNone,
 					//LNode:    distinceOnNode,
@@ -298,6 +306,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		} else {
 			// Empty node
 			tmpOptDistinctNode := &SQLRightIR{
+				NodeHash: 21804,
 				IRType:   TypeOptDistinct,
 				DataType: DataNone,
 				//LNode:    distinceOnNode,
@@ -313,6 +322,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		exprsNode := node.Exprs.LogCurrentNode(depth + 1)
 
 		rootIR := &SQLRightIR{
+			NodeHash: 218825,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    optDistinctNode,
@@ -327,6 +337,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 
 			fromNode := node.From.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 64317,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -341,6 +352,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		if node.Where != nil {
 			whereNode := node.Where.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 221530,
 				IRType:   TypeHaving,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -355,6 +367,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		if len(node.GroupBy) > 0 {
 			groupByNode := node.GroupBy.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 226224,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -368,6 +381,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		if node.Having != nil {
 			havingNode := node.Having.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 217156,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -382,6 +396,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 		if len(node.Window) > 0 {
 			windowNode := node.Window.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 242428,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -416,7 +431,8 @@ func (node *SelectExprs) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 72402}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -429,6 +445,7 @@ func (node *SelectExprs) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 42812,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -449,6 +466,7 @@ func (node *SelectExprs) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 125732,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -514,6 +532,7 @@ func (node *SelectExpr) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " AS "
 		asStr := node.As.String()
 		tmpAsNode := &SQLRightIR{
+			NodeHash:    88162,
 			IRType:      TypeIdentifier,
 			DataType:    DataColumnAliasName,
 			ContextFlag: ContextDefine,
@@ -527,6 +546,7 @@ func (node *SelectExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 192791,
 		IRType:   TypeSelectExpr,
 		DataType: DataNone,
 		LNode:    exprNode,
@@ -571,6 +591,7 @@ func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 
 	aliasStr := node.Alias.String()
 	tmpAliasNode := &SQLRightIR{
+		NodeHash:    218274,
 		IRType:      TypeIdentifier,
 		DataType:    dataType,
 		ContextFlag: ContextDefine,
@@ -593,6 +614,7 @@ func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 212795,
 		IRType:   TypeAliasClause,
 		DataType: DataNone,
 		LNode:    aliasNode,
@@ -630,6 +652,7 @@ func (node *ColumnDef) LogCurrentNode(depth int) *SQLRightIR {
 func (node *ColumnDef) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	tmpNameNode := &SQLRightIR{
+		NodeHash:    254204,
 		IRType:      TypeIdentifier,
 		DataType:    dataType,
 		ContextFlag: contextFlag,
@@ -647,6 +670,7 @@ func (node *ColumnDef) LogCurrentNodeWithType(depth int, dataType SQLRightDataTy
 		infix = " "
 		typeStr := node.Type.SQLString()
 		tmpTypeNode := &SQLRightIR{
+			NodeHash:    144589,
 			IRType:      TypeIdentifier,
 			DataType:    DataTypeName,
 			ContextFlag: ContextUse,
@@ -660,6 +684,7 @@ func (node *ColumnDef) LogCurrentNodeWithType(depth int, dataType SQLRightDataTy
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 16206,
 		IRType:   TypeColumnDef,
 		DataType: DataNone,
 		LNode:    nameNode,
@@ -696,7 +721,8 @@ func (node *ColumnDefList) LogCurrentNodeWithType(depth int, dataType SQLRightDa
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 153736}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -709,6 +735,7 @@ func (node *ColumnDefList) LogCurrentNodeWithType(depth int, dataType SQLRightDa
 				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 79439,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -729,6 +756,7 @@ func (node *ColumnDefList) LogCurrentNodeWithType(depth int, dataType SQLRightDa
 			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 51524,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -765,6 +793,7 @@ func (node *AsOfClause) LogCurrentNode(depth int) *SQLRightIR {
 
 	prefix := "AS OF SYSTEM TIME "
 	rootIR := &SQLRightIR{
+		NodeHash: 102342,
 		IRType:   TypeAsOfClause,
 		DataType: DataNone,
 		LNode:    exprNode,
@@ -807,6 +836,7 @@ func (node *From) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 18883,
 		IRType:   TypeFrom,
 		DataType: DataNone,
 		LNode:    tableNode,
@@ -837,7 +867,8 @@ func (node *TableExprs) Format(ctx *FmtCtx) {
 func (node *TableExprs) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 65282}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -850,6 +881,7 @@ func (node *TableExprs) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 172447,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -870,6 +902,7 @@ func (node *TableExprs) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 148536,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -923,6 +956,7 @@ func (node *StatementSource) LogCurrentNode(depth int) *SQLRightIR {
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 176138,
 		IRType:   TypeStatementSource,
 		DataType: DataNone,
 		LNode:    statementNode,
@@ -1174,6 +1208,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 		if node.Index != "" {
 			indexStr := node.Index.String()
 			tmpIndexNode := &SQLRightIR{
+				NodeHash:    134447,
 				IRType:      TypeIdentifier,
 				DataType:    DataIndexName,
 				ContextFlag: ContextUse,
@@ -1185,6 +1220,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			}
 			indexNode := tmpIndexNode
 			rootIR := &SQLRightIR{
+				NodeHash: 5809,
 				IRType:   TypeIndexFlags,
 				DataType: DataNone,
 				LNode:    indexNode,
@@ -1197,6 +1233,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			return rootIR
 		} else {
 			intLiteral := &SQLRightIR{
+				NodeHash:     88865,
 				IRType:       TypeIntegerLiteral,
 				DataType:     DataLiteral,
 				DataAffinity: AFFIINT,
@@ -1207,6 +1244,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				IValue:       int64(node.IndexID),
 			}
 			indexNode := &SQLRightIR{
+				NodeHash: 167885,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    intLiteral,
@@ -1217,6 +1255,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR := &SQLRightIR{
+				NodeHash: 257593,
 				IRType:   TypeIndexFlags,
 				DataType: DataNone,
 				LNode:    indexNode,
@@ -1241,6 +1280,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			if node.Index != "" {
 				indexStr := node.Index.String()
 				tmpIndexNode := &SQLRightIR{
+					NodeHash:    62098,
 					IRType:      TypeIdentifier,
 					DataType:    DataIndexName,
 					ContextFlag: ContextUse,
@@ -1253,6 +1293,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				indexNode = tmpIndexNode
 			} else {
 				intLiteral := &SQLRightIR{
+					NodeHash:     170507,
 					IRType:       TypeIntegerLiteral,
 					DataType:     DataLiteral,
 					DataAffinity: AFFIINT,
@@ -1263,6 +1304,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					IValue:       int64(node.IndexID),
 				}
 				tmpIndexNode := &SQLRightIR{
+					NodeHash: 23802,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    intLiteral,
@@ -1280,6 +1322,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			if node.Direction != 0 {
 				directionStr := fmt.Sprintf("%s", node.Direction)
 				tmpDirectionNode := &SQLRightIR{
+					NodeHash: 208842,
 					IRType:   TypeDirection,
 					DataType: DataNone,
 					//LNode:    LNode,
@@ -1295,6 +1338,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 22143,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    indexNode,
@@ -1306,6 +1350,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 106595,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1320,6 +1365,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		if node.NoIndexJoin {
 			indexFlagNode := &SQLRightIR{
+				NodeHash: 104365,
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
 				//LNode:    LNode,
@@ -1330,6 +1376,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 86678,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1344,6 +1391,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		if node.NoZigzagJoin {
 			indexFlagNode := &SQLRightIR{
+				NodeHash: 253475,
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
 				//LNode:    LNode,
@@ -1354,6 +1402,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 127951,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1368,6 +1417,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		if node.NoFullScan {
 			indexFlagNode := &SQLRightIR{
+				NodeHash: 89444,
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
 				//LNode:    LNode,
@@ -1378,6 +1428,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 46111,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1392,6 +1443,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		if node.IgnoreForeignKeys {
 			indexFlagNode := &SQLRightIR{
+				NodeHash: 15463,
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
 				//LNode:    LNode,
@@ -1402,6 +1454,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 253200,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1416,6 +1469,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		if node.IgnoreUniqueWithoutIndexKeys {
 			indexFlagNode := &SQLRightIR{
+				NodeHash: 48497,
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
 				//LNode:    LNode,
@@ -1426,6 +1480,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:  depth,
 			}
 			rootIR = &SQLRightIR{
+				NodeHash: 184357,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1441,6 +1496,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 		if node.ForceZigzag || len(node.ZigzagIndexes) > 0 || len(node.ZigzagIndexIDs) > 0 {
 			if node.ForceZigzag {
 				indexFlagNode := &SQLRightIR{
+					NodeHash: 171692,
 					IRType:   TypeIndexFlag,
 					DataType: DataNone,
 					//LNode:    LNode,
@@ -1451,6 +1507,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					Depth:  depth,
 				}
 				rootIR = &SQLRightIR{
+					NodeHash: 197669,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    rootIR,
@@ -1465,6 +1522,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				for _, name := range node.ZigzagIndexes {
 					indexName := name.String()
 					indexNameNode := &SQLRightIR{
+						NodeHash:    70325,
 						IRType:      TypeIdentifier,
 						DataType:    DataIndexName,
 						ContextFlag: ContextUse,
@@ -1475,6 +1533,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						Str:         indexName,
 					}
 					indexFlagNode := &SQLRightIR{
+						NodeHash: 96796,
 						IRType:   TypeIndexFlag,
 						DataType: DataNone,
 						LNode:    indexNameNode,
@@ -1485,6 +1544,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						Depth:  depth,
 					}
 					rootIR = &SQLRightIR{
+						NodeHash: 199700,
 						IRType:   TypeUnknown,
 						DataType: DataNone,
 						LNode:    rootIR,
@@ -1501,6 +1561,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				for _, id := range node.ZigzagIndexIDs {
 
 					intLiteral := &SQLRightIR{
+						NodeHash:     14747,
 						IRType:       TypeIntegerLiteral,
 						DataType:     DataLiteral,
 						DataAffinity: AFFIINT,
@@ -1511,6 +1572,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						IValue:       int64(id),
 					}
 					indexFlagNode := &SQLRightIR{
+						NodeHash: 148310,
 						IRType:   TypeIndexFlag,
 						DataType: DataNone,
 						LNode:    intLiteral,
@@ -1521,6 +1583,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						Depth:  depth,
 					}
 					rootIR = &SQLRightIR{
+						NodeHash: 106151,
 						IRType:   TypeUnknown,
 						DataType: DataNone,
 						LNode:    rootIR,
@@ -1581,6 +1644,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 	var literalNode *SQLRightIR
 	if node.Lateral {
 		literalNode = &SQLRightIR{
+			NodeHash: 65020,
 			IRType:   TypeOptLiteral,
 			DataType: DataNone,
 			Prefix:   "LATERAL ",
@@ -1590,6 +1654,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else {
 		literalNode = &SQLRightIR{
+			NodeHash: 10091,
 			IRType:   TypeOptLiteral,
 			DataType: DataNone,
 			Prefix:   "",
@@ -1602,6 +1667,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 178288,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    literalNode,
@@ -1615,6 +1681,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 	if node.IndexFlags != nil {
 		indexFlagNode := node.IndexFlags.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 86727,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1628,6 +1695,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.Ordinality {
 		oridinalityNode := &SQLRightIR{
+			NodeHash: 143488,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			Prefix:   " WITH ORDINALITY",
@@ -1637,6 +1705,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 112143,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1652,6 +1721,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		asNode := node.As.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 253401,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1689,6 +1759,7 @@ func (node *ParenTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 97160,
 		IRType:   TypeParenTableExpr,
 		DataType: DataNone,
 		LNode:    exprNode,
@@ -1786,6 +1857,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		condNode := node.Cond.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 85321,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    joinLeftNode,
@@ -1799,6 +1871,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		if node.JoinType != "" {
 
 			joinTypeNode := &SQLRightIR{
+				NodeHash: 237797,
 				IRType:   TypeJoinType,
 				DataType: DataNone,
 				Prefix:   node.JoinType,
@@ -1807,6 +1880,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 17817,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1819,6 +1893,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 
 			if node.Hint != "" {
 				joinHintNode := &SQLRightIR{
+					NodeHash: 255767,
 					IRType:   TypeJoinHint,
 					DataType: DataNone,
 					Prefix:   node.Hint,
@@ -1827,6 +1902,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 				}
 
 				rootIR = &SQLRightIR{
+					NodeHash: 186999,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    rootIR,
@@ -1842,6 +1918,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		joinRightNode := node.Right.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 162582,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1855,6 +1932,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		// General syntax: "<a> <join_type> [<join_hint>] JOIN <b> <condition>"
 		rootIR = &SQLRightIR{
+			NodeHash: 82755,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    joinLeftNode,
@@ -1866,6 +1944,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		if node.JoinType != "" {
 
 			joinTypeNode := &SQLRightIR{
+				NodeHash: 118411,
 				IRType:   TypeJoinType,
 				DataType: DataNone,
 				Prefix:   node.JoinType,
@@ -1874,6 +1953,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 133974,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1886,6 +1966,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 
 			if node.Hint != "" {
 				joinHintNode := &SQLRightIR{
+					NodeHash: 32073,
 					IRType:   TypeJoinHint,
 					DataType: DataNone,
 					Prefix:   node.Hint,
@@ -1894,6 +1975,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 				}
 
 				rootIR = &SQLRightIR{
+					NodeHash: 106328,
 					IRType:   TypeUnknown,
 					DataType: DataNone,
 					LNode:    rootIR,
@@ -1910,6 +1992,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		joinRightNode := node.Right.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
+			NodeHash: 177202,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -1923,6 +2006,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		if node.Cond != nil {
 			condNode := node.Cond.LogCurrentNode(depth + 1)
 			rootIR = &SQLRightIR{
+				NodeHash: 1707,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    rootIR,
@@ -1963,6 +2047,7 @@ func (node NaturalJoinCond) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "NATURAL"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 131572,
 		IRType:   TypeNaturalJoinCond,
 		DataType: DataNone,
 		//LNode:    LNode,
@@ -1994,6 +2079,7 @@ func (node *OnJoinCond) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 116528,
 		IRType:   TypeOnJoinCond,
 		DataType: DataNone,
 		LNode:    exprNode,
@@ -2028,6 +2114,7 @@ func (node *UsingJoinCond) LogCurrentNode(depth int) *SQLRightIR {
 	colsNode := node.Cols.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 124550,
 		IRType:   TypeUsingJoinCond,
 		DataType: DataNone,
 		LNode:    colsNode,
@@ -2074,6 +2161,7 @@ func (node *Where) LogCurrentNode(depth int) *SQLRightIR {
 
 	infix := " "
 	typeNode := &SQLRightIR{
+		NodeHash:    248096,
 		IRType:      TypeUnknown,
 		DataType:    DataUnknownType,
 		ContextFlag: ContextUnknown,
@@ -2086,6 +2174,7 @@ func (node *Where) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
+		NodeHash: 230273,
 		IRType:   TypeWhere,
 		DataType: DataNone,
 		LNode:    typeNode,
@@ -2119,7 +2208,8 @@ func (node *GroupBy) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 40390}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -2132,6 +2222,7 @@ func (node *GroupBy) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 172768,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2152,6 +2243,7 @@ func (node *GroupBy) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 106802,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2189,6 +2281,7 @@ func (node *DistinctOn) LogCurrentNode(depth int) *SQLRightIR {
 	infix := ")"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 74559,
 		IRType:   TypeDistinctOn,
 		DataType: DataNone,
 		LNode:    exprNode,
@@ -2221,7 +2314,8 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 174674}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -2234,6 +2328,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 50563,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2254,6 +2349,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 55166,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2372,6 +2468,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 	if node.OrderType == OrderByColumn {
 		exprNode := node.Expr.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 195914,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    exprNode,
@@ -2386,6 +2483,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 			tableNode := node.Table.LogCurrentNode(depth + 1)
 
 			rootIR = &SQLRightIR{
+				NodeHash: 44659,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tableNode,
@@ -2402,6 +2500,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 			tableNode := node.Table.LogCurrentNode(depth + 1)
 			indexNamestr := node.Index.String()
 			indexNode := &SQLRightIR{
+				NodeHash:    54235,
 				IRType:      TypeIdentifier,
 				DataType:    DataIndexName,
 				ContextFlag: ContextUse,
@@ -2413,6 +2512,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			rootIR = &SQLRightIR{
+				NodeHash: 229616,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    tableNode,
@@ -2428,6 +2528,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Direction != DefaultDirection {
 		infix := " "
 		directionNode := &SQLRightIR{
+			NodeHash: 163965,
 			IRType:   TypeDirection,
 			DataType: DataNone,
 			Prefix:   node.Direction.String(),
@@ -2437,6 +2538,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 81460,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -2451,6 +2553,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 
 		infix := " "
 		nullOrderNode := &SQLRightIR{
+			NodeHash: 75178,
 			IRType:   TypeNullsOrder,
 			DataType: DataNone,
 			Prefix:   node.NullsOrder.String(),
@@ -2460,6 +2563,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 38433,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -2516,6 +2620,7 @@ func (node *Limit) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Count != nil {
 		countExpr := node.Count.LogCurrentNode(depth + 1)
 		limitCluster = &SQLRightIR{
+			NodeHash: 149779,
 			IRType:   TypeLimitCluster,
 			DataType: DataNone,
 			LNode:    countExpr,
@@ -2526,6 +2631,7 @@ func (node *Limit) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	} else if node.LimitAll {
 		limitCluster = &SQLRightIR{
+			NodeHash: 156417,
 			IRType:   TypeLimitCluster,
 			DataType: DataNone,
 			Prefix:   "LIMIT ALL ",
@@ -2539,6 +2645,7 @@ func (node *Limit) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Offset != nil {
 		offsetNode := node.Offset.LogCurrentNode(depth + 1)
 		tmpOffsetCluster := &SQLRightIR{
+			NodeHash: 176816,
 			IRType:   TypeOffsetCluster,
 			DataType: DataNone,
 			LNode:    offsetNode,
@@ -2551,6 +2658,7 @@ func (node *Limit) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 124164,
 		IRType:   TypeLimit,
 		DataType: DataNone,
 		LNode:    limitCluster,
@@ -2586,6 +2694,7 @@ func (node *RowsFromExpr) LogCurrentNode(depth int) *SQLRightIR {
 	infix := ")"
 
 	rootIR := &SQLRightIR{
+		NodeHash: 218593,
 		IRType:   TypeRowsFromExpr,
 		DataType: DataNone,
 		LNode:    itemsNode,
@@ -2625,6 +2734,7 @@ func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 
 		nameStr := n.Name.String()
 		nameNode := &SQLRightIR{
+			NodeHash:    247227,
 			IRType:      TypeIdentifier,
 			DataType:    DataWindowName,
 			ContextFlag: ContextUse,
@@ -2638,6 +2748,7 @@ func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 		RNode := n.LogCurrentNode(depth + 1)
 
 		curWindowNode := &SQLRightIR{
+			NodeHash: 95634,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    nameNode,
@@ -2661,6 +2772,7 @@ func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = windowNodeList[1]
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 18698,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2681,6 +2793,7 @@ func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 77651,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -2749,6 +2862,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 	if node.RefName != "" {
 		refNameStr := node.RefName.String()
 		tmpRefNameNode := &SQLRightIR{
+			NodeHash:    212865,
 			IRType:      TypeIdentifier,
 			DataType:    DataWindowName,
 			ContextFlag: ContextDefine,
@@ -2762,6 +2876,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 237005,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    refNameNode,
@@ -2775,6 +2890,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 		infix := "PARTITION BY "
 		partitionNode := node.Partitions.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 227559,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -2789,6 +2905,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.OrderBy) > 0 {
 		orderByNode := node.OrderBy.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 170302,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -2803,6 +2920,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Frame != nil {
 		frameNode := node.Frame.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
+			NodeHash: 85847,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -2937,6 +3055,7 @@ func (node *WindowFrameBound) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 103765,
 		IRType:   TypeWindowFrameBound,
 		DataType: DataNone,
 		LNode:    LNode,
@@ -2969,6 +3088,7 @@ func (f *WindowFrame) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 	windowFrameMode := &SQLRightIR{
+		NodeHash: 18544,
 		IRType:   TypeWindowFrameMode,
 		DataType: DataNone,
 		Prefix:   "",
@@ -2979,6 +3099,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 220236,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    windowFrameMode,
@@ -2995,6 +3116,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 		endBoutnNode := node.Bounds.EndBound.LogCurrentNode(depth + 1)
 
 		boundsCluster := &SQLRightIR{
+			NodeHash: 119049,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    startBountNode,
@@ -3006,6 +3128,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 20935,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -3019,6 +3142,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		startBountNode := node.Bounds.StartBound.LogCurrentNode(depth + 1)
 		boundsCluster := &SQLRightIR{
+			NodeHash: 185413,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    startBountNode,
@@ -3028,6 +3152,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 		rootIR = &SQLRightIR{
+			NodeHash: 233625,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -3041,6 +3166,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Exclusion != treewindow.NoExclusion {
 		exclusionStr := node.Exclusion.String()
 		exclusionNode := &SQLRightIR{
+			NodeHash: 15388,
 			IRType:   TypeWindowFrameExclusion,
 			DataType: DataNone,
 			Prefix:   exclusionStr,
@@ -3050,6 +3176,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 		rootIR = &SQLRightIR{
+			NodeHash: 255157,
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
@@ -3079,7 +3206,8 @@ func (node *LockingClause) Format(ctx *FmtCtx) {
 func (node *LockingClause) LogCurrentNode(depth int) *SQLRightIR {
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
-	tmpIR := &SQLRightIR{}
+	tmpIR := &SQLRightIR{
+		NodeHash: 23992}
 	for i, n := range *node {
 
 		if i == 0 {
@@ -3090,6 +3218,7 @@ func (node *LockingClause) LogCurrentNode(depth int) *SQLRightIR {
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
+				NodeHash: 161951,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -3110,6 +3239,7 @@ func (node *LockingClause) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
+				NodeHash: 153136,
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
@@ -3157,6 +3287,7 @@ func (node *LockingItem) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 152498,
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    strengthNode,
@@ -3169,6 +3300,7 @@ func (node *LockingItem) LogCurrentNode(depth int) *SQLRightIR {
 
 	waitPolicyStr := node.WaitPolicy.String()
 	waitPolicyNode := &SQLRightIR{
+		NodeHash: 169869,
 		IRType:   TypeWaitPolicy,
 		DataType: DataNone,
 		Prefix:   waitPolicyStr,
@@ -3178,6 +3310,7 @@ func (node *LockingItem) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
+		NodeHash: 122844,
 		IRType:   TypeLockingItem,
 		DataType: DataNone,
 		LNode:    rootIR,
@@ -3239,6 +3372,7 @@ func (node LockingStrength) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += node.String()
 	}
 	rootIR := &SQLRightIR{
+		NodeHash: 260450,
 		IRType:   TypeLockingStrength,
 		DataType: DataNone,
 		Prefix:   prefix,
@@ -3301,6 +3435,7 @@ func (node LockingWaitPolicy) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
+		NodeHash: 177897,
 		IRType:   TypeLockingWaitPolicy,
 		DataType: DataNone,
 		Prefix:   prefix,
