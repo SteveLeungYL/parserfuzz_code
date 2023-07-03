@@ -705,6 +705,7 @@ type SQLRightIR struct {
 	IValue       int64
 	UValue       uint64
 	FValue       float64
+	NodeHash     uint64 // Used for calculating grammar coverage.
 }
 
 type SQLRightInterface interface {
