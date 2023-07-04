@@ -31,12 +31,15 @@ string rsg_generate(const string& input_str) {
 
   do {
 
-    rsg_clear_chosen_expr()
+    rsg_clear_chosen_expr();
 
     GoString gostr_input = {input_str.c_str(), long(input_str.size())};
 
+    const string dbms_name_str = "cockroachdb";
+    GoString dbms_name = {dbms_name_str.c_str(), long(dbms_name_str.size())};
+
     // Actual Parsing.
-    RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input);
+    RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input, dbms_name);
     if (gores.r0 == NULL) {
       return "";
     }
@@ -68,3 +71,8 @@ string rsg_generate(const IRTYPE type) {
 
   return rsg_generate(input_str);
 }
+
+
+void rsg_clear_chosen_expr() { RSGClearChosenExpr(); }
+void rsg_exec_succeed() { RSGExecSucceed(); }
+void rsg_exec_failed() { RSGExecFailed(); }

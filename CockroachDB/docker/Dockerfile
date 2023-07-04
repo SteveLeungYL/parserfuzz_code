@@ -6,52 +6,49 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN chmod 777 /tmp
 
-RUN apt -y upgrade
-RUN apt -y update
-RUN apt -y install bison 
-RUN apt -y install flex 
-RUN apt -y install git 
-RUN apt -y install make 
-RUN apt -y install cmake 
-RUN apt -y install build-essential 
-RUN apt -y install aptitude
-RUN aptitude -y install gcc-9 
-RUN aptitude -y install g++-9 
-RUN apt -y install clang
-RUN apt -y install xinetd 
-RUN apt -y install libreadline-dev 
-RUN apt -y install zlib1g-dev 
-RUN apt -y install gdb 
-RUN apt -y install vim 
-RUN apt -y install tmux 
-RUN apt -y install python3
-RUN apt -y install python3-pip
-RUN apt -y install libxml2-dev 
-RUN apt -y install libxslt-dev 
-RUN apt -y install libssl-dev 
-RUN apt -y install libxml2-utils 
-RUN apt -y install xsltproc
-RUN apt install -y libpq-dev
-RUN apt -y install screen
-RUN apt -y install watch
-RUN apt -y install unzip
-RUN apt -y install wget
-RUN apt -y install curl
-RUN apt -y install autoconf
-RUN apt -y install yarn
-RUN apt -y install npm
-
-RUN apt -y install llvm
-RUN apt -y install clang
-
-RUN apt install -y g++-9
-RUN apt install -y gcc-9
+RUN apt -y upgrade \
+&& apt -y update \
+&& apt -y install bison  \
+&& apt -y install flex  \
+&& apt -y install git  \
+&& apt -y install make  \
+&& apt -y install cmake  \
+&& apt -y install build-essential  \
+&& apt -y install aptitude \
+&& apt -y install gcc-multilib \
+&& apt -y install g++-multilib \
+&& apt -y install clang \
+&& apt -y install xinetd  \
+&& apt -y install libreadline-dev  \
+&& apt -y install zlib1g-dev  \
+&& apt -y install gdb  \
+&& apt -y install vim  \
+&& apt -y install tmux  \
+&& apt -y install python3 \
+&& apt -y install python3-pip \
+&& apt -y install libxml2-dev  \
+&& apt -y install libxslt-dev  \
+&& apt -y install libssl-dev  \
+&& apt -y install libxml2-utils  \
+&& apt -y install xsltproc \
+&& apt install -y libpq-dev \
+&& apt -y install screen \
+&& apt -y install watch \
+&& apt -y install unzip \
+&& apt -y install wget \
+&& apt -y install curl \
+&& apt -y install autoconf \
+&& apt -y install yarn \
+&& apt -y install npm \
+&& apt -y install llvm \
+&& apt -y install clang \
+&& apt install -y g++-9 \
+&& apt install -y gcc-9
 
 RUN useradd -ms /bin/bash cockroach
 USER cockroach
 
-RUN pip3 install libtmux
-RUN pip3 install loguru
+RUN pip3 install libtmux loguru
 
 USER root
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
@@ -64,8 +61,8 @@ USER cockroach
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
 # Download the original Go library. Set it up. 
-RUN wget https://go.dev/dl/go1.20.5.linux-arm64.tar.gz
-RUN tar -xf go1.20.5.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.19.linux-amd64.tar.gz
+RUN tar -xf go1.19.linux-amd64.tar.gz
 USER root
 RUN cp -r go /usr/local/
 USER cockroach
@@ -109,7 +106,7 @@ RUN make; exit 0
 
 # Fix a proj problem that could crash our build process. 
 USER cockroach
-WORKDIR /home/cockroach/go_projects/native/aarch64-linux-gnu/proj/
+WORKDIR /home/cockroach/go_projects/native/x86_64-linux-gnu/proj/
 # Enable -fPIC
 RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN make clean && make -j $(nproc)
@@ -131,31 +128,30 @@ RUN mv ./cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
 
 # -----------------------------------------------
 
+# Replace the original GoLang runtime to an older version
+#USER cockroach
+#WORKDIR /home/cockroach
+#RUN wget https://go.dev/dl/go1.18.5.linux-arm64.tar.gz
+#RUN tar -xf go1.18.5.linux-arm64.tar.gz
+#USER root
+#RUN cp -r go /usr/local/
+
 # The compilation of the parser shared library is complete. Remove the built CockroachDB. 
+USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb
 RUN rm -rf cockroach && cp -r cockroach_ori cockroach
 
 # Compile the latest version of CockroachDB, prep for coverage instrumentation.
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
-RUN git checkout v23.1.4 
-
-USER root
-WORKDIR /usr/local/bin
-RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.17.0/bazelisk-linux-arm64 && mv bazelisk-linux-arm64 bazel && chmod +x ./bazel
-RUN apt -y install libresolv-wrapper
-USER cockroach
-RUN ./bazel
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
-RUN ./dev doctor < /dev/null
-RUN bazel clean --expunge && ./dev build short
-
+RUN git checkout d39558f # This is a commit that released in Oct 28, 2022.
 # The first build is possible to be failed by vendor mismatched. Ignored. 
 # The first build will automatically call go mod vendor. 
-#RUN make build; exit 0
+RUN make build; exit 0
 # Actual build. After the build, the cockroach binary should be in 
 # /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/cockroach
-#RUN make build
+RUN make buildshort;
+
 
 # Import the covtest unit test entry
 USER cockroach
@@ -197,6 +193,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 # TODO: Fix it later.
 RUN mkdir -p github
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
+RUN cp -r ~/CockroachDB_pkg_plugin/globalcov /home/cockroach/go_projects/src/github.com/globalcov
 
 #USER cockroach
 ### Copy the go library to the GOPATH. 
@@ -214,7 +211,8 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-RUN go test -c -mod=vendor -tags ' gss make aarch64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=aarch64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
+#RUN go mod vendor
+RUN go test -c -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=release -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 
@@ -268,4 +266,3 @@ RUN cp /home/cockroach/CockroachDB_pkg_plugin/cockroach_sql_modi.y /home/cockroa
 # Final entry
 USER root
 WORKDIR /home/cockroach/fuzzing/fuzz_root
-

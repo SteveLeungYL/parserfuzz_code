@@ -2,6 +2,7 @@
 #include "../include/json_ir_convertor.h"
 #include "../oracle/cockroach_oracle.h"
 #include "../parser/parser.h"
+#include "../include/log_gram_cov.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -4906,6 +4907,8 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) const {
   } catch (...) {
     return ir_set;
   }
+
+  log_grammar_coverage(root_ir);
 
   /* Debug */
   // root_ir->deep_drop();
