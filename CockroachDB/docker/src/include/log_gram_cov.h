@@ -16,8 +16,6 @@
 
 using namespace std;
 
-void log_grammar_coverage(IR* root);
-
 class GramCovMap {
 
 private:
@@ -271,5 +269,8 @@ private:
 
   }
 };
+
+void log_grammar_coverage(IR* root);
+u32 get_total_grammar_edge_cov_size_num();
 
 #endif // SRC_LOG_GRAM_COV_H

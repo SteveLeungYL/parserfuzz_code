@@ -4090,7 +4090,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
       "%,%llu,%llu,%llu,%llu,%llu,%llu,"
       "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
       "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%,"
-      "%llu,%llu,%0.02f%%"
+      "%llu,%llu,%0.02f%%,%u"
       "\n",
       /* Data */
       get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -4111,7 +4111,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           float(total_select_error_num),
       total_instan_succeed_num, total_instan_num,
       float(total_instan_succeed_num) * 100.0 /
-          float(total_instan_num)); /* ignore errors */
+          float(total_instan_num),
+      get_total_grammar_edge_cov_size_num()
+      ); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -6634,7 +6636,8 @@ EXP_ST void setup_dirs_fds(void) {
       "num_append,num_validate,total_data_type_related_error,total_alias_type_"
       "error,total_instan_type_error,total_error,type_error_percentage,"
       "alias_error_percentage,instan_error_percentage,"
-      "total_instan_succeed,total_instan_num,total_instan_success_rate"
+      "total_instan_succeed,total_instan_num,total_instan_success_rate,"
+      "num_grammar_edge_cov"
       "\n");
 
   /* ignore errors */

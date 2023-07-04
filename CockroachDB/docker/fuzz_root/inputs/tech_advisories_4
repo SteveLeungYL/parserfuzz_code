@@ -1,2 +1,0 @@
-CREATE TABLE abc (  a STRING NOT NULL,  b STRING NOT NULL,  c INT,  PRIMARY KEY (a, b)) PARTITION BY LIST (a) (  PARTITION p1 VALUES IN (('foo'), ('bar')),  PARTITION p2 VALUES IN (('baz')),  PARTITION DEFAULT VALUES IN (default));
-SELECT * FROM abc WHERE b = 'foobar';

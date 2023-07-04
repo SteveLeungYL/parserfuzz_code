@@ -1,2 +1,0 @@
-CREATE TABLE t (k INT PRIMARY KEY,a INT,b INT,c INT,d INT NOT NULL,INDEX ac (a, c),INDEX bc (b, c),INDEX ad (a, d),INDEX bd (b, d));
-SELECT k FROM t WHERE a = 1 AND b = 2;

@@ -1,6 +1,0 @@
-CREATE TABLE kv ( k INT PRIMARY KEY, v INT );
-INSERT INTO kv VALUES (1, 2), (3, 4);
-CREATE VIEW v as SELECT k,v FROM kv;
-ALTER VIEW test.v RENAME TO v2;
-ALTER VIEW kv RENAME TO new_kv;
-CREATE VIEW v3 AS SELECT count(*) FROM test.v AS v JOIN test.v2 AS v2 ON v.k > v2.c1

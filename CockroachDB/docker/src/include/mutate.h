@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
+#include "log_gram_cov.h"
 
 #include <map>
 #include <set>

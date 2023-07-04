@@ -1,4 +1,0 @@
-create table mr.foo (id int primary key) locality regional by row;
-insert into mr.foo (crdb_region, id) values ('europe-west1', 1);
-import into mr.foo csv data ('http://localhost:8000/one.csv');
-select * from mr.foo;

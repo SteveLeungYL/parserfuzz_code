@@ -2,7 +2,6 @@
 #include "../include/json_ir_convertor.h"
 #include "../oracle/cockroach_oracle.h"
 #include "../parser/parser.h"
-#include "../include/log_gram_cov.h"
 
 #include <algorithm>
 #include <assert.h>
