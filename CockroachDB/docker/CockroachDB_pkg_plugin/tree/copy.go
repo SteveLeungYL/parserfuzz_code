@@ -223,7 +223,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 		copyFormatNode = tmpCopy
-		infix = ", "
+		infix = " "
 	}
 
 	rootIR := &SQLRightIR{
@@ -253,7 +253,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
-		infix = ", "
+		infix = " "
 	}
 
 	if node.Null != nil {
@@ -272,7 +272,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
-		infix = ", "
+		infix = " "
 	}
 
 	if node.Destination != nil {
@@ -291,13 +291,13 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
-		infix = ", "
+		infix = " "
 	}
 
 	if node.Escape != nil {
 
 		tmpInfix := infix + "ESCAPE = "
-		escapeNode := node.Destination.LogCurrentNode(depth + 1)
+		escapeNode := node.Escape.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
 			NodeHash: 245785,
@@ -310,7 +310,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
-		infix = ", "
+		infix = " "
 	}
 
 	if node.Header {
@@ -326,7 +326,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
-		infix = ", "
+		infix = " "
 	}
 
 	rootIR.IRType = TypeCopyOptions
