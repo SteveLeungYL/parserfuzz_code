@@ -3391,13 +3391,17 @@ func (r *RSG) generateCockroach(root string, rootPathNode *PathNode, parentHash 
 					continue
 				} else if tokenStr == "c_expr" || tokenStr == "a_expr" || tokenStr == "b_expr" {
 					tokenStr = "d_expr"
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 				} else if tokenStr == "d_expr" {
-					v = []string{`'string'`}
-					ret = append(ret, v...)
+					ret = append(ret, "'string'")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 					continue
 				} else if tokenStr == "table_ref" {
-					v = []string{` v0 `}
-					ret = append(ret, v...)
+					ret = append(ret, " v0 ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
 					continue
 				}
 			}
@@ -3460,7 +3464,9 @@ func (r *RSG) generateCockroach(root string, rootPathNode *PathNode, parentHash 
 					}
 				} else {
 					if replayExprIdx >= len(rootPathNode.Children) {
-						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n\n\n")
+						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n"+
+							"root: %s, idx: %d, children size: %d"+
+							"\n\n\n", root, replayExprIdx, len(rootPathNode.Children))
 						return nil
 					}
 					newChildPathNode = rootPathNode.Children[replayExprIdx]

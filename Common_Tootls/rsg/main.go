@@ -49,11 +49,12 @@ func generatePostgresSelect() string {
 }
 
 func generateCockroachDBSelect() string {
-	targets := r.Generate("target_list", "cockroachdb", 30)
-	where := r.Generate("where_clause", "cockroachdb", 30)
-	from := r.Generate("from_clause", "cockroachdb", 30)
-
-	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
+	//targets := r.Generate("target_list", "cockroachdb", 30)
+	//where := r.Generate("where_clause", "cockroachdb", 30)
+	//from := r.Generate("from_clause", "cockroachdb", 30)
+	//
+	//s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
+	s := r.Generate("select_stmt", "cockroachdb", 2)
 	return s
 }
 
