@@ -373,7 +373,7 @@ type RSG struct {
 	allTriggerEdges []uint8
 }
 
-func (r *RSG) RemoveUnimplementedRule(inputProds map[string][]*yacc.ExpressionNode) {
+func (r *RSG) RemoveCockroachDBUnimplementedRule(inputProds map[string][]*yacc.ExpressionNode) {
 	// map in GoLang is passed by reference. Any changes inside the function will affect the original values.
 	var trimmedInputProds map[string][]*yacc.ExpressionNode = make(map[string][]*yacc.ExpressionNode)
 	for rootStr, rules := range inputProds {
@@ -381,7 +381,8 @@ func (r *RSG) RemoveUnimplementedRule(inputProds map[string][]*yacc.ExpressionNo
 		for _, curRule := range rules {
 			isErrorRule := false
 			for _, curTerm := range curRule.Items {
-				if curTerm.Value == "error" {
+				if curTerm.Value == "error" ||
+					strings.Contains(curTerm.Value, "keyword") {
 					isErrorRule = true
 					break
 				}
@@ -559,12 +560,12 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		r.allNormProds["query_primary"] = append(r.allNormProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
 		r.allCompProds["query_primary"] = append(r.allCompProds["query_primary"], r.allCompNonRecursiveProds["query_primary"]...)
 	} else if dbmsName == "cockroachdb" {
-		r.RemoveUnimplementedRule(r.allProds)
-		r.RemoveUnimplementedRule(r.allTermProds)
-		r.RemoveUnimplementedRule(r.allNormProds)
-		r.RemoveUnimplementedRule(r.allCompProds)
-		r.RemoveUnimplementedRule(r.allCompNonRecursiveProds)
-		r.RemoveUnimplementedRule(r.allCompRecursiveProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allTermProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allNormProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allCompProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allCompNonRecursiveProds)
+		r.RemoveCockroachDBUnimplementedRule(r.allCompRecursiveProds)
 	}
 
 }
@@ -3367,6 +3368,20 @@ func (r *RSG) generateCockroach(root string, rootPathNode *PathNode, parentHash 
 
 			var v []string
 			tokenStr := item.Value
+
+			if strings.Contains(tokenStr, "_LA") {
+				tokenStr = strings.ReplaceAll(tokenStr, "_LA", "")
+			}
+			if strings.Contains(tokenStr, "NOTHING_AFTER_RETURNING") {
+				tokenStr = "NOTHING"
+			}
+			if strings.Contains(tokenStr, "'IDENT'") {
+				tokenStr = "IDENT"
+			}
+			if strings.Contains(tokenStr, "INDEX_BEFORE_PAREN") || strings.Contains(tokenStr, "INDEX_BEFORE_NAME_THEN_PAREN") ||
+				strings.Contains(tokenStr, "INDEX_AFTER_ORDER_BY_BEFORE_AT") {
+				tokenStr = "INDEX"
+			}
 
 			if depth < 0 {
 				if tokenStr == "simple_select" || tokenStr == "select_no_parens" {

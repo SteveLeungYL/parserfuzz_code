@@ -226,7 +226,11 @@ int main(int argc, char *argv[]) {
       cur_root->deep_drop();
     }
   }
-  // if (root) root->deep_drop();
+
+  if (root == nullptr) {
+    cout << "All parsing failed. Returned with NULL. \n";
+    return 0;
+  }
 
   // cout << "\n\n\n At the end of the parsing, we get to_string: \n" <<
   // root->to_string() << "\n\n\n";

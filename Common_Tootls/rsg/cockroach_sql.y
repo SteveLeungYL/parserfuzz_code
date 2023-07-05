@@ -305,9 +305,6 @@ func (u *sqlSymUnion) nameList() tree.NameList {
 func (u *sqlSymUnion) enumValueList() tree.EnumValueList {
     return u.val.(tree.EnumValueList)
 }
-func (u *sqlSymUnion) compositeTypeList() []tree.CompositeTypeElem {
-    return u.val.([]tree.CompositeTypeElem)
-}
 func (u *sqlSymUnion) unresolvedName() *tree.UnresolvedName {
     return u.val.(*tree.UnresolvedName)
 }
@@ -807,14 +804,14 @@ func (u *sqlSymUnion) functionOptions() tree.FunctionOptions {
 func (u *sqlSymUnion) functionOption() tree.FunctionOption {
     return u.val.(tree.FunctionOption)
 }
-func (u *sqlSymUnion) functionParams() tree.FuncParams {
-    return u.val.(tree.FuncParams)
+func (u *sqlSymUnion) functionArgs() tree.FuncArgs {
+    return u.val.(tree.FuncArgs)
 }
-func (u *sqlSymUnion) functionParam() tree.FuncParam {
-    return u.val.(tree.FuncParam)
+func (u *sqlSymUnion) functionArg() tree.FuncArg {
+    return u.val.(tree.FuncArg)
 }
-func (u *sqlSymUnion) functionParamClass() tree.FuncParamClass {
-    return u.val.(tree.FuncParamClass)
+func (u *sqlSymUnion) functionArgClass() tree.FuncArgClass {
+    return u.val.(tree.FuncArgClass)
 }
 func (u *sqlSymUnion) stmts() tree.Statements {
     return u.val.(tree.Statements)
@@ -827,9 +824,6 @@ func (u *sqlSymUnion) functionObj() tree.FuncObj {
 }
 func (u *sqlSymUnion) functionObjs() tree.FuncObjs {
     return u.val.(tree.FuncObjs)
-}
-func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions {
-  return u.val.(*tree.TenantReplicationOptions)
 }
 %}
 
@@ -851,7 +845,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 
 // Ordinary key words in alphabetical order.
 %token <str> ABORT ABSOLUTE ACCESS ACTION ADD ADMIN AFTER AGGREGATE
-%token <str> ALL ALTER ALWAYS ANALYSE ANALYZE AND AND_AND ANY ANNOTATE_TYPE ARRAY AS ASC AT_AT
+%token <str> ALL ALTER ALWAYS ANALYSE ANALYZE AND AND_AND ANY ANNOTATE_TYPE ARRAY AS ASC
 %token <str> ASENSITIVE ASYMMETRIC AT ATOMIC ATTRIBUTE AUTHORIZATION AUTOMATIC AVAILABILITY
 
 %token <str> BACKUP BACKUPS BACKWARD BEFORE BEGIN BETWEEN BIGINT BIGSERIAL BINARY BIT
@@ -876,7 +870,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %token <str> EXISTS EXECUTE EXECUTION EXPERIMENTAL
 %token <str> EXPERIMENTAL_FINGERPRINTS EXPERIMENTAL_REPLICA
 %token <str> EXPERIMENTAL_AUDIT EXPERIMENTAL_RELOCATE
-%token <str> EXPIRATION EXPLAIN EXPORT EXTENSION EXTERNAL EXTRACT EXTRACT_DURATION EXTREMES
+%token <str> EXPIRATION EXPLAIN EXPORT EXTENSION EXTERNAL EXTRACT EXTRACT_DURATION
 
 %token <str> FAILURE FALSE FAMILY FETCH FETCHVAL FETCHTEXT FETCHVAL_PATH FETCHTEXT_PATH
 %token <str> FILES FILTER
@@ -894,7 +888,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %token <str> INCLUDING INCREMENT INCREMENTAL INCREMENTAL_LOCATION
 %token <str> INET INET_CONTAINED_BY_OR_EQUALS
 %token <str> INET_CONTAINS_OR_EQUALS INDEX INDEXES INHERITS INJECT INITIALLY
-%token <str> INDEX_BEFORE_PAREN INDEX_BEFORE_NAME_THEN_PAREN INDEX_AFTER_ORDER_BY_BEFORE_AT
 %token <str> INNER INOUT INPUT INSENSITIVE INSERT INT INTEGER
 %token <str> INTERSECT INTERVAL INTO INTO_DB INVERTED INVOKER IS ISERROR ISNULL ISOLATION
 
@@ -914,9 +907,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 
 %token <str> NAN NAME NAMES NATURAL NEVER NEW_DB_NAME NEW_KMS NEXT NO NOCANCELQUERY NOCONTROLCHANGEFEED
 %token <str> NOCONTROLJOB NOCREATEDB NOCREATELOGIN NOCREATEROLE NOLOGIN NOMODIFYCLUSTERSETTING
-%token <str> NOSQLLOGIN NO_INDEX_JOIN NO_ZIGZAG_JOIN NO_FULL_SCAN NONE NONVOTERS NORMAL NOT
-%token <str> NOTHING NOTHING_AFTER_RETURNING
-%token <str> NOTNULL
+%token <str> NOSQLLOGIN NO_INDEX_JOIN NO_ZIGZAG_JOIN NO_FULL_SCAN NONE NONVOTERS NORMAL NOT NOTHING NOTNULL
 %token <str> NOVIEWACTIVITY NOVIEWACTIVITYREDACTED NOVIEWCLUSTERSETTING NOWAIT NULL NULLIF NULLS NUMERIC
 
 %token <str> OF OFF OFFSET OID OIDS OIDVECTOR OLD_KMS ON ONLY OPT OPTION OPTIONS OR
@@ -932,7 +923,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %token <str> RANGE RANGES READ REAL REASON REASSIGN RECURSIVE RECURRING REF REFERENCES REFRESH
 %token <str> REGCLASS REGION REGIONAL REGIONS REGNAMESPACE REGPROC REGPROCEDURE REGROLE REGTYPE REINDEX
 %token <str> RELATIVE RELOCATE REMOVE_PATH RENAME REPEATABLE REPLACE REPLICATION
-%token <str> RELEASE RESET RESTART RESTORE RESTRICT RESTRICTED RESUME RETENTION RETURNING RETURN RETURNS RETRY REVISION_HISTORY
+%token <str> RELEASE RESET RESTART RESTORE RESTRICT RESTRICTED RESUME RETURNING RETURN RETURNS RETRY REVISION_HISTORY
 %token <str> REVOKE RIGHT ROLE ROLES ROLLBACK ROLLUP ROUTINES ROW ROWS RSHIFT RULE RUNNING
 
 %token <str> SAVEPOINT SCANS SCATTER SCHEDULE SCHEDULES SCROLL SCHEMA SCHEMA_ONLY SCHEMAS SCRUB
@@ -955,7 +946,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %token <str> UPDATE UPSERT UNSET UNTIL USE USER USERS USING UUID
 
 %token <str> VALID VALIDATE VALUE VALUES VARBIT VARCHAR VARIADIC VERIFY_BACKUP_TABLE_DATA VIEW VARYING VIEWACTIVITY VIEWACTIVITYREDACTED VIEWDEBUG
-%token <str> VIEWCLUSTERMETADATA VIEWCLUSTERSETTING VIRTUAL VISIBLE INVISIBLE VOLATILE VOTERS
+%token <str> VIEWCLUSTERMETADATA VIEWCLUSTERSETTING VIRTUAL VISIBLE VOLATILE VOTERS
 
 %token <str> WHEN WHERE WINDOW WITH WITHIN WITHOUT WORK WRITE
 
@@ -1031,9 +1022,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> alter_table_owner_stmt
 
 // ALTER TENANT CLUSTER SETTINGS
-%type <tree.Statement> alter_tenant_stmt
 %type <tree.Statement> alter_tenant_csetting_stmt
-%type <tree.Statement> alter_tenant_replication_stmt
 
 // ALTER PARTITION
 %type <tree.Statement> alter_zone_partition_stmt
@@ -1109,8 +1098,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> copy_from_stmt
 
 %type <tree.Statement> create_stmt
-%type <tree.Statement> create_schedule_stmt
-%type <tree.Statement> create_changefeed_stmt create_schedule_for_changefeed_stmt
+%type <tree.Statement> create_changefeed_stmt
 %type <tree.Statement> create_ddl_stmt
 %type <tree.Statement> create_database_stmt
 %type <tree.Statement> create_extension_stmt
@@ -1122,7 +1110,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> create_schema_stmt
 %type <tree.Statement> create_table_stmt
 %type <tree.Statement> create_table_as_stmt
-%type <tree.Statement> create_tenant_stmt
 %type <tree.Statement> create_view_stmt
 %type <tree.Statement> create_sequence_stmt
 %type <tree.Statement> create_func_stmt
@@ -1148,7 +1135,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> drop_view_stmt
 %type <tree.Statement> drop_sequence_stmt
 %type <tree.Statement> drop_func_stmt
-%type <tree.Statement> drop_tenant_stmt
 
 %type <tree.Statement> analyze_stmt
 %type <tree.Statement> explain_stmt
@@ -1194,7 +1180,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> show_stmt
 %type <tree.Statement> show_backup_stmt
 %type <tree.Statement> show_columns_stmt
-%type <tree.Statement> show_commit_timestamp_stmt
 %type <tree.Statement> show_constraints_stmt
 %type <tree.Statement> show_create_stmt
 %type <tree.Statement> show_create_schedules_stmt
@@ -1204,7 +1189,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> show_default_privileges_stmt
 %type <tree.Statement> show_enums_stmt
 %type <tree.Statement> show_fingerprints_stmt
-%type <tree.Statement> show_functions_stmt
 %type <tree.Statement> show_grants_stmt
 %type <tree.Statement> show_histogram_stmt
 %type <tree.Statement> show_indexes_stmt
@@ -1226,7 +1210,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.Statement> show_syntax_stmt
 %type <tree.Statement> show_last_query_stats_stmt
 %type <tree.Statement> show_tables_stmt
-%type <tree.Statement> show_tenant_stmt
 %type <tree.Statement> show_trace_stmt
 %type <tree.Statement> show_transaction_stmt
 %type <tree.Statement> show_transactions_stmt
@@ -1268,7 +1251,6 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <[]tree.KVOption> kv_option_list opt_with_options var_set_list opt_with_schedule_options
 %type <*tree.BackupOptions> opt_with_backup_options backup_options backup_options_list
 %type <*tree.RestoreOptions> opt_with_restore_options restore_options restore_options_list
-%type <*tree.TenantReplicationOptions> opt_with_tenant_replication_options tenant_replication_options tenant_replication_options_list
 %type <tree.ShowBackupDetails> show_backup_details
 %type <*tree.CopyOptions> opt_with_copy_options copy_options copy_options_list
 %type <str> import_format
@@ -1392,7 +1374,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <*tree.Limit> select_limit opt_select_limit
 %type <tree.TableNames> relation_expr_list
 %type <tree.ReturningClause> returning_clause
-%type <tree.TableExprs> opt_using_clause
+%type <empty> opt_using_clause
 %type <tree.RefreshDataOption> opt_clear_data
 
 %type <[]tree.SequenceOption> sequence_option_list opt_sequence_option_list
@@ -1469,12 +1451,11 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.SelectExpr> target_elem
 %type <*tree.UpdateExpr> single_set_clause
 %type <tree.AsOfClause> as_of_clause opt_as_of_clause
-%type <tree.Expr> opt_changefeed_sink changefeed_sink
+%type <tree.Expr> opt_changefeed_sink
 %type <str> opt_changefeed_family
 
 %type <str> explain_option_name
 %type <[]string> explain_option_list opt_enum_val_list enum_val_list
-%type <[]tree.CompositeTypeElem> composite_type_list opt_composite_type_list
 
 %type <tree.ResolvableTypeReference> typename simple_typename cast_target
 %type <*types.T> const_typename
@@ -1583,22 +1564,23 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 %type <tree.NameList> opt_for_roles
 %type <tree.ObjectNamePrefixList>  opt_in_schemas
 %type <privilege.TargetObjectType> target_object_type
+%type <tree.TenantID> opt_as_tenant_clause
 
 // User defined function relevant components.
 %type <bool> opt_or_replace opt_return_set opt_no
 %type <str> param_name func_as
-%type <tree.FuncParams> opt_func_param_with_default_list func_param_with_default_list func_params func_params_list
-%type <tree.FuncParam> func_param_with_default func_param
-%type <tree.ResolvableTypeReference> func_return_type func_param_type
+%type <tree.FuncArgs> opt_func_arg_with_default_list func_arg_with_default_list func_args func_args_list
+%type <tree.FuncArg> func_arg_with_default func_arg
+%type <tree.ResolvableTypeReference> func_return_type func_arg_type
 %type <tree.FunctionOptions> opt_create_func_opt_list create_func_opt_list alter_func_opt_list
 %type <tree.FunctionOption> create_func_opt_item common_func_opt_item
-%type <tree.FuncParamClass> func_param_class
+%type <tree.FuncArgClass> func_arg_class
 %type <*tree.UnresolvedObjectName> func_create_name
 %type <tree.Statement> routine_return_stmt routine_body_stmt
 %type <tree.Statements> routine_body_stmt_list
 %type <*tree.RoutineBody> opt_routine_body
-%type <tree.FuncObj> function_with_paramtypes
-%type <tree.FuncObjs> function_with_paramtypes_list
+%type <tree.FuncObj> function_with_argtypes
+%type <tree.FuncObjs> function_with_argtypes_list
 
 %type <*tree.LabelSpec> label_spec
 
@@ -1643,7 +1625,7 @@ func (u *sqlSymUnion) tenantReplicationOptions() *tree.TenantReplicationOptions 
 // funny behavior of UNBOUNDED on the SQL standard, though.
 %nonassoc  UNBOUNDED         // ideally should have same precedence as IDENT
 %nonassoc  IDENT NULL PARTITION RANGE ROWS GROUPS PRECEDING FOLLOWING CUBE ROLLUP
-%left      CONCAT FETCHVAL FETCHTEXT FETCHVAL_PATH FETCHTEXT_PATH REMOVE_PATH AT_AT  // multi-character ops
+%left      CONCAT FETCHVAL FETCHTEXT FETCHVAL_PATH FETCHTEXT_PATH REMOVE_PATH  // multi-character ops
 %left      '|'
 %left      '#'
 %left      '&'
@@ -1689,30 +1671,29 @@ stmt:
   }
 
 stmt_without_legacy_transaction:
-  preparable_stmt            // help texts in sub-rule
-| analyze_stmt               // EXTEND WITH HELP: ANALYZE
+  preparable_stmt           // help texts in sub-rule
+| analyze_stmt              // EXTEND WITH HELP: ANALYZE
 | copy_from_stmt
 | comment_stmt
-| execute_stmt               // EXTEND WITH HELP: EXECUTE
-| deallocate_stmt            // EXTEND WITH HELP: DEALLOCATE
-| discard_stmt               // EXTEND WITH HELP: DISCARD
-| grant_stmt                 // EXTEND WITH HELP: GRANT
-| prepare_stmt               // EXTEND WITH HELP: PREPARE
-| revoke_stmt                // EXTEND WITH HELP: REVOKE
-| savepoint_stmt             // EXTEND WITH HELP: SAVEPOINT
-| reassign_owned_by_stmt     // EXTEND WITH HELP: REASSIGN OWNED BY
-| drop_owned_by_stmt         // EXTEND WITH HELP: DROP OWNED BY
-| release_stmt               // EXTEND WITH HELP: RELEASE
-| refresh_stmt               // EXTEND WITH HELP: REFRESH
-| nonpreparable_set_stmt     // help texts in sub-rule
-| transaction_stmt           // help texts in sub-rule
-| close_cursor_stmt          // EXTEND WITH HELP: CLOSE
-| declare_cursor_stmt        // EXTEND WITH HELP: DECLARE
-| fetch_cursor_stmt          // EXTEND WITH HELP: FETCH
-| move_cursor_stmt           // EXTEND WITH HELP: MOVE
+| execute_stmt              // EXTEND WITH HELP: EXECUTE
+| deallocate_stmt           // EXTEND WITH HELP: DEALLOCATE
+| discard_stmt              // EXTEND WITH HELP: DISCARD
+| grant_stmt                // EXTEND WITH HELP: GRANT
+| prepare_stmt              // EXTEND WITH HELP: PREPARE
+| revoke_stmt               // EXTEND WITH HELP: REVOKE
+| savepoint_stmt            // EXTEND WITH HELP: SAVEPOINT
+| reassign_owned_by_stmt    // EXTEND WITH HELP: REASSIGN OWNED BY
+| drop_owned_by_stmt        // EXTEND WITH HELP: DROP OWNED BY
+| release_stmt              // EXTEND WITH HELP: RELEASE
+| refresh_stmt              // EXTEND WITH HELP: REFRESH
+| nonpreparable_set_stmt    // help texts in sub-rule
+| transaction_stmt          // help texts in sub-rule
+| close_cursor_stmt         // EXTEND WITH HELP: CLOSE
+| declare_cursor_stmt       // EXTEND WITH HELP: DECLARE
+| fetch_cursor_stmt         // EXTEND WITH HELP: FETCH
+| move_cursor_stmt          // EXTEND WITH HELP: MOVE
 | reindex_stmt
 | unlisten_stmt
-| show_commit_timestamp_stmt // EXTEND WITH HELP: SHOW COMMIT TIMESTAMP
 
 // %Help: ALTER
 // %Category: Group
@@ -1720,7 +1701,7 @@ stmt_without_legacy_transaction:
 alter_stmt:
   alter_ddl_stmt      // help texts in sub-rule
 | alter_role_stmt     // EXTEND WITH HELP: ALTER ROLE
-| alter_tenant_stmt   /* SKIP DOC */
+| alter_tenant_csetting_stmt  // EXTEND WITH HELP: ALTER TENANT
 | alter_unsupported_stmt
 | ALTER error         // SHOW HELP: ALTER
 
@@ -1737,7 +1718,7 @@ alter_ddl_stmt:
 | alter_default_privileges_stmt // EXTEND WITH HELP: ALTER DEFAULT PRIVILEGES
 | alter_changefeed_stmt         // EXTEND WITH HELP: ALTER CHANGEFEED
 | alter_backup_stmt             // EXTEND WITH HELP: ALTER BACKUP
-| alter_func_stmt               // EXTEND WITH HELP: ALTER FUNCTION
+| alter_func_stmt
 | alter_backup_schedule  // EXTEND WITH HELP: ALTER BACKUP SCHEDULE
 
 // %Help: ALTER TABLE - change the definition of a table
@@ -1755,7 +1736,7 @@ alter_ddl_stmt:
 //   ALTER TABLE ... ALTER [COLUMN] <colname> DROP NOT NULL
 //   ALTER TABLE ... ALTER [COLUMN] <colname> DROP STORED
 //   ALTER TABLE ... ALTER [COLUMN] <colname> [SET DATA] TYPE <type> [COLLATE <collation>]
-//   ALTER TABLE ... ALTER PRIMARY KEY USING COLUMNS ( <colnames...> )
+//   ALTER TABLE ... ALTER PRIMARY KEY USING INDEX <name>
 //   ALTER TABLE ... RENAME TO <newname>
 //   ALTER TABLE ... RENAME [COLUMN] <colname> TO <newname>
 //   ALTER TABLE ... VALIDATE CONSTRAINT <constraintname>
@@ -1906,31 +1887,12 @@ alter_database_stmt:
 | alter_database_drop_secondary_region
 | alter_database_set_zone_config_extension_stmt
 
-// %Help: ALTER FUNCTION - change the definition of a function
-// %Category: DDL
-// %Text:
-// ALTER FUNCTION name [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ]
-//    action [ ... ] [ RESTRICT ]
-// ALTER FUNCTION name [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ]
-//    RENAME TO new_name
-// ALTER FUNCTION name [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ]
-//    OWNER TO { new_owner | CURRENT_USER | SESSION_USER }
-// ALTER FUNCTION name [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ]
-//    SET SCHEMA new_schema
-//
-// where action is one of:
-//
-//    CALLED ON NULL INPUT | RETURNS NULL ON NULL INPUT | STRICT
-//    IMMUTABLE | STABLE | VOLATILE
-//    [ NOT ] LEAKPROOF
-// %SeeAlso: WEBDOCS/alter-function.html
 alter_func_stmt:
   alter_func_options_stmt
 | alter_func_rename_stmt
 | alter_func_owner_stmt
 | alter_func_set_schema_stmt
 | alter_func_dep_extension_stmt
-| ALTER FUNCTION error // SHOW HELP: ALTER FUNCTION
 
 // ALTER DATABASE has its error help token here because the ALTER DATABASE
 // prefix is spread over multiple non-terminals.
@@ -2157,7 +2119,7 @@ alter_range_stmt:
 //   ALTER INDEX ... UNSPLIT ALL
 //   ALTER INDEX ... SCATTER [ FROM ( <exprs...> ) TO ( <exprs...> ) ]
 //   ALTER INDEX ... RELOCATE [ LEASE | VOTERS | NONVOTERS ] <selectclause>
-//   ALTER INDEX ... [VISIBLE | NOT VISIBLE | INVISIBLE]
+//   ALTER INDEX ... [VISIBLE | NOT VISIBLE]
 //
 // Zone configurations:
 //   DISCARD
@@ -2322,10 +2284,6 @@ alter_index_visible:
   {
     $$.val = true
   }
-| INVISIBLE
-  {
-    $$.val = true
-  }
 | VISIBLE
   {
     $$.val = false
@@ -2339,6 +2297,7 @@ alter_index_visible:
 // a reduce/reduce conflict with the ALTER RANGE ... RELOCATE variants
 // below.
 //
+// TODO(knz): Would it make sense to extend the semantics to enable
 // zone configurations on arbitrary range IDs?
 alter_zone_range_stmt:
   ALTER RANGE a_expr set_zone_config
@@ -2694,7 +2653,8 @@ alter_table_cmd:
     /* SKIP DOC */
     return unimplementedWithIssueDetail(sqllex, 22456, "alter table no inherits")
   }
-  // ALTER TABLE <name> ALTER PRIMARY KEY USING COLUMNS ( <colnames...> )
+  // ALTER TABLE <name> VALIDATE CONSTRAINT ...
+  // ALTER TABLE <name> ALTER PRIMARY KEY USING INDEX <name>
 | ALTER PRIMARY KEY USING COLUMNS '(' index_params ')' opt_hash_sharded opt_with_storage_parameter_list
   {
     $$.val = &tree.AlterTableAlterPrimaryKey{
@@ -2703,7 +2663,6 @@ alter_table_cmd:
       StorageParams: $10.storageParams(),
     }
   }
-  // ALTER TABLE <name> VALIDATE CONSTRAINT ...
 | VALIDATE CONSTRAINT constraint_name
   {
     $$.val = &tree.AlterTableValidateConstraint{
@@ -3178,7 +3137,7 @@ backup_options:
   }
 | REVISION_HISTORY '=' a_expr
   {
-    $$.val = &tree.BackupOptions{CaptureRevisionHistory: $3.expr()}
+		$$.val = &tree.BackupOptions{CaptureRevisionHistory: $3.expr()}
   }
 | DETACHED
   {
@@ -3186,7 +3145,7 @@ backup_options:
   }
 | DETACHED '=' TRUE
   {
-    $$.val = &tree.BackupOptions{Detached: tree.MakeDBool(true)}
+		$$.val = &tree.BackupOptions{Detached: tree.MakeDBool(true)}
   }
 | DETACHED '=' FALSE
   {
@@ -3290,7 +3249,7 @@ create_schedule_for_backup_stmt:
         ScheduleOptions:      $12.kvOptions(),
       }
   }
- | CREATE SCHEDULE schedule_label_spec FOR BACKUP error // SHOW HELP: CREATE SCHEDULE FOR BACKUP
+ | CREATE SCHEDULE error  // SHOW HELP: CREATE SCHEDULE FOR BACKUP
 
 // %Help: ALTER BACKUP SCHEDULE - alter an existing backup schedule
 // %Category: CCL
@@ -3571,6 +3530,14 @@ restore_stmt:
       Options: *($9.restoreOptions()),
     }
   }
+| RESTORE backup_targets FROM REPLICATION STREAM FROM string_or_placeholder_opt_list opt_as_tenant_clause
+  {
+   $$.val = &tree.StreamIngestion{
+     Targets: $2.backupTargetList(),
+     From: $7.stringOrPlaceholderOptList(),
+     AsTenant: $8.asTenantClause(),
+   }
+  }
 | RESTORE error // SHOW HELP: RESTORE
 
 string_or_placeholder_opt_list:
@@ -3591,6 +3558,28 @@ list_of_string_or_placeholder_opt_list:
 | list_of_string_or_placeholder_opt_list ',' string_or_placeholder_opt_list
   {
     $$.val = append($1.listOfStringOrPlaceholderOptList(), $3.stringOrPlaceholderOptList())
+  }
+
+// Optional AS TENANT clause.
+opt_as_tenant_clause:
+  AS TENANT iconst64
+  {
+    tenID := uint64($3.int64())
+    if tenID == 0 {
+      return setErr(sqllex, errors.New("invalid tenant ID"))
+    }
+    $$.val = tree.TenantID{Specified: true, ID: tenID}
+  }
+| AS TENANT IDENT
+  {
+    if $3 != "_" {
+       return setErr(sqllex, errors.New("invalid syntax"))
+    }
+    $$.val = tree.TenantID{Specified: true}
+  }
+| /* EMPTY */
+  {
+    $$.val = tree.TenantID{Specified: false}
   }
 
 // Optional restore options.
@@ -4128,82 +4117,17 @@ comment_text:
 // %Text:
 // CREATE DATABASE, CREATE TABLE, CREATE INDEX, CREATE TABLE AS,
 // CREATE USER, CREATE VIEW, CREATE SEQUENCE, CREATE STATISTICS,
-// CREATE ROLE, CREATE TYPE, CREATE EXTENSION, CREATE TENANT, CREATE SCHEDULE
+// CREATE ROLE, CREATE TYPE, CREATE EXTENSION
 create_stmt:
   create_role_stmt     // EXTEND WITH HELP: CREATE ROLE
 | create_ddl_stmt      // help texts in sub-rule
 | create_stats_stmt    // EXTEND WITH HELP: CREATE STATISTICS
+| create_schedule_for_backup_stmt   // EXTEND WITH HELP: CREATE SCHEDULE FOR BACKUP
 | create_changefeed_stmt
 | create_extension_stmt  // EXTEND WITH HELP: CREATE EXTENSION
 | create_external_connection_stmt // EXTEND WITH HELP: CREATE EXTERNAL CONNECTION
-| create_tenant_stmt // EXTEND WITH HELP: CREATE TENANT
-| create_schedule_stmt
 | create_unsupported   {}
 | CREATE error         // SHOW HELP: CREATE
-
-// %Help: CREATE TENANT - create new tenant
-// %Category: Group
-// %Text: CREATE TENANT name
-create_tenant_stmt:
-  CREATE TENANT name
-  {
-    $$.val = &tree.CreateTenant{Name: tree.Name($3)}
-  }
-| CREATE TENANT name FROM REPLICATION OF name ON string_or_placeholder opt_with_tenant_replication_options
-  {
-    $$.val = &tree.CreateTenantFromReplication{
-      Name: tree.Name($3),
-      ReplicationSourceTenantName: tree.Name($7),
-      ReplicationSourceAddress: $9.expr(),
-      Options: *$10.tenantReplicationOptions(),
-    }
-  }
-| CREATE TENANT error // SHOW HELP: CREATE TENANT
-
-// Optional tenant replication options.
-opt_with_tenant_replication_options:
-  WITH tenant_replication_options_list
-  {
-    $$.val = $2.tenantReplicationOptions()
-  }
-| WITH OPTIONS '(' tenant_replication_options_list ')'
-  {
-    $$.val = $4.tenantReplicationOptions()
-  }
-| /* EMPTY */
-  {
-    $$.val = &tree.TenantReplicationOptions{}
-  }
-
-tenant_replication_options_list:
-  // Require at least one option
-  tenant_replication_options
-  {
-    $$.val = $1.tenantReplicationOptions()
-  }
-| tenant_replication_options_list ',' tenant_replication_options
-  {
-    if err := $1.tenantReplicationOptions().CombineWith($3.tenantReplicationOptions()); err != nil {
-      return setErr(sqllex, err)
-    }
-  }
-
-// List of valid tenant replication options.
-tenant_replication_options:
-  RETENTION '=' string_or_placeholder
-  {
-    $$.val = &tree.TenantReplicationOptions{Retention: $3.expr()}
-  }
-
-// %Help: CREATE SCHEDULE
-// %Category: Group
-// %Text:
-// CREATE SCHEDULE FOR BACKUP,
-// CREATE SCHEDULE FOR CHANGEFEED
-create_schedule_stmt:
-  create_schedule_for_changefeed_stmt // EXTEND WITH HELP: CREATE SCHEDULE FOR CHANGEFEED
-| create_schedule_for_backup_stmt   // EXTEND WITH HELP: CREATE SCHEDULE FOR BACKUP
-| CREATE SCHEDULE error // SHOW HELP: CREATE SCHEDULE
 
 // %Help: CREATE EXTENSION - pseudo-statement for PostgreSQL compatibility
 // %Category: Cfg
@@ -4225,21 +4149,8 @@ create_extension_stmt:
   }
 | CREATE EXTENSION error // SHOW HELP: CREATE EXTENSION
 
-// %Help: CREATE FUNCTION - define a new function
-// %Category: DDL
-// %Text:
-// CREATE [ OR REPLACE ] FUNCTION
-//    name ( [ [ argmode ] [ argname ] argtype [, ...] ] )
-//    [ RETURNS rettype ]
-//  { LANGUAGE lang_name
-//    | { IMMUTABLE | STABLE | VOLATILE }
-//    | [ NOT ] LEAKPROOF
-//    | { CALLED ON NULL INPUT | RETURNS NULL ON NULL INPUT | STRICT }
-//    | AS 'definition'
-//  } ...
-// %SeeAlso: WEBDOCS/create-function.html
 create_func_stmt:
-  CREATE opt_or_replace FUNCTION func_create_name '(' opt_func_param_with_default_list ')' RETURNS opt_return_set func_return_type
+  CREATE opt_or_replace FUNCTION func_create_name '(' opt_func_arg_with_default_list ')' RETURNS opt_return_set func_return_type
   opt_create_func_opt_list opt_routine_body
   {
     name := $4.unresolvedObjectName().ToFunctionName()
@@ -4247,7 +4158,7 @@ create_func_stmt:
       IsProcedure: false,
       Replace: $2.bool(),
       FuncName: name,
-      Params: $6.functionParams(),
+      Args: $6.functionArgs(),
       ReturnType: tree.FuncReturnType{
         Type: $10.typeReference(),
         IsSet: $9.bool(),
@@ -4256,7 +4167,6 @@ create_func_stmt:
       RoutineBody: $12.routineBody(),
     }
   }
-| CREATE opt_or_replace FUNCTION error // SHOW HELP: CREATE FUNCTION
 
 opt_or_replace:
   OR REPLACE { $$.val = true }
@@ -4269,84 +4179,84 @@ opt_return_set:
 func_create_name:
   db_object_name
 
-opt_func_param_with_default_list:
-  func_param_with_default_list { $$.val = $1.functionParams() }
-| /* Empty */ { $$.val = tree.FuncParams{} }
+opt_func_arg_with_default_list:
+  func_arg_with_default_list { $$.val = $1.functionArgs() }
+| /* Empty */ { $$.val = tree.FuncArgs{} }
 
-func_param_with_default_list:
-  func_param_with_default { $$.val = tree.FuncParams{$1.functionParam()} }
-| func_param_with_default_list ',' func_param_with_default
+func_arg_with_default_list:
+  func_arg_with_default { $$.val = tree.FuncArgs{$1.functionArg()} }
+| func_arg_with_default_list ',' func_arg_with_default
   {
-    $$.val = append($1.functionParams(), $3.functionParam())
+    $$.val = append($1.functionArgs(), $3.functionArg())
   }
 
-func_param_with_default:
-  func_param
-| func_param DEFAULT a_expr
+func_arg_with_default:
+  func_arg
+| func_arg DEFAULT a_expr
   {
-    arg := $1.functionParam()
+    arg := $1.functionArg()
     arg.DefaultVal = $3.expr()
     $$.val = arg
   }
-| func_param '=' a_expr
+| func_arg '=' a_expr
   {
-    arg := $1.functionParam()
+    arg := $1.functionArg()
     arg.DefaultVal = $3.expr()
     $$.val = arg
   }
 
-func_param:
-  func_param_class param_name func_param_type
+func_arg:
+  func_arg_class param_name func_arg_type
   {
-    $$.val = tree.FuncParam{
+    $$.val = tree.FuncArg{
       Name: tree.Name($2),
       Type: $3.typeReference(),
-      Class: $1.functionParamClass(),
+      Class: $1.functionArgClass(),
     }
   }
-| param_name func_param_class func_param_type
+| param_name func_arg_class func_arg_type
   {
-    $$.val = tree.FuncParam{
+    $$.val = tree.FuncArg{
       Name: tree.Name($1),
       Type: $3.typeReference(),
-      Class: $2.functionParamClass(),
+      Class: $2.functionArgClass(),
     }
   }
-| param_name func_param_type
+| param_name func_arg_type
   {
-    $$.val = tree.FuncParam{
+    $$.val = tree.FuncArg{
       Name: tree.Name($1),
       Type: $2.typeReference(),
-      Class: tree.FunctionParamIn,
+      Class: tree.FunctionArgIn,
     }
   }
-| func_param_class func_param_type
+| func_arg_class func_arg_type
   {
-    $$.val = tree.FuncParam{
+    $$.val = tree.FuncArg{
       Type: $2.typeReference(),
-      Class: $1.functionParamClass(),
+      Class: $1.functionArgClass(),
     }
   }
-| func_param_type
+| func_arg_type
   {
-    $$.val = tree.FuncParam{
+    $$.val = tree.FuncArg{
       Type: $1.typeReference(),
-      Class: tree.FunctionParamIn,
+      Class: tree.FunctionArgIn,
     }
   }
 
-func_param_class:
-  IN { $$.val = tree.FunctionParamIn }
+func_arg_class:
+  IN { $$.val = tree.FunctionArgIn }
 | OUT { return unimplemented(sqllex, "create function with 'OUT' argument class") }
 | INOUT { return unimplemented(sqllex, "create function with 'INOUT' argument class") }
 | IN OUT { return unimplemented(sqllex, "create function with 'IN OUT' argument class") }
-| VARIADIC { return unimplementedWithIssueDetail(sqllex, 88947, "variadic user-defined functions") }
+| VARIADIC { return unimplemented(sqllex, "create function with 'VARIADIC' argument class") }
 
-func_param_type:
+func_arg_type:
   typename
 
 func_return_type:
-  func_param_type
+  func_arg_type
 
 opt_create_func_opt_list:
   create_func_opt_list { $$.val = $1.functionOptions() }
@@ -4490,21 +4400,15 @@ opt_routine_body:
     $$.val = (*tree.RoutineBody)(nil)
   }
 
-// %Help: DROP FUNCTION - remove a function
-// %Category: DDL
-// %Text:
-// DROP FUNCTION [ IF EXISTS ] name [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ] [, ...]
-//    [ CASCADE | RESTRICT ]
-// %SeeAlso: WEBDOCS/drop-function.html
 drop_func_stmt:
-  DROP FUNCTION function_with_paramtypes_list opt_drop_behavior
+  DROP FUNCTION function_with_argtypes_list opt_drop_behavior
   {
     $$.val = &tree.DropFunction{
       Functions: $3.functionObjs(),
       DropBehavior: $4.dropBehavior(),
     }
   }
-| DROP FUNCTION IF EXISTS function_with_paramtypes_list opt_drop_behavior
+  | DROP FUNCTION IF EXISTS function_with_argtypes_list opt_drop_behavior
   {
     $$.val = &tree.DropFunction{
       IfExists: true,
@@ -4512,24 +4416,23 @@ drop_func_stmt:
       DropBehavior: $6.dropBehavior(),
     }
   }
-| DROP FUNCTION error // SHOW HELP: DROP FUNCTION
 
-function_with_paramtypes_list:
-  function_with_paramtypes
+function_with_argtypes_list:
+  function_with_argtypes
   {
     $$.val = tree.FuncObjs{$1.functionObj()}
   }
-  | function_with_paramtypes_list ',' function_with_paramtypes
+  | function_with_argtypes_list ',' function_with_argtypes
   {
     $$.val = append($1.functionObjs(), $3.functionObj())
   }
 
-function_with_paramtypes:
-  db_object_name func_params
+function_with_argtypes:
+  db_object_name func_args
   {
     $$.val = tree.FuncObj{
       FuncName: $1.unresolvedObjectName().ToFunctionName(),
-      Params: $2.functionParams(),
+      Args: $2.functionArgs(),
     }
   }
   | db_object_name
@@ -4539,28 +4442,28 @@ function_with_paramtypes:
     }
   }
 
-func_params:
-  '(' func_params_list ')'
+func_args:
+  '(' func_args_list ')'
   {
-    $$.val = $2.functionParams()
+    $$.val = $2.functionArgs()
   }
   | '(' ')'
   {
-    $$.val = tree.FuncParams{}
+    $$.val = tree.FuncArgs{}
   }
 
-func_params_list:
-  func_param
+func_args_list:
+  func_arg
   {
-    $$.val = tree.FuncParams{$1.functionParam()}
+    $$.val = tree.FuncArgs{$1.functionArg()}
   }
-  | func_params_list ',' func_param
+  | func_args_list ',' func_arg
   {
-    $$.val = append($1.functionParams(), $3.functionParam())
+    $$.val = append($1.functionArgs(), $3.functionArg())
   }
 
 alter_func_options_stmt:
-  ALTER FUNCTION function_with_paramtypes alter_func_opt_list opt_restrict
+  ALTER FUNCTION function_with_argtypes alter_func_opt_list opt_restrict
   {
     $$.val = &tree.AlterFunctionOptions{
       Function: $3.functionObj(),
@@ -4583,7 +4486,7 @@ opt_restrict:
 | /* EMPTY */ {}
 
 alter_func_rename_stmt:
-  ALTER FUNCTION function_with_paramtypes RENAME TO name
+  ALTER FUNCTION function_with_argtypes RENAME TO name
   {
     $$.val = &tree.AlterFunctionRename{
       Function: $3.functionObj(),
@@ -4592,7 +4495,7 @@ alter_func_rename_stmt:
   }
 
 alter_func_set_schema_stmt:
-  ALTER FUNCTION function_with_paramtypes SET SCHEMA schema_name
+  ALTER FUNCTION function_with_argtypes SET SCHEMA schema_name
   {
     $$.val = &tree.AlterFunctionSetSchema{
       Function: $3.functionObj(),
@@ -4601,7 +4504,7 @@ alter_func_set_schema_stmt:
   }
 
 alter_func_owner_stmt:
-  ALTER FUNCTION function_with_paramtypes OWNER TO role_spec
+  ALTER FUNCTION function_with_argtypes OWNER TO role_spec
   {
     $$.val = &tree.AlterFunctionSetOwner{
       Function: $3.functionObj(),
@@ -4610,7 +4513,7 @@ alter_func_owner_stmt:
   }
 
 alter_func_dep_extension_stmt:
-  ALTER FUNCTION function_with_paramtypes opt_no DEPENDS ON EXTENSION name
+  ALTER FUNCTION function_with_argtypes opt_no DEPENDS ON EXTENSION name
   {
     $$.val = &tree.AlterFunctionDepExtension{
       Function: $3.functionObj(),
@@ -4667,6 +4570,7 @@ drop_unsupported:
 | DROP EXTENSION name error { return unimplementedWithIssueDetail(sqllex, 74777, "drop extension") }
 | DROP FOREIGN TABLE error { return unimplemented(sqllex, "drop foreign table") }
 | DROP FOREIGN DATA error { return unimplemented(sqllex, "drop fdw") }
+| DROP FUNCTION error { return unimplementedWithIssueDetail(sqllex, 17511, "drop function") }
 | DROP opt_procedural LANGUAGE name error { return unimplementedWithIssueDetail(sqllex, 17511, "drop language " + $4) }
 | DROP OPERATOR error { return unimplemented(sqllex, "drop operator") }
 | DROP PUBLICATION error { return unimplemented(sqllex, "drop publication") }
@@ -4687,7 +4591,7 @@ create_ddl_stmt:
 | create_type_stmt     // EXTEND WITH HELP: CREATE TYPE
 | create_view_stmt     // EXTEND WITH HELP: CREATE VIEW
 | create_sequence_stmt // EXTEND WITH HELP: CREATE SEQUENCE
-| create_func_stmt     // EXTEND WITH HELP: CREATE FUNCTION
+| create_func_stmt
 
 // %Help: CREATE STATISTICS - create a new table statistic
 // %Category: Misc
@@ -4731,13 +4635,18 @@ create_stats_target:
   }
 
 opt_create_stats_options:
-  create_stats_option_list
+  WITH OPTIONS create_stats_option_list
   {
-    $$.val = $1.createStatsOptions()
-  }
-| WITH OPTIONS create_stats_option_list
-  {
+    /* SKIP DOC */
     $$.val = $3.createStatsOptions()
+  }
+// Allow AS OF SYSTEM TIME without WITH OPTIONS, for consistency with other
+// statements.
+| as_of_clause
+  {
+    $$.val = &tree.CreateStatsOptions{
+      AsOf: $1.asOfClause(),
+    }
   }
 | /* EMPTY */
   {
@@ -4776,18 +4685,6 @@ create_stats_option:
   {
     $$.val = &tree.CreateStatsOptions{
       AsOf: $1.asOfClause(),
-    }
-  }
-| USING EXTREMES
-  {
-    $$.val = &tree.CreateStatsOptions{
-      UsingExtremes: true,
-    }
-  }
-| where_clause
-  {
-    $$.val = &tree.CreateStatsOptions{
-      Where: tree.NewWhere(tree.AstWhere, $1.expr()),
     }
   }
 
@@ -4834,76 +4731,6 @@ create_changefeed_stmt:
       Options: $5.kvOptions(),
     }
   }
-
-// %Help: CREATE SCHEDULE FOR CHANGEFEED - create changefeed periodically
-// %Category: CCL
-// %Text:
-// CREATE SCHEDULE [IF NOT EXISTS]
-// [<description>]
-// FOR CHANGEFEED
-// <targets> INTO <sink> [WITH <options>]
-// RECURRING [crontab|NEVER]
-// [WITH EXPERIMENTAL SCHEDULE OPTIONS <schedule_option>[= <value>] [, ...] ]
-//
-// All changefeeds run in UTC timezone.
-//
-// Description:
-//   Optional description (or name) for this schedule
-//
-// RECURRING <crontab>:
-//   The RECURRING expression specifies when export runs
-//   Schedule specified as a string in crontab format.
-//   All times in UTC.
-//     "5 0 * * *": run schedule 5 minutes past midnight.
-//     "@daily": run daily, at midnight
-//   See https://en.wikipedia.org/wiki/Cron
-//
-// sink: data capture stream destination (Enterprise only)
-// %SeeAlso: CREATE CHANGEFEED
-create_schedule_for_changefeed_stmt:
-  CREATE SCHEDULE /*$3=*/schedule_label_spec FOR CHANGEFEED
-  /* $6=*/changefeed_targets /*$7=*/changefeed_sink
-  /*$8=*/opt_with_options /*$9=*/cron_expr /*$10=*/opt_with_schedule_options
-  {
-     $$.val = &tree.ScheduledChangefeed{
-        CreateChangefeed:   &tree.CreateChangefeed{
-          Targets:    $6.changefeedTargets(),
-          SinkURI:    $7.expr(),
-          Options:    $8.kvOptions(),
-        },
-        ScheduleLabelSpec:  *($3.scheduleLabelSpec()),
-        Recurrence:         $9.expr(),
-				ScheduleOptions:    $10.kvOptions(),
-     }
-  }
-| CREATE SCHEDULE /*$3=*/schedule_label_spec FOR CHANGEFEED /*$6=*/changefeed_sink
-  /*$7=*/opt_with_options AS SELECT /*$10=*/target_list FROM /*$12=*/changefeed_target_expr /*$13=*/opt_where_clause
-  /*$14=*/cron_expr /*$15=*/opt_with_schedule_options
-  {
-    target, err := tree.ChangefeedTargetFromTableExpr($12.tblExpr())
-    if err != nil {
-      return setErr(sqllex, err)
-    }
-
-    createChangefeedNode := &tree.CreateChangefeed{
-      SinkURI: $6.expr(),
-      Options: $7.kvOptions(),
-      Targets: tree.ChangefeedTargets{target},
-      Select:  &tree.SelectClause{
-         Exprs: $10.selExprs(),
-         From:  tree.From{Tables: tree.TableExprs{$12.tblExpr()}},
-         Where: tree.NewWhere(tree.AstWhere, $13.expr()),
-      },
-    }
-
-    $$.val = &tree.ScheduledChangefeed{
-			CreateChangefeed:  	createChangefeedNode,
-			ScheduleLabelSpec:  *($3.scheduleLabelSpec()),
-			Recurrence:         $14.expr(),
-			ScheduleOptions:    $15.kvOptions(),
-	 }
-  }
- | CREATE SCHEDULE schedule_label_spec FOR CHANGEFEED error  // SHOW HELP: CREATE SCHEDULE FOR CHANGEFEED
 
 changefeed_targets:
   changefeed_target
@@ -4953,16 +4780,10 @@ opt_changefeed_sink:
     $$.val = nil
   }
 
-changefeed_sink:
-  INTO string_or_placeholder
-  {
-    $$.val = $2.expr()
-  }
 // %Help: DELETE - delete rows from a table
 // %Category: DML
 // %Text: DELETE FROM <tablename> [WHERE <expr>]
 //               [ORDER BY <exprs...>]
-//               [USING <exprs...>]
 //               [LIMIT <expr>]
 //               [RETURNING <exprs...>]
 // %SeeAlso: WEBDOCS/delete.html
@@ -4972,7 +4793,6 @@ delete_stmt:
     $$.val = &tree.Delete{
       With: $1.with(),
       Table: $4.tblExpr(),
-      Using: $5.tblExprs(),
       Where: tree.NewWhere(tree.AstWhere, $6.expr()),
       OrderBy: $7.orderBy(),
       Limit: $8.limit(),
@@ -4982,14 +4802,8 @@ delete_stmt:
 | opt_with_clause DELETE error // SHOW HELP: DELETE
 
 opt_using_clause:
-  USING from_list
-  {
-    $$.val = $2.tblExprs()
-  }
-| /* EMPTY */
-  {
-    $$.val = tree.TableExprs{}
-  }
+  USING from_list { return unimplementedWithIssueDetail(sqllex, 40963, "delete using") }
+| /* EMPTY */ { }
 
 
 // %Help: DISCARD - reset the session to its initial state
@@ -5025,7 +4839,6 @@ drop_stmt:
 | drop_role_stmt     // EXTEND WITH HELP: DROP ROLE
 | drop_schedule_stmt // EXTEND WITH HELP: DROP SCHEDULES
 | drop_external_connection_stmt // EXTEND WITH HELP: DROP EXTERNAL CONNECTION
-| drop_tenant_stmt              // EXTEND WITH HELP: DROP TENANT
 | drop_unsupported   {}
 | DROP error         // SHOW HELP: DROP
 
@@ -5037,7 +4850,7 @@ drop_ddl_stmt:
 | drop_sequence_stmt // EXTEND WITH HELP: DROP SEQUENCE
 | drop_schema_stmt   // EXTEND WITH HELP: DROP SCHEMA
 | drop_type_stmt     // EXTEND WITH HELP: DROP TYPE
-| drop_func_stmt     // EXTEND WITH HELP: DROP FUNCTION
+| drop_func_stmt
 
 // %Help: DROP VIEW - remove a view
 // %Category: DDL
@@ -5171,26 +4984,6 @@ drop_type_stmt:
     }
   }
 | DROP TYPE error // SHOW HELP: DROP TYPE
-
-// %Help: DROP TENANT - remove a tenant
-// %Category: DDL
-// %Text: DROP TENANT [IF EXISTS] <name>
-drop_tenant_stmt:
-  DROP TENANT name
-  {
-    $$.val = &tree.DropTenant{
-      Name: tree.Name($3),
-      IfExists: false,
-    }
-  }
-| DROP TENANT IF EXISTS name
-  {
-    $$.val = &tree.DropTenant{
-      Name: tree.Name($5),
-      IfExists: true,
-    }
-  }
-| DROP TENANT error // SHOW HELP: DROP TENANT
 
 target_types:
   type_name_list
@@ -5530,26 +5323,6 @@ backup_kms:
     }
 	}
 
-// %Help: SHOW TENANT - display tenant information
-// %Category: Misc
-// %Text: SHOW TENANT <tenant_name> [WITH REPLICATION STATUS]
-show_tenant_stmt:
-  SHOW TENANT d_expr
-  {
-   $$.val = &tree.ShowTenant{
-     Name: $3.expr(),
-     WithReplication: false,
-   }
-  }
-| SHOW TENANT d_expr WITH REPLICATION STATUS
-  {
-   $$.val = &tree.ShowTenant{
-     Name: $3.expr(),
-     WithReplication: true,
-   }
-  }
-| SHOW TENANT error // SHOW HELP: SHOW TENANT
-
 // %Help: PREPARE - prepare a statement for later execution
 // %Category: Misc
 // %Text: PREPARE <name> [ ( <types...> ) ] AS <query>
@@ -5649,13 +5422,12 @@ deallocate_stmt:
 //   GRANT <roles...> TO <grantees...> [WITH ADMIN OPTION]
 //
 // Privileges:
-//   CREATE, DROP, GRANT, SELECT, INSERT, DELETE, UPDATE, USAGE, EXECUTE
+//   CREATE, DROP, GRANT, SELECT, INSERT, DELETE, UPDATE, USAGE
 //
 // Targets:
 //   DATABASE <databasename> [, ...]
 //   [TABLE] [<databasename> .] { <tablename> | * } [, ...]
 //   TYPE <typename> [, <typename>]...
-//   FUNCTION <functionname> [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ] [, ...]
 //   SCHEMA [<databasename> .]<schemaname> [, [<databasename> .]<schemaname>]...
 //   ALL TABLES IN SCHEMA schema_name [, ...]
 //
@@ -5750,13 +5522,12 @@ grant_stmt:
 //   REVOKE [ADMIN OPTION FOR] <roles...> FROM <grantees...>
 //
 // Privileges:
-//   CREATE, DROP, GRANT, SELECT, INSERT, DELETE, UPDATE, USAGE, EXECUTE
+//   CREATE, DROP, GRANT, SELECT, INSERT, DELETE, UPDATE, USAGE
 //
 // Targets:
 //   DATABASE <databasename> [, <databasename>]...
 //   [TABLE] [<databasename> .] { <tablename> | * } [, ...]
 //   TYPE <typename> [, <typename>]...
-//   FUNCTION <functionname> [ ( [ [ argmode ] [ argname ] argtype [, ...] ] ) ] [, ...]
 //   SCHEMA [<databasename> .]<schemaname> [, [<databasename> .]<schemaname]...
 //   ALL TABLES IN SCHEMA schema_name [, ...]
 //
@@ -6076,7 +5847,7 @@ scrub_option:
   {
     $$.val = &tree.ScrubOptionIndex{}
   }
-| INDEX_BEFORE_PAREN '(' name_list ')'
+| INDEX '(' name_list ')'
   {
     $$.val = &tree.ScrubOptionIndex{IndexNames: $3.nameList()}
   }
@@ -6105,61 +5876,7 @@ set_csetting_stmt:
   }
 | SET CLUSTER error // SHOW HELP: SET CLUSTER SETTING
 
-
 // %Help: ALTER TENANT - alter tenant configuration
-// %Category: Group
-// %SeeAlso: ALTER TENANT REPLICATION, ALTER TENANT CLUSTER SETTING
-alter_tenant_stmt:
-  alter_tenant_replication_stmt // EXTEND WITH HELP: ALTER TENANT REPLICATION
-| alter_tenant_csetting_stmt    // EXTEND WITH HELP: ALTER TENANT CLUSTER SETTING
-| ALTER TENANT error            // SHOW HELP: ALTER TENANT
-
-// %Help: ALTER TENANT REPLICATION - alter tenant replication stream
-// %Category: Group
-// %Text:
-// ALTER TENANT '<tenant_name>' PAUSE REPLICATION
-// ALTER TENANT '<tenant_name>' RESUME REPLICATION
-// ALTER TENANT '<tenant_name>' COMPLETE REPLICATION TO LATEST
-// ALTER TENANT '<tenant_name>' COMPLETE REPLICATION TO SYSTEM TIME 'time'
-alter_tenant_replication_stmt:
-  ALTER TENANT d_expr PAUSE REPLICATION
-  {
-    /* SKIP DOC */
-    $$.val = &tree.AlterTenantReplication{
-      TenantName: $3.expr(),
-      Command: tree.PauseJob,
-    }
-  }
-| ALTER TENANT d_expr RESUME REPLICATION
-  {
-    /* SKIP DOC */
-    $$.val = &tree.AlterTenantReplication{
-      TenantName: $3.expr(),
-      Command: tree.ResumeJob,
-    }
-  }
-| ALTER TENANT d_expr COMPLETE REPLICATION TO SYSTEM TIME a_expr
-  {
-    /* SKIP DOC */
-    $$.val = &tree.AlterTenantReplication{
-      TenantName: $3.expr(),
-      Cutover: &tree.ReplicationCutoverTime{
-        Timestamp: $9.expr(),
-      },
-    }
-  }
-| ALTER TENANT d_expr COMPLETE REPLICATION TO LATEST
-  {
-    /* SKIP DOC */
-    $$.val = &tree.AlterTenantReplication{
-      TenantName: $3.expr(),
-      Cutover: &tree.ReplicationCutoverTime{
-        Latest: true,
-      },
-    }
-  }
-
-// %Help: ALTER TENANT CLUSTER SETTING - alter tenant cluster settings
 // %Category: Group
 // %Text:
 // ALTER TENANT { <tenant_id> | ALL } SET CLUSTER SETTING <var> { TO | = } <value>
@@ -6168,7 +5885,6 @@ alter_tenant_replication_stmt:
 alter_tenant_csetting_stmt:
   ALTER TENANT d_expr set_or_reset_csetting_stmt
   {
-    /* SKIP DOC */
     csettingStmt := $4.stmt().(*tree.SetClusterSetting)
     $$.val = &tree.AlterTenantSetClusterSetting{
       SetClusterSetting: *csettingStmt,
@@ -6177,14 +5893,14 @@ alter_tenant_csetting_stmt:
   }
 | ALTER TENANT_ALL ALL set_or_reset_csetting_stmt
   {
-    /* SKIP DOC */
     csettingStmt := $4.stmt().(*tree.SetClusterSetting)
     $$.val = &tree.AlterTenantSetClusterSetting{
       SetClusterSetting: *csettingStmt,
       TenantAll: true,
     }
   }
-| ALTER TENANT_ALL ALL error // SHOW HELP: ALTER TENANT CLUSTER SETTING
+| ALTER TENANT error // SHOW HELP: ALTER TENANT
+| ALTER TENANT_ALL ALL error // SHOW HELP: ALTER TENANT
 
 set_or_reset_csetting_stmt:
   reset_csetting_stmt
@@ -6471,13 +6187,13 @@ zone_value:
 // %Text:
 // SHOW BACKUP, SHOW CLUSTER SETTING, SHOW COLUMNS, SHOW CONSTRAINTS,
 // SHOW CREATE, SHOW CREATE SCHEDULES, SHOW DATABASES, SHOW ENUMS, SHOW
-// FUNCTION, SHOW FUNCTIONS, SHOW HISTOGRAM, SHOW INDEXES, SHOW PARTITIONS, SHOW JOBS,
-// SHOW STATEMENTS, SHOW RANGE, SHOW RANGES, SHOW REGIONS, SHOW SURVIVAL GOAL,
+// FUNCTION, SHOW HISTOGRAM, SHOW INDEXES, SHOW PARTITIONS, SHOW JOBS, SHOW
+// STATEMENTS, SHOW RANGE, SHOW RANGES, SHOW REGIONS, SHOW SURVIVAL GOAL,
 // SHOW ROLES, SHOW SCHEMAS, SHOW SEQUENCES, SHOW SESSION, SHOW SESSIONS,
 // SHOW STATISTICS, SHOW SYNTAX, SHOW TABLES, SHOW TRACE, SHOW TRANSACTION,
 // SHOW TRANSACTIONS, SHOW TRANSFER, SHOW TYPES, SHOW USERS, SHOW LAST QUERY STATISTICS,
-// SHOW SCHEDULES, SHOW LOCALITY, SHOW ZONE CONFIGURATION, SHOW COMMIT TIMESTAMP,
-// SHOW FULL TABLE SCANS, SHOW CREATE EXTERNAL CONNECTIONS, SHOW TENANT
+// SHOW SCHEDULES, SHOW LOCALITY, SHOW ZONE CONFIGURATION, SHOW FULL TABLE SCANS,
+// SHOW CREATE EXTERNAL CONNECTIONS
 show_stmt:
   show_backup_stmt           // EXTEND WITH HELP: SHOW BACKUP
 | show_columns_stmt          // EXTEND WITH HELP: SHOW COLUMNS
@@ -6490,7 +6206,6 @@ show_stmt:
 | show_enums_stmt            // EXTEND WITH HELP: SHOW ENUMS
 | show_types_stmt            // EXTEND WITH HELP: SHOW TYPES
 | show_fingerprints_stmt
-| show_functions_stmt        // EXTEND WITH HELP: SHOW FUNCTIONS
 | show_grants_stmt           // EXTEND WITH HELP: SHOW GRANTS
 | show_histogram_stmt        // EXTEND WITH HELP: SHOW HISTOGRAM
 | show_indexes_stmt          // EXTEND WITH HELP: SHOW INDEXES
@@ -6512,7 +6227,6 @@ show_stmt:
 | show_stats_stmt            // EXTEND WITH HELP: SHOW STATISTICS
 | show_syntax_stmt           // EXTEND WITH HELP: SHOW SYNTAX
 | show_tables_stmt           // EXTEND WITH HELP: SHOW TABLES
-| show_tenant_stmt           // EXTEND WITH HELP: SHOW TENANT
 | show_trace_stmt            // EXTEND WITH HELP: SHOW TRACE
 | show_transaction_stmt      // EXTEND WITH HELP: SHOW TRANSACTION
 | show_transactions_stmt     // EXTEND WITH HELP: SHOW TRANSACTIONS
@@ -6549,6 +6263,7 @@ close_cursor_stmt:
 // %Text: DECLARE <name> [ options ] CURSOR p [ WITH | WITHOUT HOLD ] FOR <query>
 // %SeeAlso: CLOSE, FETCH
 declare_cursor_stmt:
+  // TODO(jordan): the options here should be supported in any order, not just
   // the fixed one here.
 	DECLARE cursor_name opt_binary opt_sensitivity opt_scroll CURSOR opt_hold FOR select_stmt
 	{
@@ -6816,17 +6531,13 @@ session_var_parts:
 
 // %Help: SHOW STATISTICS - display table statistics
 // %Category: Misc
-// %Text: SHOW STATISTICS [USING JSON] FOR TABLE <table_name> [WITH FORECAST]
+// %Text: SHOW STATISTICS [USING JSON] FOR TABLE <table_name>
 //
-// Returns the available statistics for a table. The statistics can include a
-// histogram ID, which can be used with SHOW HISTOGRAM.
-//
-// If USING JSON is specified, the statistics and histograms are encoded in JSON
-// format.
-//
-// If WITH FORECAST is specified, forecasted statistics are included if
-// available.
-//
+// Returns the available statistics for a table.
+// The statistics can include a histogram ID, which can
+// be used with SHOW HISTOGRAM.
+// If USING JSON is specified, the statistics and histograms
+// are encoded in JSON format.
 // %SeeAlso: SHOW HISTOGRAM
 show_stats_stmt:
   SHOW STATISTICS FOR TABLE table_name opt_with_options
@@ -7177,22 +6888,6 @@ show_indexes_stmt:
   }
 | SHOW KEYS error // SHOW HELP: SHOW INDEXES
 
-// %Help: SHOW COMMIT TIMESTAMP - show timestamp commit timestamp of last transaction
-// %Category: Misc
-// %Text: SHOW COMMIT TIMESTAMP
-//
-// Shows the commit timestamp of the last committed transaction if not currently
-// in a transaction. If currently in a transaction, implicitly commits the
-// transaction, returning any errors which may have occurred during the commit.
-// The transaction state will remain open from the perspective of the client,
-// meaning that a COMMIT must be issued to move the connection back to a state
-// where new statements may be issued.
-show_commit_timestamp_stmt:
-  SHOW COMMIT TIMESTAMP
-  {
-    $$.val = &tree.ShowCommitTimestamp{}
-  }
-
 // %Help: SHOW CONSTRAINTS - list constraints
 // %Category: DDL
 // %Text: SHOW CONSTRAINTS FROM <tablename>
@@ -7362,10 +7057,6 @@ opt_schedule_executor_type:
   {
     $$.val = tree.ScheduledSQLStatsCompactionExecutor
   }
-| FOR CHANGEFEED
-	{
-		$$.val = tree.ScheduledChangefeedExecutor
-	}
 
 // %Help: SHOW TRACE - display an execution trace
 // %Category: Misc
@@ -7440,34 +7131,6 @@ show_tables_stmt:
     $$.val = &tree.ShowTables{WithComment: $3.bool()}
   }
 | SHOW TABLES error // SHOW HELP: SHOW TABLES
-
-// %Help: SHOW FUNCTIONS - list functions
-// %Category: DDL
-// %Text: SHOW FUNCTIONS [FROM <databasename> [ . <schemaname> ] ]
-show_functions_stmt:
-  SHOW FUNCTIONS FROM name '.' name
-  {
-    $$.val = &tree.ShowFunctions{ObjectNamePrefix:tree.ObjectNamePrefix{
-        CatalogName: tree.Name($4),
-        ExplicitCatalog: true,
-        SchemaName: tree.Name($6),
-        ExplicitSchema: true,
-    }}
-  }
-| SHOW FUNCTIONS FROM name
-  {
-    $$.val = &tree.ShowFunctions{ObjectNamePrefix:tree.ObjectNamePrefix{
-        // Note: the schema name may be interpreted as database name,
-        // see name_resolution.go.
-        SchemaName: tree.Name($4),
-        ExplicitSchema: true,
-    }}
-  }
-| SHOW FUNCTIONS
-  {
-    $$.val = &tree.ShowFunctions{}
-  }
-| SHOW FUNCTIONS error // SHOW HELP: SHOW FUNCTIONS
 
 // %Help: SHOW TRANSACTIONS - list open client transactions across the cluster
 // %Category: Misc
@@ -7606,7 +7269,6 @@ show_transfer_stmt:
 // %Category: DDL
 // %Text:
 // SHOW CREATE [ TABLE | SEQUENCE | VIEW | DATABASE ] <object_name>
-// SHOW CREATE [ SECONDARY ] INDEXES FROM <table_name>
 // SHOW CREATE ALL SCHEMAS
 // SHOW CREATE ALL TABLES
 // SHOW CREATE ALL TYPES
@@ -7636,16 +7298,6 @@ show_create_stmt:
     /* SKIP DOC */
     $$.val = &tree.ShowCreate{Mode: tree.ShowCreateModeDatabase, Name: $4.unresolvedObjectName()}
 	}
-| SHOW CREATE INDEXES FROM table_name
-  {
-    /* SKIP DOC */
-    $$.val = &tree.ShowCreate{Mode: tree.ShowCreateModeIndexes, Name: $5.unresolvedObjectName()}
-  }
-| SHOW CREATE SECONDARY INDEXES FROM table_name
-  {
-    /* SKIP DOC */
-    $$.val = &tree.ShowCreate{Mode: tree.ShowCreateModeSecondaryIndexes, Name: $6.unresolvedObjectName()}
-  }
 | SHOW CREATE FUNCTION db_object_name
   {
     /* SKIP DOC */
@@ -8041,6 +7693,7 @@ opt_on_targets_roles:
 //   more nuance.)
 //
 // Tada!
+// TODO(knz): This should learn how to parse more complex expressions
 // and placeholders.
 grant_targets:
   IDENT
@@ -8115,7 +7768,7 @@ grant_targets:
   {
     $$.val = tree.GrantTargetList{ExternalConnections: $3.nameList()}
   }
-| FUNCTION function_with_paramtypes_list
+| FUNCTION function_with_argtypes_list
   {
     $$.val = tree.GrantTargetList{Functions: $2.functionObjs()}
   }
@@ -8152,6 +7805,7 @@ backup_targets:
   {
     $$.val = tree.BackupTargetList{Tables: tree.TableAttrs{SequenceOnly: false, TablePatterns: $2.tablePatterns()}}
   }
+// TODO(knz): This should learn how to parse more complex expressions
 // and placeholders.
 | TENANT iconst64
   {
@@ -8988,20 +8642,7 @@ generated_by_default_as:
   GENERATED_BY_DEFAULT BY DEFAULT AS {}
 
 index_def:
-  INDEX_BEFORE_PAREN '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
-  {
-    $$.val = &tree.IndexTableDef{
-      Name:             "",
-      Columns:          $3.idxElems(),
-      Sharded:          $5.shardedIndexDef(),
-      Storing:          $6.nameList(),
-      PartitionByIndex: $7.partitionByIndex(),
-      StorageParams:    $8.storageParams(),
-      Predicate:        $9.expr(),
-      NotVisible:       $10.bool(),
-    }
-  }
-| INDEX_BEFORE_NAME_THEN_PAREN name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
+  INDEX opt_index_name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
   {
     $$.val = &tree.IndexTableDef{
       Name:             tree.Name($2),
@@ -9029,19 +8670,7 @@ index_def:
       },
     }
   }
-| INVERTED INDEX_BEFORE_PAREN '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
-  {
-    $$.val = &tree.IndexTableDef{
-      Name:             "",
-      Columns:          $4.idxElems(),
-      Inverted:         true,
-      PartitionByIndex: $6.partitionByIndex(),
-      StorageParams:    $7.storageParams(),
-      Predicate:        $8.expr(),
-      NotVisible:       $9.bool(),
-    }
-  }
-| INVERTED INDEX_BEFORE_NAME_THEN_PAREN name '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
+| INVERTED INDEX opt_name '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
   {
     $$.val = &tree.IndexTableDef{
       Name:             tree.Name($3),
@@ -9852,23 +9481,7 @@ create_type_stmt:
   }
 | CREATE TYPE error // SHOW HELP: CREATE TYPE
   // Record/Composite types.
-| CREATE TYPE type_name AS '(' opt_composite_type_list ')'
-  {
-    $$.val = &tree.CreateType{
-      TypeName: $3.unresolvedObjectName(),
-      Variety: tree.Composite,
-      CompositeTypeList: $6.compositeTypeList(),
-    }
-  }
-| CREATE TYPE IF NOT EXISTS type_name AS '(' opt_composite_type_list ')'
-  {
-    $$.val = &tree.CreateType{
-      TypeName: $6.unresolvedObjectName(),
-      Variety: tree.Composite,
-      IfNotExists: true,
-      CompositeTypeList: $9.compositeTypeList(),
-    }
-  }
+| CREATE TYPE type_name AS '(' error      { return unimplementedWithIssue(sqllex, 27792) }
   // Range types.
 | CREATE TYPE type_name AS RANGE error    { return unimplementedWithIssue(sqllex, 27791) }
   // Base (primitive) types.
@@ -9896,36 +9509,6 @@ enum_val_list:
 | enum_val_list ',' SCONST
   {
     $$.val = append($1.enumValueList(), tree.EnumValue($3))
-  }
-
-opt_composite_type_list:
-  composite_type_list
-  {
-    $$.val = $1.compositeTypeList()
-  }
-| /* EMPTY */
-  {
-    $$.val = []tree.CompositeTypeElem{}
-  }
-
-composite_type_list:
-  name simple_typename
-  {
-    $$.val = []tree.CompositeTypeElem{
-        tree.CompositeTypeElem{
-            Label: tree.Name($1),
-            Type: $2.typeReference(),
-        },
-    }
-  }
-| composite_type_list ',' name simple_typename
-  {
-    $$.val = append($1.compositeTypeList(),
-        tree.CompositeTypeElem{
-            Label: tree.Name($3),
-            Type: $4.typeReference(),
-        },
-    )
   }
 
 // %Help: CREATE INDEX - create a new index
@@ -10131,10 +9714,6 @@ opt_asc_desc:
 
 opt_index_visible:
   NOT VISIBLE
-  {
-    $$.val = true
-  }
-| INVISIBLE
   {
     $$.val = true
   }
@@ -11248,7 +10827,7 @@ returning_clause:
     ret := tree.ReturningExprs($2.selExprs())
     $$.val = &ret
   }
-| RETURNING NOTHING_AFTER_RETURNING
+| RETURNING NOTHING
   {
     $$.val = tree.ReturningNothingClause
   }
@@ -11302,6 +10881,7 @@ set_clause_list:
     $$.val = append($1.updateExprs(), $3.updateExpr())
   }
 
+// TODO(knz): The LHS in these can be extended to support
 // a path to a field member when compound types are supported.
 // Keep it simple for now.
 set_clause:
@@ -11810,7 +11390,7 @@ sortby:
     name := $3.unresolvedObjectName().ToTableName()
     $$.val = &tree.Order{OrderType: tree.OrderByIndex, Direction: $4.dir(), Table: name}
   }
-| INDEX_AFTER_ORDER_BY_BEFORE_AT table_name '@' index_name opt_asc_desc
+| INDEX table_name '@' index_name opt_asc_desc
   {
     name := $2.unresolvedObjectName().ToTableName()
     $$.val = &tree.Order{
@@ -12668,6 +12248,7 @@ cast_target:
   }
 
 opt_array_bounds:
+  // TODO(justin): reintroduce multiple array bounds
   // opt_array_bounds '[' ']' { $$.val = append($1.int32s(), -1) }
   '[' ']' { $$.val = []int32{-1} }
 | '[' ']' '[' error { return unimplementedWithIssue(sqllex, 32552) }
@@ -12758,6 +12339,8 @@ simple_typename:
     $$.val = $1.typeReference()
   }
 | const_typename
+| bit_with_length
+| character_with_length
 | interval_type
 | POINT error { return unimplementedWithIssueDetail(sqllex, 21286, "point") } // needed or else it generates a syntax error.
 | POLYGON error { return unimplementedWithIssueDetail(sqllex, 21286, "polygon") } // needed or else it generates a syntax error.
@@ -12825,21 +12408,19 @@ const_geo:
     $$.val = types.MakeGeography($3.geoShapeType(), geopb.SRID(val))
   }
 
-// We have a separate const_typename to allow defaulting fixed-length types such
-// as CHAR() and BIT() to an unspecified length. SQL9x requires that these
+// We have a separate const_typename to allow defaulting fixed-length types
+// such as CHAR() and BIT() to an unspecified length. SQL9x requires that these
 // default to a length of one, but this makes no sense for constructs like CHAR
-// 'hi' and BIT '0101', where there is an obvious better choice to make. This
-// rule *also* supports length-specified types like BIT(1), CHAR(3), etc. Note
-// that interval_type is not included here since it must be pushed up higher in
-// the rules to accommodate the postfix options (e.g. INTERVAL '1' YEAR).
-// Likewise, we have to handle the generic-type-name case in a_expr_const to
-// avoid premature reduce/reduce conflicts against function names.
+// 'hi' and BIT '0101', where there is an obvious better choice to make. Note
+// that interval_type is not included here since it must be pushed up higher
+// in the rules to accommodate the postfix options (e.g. INTERVAL '1'
+// YEAR). Likewise, we have to handle the generic-type-name case in
+// a_expr_const to avoid premature reduce/reduce conflicts against function
+// names.
 const_typename:
   numeric
 | bit_without_length
-| bit_with_length
 | character_without_length
-| character_with_length
 | const_datetime
 | const_geo
 
@@ -13423,10 +13004,6 @@ a_expr:
   {
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.Overlaps), Left: $1.expr(), Right: $3.expr()}
   }
-| a_expr AT_AT a_expr
-  {
-    $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.TSMatches), Left: $1.expr(), Right: $3.expr()}
-  }
 | a_expr INET_CONTAINS_OR_EQUALS a_expr
   {
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("inet_contains_or_equals"), Exprs: tree.Exprs{$1.expr(), $3.expr()}}
@@ -13841,6 +13418,7 @@ c_expr:
 //
 // Currently we support array indexing (see c_expr above).
 //
+// TODO(knz/jordan): this is the rule that can be extended to support
 // composite types (#27792) with e.g.:
 //
 //     | '(' a_expr ')' field_access_ops
@@ -13929,6 +13507,7 @@ d_expr:
     sqllex.(*lexer).UpdateNumPlaceholders(p)
     $$.val = p
   }
+// TODO(knz/jordan): extend this for compound types. See explanation above.
 | '(' a_expr ')' '.' '*'
   {
     $$.val = &tree.TupleStar{Expr: $2.expr()}
@@ -13989,6 +13568,7 @@ func_application:
   {
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Type: tree.AllFuncType, Exprs: $4.exprs(), OrderBy: $5.orderBy(), AggType: tree.GeneralAgg}
   }
+// TODO(ridwanmsharif): Once DISTINCT is supported by window aggregates,
 // allow ordering to be specified below.
 | func_name '(' DISTINCT expr_list ')'
   {
@@ -14033,6 +13613,7 @@ typed_literal:
         // types, return an unimplemented error message.
         var typ tree.ResolvableTypeReference
         var ok bool
+        var err error
         var unimp int
         typ, ok, unimp = types.TypeForNonKeywordTypeName(typName)
         if !ok {
@@ -14041,9 +13622,8 @@ typed_literal:
               // In this case, we don't think this type is one of our
               // known unsupported types, so make a type reference for it.
               aIdx := sqllex.(*lexer).NewAnnotation()
-              un, err := name.ToUnresolvedObjectName(aIdx)
+              typ, err = name.ToUnresolvedObjectName(aIdx)
               if err != nil { return setErr(sqllex, err) }
-              typ = &un
             case -1:
               return unimplemented(sqllex, "type name " + typName)
             default:
@@ -14056,7 +13636,7 @@ typed_literal:
       aIdx := sqllex.(*lexer).NewAnnotation()
       res, err := name.ToUnresolvedObjectName(aIdx)
       if err != nil { return setErr(sqllex, err) }
-      $$.val = &tree.CastExpr{Expr: tree.NewStrVal($2), Type: &res, SyntaxMode: tree.CastPrepend}
+      $$.val = &tree.CastExpr{Expr: tree.NewStrVal($2), Type: res, SyntaxMode: tree.CastPrepend}
     }
   }
 | const_typename SCONST
@@ -14615,7 +14195,6 @@ all_op:
 | REGIMATCH { $$.val = treecmp.MakeComparisonOperator(treecmp.RegIMatch) }
 | NOT_REGIMATCH { $$.val = treecmp.MakeComparisonOperator(treecmp.NotRegIMatch) }
 | AND_AND { $$.val = treecmp.MakeComparisonOperator(treecmp.Overlaps) }
-| AT_AT { $$.val = treecmp.MakeComparisonOperator(treecmp.TSMatches) }
 | '~' { $$.val = tree.MakeUnaryOperator(tree.UnaryComplement) }
 | SQRT { $$.val = tree.MakeUnaryOperator(tree.UnarySqrt) }
 | CBRT { $$.val = tree.MakeUnaryOperator(tree.UnaryCbrt) }
@@ -14776,6 +14355,7 @@ extract_list:
     $$.val = $1.exprs()
   }
 
+// TODO(vivek): Narrow down to just IDENT once the other
 // terms are not keywords.
 extract_arg:
   IDENT
@@ -15183,7 +14763,7 @@ interval_value:
     $$.val = &tree.CastExpr{
       Expr: tree.NewStrVal($2),
       Type: t,
-      // TODO(#sql-sessions): This should be CastPrepend, but
+      // TODO(#sql-experience): This should be CastPrepend, but
       // that does not work with parenthesized expressions
       // (using FmtAlwaysGroupExprs).
       SyntaxMode: tree.CastShort,
@@ -15201,7 +14781,7 @@ interval_value:
       Type: types.MakeInterval(
         types.IntervalTypeMetadata{Precision: prec, PrecisionIsSet: true},
       ),
-      // TODO(#sql-sessions): This should be CastPrepend, but
+      // TODO(#sql-experience): This should be CastPrepend, but
       // that does not work with parenthesized expressions
       // (using FmtAlwaysGroupExprs).
       SyntaxMode: tree.CastShort,
@@ -15397,10 +14977,6 @@ func_name:
     $$.val = &tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}
   }
 | prefixed_column_path
-| INDEX_BEFORE_PAREN
-  {
-    $$.val = &tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}
-  }
 
 // func_name_no_crdb_extra is the same rule as func_name, but does not
 // contain some CRDB specific keywords like FAMILY.
@@ -15635,7 +15211,6 @@ unreserved_keyword:
 | EXPORT
 | EXTENSION
 | EXTERNAL
-| EXTREMES
 | FAILURE
 | FILES
 | FILTER
@@ -15675,7 +15250,6 @@ unreserved_keyword:
 | INCREMENT
 | INCREMENTAL
 | INCREMENTAL_LOCATION
-| INDEX
 | INDEXES
 | INHERITS
 | INJECT
@@ -15683,7 +15257,6 @@ unreserved_keyword:
 | INSERT
 | INTO_DB
 | INVERTED
-| INVISIBLE
 | ISOLATION
 | INVOKER
 | JOB
@@ -15744,7 +15317,6 @@ unreserved_keyword:
 | NEXT
 | NO
 | NORMAL
-| NOTHING
 | NO_INDEX_JOIN
 | NO_ZIGZAG_JOIN
 | NO_FULL_SCAN
@@ -15833,7 +15405,6 @@ unreserved_keyword:
 | RESTRICT
 | RESTRICTED
 | RESUME
-| RETENTION
 | RETRY
 | RETURN
 | RETURNS
@@ -16201,9 +15772,7 @@ reserved_keyword:
 // Adding keywords here creates non-resolvable incompatibilities with
 // postgres clients.
 cockroachdb_extra_reserved_keyword:
-  INDEX_BEFORE_NAME_THEN_PAREN
-| INDEX_BEFORE_PAREN
-| INDEX_AFTER_ORDER_BY_BEFORE_AT
-| NOTHING_AFTER_RETURNING
+  INDEX
+| NOTHING
 
 %%

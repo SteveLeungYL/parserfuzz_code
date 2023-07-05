@@ -10,36 +10,35 @@ stmt:
 
 ; 
 stmt_without_legacy_transaction:
-  preparable_stmt            
-| analyze_stmt               
+  preparable_stmt           
+| analyze_stmt              
 | copy_from_stmt
 | comment_stmt
-| execute_stmt               
-| deallocate_stmt            
-| discard_stmt               
-| grant_stmt                 
-| prepare_stmt               
-| revoke_stmt                
-| savepoint_stmt             
-| reassign_owned_by_stmt     
-| drop_owned_by_stmt         
-| release_stmt               
-| refresh_stmt               
-| nonpreparable_set_stmt     
-| transaction_stmt           
-| close_cursor_stmt          
-| declare_cursor_stmt        
-| fetch_cursor_stmt          
-| move_cursor_stmt           
+| execute_stmt              
+| deallocate_stmt           
+| discard_stmt              
+| grant_stmt                
+| prepare_stmt              
+| revoke_stmt               
+| savepoint_stmt            
+| reassign_owned_by_stmt    
+| drop_owned_by_stmt        
+| release_stmt              
+| refresh_stmt              
+| nonpreparable_set_stmt    
+| transaction_stmt          
+| close_cursor_stmt         
+| declare_cursor_stmt       
+| fetch_cursor_stmt         
+| move_cursor_stmt          
 | reindex_stmt
 | unlisten_stmt
-| show_commit_timestamp_stmt 
 
 ; 
 alter_stmt:
   alter_ddl_stmt      
 | alter_role_stmt     
-| alter_tenant_stmt   /* SKIP DOC */
+| alter_tenant_csetting_stmt  
 | alter_unsupported_stmt
 | ALTER error         
 
@@ -57,7 +56,7 @@ alter_ddl_stmt:
 | alter_default_privileges_stmt 
 | alter_changefeed_stmt         
 | alter_backup_stmt             
-| alter_func_stmt               
+| alter_func_stmt
 | alter_backup_schedule  
 
 ; 
@@ -125,7 +124,6 @@ alter_func_stmt:
 | alter_func_owner_stmt
 | alter_func_set_schema_stmt
 | alter_func_dep_extension_stmt
-| ALTER FUNCTION error 
 | ALTER DATABASE error 
 
 ; 
@@ -267,7 +265,6 @@ alter_index_visible_stmt:
 ; 
 alter_index_visible:
   NOT VISIBLE
-| INVISIBLE
 | VISIBLE
 
 ; 
@@ -503,7 +500,7 @@ create_schedule_for_backup_stmt:
  CREATE SCHEDULE /*$3=*/schedule_label_spec FOR BACKUP /*$6=*/opt_backup_targets INTO
   /*$8=*/string_or_placeholder_opt_list /*$9=*/opt_with_backup_options
   /*$10=*/cron_expr /*$11=*/opt_full_backup_clause /*$12=*/opt_with_schedule_options
- | CREATE SCHEDULE schedule_label_spec FOR BACKUP error 
+ | CREATE SCHEDULE error  
 
 ; 
 alter_backup_schedule:
@@ -574,6 +571,7 @@ restore_stmt:
 | RESTORE backup_targets FROM string_or_placeholder IN list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
 | RESTORE SYSTEM USERS FROM list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
 | RESTORE SYSTEM USERS FROM string_or_placeholder IN list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
+| RESTORE backup_targets FROM REPLICATION STREAM FROM string_or_placeholder_opt_list opt_as_tenant_clause
 | RESTORE error 
 
 ; 
@@ -585,6 +583,12 @@ string_or_placeholder_opt_list:
 list_of_string_or_placeholder_opt_list:
   string_or_placeholder_opt_list
 | list_of_string_or_placeholder_opt_list ',' string_or_placeholder_opt_list
+
+; 
+opt_as_tenant_clause:
+  AS TENANT iconst64
+| AS TENANT IDENT
+| /* EMPTY */
 
 ; 
 opt_with_restore_options:
@@ -764,40 +768,12 @@ create_stmt:
   create_role_stmt     
 | create_ddl_stmt      
 | create_stats_stmt    
+| create_schedule_for_backup_stmt   
 | create_changefeed_stmt
 | create_extension_stmt  
 | create_external_connection_stmt 
-| create_tenant_stmt 
-| create_schedule_stmt
 | create_unsupported   
 | CREATE error         
-
-; 
-create_tenant_stmt:
-  CREATE TENANT name
-| CREATE TENANT name FROM REPLICATION OF name ON string_or_placeholder opt_with_tenant_replication_options
-| CREATE TENANT error 
-
-; 
-opt_with_tenant_replication_options:
-  WITH tenant_replication_options_list
-| WITH OPTIONS '(' tenant_replication_options_list ')'
-| /* EMPTY */
-
-; 
-tenant_replication_options_list:
-  tenant_replication_options
-| tenant_replication_options_list ',' tenant_replication_options
-
-; 
-tenant_replication_options:
-  RETENTION '=' string_or_placeholder
-
-; 
-create_schedule_stmt:
-  create_schedule_for_changefeed_stmt 
-| create_schedule_for_backup_stmt   
-| CREATE SCHEDULE error 
 
 ; 
 create_extension_stmt:
@@ -809,9 +785,8 @@ create_extension_stmt:
 
 ; 
 create_func_stmt:
-  CREATE opt_or_replace FUNCTION func_create_name '(' opt_func_param_with_default_list ')' RETURNS opt_return_set func_return_type
+  CREATE opt_or_replace FUNCTION func_create_name '(' opt_func_arg_with_default_list ')' RETURNS opt_return_set func_return_type
   opt_create_func_opt_list opt_routine_body
-| CREATE opt_or_replace FUNCTION error 
 
 ; 
 opt_or_replace:
@@ -828,31 +803,31 @@ func_create_name:
   db_object_name
 
 ; 
-opt_func_param_with_default_list:
-  func_param_with_default_list 
+opt_func_arg_with_default_list:
+  func_arg_with_default_list 
 | /* Empty */ 
 
 ; 
-func_param_with_default_list:
-  func_param_with_default 
-| func_param_with_default_list ',' func_param_with_default
+func_arg_with_default_list:
+  func_arg_with_default 
+| func_arg_with_default_list ',' func_arg_with_default
 
 ; 
-func_param_with_default:
-  func_param
-| func_param DEFAULT a_expr
-| func_param '=' a_expr
+func_arg_with_default:
+  func_arg
+| func_arg DEFAULT a_expr
+| func_arg '=' a_expr
 
 ; 
-func_param:
-  func_param_class param_name func_param_type
-| param_name func_param_class func_param_type
-| param_name func_param_type
-| func_param_class func_param_type
-| func_param_type
+func_arg:
+  func_arg_class param_name func_arg_type
+| param_name func_arg_class func_arg_type
+| param_name func_arg_type
+| func_arg_class func_arg_type
+| func_arg_type
 
 ; 
-func_param_class:
+func_arg_class:
   IN 
 | OUT 
 | INOUT 
@@ -860,12 +835,12 @@ func_param_class:
 | VARIADIC 
 
 ; 
-func_param_type:
+func_arg_type:
   typename
 
 ; 
 func_return_type:
-  func_param_type
+  func_arg_type
 
 ; 
 opt_create_func_opt_list:
@@ -931,33 +906,32 @@ opt_routine_body:
 
 ; 
 drop_func_stmt:
-  DROP FUNCTION function_with_paramtypes_list opt_drop_behavior
-| DROP FUNCTION IF EXISTS function_with_paramtypes_list opt_drop_behavior
-| DROP FUNCTION error 
+  DROP FUNCTION function_with_argtypes_list opt_drop_behavior
+  | DROP FUNCTION IF EXISTS function_with_argtypes_list opt_drop_behavior
 
 ; 
-function_with_paramtypes_list:
-  function_with_paramtypes
-  | function_with_paramtypes_list ',' function_with_paramtypes
+function_with_argtypes_list:
+  function_with_argtypes
+  | function_with_argtypes_list ',' function_with_argtypes
 
 ; 
-function_with_paramtypes:
-  db_object_name func_params
+function_with_argtypes:
+  db_object_name func_args
   | db_object_name
 
 ; 
-func_params:
-  '(' func_params_list ')'
+func_args:
+  '(' func_args_list ')'
   | '(' ')'
 
 ; 
-func_params_list:
-  func_param
-  | func_params_list ',' func_param
+func_args_list:
+  func_arg
+  | func_args_list ',' func_arg
 
 ; 
 alter_func_options_stmt:
-  ALTER FUNCTION function_with_paramtypes alter_func_opt_list opt_restrict
+  ALTER FUNCTION function_with_argtypes alter_func_opt_list opt_restrict
 
 ; 
 alter_func_opt_list:
@@ -971,19 +945,19 @@ opt_restrict:
 
 ; 
 alter_func_rename_stmt:
-  ALTER FUNCTION function_with_paramtypes RENAME TO name
+  ALTER FUNCTION function_with_argtypes RENAME TO name
 
 ; 
 alter_func_set_schema_stmt:
-  ALTER FUNCTION function_with_paramtypes SET SCHEMA schema_name
+  ALTER FUNCTION function_with_argtypes SET SCHEMA schema_name
 
 ; 
 alter_func_owner_stmt:
-  ALTER FUNCTION function_with_paramtypes OWNER TO role_spec
+  ALTER FUNCTION function_with_argtypes OWNER TO role_spec
 
 ; 
 alter_func_dep_extension_stmt:
-  ALTER FUNCTION function_with_paramtypes opt_no DEPENDS ON EXTENSION name
+  ALTER FUNCTION function_with_argtypes opt_no DEPENDS ON EXTENSION name
 
 ; 
 opt_no:
@@ -1032,6 +1006,7 @@ drop_unsupported:
 | DROP EXTENSION name error 
 | DROP FOREIGN TABLE error 
 | DROP FOREIGN DATA error 
+| DROP FUNCTION error 
 | DROP opt_procedural LANGUAGE name error 
 | DROP OPERATOR error 
 | DROP PUBLICATION error 
@@ -1052,7 +1027,7 @@ create_ddl_stmt:
 | create_type_stmt     
 | create_view_stmt     
 | create_sequence_stmt 
-| create_func_stmt     
+| create_func_stmt
 
 ; 
 create_stats_stmt:
@@ -1071,8 +1046,8 @@ create_stats_target:
 
 ; 
 opt_create_stats_options:
-  create_stats_option_list
-| WITH OPTIONS create_stats_option_list
+  WITH OPTIONS create_stats_option_list
+| as_of_clause
 | /* EMPTY */
 
 ; 
@@ -1084,8 +1059,6 @@ create_stats_option_list:
 create_stats_option:
   THROTTLING FCONST
 | as_of_clause
-| USING EXTREMES
-| where_clause
 
 ; 
 create_changefeed_stmt:
@@ -1093,16 +1066,6 @@ create_changefeed_stmt:
 | CREATE CHANGEFEED /*$3=*/ opt_changefeed_sink /*$4=*/ opt_with_options
   AS SELECT /*$7=*/target_list FROM /*$9=*/changefeed_target_expr /*$10=*/opt_where_clause
 | EXPERIMENTAL CHANGEFEED FOR changefeed_targets opt_with_options
-
-; 
-create_schedule_for_changefeed_stmt:
-  CREATE SCHEDULE /*$3=*/schedule_label_spec FOR CHANGEFEED
-  /* $6=*/changefeed_targets /*$7=*/changefeed_sink
-  /*$8=*/opt_with_options /*$9=*/cron_expr /*$10=*/opt_with_schedule_options
-| CREATE SCHEDULE /*$3=*/schedule_label_spec FOR CHANGEFEED /*$6=*/changefeed_sink
-  /*$7=*/opt_with_options AS SELECT /*$10=*/target_list FROM /*$12=*/changefeed_target_expr /*$13=*/opt_where_clause
-  /*$14=*/cron_expr /*$15=*/opt_with_schedule_options
- | CREATE SCHEDULE schedule_label_spec FOR CHANGEFEED error  
 
 ; 
 changefeed_targets:
@@ -1132,18 +1095,14 @@ opt_changefeed_sink:
 | /* EMPTY */
 
 ; 
-changefeed_sink:
-  INTO string_or_placeholder
-
-; 
 delete_stmt:
   opt_with_clause DELETE FROM table_expr_opt_alias_idx opt_using_clause opt_where_clause opt_sort_clause opt_limit_clause returning_clause
 | opt_with_clause DELETE error 
 
 ; 
 opt_using_clause:
-  USING from_list
-| /* EMPTY */
+  USING from_list 
+| /* EMPTY */ 
 
 ; 
 discard_stmt:
@@ -1160,7 +1119,6 @@ drop_stmt:
 | drop_role_stmt     
 | drop_schedule_stmt 
 | drop_external_connection_stmt 
-| drop_tenant_stmt              
 | drop_unsupported   
 | DROP error         
 
@@ -1173,7 +1131,7 @@ drop_ddl_stmt:
 | drop_sequence_stmt 
 | drop_schema_stmt   
 | drop_type_stmt     
-| drop_func_stmt     
+| drop_func_stmt
 
 ; 
 drop_view_stmt:
@@ -1212,12 +1170,6 @@ drop_type_stmt:
   DROP TYPE type_name_list opt_drop_behavior
 | DROP TYPE IF EXISTS type_name_list opt_drop_behavior
 | DROP TYPE error 
-
-; 
-drop_tenant_stmt:
-  DROP TENANT name
-| DROP TENANT IF EXISTS name
-| DROP TENANT error 
 
 ; 
 target_types:
@@ -1358,12 +1310,6 @@ alter_backup_cmd:
 ; 
 backup_kms:
 	NEW_KMS '=' string_or_placeholder_opt_list WITH OLD_KMS '=' string_or_placeholder_opt_list
-
-; 
-show_tenant_stmt:
-  SHOW TENANT d_expr
-| SHOW TENANT d_expr WITH REPLICATION STATUS
-| SHOW TENANT error 
 
 ; 
 prepare_stmt:
@@ -1510,7 +1456,7 @@ scrub_option_list:
 ; 
 scrub_option:
   INDEX ALL
-| INDEX_BEFORE_PAREN '(' name_list ')'
+| INDEX '(' name_list ')'
 | CONSTRAINT ALL
 | CONSTRAINT '(' name_list ')'
 | PHYSICAL
@@ -1521,22 +1467,10 @@ set_csetting_stmt:
 | SET CLUSTER error 
 
 ; 
-alter_tenant_stmt:
-  alter_tenant_replication_stmt 
-| alter_tenant_csetting_stmt    
-| ALTER TENANT error            
-
-; 
-alter_tenant_replication_stmt:
-  ALTER TENANT d_expr PAUSE REPLICATION
-| ALTER TENANT d_expr RESUME REPLICATION
-| ALTER TENANT d_expr COMPLETE REPLICATION TO SYSTEM TIME a_expr
-| ALTER TENANT d_expr COMPLETE REPLICATION TO LATEST
-
-; 
 alter_tenant_csetting_stmt:
   ALTER TENANT d_expr set_or_reset_csetting_stmt
 | ALTER TENANT_ALL ALL set_or_reset_csetting_stmt
+| ALTER TENANT error 
 | ALTER TENANT_ALL ALL error 
 
 ; 
@@ -1663,7 +1597,6 @@ show_stmt:
 | show_enums_stmt            
 | show_types_stmt            
 | show_fingerprints_stmt
-| show_functions_stmt        
 | show_grants_stmt           
 | show_histogram_stmt        
 | show_indexes_stmt          
@@ -1685,7 +1618,6 @@ show_stmt:
 | show_stats_stmt            
 | show_syntax_stmt           
 | show_tables_stmt           
-| show_tenant_stmt           
 | show_trace_stmt            
 | show_transaction_stmt      
 | show_transactions_stmt     
@@ -1918,10 +1850,6 @@ show_indexes_stmt:
 | SHOW KEYS error 
 
 ; 
-show_commit_timestamp_stmt:
-  SHOW COMMIT TIMESTAMP
-
-; 
 show_constraints_stmt:
   SHOW CONSTRAINT FROM table_name with_comment
 | SHOW CONSTRAINT error 
@@ -1984,7 +1912,6 @@ opt_schedule_executor_type:
   /* Empty */
 | FOR BACKUP
 | FOR SQL STATISTICS
-| FOR CHANGEFEED
 
 ; 
 show_trace_stmt:
@@ -2013,13 +1940,6 @@ show_tables_stmt:
 | SHOW TABLES FROM name with_comment
 | SHOW TABLES with_comment
 | SHOW TABLES error 
-
-; 
-show_functions_stmt:
-  SHOW FUNCTIONS FROM name '.' name
-| SHOW FUNCTIONS FROM name
-| SHOW FUNCTIONS
-| SHOW FUNCTIONS error 
 
 ; 
 show_transactions_stmt:
@@ -2088,8 +2008,6 @@ show_create_stmt:
 | SHOW CREATE VIEW table_name
 | SHOW CREATE SEQUENCE sequence_name
 | SHOW CREATE DATABASE db_name
-| SHOW CREATE INDEXES FROM table_name
-| SHOW CREATE SECONDARY INDEXES FROM table_name
 | SHOW CREATE FUNCTION db_object_name
 | SHOW CREATE ALL SCHEMAS
 | SHOW CREATE ALL TABLES
@@ -2195,7 +2113,7 @@ grant_targets:
 | TABLE table_pattern_list
 | DATABASE name_list
 | EXTERNAL CONNECTION name_list
-| FUNCTION function_with_paramtypes_list
+| FUNCTION function_with_argtypes_list
 
 ; 
 backup_targets:
@@ -2533,11 +2451,9 @@ generated_by_default_as:
 
 ; 
 index_def:
-  INDEX_BEFORE_PAREN '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
-| INDEX_BEFORE_NAME_THEN_PAREN name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
+  INDEX opt_index_name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
 | UNIQUE INDEX opt_index_name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
-| INVERTED INDEX_BEFORE_PAREN '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
-| INVERTED INDEX_BEFORE_NAME_THEN_PAREN name '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
+| INVERTED INDEX opt_name '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause opt_index_visible
 
 ; 
 family_def:
@@ -2818,8 +2734,7 @@ create_type_stmt:
   CREATE TYPE type_name AS ENUM '(' opt_enum_val_list ')'
 | CREATE TYPE IF NOT EXISTS type_name AS ENUM '(' opt_enum_val_list ')'
 | CREATE TYPE error 
-| CREATE TYPE type_name AS '(' opt_composite_type_list ')'
-| CREATE TYPE IF NOT EXISTS type_name AS '(' opt_composite_type_list ')'
+| CREATE TYPE type_name AS '(' error      
 | CREATE TYPE type_name AS RANGE error    
 | CREATE TYPE type_name '(' error         
 | CREATE TYPE type_name                   
@@ -2834,16 +2749,6 @@ opt_enum_val_list:
 enum_val_list:
   SCONST
 | enum_val_list ',' SCONST
-
-; 
-opt_composite_type_list:
-  composite_type_list
-| /* EMPTY */
-
-; 
-composite_type_list:
-  name simple_typename
-| composite_type_list ',' name simple_typename
 
 ; 
 create_index_stmt:
@@ -2902,7 +2807,6 @@ opt_asc_desc:
 ; 
 opt_index_visible:
   NOT VISIBLE
-| INVISIBLE
 | VISIBLE
 | /* EMPTY */
 
@@ -3308,7 +3212,7 @@ on_conflict:
 ; 
 returning_clause:
   RETURNING target_list
-| RETURNING NOTHING_AFTER_RETURNING
+| RETURNING NOTHING
 | /* EMPTY */
 
 ; 
@@ -3529,7 +3433,7 @@ sortby_list:
 sortby:
   a_expr opt_asc_desc opt_nulls_order
 | PRIMARY KEY table_name opt_asc_desc
-| INDEX_AFTER_ORDER_BY_BEFORE_AT table_name '@' index_name opt_asc_desc
+| INDEX table_name '@' index_name opt_asc_desc
 
 ; 
 opt_nulls_order:
@@ -3870,6 +3774,8 @@ simple_typename:
 | '@' iconst32
 | complex_type_name
 | const_typename
+| bit_with_length
+| character_with_length
 | interval_type
 | POINT error  
 | POLYGON error  
@@ -3923,9 +3829,7 @@ const_geo:
 const_typename:
   numeric
 | bit_without_length
-| bit_with_length
 | character_without_length
-| character_with_length
 | const_datetime
 | const_geo
 
@@ -4080,7 +3984,6 @@ a_expr:
 | a_expr REMOVE_PATH a_expr
 | a_expr INET_CONTAINED_BY_OR_EQUALS a_expr
 | a_expr AND_AND a_expr
-| a_expr AT_AT a_expr
 | a_expr INET_CONTAINS_OR_EQUALS a_expr
 | a_expr LESS_EQUALS a_expr
 | a_expr GREATER_EQUALS a_expr
@@ -4419,7 +4322,6 @@ all_op:
 | REGIMATCH 
 | NOT_REGIMATCH 
 | AND_AND 
-| AT_AT 
 | '~' 
 | SQRT 
 | CBRT 
@@ -4800,7 +4702,6 @@ column_path_with_star:
 func_name:
   type_function_name
 | prefixed_column_path
-| INDEX_BEFORE_PAREN
 
 ; 
 func_name_no_crdb_extra:
@@ -4983,7 +4884,6 @@ unreserved_keyword:
 | EXPORT
 | EXTENSION
 | EXTERNAL
-| EXTREMES
 | FAILURE
 | FILES
 | FILTER
@@ -5023,7 +4923,6 @@ unreserved_keyword:
 | INCREMENT
 | INCREMENTAL
 | INCREMENTAL_LOCATION
-| INDEX
 | INDEXES
 | INHERITS
 | INJECT
@@ -5031,7 +4930,6 @@ unreserved_keyword:
 | INSERT
 | INTO_DB
 | INVERTED
-| INVISIBLE
 | ISOLATION
 | INVOKER
 | JOB
@@ -5092,7 +4990,6 @@ unreserved_keyword:
 | NEXT
 | NO
 | NORMAL
-| NOTHING
 | NO_INDEX_JOIN
 | NO_ZIGZAG_JOIN
 | NO_FULL_SCAN
@@ -5181,7 +5078,6 @@ unreserved_keyword:
 | RESTRICT
 | RESTRICTED
 | RESUME
-| RETENTION
 | RETRY
 | RETURN
 | RETURNS
@@ -5499,9 +5395,7 @@ reserved_keyword:
 
 ; 
 cockroachdb_extra_reserved_keyword:
-  INDEX_BEFORE_NAME_THEN_PAREN
-| INDEX_BEFORE_PAREN
-| INDEX_AFTER_ORDER_BY_BEFORE_AT
-| NOTHING_AFTER_RETURNING
+  INDEX
+| NOTHING
 
 ; 
