@@ -5569,6 +5569,7 @@ static u8 fuzz_one(char **argv) {
     ori_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
     if (ori_ir_tree.empty()) {
       total_input_failed++;
+      cerr << "For input: " << input << ", query parsing failed. \n\n\n";
       continue;
     }
     num_parse++;
@@ -5593,10 +5594,6 @@ static u8 fuzz_one(char **argv) {
       goto abandon_entry;
     }
 
-    if (stop_soon) {
-      continue;
-    }
-
     // pre_fix_transformation from the oracle.
     vector<STMT_TYPE> stmt_type_vec;
     vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
@@ -5604,6 +5601,7 @@ static u8 fuzz_one(char **argv) {
 
     // No need for the original cur_root anymore.
     cur_root->deep_drop();
+    ori_ir_tree.clear();
 
     if (all_pre_trans_vec.empty()) {
       cerr << "Error: g_mutator.pre_fix_transform returns empty statement vector. \n\n\n";
@@ -6004,7 +6002,7 @@ static u8 fuzz_one(char **argv) {
 abandon_entry:
 
   /* Free the original ir tree */
-  if (ori_ir_tree.size() != 0) {
+  if (!ori_ir_tree.empty()) {
     ori_ir_tree.back()->deep_drop();
   }
 
