@@ -144,7 +144,7 @@ RUN rm -rf cockroach && cp -r cockroach_ori cockroach
 # Compile the latest version of CockroachDB, prep for coverage instrumentation.
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
-RUN git checkout d39558f # This is a commit that released in Oct 28, 2022.
+RUN git checkout v22.1.10 # This is an official release on Oct 10th, 2022.
 # The first build is possible to be failed by vendor mismatched. Ignored. 
 # The first build will automatically call go mod vendor. 
 RUN make build; exit 0
@@ -211,8 +211,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov /home/cockroach/go_projects/src/git
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-#RUN go mod vendor
-RUN go test -c -mod=vendor -tags ' gss make aarch64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=aarch64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
+RUN go mod tidy && go test -c -mod=mod -tags ' gss make aarch64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=aarch64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 

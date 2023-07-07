@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cockroachdb/cockroach/pkg/security/securityassets"
+  "github.com/cockroachdb/cockroach/pkg/security"
 	"github.com/cockroachdb/cockroach/pkg/security/securitytest"
 	"github.com/cockroachdb/cockroach/pkg/server"
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 
 	// log.Printf("\n\n\nDebug: Inside main_test(). \n\n\n")
 
-	securityassets.SetLoader(securitytest.EmbeddedAssets)
+  security.SetAssetLoader(securitytest.EmbeddedAssets)
 	randutil.SeedForTests()
 	serverutils.InitTestServerFactory(server.TestServerFactory)
 	serverutils.InitTestClusterFactory(testcluster.TestClusterFactory)
