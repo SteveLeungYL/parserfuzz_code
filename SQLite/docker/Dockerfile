@@ -87,8 +87,8 @@ RUN make -j$(nproc)
 
 # Setup the Golang compilation
 WORKDIR /home/sqlite/
-RUN wget https://go.dev/dl/go1.20.2.linux-arm64.tar.gz && \
-    tar -xf go1.20.2.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz && \
+    tar -xf go1.20.2.linux-amd64.tar.gz
 
 USER root
 RUN cp -r /home/sqlite/go /usr/local/go
