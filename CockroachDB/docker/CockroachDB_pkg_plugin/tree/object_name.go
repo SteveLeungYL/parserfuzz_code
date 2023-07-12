@@ -216,6 +216,7 @@ func (node *ObjectNamePrefixList) LogCurrentNodeWithType(depth int, dataType SQL
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 120967
 	tmpIR.IRType = TypeObjectNamePrefixList
 	return tmpIR
 }

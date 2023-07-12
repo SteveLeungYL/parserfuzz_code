@@ -73,6 +73,7 @@ func (node *StreamIngestion) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 14915
 	rootIR.IRType = TypeStreamIngestion
 
 	return rootIR

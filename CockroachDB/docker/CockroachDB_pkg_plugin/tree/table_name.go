@@ -223,6 +223,7 @@ func (node *TableNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataT
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 169719
 	tmpIR.IRType = TypeTableNames
 	return tmpIR
 
@@ -455,6 +456,7 @@ func (node *TableIndexNames) LogCurrentNodeWithType(depth int, dataType SQLRight
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 90919
 	tmpIR.IRType = TypeTableIndexNames
 	return tmpIR
 }

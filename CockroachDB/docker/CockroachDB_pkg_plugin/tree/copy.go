@@ -329,6 +329,7 @@ func (node *CopyOptions) LogCurrentNode(depth int) *SQLRightIR {
 		infix = " "
 	}
 
+	rootIR.NodeHash = 181622
 	rootIR.IRType = TypeCopyOptions
 
 	return rootIR

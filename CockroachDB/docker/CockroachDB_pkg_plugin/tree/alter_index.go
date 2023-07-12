@@ -146,6 +146,7 @@ func (node *AlterIndexCmds) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 17554
 	tmpIR.IRType = TypeAlterIndexCmds
 	return tmpIR
 }

@@ -291,6 +291,7 @@ func (node *ScheduledBackup) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 124331
 	rootIR.IRType = TypeScheduledBackup
 	return rootIR
 }

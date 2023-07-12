@@ -161,6 +161,7 @@ func (node *AlterTypeAddValue) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 241610
 	rootIR.IRType = TypeAlterTypeAddValue
 
 	return rootIR

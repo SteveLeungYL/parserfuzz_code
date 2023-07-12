@@ -127,6 +127,7 @@ func (node *DropDatabase) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 119369
 	rootIR.IRType = TypeDropDatabase
 
 	return rootIR
@@ -242,6 +243,7 @@ func (node *DropIndex) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 118136
 	rootIR.IRType = TypeDropIndex
 
 	return rootIR
@@ -327,6 +329,7 @@ func (node *DropTable) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 12909
 	rootIR.IRType = TypeDropTable
 
 	return rootIR
@@ -423,6 +426,7 @@ func (node *DropView) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 243730
 	rootIR.IRType = TypeDropView
 
 	return rootIR
@@ -508,6 +512,7 @@ func (node *DropSequence) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 28542
 	rootIR.IRType = TypeDropSequence
 
 	return rootIR
@@ -725,6 +730,7 @@ func (node *DropType) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 105617
 	rootIR.IRType = TypeDropType
 
 	return rootIR
@@ -812,6 +818,7 @@ func (node *DropSchema) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 131262
 	rootIR.IRType = TypeDropSchema
 
 	return rootIR

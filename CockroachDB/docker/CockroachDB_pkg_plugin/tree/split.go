@@ -84,6 +84,7 @@ func (node *Split) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 182794
 	rootIR.IRType = TypeSplit
 
 	return rootIR
@@ -150,6 +151,7 @@ func (node *Unsplit) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 222373
 	rootIR.IRType = TypeUnsplit
 
 	return rootIR
@@ -228,6 +230,7 @@ func (node *Relocate) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 102197
 	rootIR.IRType = TypeRelocate
 
 	return rootIR
@@ -325,6 +328,7 @@ func (node *Scatter) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 112410
 	rootIR.IRType = TypeScatter
 
 	return rootIR

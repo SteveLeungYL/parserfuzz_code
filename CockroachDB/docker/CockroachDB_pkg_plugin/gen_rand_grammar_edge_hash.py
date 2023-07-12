@@ -13,6 +13,12 @@ for root, _, all_files in os.walk("./tree"):
                 if "&SQLRightIR{" in cur_line and "//root" not in cur_line and "//	root" not in cur_line:
                     cur_line = cur_line.replace("&SQLRightIR{", f"&SQLRightIR{{\nNodeHash: {random.randint(0, 262143)}, ")
                     is_modi = True
+                if "rootIR.IRType = " in cur_line:
+                    res_str += f"rootIR.NodeHash = {random.randint(0, 262143)}\n"
+                    is_modi = True
+                if "tmpIR.IRType = " in cur_line:
+                    res_str += f"rootIR.NodeHash = {random.randint(0, 262143)}\n"
+                    is_modi = True
                 res_str += cur_line + "\n"
             
         if is_modi == True:

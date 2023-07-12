@@ -225,6 +225,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 194551
 	rootIR.IRType = TypeImport
 
 	return rootIR

@@ -305,6 +305,7 @@ func (node *TransactionModes) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 195985
 	rootIR.IRType = TypeTransactionModes
 	return rootIR
 }

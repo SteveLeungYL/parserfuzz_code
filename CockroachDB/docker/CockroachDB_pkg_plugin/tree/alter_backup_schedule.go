@@ -131,6 +131,7 @@ func (node *AlterBackupScheduleCmds) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 224262
 	tmpIR.IRType = TypeAlterBackupScheduleCmds
 	return tmpIR
 }

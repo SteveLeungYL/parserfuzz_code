@@ -293,6 +293,7 @@ func (node *ShowBackup) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 102743
 	rootIR.IRType = TypeShowBackup
 
 	return rootIR
@@ -1283,6 +1284,7 @@ func (node *ShowGrants) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 242370
 	rootIR.IRType = TypeShowGrants
 
 	return rootIR
@@ -1347,6 +1349,7 @@ func (node *ShowRoleGrants) LogCurrentNode(depth int) *SQLRightIR {
 
 	}
 
+	rootIR.NodeHash = 37705
 	rootIR.IRType = TypeShowRoleGrants
 
 	return rootIR
@@ -2522,6 +2525,7 @@ func (node *ShowDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 	rootIR := tmpNode
+	rootIR.NodeHash = 230014
 	rootIR.IRType = TypeShowDefaultPrivileges
 
 	return rootIR

@@ -241,6 +241,7 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 243668
 	rootIR.IRType = TypeExplain
 
 	return rootIR
@@ -364,6 +365,7 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 232944
 	rootIR.IRType = TypeExplainAnalyze
 
 	return rootIR

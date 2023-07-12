@@ -126,6 +126,7 @@ func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix += ")"
+	rootIR.NodeHash = 119551
 	rootIR.IRType = TypeValuesClause
 
 	return rootIR

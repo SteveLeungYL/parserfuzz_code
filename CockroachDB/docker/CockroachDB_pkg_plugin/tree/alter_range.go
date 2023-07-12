@@ -138,6 +138,7 @@ func (node *RelocateRange) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 51691
 	rootIR.IRType = TypeRelocateRange
 
 	return rootIR

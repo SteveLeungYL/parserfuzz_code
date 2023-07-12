@@ -969,6 +969,7 @@ func (node *IsOfTypeExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
+	rootIR.NodeHash = 32951
 	rootIR.IRType = TypeIsOfTypeExpr
 
 	return rootIR
@@ -1052,6 +1053,7 @@ func (node *IfErrExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
+	rootIR.NodeHash = 49162
 	rootIR.IRType = TypeIfErrExpr
 
 	return rootIR
@@ -1534,6 +1536,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 		rootIR.Suffix = ")"
 	}
 
+	rootIR.NodeHash = 112695
 	rootIR.IRType = TypeTuple
 
 	return rootIR
@@ -1617,6 +1620,7 @@ func (node *Array) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 121561
 	rootIR.IRType = TypeArray
 
 	return rootIR
@@ -1753,6 +1757,7 @@ func (node *Exprs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 239883
 	tmpIR.IRType = TypeExprs
 	return tmpIR
 }
@@ -2538,6 +2543,7 @@ func (node *FuncExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 241545
 	rootIR.IRType = TypeFuncExpr
 	rootIR.DataType = DataFunctionExpr
 
@@ -2628,6 +2634,7 @@ func (node *CaseExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = " END"
+	rootIR.NodeHash = 95332
 	rootIR.IRType = TypeCaseExpr
 
 	return rootIR
@@ -2918,6 +2925,7 @@ func (node *CastExpr) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 	}
+	rootIR.NodeHash = 204539
 	rootIR.IRType = TypeCastExpr
 
 	return rootIR
@@ -2991,6 +2999,7 @@ func (node *ArraySubscripts) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 161368
 	tmpIR.IRType = TypeArraySubscripts
 	return tmpIR
 }
@@ -3161,6 +3170,7 @@ func (node *AnnotateTypeExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 124491
 	rootIR.IRType = TypeAnnotateTypeExpr
 
 	return rootIR

@@ -264,6 +264,7 @@ func (node *CreateFunction) LogCurrentNode(depth int) *SQLRightIR {
 		rootIR.Suffix += "END"
 	}
 
+	rootIR.NodeHash = 53027
 	rootIR.IRType = TypeCreateFunction
 
 	return rootIR
@@ -641,6 +642,7 @@ func (node FuncArgs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 98871
 	tmpIR.IRType = TypeFuncArgs
 	return tmpIR
 }
@@ -885,6 +887,7 @@ func (node *DropFunction) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 74086
 	rootIR.IRType = TypeDropFunction
 
 	return rootIR
@@ -957,6 +960,7 @@ func (node *FuncObjs) LogCurrentNode(depth int, flag SQLRightContextFlag) *SQLRi
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 19950
 	tmpIR.IRType = TypeFuncObjs
 	return tmpIR
 }

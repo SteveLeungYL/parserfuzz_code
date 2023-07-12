@@ -269,6 +269,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 			}
 		}
 
+		rootIR.NodeHash = 213431
 		tmpIR.IRType = TypeGrantTargetList
 		return tmpIR
 

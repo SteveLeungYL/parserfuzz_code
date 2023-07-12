@@ -436,6 +436,7 @@ func (node *CreateDatabase) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 251325
 	rootIR.IRType = TypeCreateDatabase
 
 	return rootIR
@@ -604,6 +605,7 @@ func (node *IndexElem) LogCurrentNode(depth int, flag SQLRightContextFlag) *SQLR
 
 	}
 
+	rootIR.NodeHash = 227542
 	rootIR.IRType = TypeIndexElem
 
 	return rootIR
@@ -701,6 +703,7 @@ func (node *IndexElemList) LogCurrentNode(depth int, flag SQLRightContextFlag) *
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 143488
 	tmpIR.IRType = TypeIndexElemList
 	return tmpIR
 }
@@ -1365,6 +1368,7 @@ func (node *EnumValueList) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 193374
 	tmpIR.IRType = TypeEnumValueList
 	return tmpIR
 }
@@ -1462,6 +1466,7 @@ func (node *CreateType) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 164695
 	rootIR.IRType = TypeCreateType
 
 	return rootIR
@@ -1555,6 +1560,7 @@ func (node *TableDefs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 3213
 	tmpIR.IRType = TypeTableDefs
 	return tmpIR
 }
@@ -2790,6 +2796,7 @@ func (node *ColumnTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 143411
 	rootIR.IRType = TypeColumnTableDef
 	return rootIR
 }
@@ -3990,6 +3997,7 @@ func (node *ForeignKeyConstraintTableDef) LogCurrentNode(depth int) *SQLRightIR 
 		}
 	}
 
+	rootIR.NodeHash = 83017
 	rootIR.IRType = TypeForeignKeyConstraintTableDef
 
 	return rootIR
@@ -4493,6 +4501,7 @@ func (node *PartitionBy) LogCurrentNodeListOrRange(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
+	rootIR.NodeHash = 64729
 	rootIR.IRType = TypePartitionBy
 
 	return rootIR
@@ -4561,6 +4570,7 @@ func (node *ListPartition) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 148703
 	rootIR.IRType = TypeListPartition
 
 	return rootIR
@@ -4747,6 +4757,7 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 188931
 	rootIR.IRType = TypeStorageParams
 	rootIR.DataType = DataStorageParams
 
@@ -5157,6 +5168,7 @@ func (node *CreateSchema) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 162642
 	rootIR.IRType = TypeCreateSchema
 
 	return rootIR
@@ -5781,6 +5793,7 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 240197
 	tmpIR.IRType = TypeAlterChangefeedCmds
 	return tmpIR
 }
@@ -5872,6 +5885,7 @@ func (node *LikeTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 67344
 	rootIR.IRType = TypeLikeTableDef
 
 	return rootIR
@@ -6097,6 +6111,7 @@ func (node *KVOptions) LogCurrentNodeAsRoleOptions(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 43631
 	tmpIR.IRType = TypeKVOptions
 
 	return tmpIR
@@ -6185,6 +6200,7 @@ func (node *CreateRole) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 179326
 	rootIR.IRType = TypeCreateRole
 
 	return rootIR
@@ -6571,6 +6587,7 @@ func (node *CreateStats) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 162075
 	rootIR.IRType = TypeCreateStats
 
 	return rootIR
@@ -6667,6 +6684,7 @@ func (node *CreateStatsOptions) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 108254
 	rootIR.IRType = TypeCreateStatsOptions
 
 	return rootIR

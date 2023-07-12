@@ -109,6 +109,7 @@ func (node *CreateChangefeed) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 244897
 	rootIR.IRType = TypeCreateChangefeed
 
 	return rootIR
@@ -311,6 +312,7 @@ func (node *ChangefeedTargets) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 221240
 	tmpIR.IRType = TypeChangefeedTargets
 	return tmpIR
 }

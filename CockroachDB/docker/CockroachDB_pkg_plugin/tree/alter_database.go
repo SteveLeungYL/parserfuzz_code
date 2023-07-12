@@ -500,6 +500,7 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 40403
 	rootIR.IRType = TypeAlterDatabaseAddSuperRegion
 
 	return rootIR
@@ -665,6 +666,7 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 
 	}
 
+	rootIR.NodeHash = 233795
 	rootIR.IRType = TypeAlterDatabaseAlterSuperRegion
 
 	return rootIR

@@ -235,6 +235,7 @@ func (node *Backup) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 2577
 	rootIR.IRType = TypeBackup
 
 	return rootIR
@@ -412,6 +413,7 @@ func (node *Restore) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 239914
 	rootIR.IRType = TypeRestore
 
 	return rootIR
@@ -537,6 +539,7 @@ func (node *KVOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 20833
 	tmpIR.IRType = TypeKVOptions
 	return tmpIR
 }
@@ -616,6 +619,7 @@ func (node *StringOrPlaceholderOptList) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 202937
 	tmpIR.IRType = TypeStringOrPlaceholderOptList
 	return tmpIR
 }
@@ -800,6 +804,7 @@ func (node *BackupOptions) LogCurrentNode(depth int) *SQLRightIR {
 
 	}
 
+	rootIR.NodeHash = 229568
 	rootIR.IRType = TypeBackupOptions
 	return rootIR
 }
@@ -1311,6 +1316,7 @@ func (node *RestoreOptions) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 146897
 	rootIR.IRType = TypeRestoreOptions
 
 	return rootIR

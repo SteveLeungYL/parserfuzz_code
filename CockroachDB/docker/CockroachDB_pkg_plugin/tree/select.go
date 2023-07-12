@@ -21,6 +21,7 @@ package tree
 
 import (
 	"fmt"
+
 	"github.com/cockroachdb/cockroach/pkg/sql/pgwire/pgcode"
 	"github.com/cockroachdb/cockroach/pkg/sql/pgwire/pgerror"
 	"github.com/cockroachdb/cockroach/pkg/sql/sem/catid"
@@ -129,6 +130,7 @@ func (node *Select) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
+	rootIR.NodeHash = 141319
 	rootIR.IRType = TypeSelect
 
 	return rootIR
@@ -408,6 +410,7 @@ func (node *SelectClause) LogCurrentNode(depth int) *SQLRightIR {
 			}
 		}
 
+		rootIR.NodeHash = 175850
 		rootIR.IRType = TypeSelectClause
 		return rootIR
 	}
@@ -480,6 +483,7 @@ func (node *SelectExprs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 163218
 	tmpIR.IRType = TypeSelectExprs
 	return tmpIR
 
@@ -770,6 +774,7 @@ func (node *ColumnDefList) LogCurrentNodeWithType(depth int, dataType SQLRightDa
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 180968
 	tmpIR.IRType = TypeColumnDefList
 
 	return tmpIR
@@ -916,6 +921,7 @@ func (node *TableExprs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 256775
 	tmpIR.IRType = TypeTableExprs
 	return tmpIR
 }
@@ -1600,6 +1606,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 		rootIR.Prefix = prefix
 		rootIR.Suffix = "}"
+		rootIR.NodeHash = 59447
 		rootIR.IRType = TypeIndexFlags
 		return rootIR
 	}
@@ -1733,6 +1740,7 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 84838
 	rootIR.IRType = TypeAliasedTableExpr
 
 	return rootIR
@@ -2019,6 +2027,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 249881
 	rootIR.IRType = TypeJoinTableExpr
 	return rootIR
 }
@@ -2257,6 +2266,7 @@ func (node *GroupBy) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 241795
 	tmpIR.IRType = TypeGroupBy
 	return tmpIR
 }
@@ -2363,6 +2373,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 135494
 	tmpIR.IRType = TypeOrderBy
 	return tmpIR
 }
@@ -2575,6 +2586,7 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 65861
 	rootIR.IRType = TypeOrder
 
 	return rootIR
@@ -2807,6 +2819,7 @@ func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 91943
 	tmpIR.IRType = TypeWindow
 	return tmpIR
 
@@ -2933,6 +2946,7 @@ func (node *WindowDef) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
+	rootIR.NodeHash = 74176
 	rootIR.IRType = TypeWindowDef
 
 	return rootIR
@@ -3188,6 +3202,7 @@ func (node *WindowFrame) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	rootIR.NodeHash = 247019
 	rootIR.IRType = TypeWindowFrame
 	return rootIR
 }
@@ -3253,6 +3268,7 @@ func (node *LockingClause) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 232861
 	tmpIR.IRType = TypeLockingClause
 	return tmpIR
 }

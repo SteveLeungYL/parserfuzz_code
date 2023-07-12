@@ -209,6 +209,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 193002
 	tmpIR.IRType = TypeNameList
 	return tmpIR
 }
@@ -287,6 +288,7 @@ func (node *ArraySubscript) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = "]"
+	rootIR.NodeHash = 55142
 	rootIR.IRType = TypeArraySubscript
 
 	return rootIR
@@ -457,6 +459,7 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
+	rootIR.NodeHash = 220941
 	tmpIR.IRType = TypeUnresolvedName
 	return tmpIR
 
