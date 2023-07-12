@@ -265,7 +265,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 105505
+	rootIR.NodeHash = 90740
 	rootIR.IRType = TypeInsert
 	return rootIR
 }

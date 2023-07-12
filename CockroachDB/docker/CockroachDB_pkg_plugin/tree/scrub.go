@@ -135,7 +135,7 @@ func (node *Scrub) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 49143
+	rootIR.NodeHash = 83661
 	rootIR.IRType = TypeScrub
 
 	return rootIR
@@ -207,7 +207,7 @@ func (node *ScrubOptions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 145137
+	tmpIR.NodeHash = 182388
 	tmpIR.IRType = TypeScrubOptions
 	return tmpIR
 }

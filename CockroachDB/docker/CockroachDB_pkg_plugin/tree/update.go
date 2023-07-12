@@ -180,7 +180,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 67871
+	rootIR.NodeHash = 226378
 	rootIR.IRType = TypeUpdate
 
 	return rootIR
@@ -253,7 +253,7 @@ func (node *UpdateExprs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 112383
+	tmpIR.NodeHash = 249099
 	tmpIR.IRType = TypeUpdateExprs
 	return tmpIR
 }

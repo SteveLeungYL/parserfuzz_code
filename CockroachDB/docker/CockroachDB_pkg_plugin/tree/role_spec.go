@@ -228,7 +228,7 @@ func (node *RoleSpecList) LogCurrentNode(depth int, flag SQLRightContextFlag) *S
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 151233
+	tmpIR.NodeHash = 69870
 	tmpIR.IRType = TypeRoleSpecList
 	return tmpIR
 }

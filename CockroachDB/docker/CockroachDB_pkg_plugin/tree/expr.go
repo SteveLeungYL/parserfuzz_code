@@ -969,7 +969,7 @@ func (node *IsOfTypeExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
-	rootIR.NodeHash = 32951
+	rootIR.NodeHash = 244788
 	rootIR.IRType = TypeIsOfTypeExpr
 
 	return rootIR
@@ -1053,7 +1053,7 @@ func (node *IfErrExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = ")"
-	rootIR.NodeHash = 49162
+	rootIR.NodeHash = 261162
 	rootIR.IRType = TypeIfErrExpr
 
 	return rootIR
@@ -1536,7 +1536,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 		rootIR.Suffix = ")"
 	}
 
-	rootIR.NodeHash = 112695
+	rootIR.NodeHash = 9831
 	rootIR.IRType = TypeTuple
 
 	return rootIR
@@ -1620,7 +1620,7 @@ func (node *Array) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 121561
+	rootIR.NodeHash = 191314
 	rootIR.IRType = TypeArray
 
 	return rootIR
@@ -1757,7 +1757,7 @@ func (node *Exprs) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 239883
+	tmpIR.NodeHash = 111823
 	tmpIR.IRType = TypeExprs
 	return tmpIR
 }
@@ -2543,7 +2543,7 @@ func (node *FuncExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 241545
+	rootIR.NodeHash = 52455
 	rootIR.IRType = TypeFuncExpr
 	rootIR.DataType = DataFunctionExpr
 
@@ -2634,7 +2634,7 @@ func (node *CaseExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = " END"
-	rootIR.NodeHash = 95332
+	rootIR.NodeHash = 251290
 	rootIR.IRType = TypeCaseExpr
 
 	return rootIR
@@ -2925,7 +2925,7 @@ func (node *CastExpr) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:    depth,
 		}
 	}
-	rootIR.NodeHash = 204539
+	rootIR.NodeHash = 33193
 	rootIR.IRType = TypeCastExpr
 
 	return rootIR
@@ -2999,7 +2999,7 @@ func (node *ArraySubscripts) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 161368
+	tmpIR.NodeHash = 250213
 	tmpIR.IRType = TypeArraySubscripts
 	return tmpIR
 }
@@ -3170,7 +3170,7 @@ func (node *AnnotateTypeExpr) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 124491
+	rootIR.NodeHash = 70965
 	rootIR.IRType = TypeAnnotateTypeExpr
 
 	return rootIR

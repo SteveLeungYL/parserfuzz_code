@@ -173,7 +173,7 @@ func (node *With) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = " "
-	rootIR.NodeHash = 169685
+	rootIR.NodeHash = 106330
 	rootIR.IRType = TypeWith
 
 	return rootIR

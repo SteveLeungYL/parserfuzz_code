@@ -66,7 +66,7 @@ func (node *DropOwnedBy) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	rootIR.NodeHash = 10087
+	rootIR.NodeHash = 168675
 	rootIR.IRType = TypeDropOwnedBy
 
 	return rootIR

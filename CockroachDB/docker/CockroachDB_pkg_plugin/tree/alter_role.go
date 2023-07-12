@@ -94,7 +94,7 @@ func (node *AlterRole) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 9933
+	rootIR.NodeHash = 255911
 	rootIR.IRType = TypeAlterRole
 
 	return rootIR

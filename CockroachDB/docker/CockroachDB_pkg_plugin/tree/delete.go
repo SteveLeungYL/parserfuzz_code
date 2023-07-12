@@ -131,7 +131,7 @@ func (node *Delete) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 116597
+	rootIR.NodeHash = 123365
 	rootIR.IRType = TypeDelete
 
 	return rootIR

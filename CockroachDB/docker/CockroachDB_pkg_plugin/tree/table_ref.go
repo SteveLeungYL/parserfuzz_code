@@ -167,7 +167,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.Suffix = "]"
-	rootIR.NodeHash = 78703
+	rootIR.NodeHash = 149200
 	rootIR.IRType = TypeTableRef
 
 	return rootIR

@@ -254,7 +254,7 @@ func (node *RenameTable) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	rootIR.NodeHash = 248924
+	rootIR.NodeHash = 25799
 	rootIR.IRType = TypeRenameTable
 
 	return rootIR
@@ -349,7 +349,7 @@ func (node *RenameIndex) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	rootIR.NodeHash = 168947
+	rootIR.NodeHash = 186169
 	rootIR.IRType = TypeRenameIndex
 
 	return rootIR
@@ -462,7 +462,7 @@ func (node *RenameColumn) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	rootIR.NodeHash = 176787
+	rootIR.NodeHash = 242442
 	rootIR.IRType = TypeRenameColumn
 	return rootIR
 }

@@ -172,7 +172,7 @@ func (node *TablePatterns) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 187431
+	tmpIR.NodeHash = 193928
 	tmpIR.IRType = TypeTablePatterns
 	return tmpIR
 

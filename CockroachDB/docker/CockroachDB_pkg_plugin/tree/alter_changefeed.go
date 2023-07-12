@@ -109,7 +109,7 @@ func (node *AlterChangefeedCmds) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	// Only flag the root node for the type.
-	rootIR.NodeHash = 101058
+	tmpIR.NodeHash = 146971
 	tmpIR.IRType = TypeAlterChangefeedCmds
 	return tmpIR
 }

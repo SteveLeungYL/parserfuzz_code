@@ -100,7 +100,7 @@ func (node *Revoke) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	rootIR.NodeHash = 138412
+	rootIR.NodeHash = 214427
 	rootIR.IRType = TypeRevoke
 
 	return rootIR

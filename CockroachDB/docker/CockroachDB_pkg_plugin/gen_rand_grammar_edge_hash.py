@@ -17,7 +17,7 @@ for root, _, all_files in os.walk("./tree"):
                     res_str += f"rootIR.NodeHash = {random.randint(0, 262143)}\n"
                     is_modi = True
                 if "tmpIR.IRType = " in cur_line:
-                    res_str += f"rootIR.NodeHash = {random.randint(0, 262143)}\n"
+                    res_str += f"tmpIR.NodeHash = {random.randint(0, 262143)}\n"
                     is_modi = True
                 res_str += cur_line + "\n"
             

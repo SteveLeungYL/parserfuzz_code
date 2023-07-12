@@ -4727,7 +4727,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	rootIR.NodeHash = 26154
+	rootIR.NodeHash = 56502
 	rootIR.IRType = TypeDTuple
 	rootIR.DataType = DataLiteral
 
@@ -5196,7 +5196,7 @@ func (node DArray) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR.Prefix = prefix
 	rootIR.Suffix = suffix
 
-	rootIR.NodeHash = 89620
+	rootIR.NodeHash = 118687
 	rootIR.IRType = TypeDArray
 	rootIR.DataType = DataLiteral
 
@@ -5488,7 +5488,7 @@ func (node *DEnum) LogCurrentNode(depth int) *SQLRightIR {
 	s := DBytes(node.PhysicalRep)
 	rootIR := s.LogCurrentNode(depth)
 	rootIR.DataAffinity = AFFIENUM
-	rootIR.NodeHash = 184317
+	rootIR.NodeHash = 35699
 	rootIR.IRType = TypeStringLiteral
 	rootIR.DataType = DataLiteral
 
