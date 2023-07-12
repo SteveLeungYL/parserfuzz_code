@@ -1,4 +1,5 @@
 #include "../include/log_gram_cov.h"
+#include "../include/gram_edge_rand_hash.h"
 
 static GramCovMap gram_cov_map;
 
@@ -13,9 +14,10 @@ void log_grammar_coverage_helper(IR* cur_ir, unsigned int parent_hash) {
     }
   } else {
     // cur_ir->get_ir_type() != TypeUnknown
-    gram_cov_map.log_edge_cov_map(parent_hash, cur_ir->node_hash);
+    unsigned int cur_node_hash = edge_hash[cur_ir->get_ir_type() - TypeUnknown];
+    gram_cov_map.log_edge_cov_map(parent_hash, cur_node_hash);
 
-    parent_hash = cur_ir->node_hash;
+    parent_hash = cur_node_hash;
     if (cur_ir->get_left() != nullptr) {
       log_grammar_coverage_helper(cur_ir->get_left(), parent_hash);
     }
