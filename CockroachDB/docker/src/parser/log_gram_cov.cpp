@@ -27,6 +27,7 @@ void log_grammar_coverage_helper(IR* cur_ir, unsigned int parent_hash, IRTYPE pa
     if (saved_hash.count(((parent_hash >> 1) ^ cur_node_hash)) == 0) {
       cov_out << get_string_by_ir_type(parent_type) << "," << get_string_by_ir_type(cur_ir->get_ir_type()) << "," << ((parent_hash >> 1) ^ cur_node_hash) << "," << time(NULL) << "\n";
       saved_hash[((parent_hash >> 1) ^ cur_node_hash)]  = 1;
+      cov_out.flush();
     }
 
     parent_hash = cur_node_hash;
