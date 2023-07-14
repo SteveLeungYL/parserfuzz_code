@@ -5,7 +5,6 @@ from loguru import logger
 from typing import List
 import re
 
-
 saved_ir_type = []
 
 logger.remove()
@@ -17,10 +16,27 @@ all_rule_maps = dict()
 total_edge_num = 0
 total_block_num = 0
 
+all_pos_edge_pair_fd = open("all_edge.txt", "w")
+
+def rewrite_keyword_type_name(input: str) -> str:
+    out = "Type"
+    is_cap = True 
+    for c in input:
+        if is_cap == True:
+            out += c.upper()
+            is_cap = False
+            continue
+        elif c == "_":
+            is_cap = True
+            continue
+        else:
+            out += c
+    return out
+
 def is_terminating_keyword(word: str) -> bool:
     if "IDENT" in word:
         return False 
-    if "SCONST" in word or "BCONST" in word or "BITCONST" in word or "ICONST" in word or "FCONST" in word:
+    elif "SCONST" in word or "BCONST" in word or "BITCONST" in word or "ICONST" in word or "FCONST" in word:
         return False 
     elif word.isupper():
         return True
@@ -72,6 +88,7 @@ def summarize_rules_text(all_saved_str: str):
     all_rule_maps[cur_keyword].append(cur_token_seq.split())
 
 def calc_total_edge_num():
+    global all_pos_edge_pair_fd
     global all_rule_maps
     global total_edge_num
 
@@ -87,6 +104,7 @@ def calc_total_edge_num():
                     seen_token.append(cur_token)
                     # all_token_enum_num += len(all_rule_maps[cur_token])
                     all_token_enum_num += 1
+                    all_pos_edge_pair_fd.write(f"{rewrite_keyword_type_name(cur_keyword)},{rewrite_keyword_type_name(cur_token)}\n")
 
             total_edge_num += all_token_enum_num
             print("for keyword: %s, rule: %s, getting edge: %d, accumulative total: %d" % (cur_keyword, token_seq, all_token_enum_num, total_edge_num))
