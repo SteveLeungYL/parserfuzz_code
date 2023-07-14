@@ -60,8 +60,6 @@ all_rule_maps = dict()
 
 parent_level = 0
 
-print(parser_rule_str)
-
 for cur_line in parser_rule_str.splitlines():
     if ":" in cur_line and "':'" not in cur_line and parent_level == 0:
 
@@ -142,10 +140,14 @@ for cur_line in parser_rule_str.splitlines():
 tmp_res_str = res_has_cov
 res_has_cov = ""
 
+tmp_res_str = "\n%%\n".join([parser_prefix_str, tmp_res_str])
+
 for cur_line in tmp_res_str.splitlines():
     if cur_line.isspace() or len(cur_line) == 0:
         continue
     res_has_cov += cur_line + "\n"
 
-out_fd = open("test_modi.y", "w")
+res_has_cov += "\n%%\n"
+
+out_fd = open("assets/cockroach_sql_inst_modi.y", "w")
 out_fd.write(res_has_cov)
