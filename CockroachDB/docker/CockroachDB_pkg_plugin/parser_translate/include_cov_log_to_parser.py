@@ -74,7 +74,7 @@ for cur_line in parser_rule_str.splitlines():
                     break
         if is_mistake == False:
             # This is a new token line. 
-            if cur_keyword_has_rules == False and len(cur_keyword) != 0:
+            if cur_keyword_has_rules == False and len(cur_keyword) != 0 and "_keyword" not in cur_keyword:
                 res_has_cov += "{\n" + gen_cov_logging_func_call(cur_keyword=cur_keyword, token_seq=cur_token_seq) + "\n}\n"
                 cur_token_seq = ""
             cur_keyword = cur_line.split(":")[0]
@@ -93,7 +93,7 @@ for cur_line in parser_rule_str.splitlines():
         else:
             all_rule_maps[cur_keyword].append(cur_token_seq.split())
 
-        if cur_keyword_has_rules == False:
+        if cur_keyword_has_rules == False and len(cur_keyword) != 0 and "_keyword" not in cur_keyword:
             res_has_cov += "{\n" + gen_cov_logging_func_call(cur_keyword=cur_keyword, token_seq=cur_token_seq) + "\n}\n"
         cur_token_seq = ""
         res_has_cov += cur_line.split("|")[0] + "|"
@@ -142,10 +142,13 @@ res_has_cov = ""
 
 tmp_res_str = "\n%%\n".join([parser_prefix_str, tmp_res_str])
 
-for cur_line in tmp_res_str.splitlines():
-    if cur_line.isspace() or len(cur_line) == 0:
-        continue
-    res_has_cov += cur_line + "\n"
+# for cur_line in tmp_res_str.splitlines():
+#     if cur_line.isspace() or len(cur_line) == 0:
+#         continue
+#     res_has_cov += cur_line + "\n"
+
+# mutual-exclusive with previous lines.
+res_has_cov = tmp_res_str
 
 res_has_cov += "\n%%\n"
 
