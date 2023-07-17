@@ -208,6 +208,8 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
         0, /* Disable Dynamic Instantiation based on error messages.          */
     disable_rsg_generator =
         0, /* Dump use RSG to generate new SQL statements          */
+    disable_rsg_feedback =
+    0, /* Disable RSG feedback.          */
     force_deterministic, /* Force deterministic stages?      */
     use_splicing,        /* Recombine input files?           */
     dumb_mode,           /* Run in non-instrumented mode?    */
@@ -3586,6 +3588,10 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   u8 keeping = 0, res;
   vector<IR *> ir_set;
 
+  if (disable_rsg_feedback != 0) {
+    rsg_clear_chosen_expr();
+  }
+
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
 
@@ -3602,7 +3608,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         !disable_coverage_feedback) {
       if (crash_mode)
         total_crashes++;
-      rsg_exec_failed();
+      if (disable_rsg_feedback == 0) {
+        rsg_exec_failed();
+      }
       return 0;
     }
 
@@ -3624,7 +3632,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* If disable_coverage_feedback == 3, always go through save_if_interesting.
      */
 
-    rsg_exec_succeed();
+    if (disable_rsg_feedback == 0) {
+      rsg_exec_succeed();
+    }
 
     char *tmp_name = stage_name;
     //[modify] add
@@ -7213,7 +7223,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XR")) >
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XRG")) >
          0)
 
     switch (opt) {
@@ -7370,6 +7380,12 @@ int main(int argc, char **argv) {
       disable_dyn_instan = true;
       cout << "\033[1;31m Warning: Disabling query dynamic instantiation based "
               "on the query error messages. "
+              "\033[0m \n\n\n";
+    } break;
+
+    case 'G': {
+      disable_rsg_feedback = true;
+      cout << "\033[1;31m Warning: Disabling coverage feedback for the RSG module. "
               "\033[0m \n\n\n";
     } break;
 
