@@ -1,7 +1,7 @@
 import sys
 import os
 
-if len(sys.argv) != 2 or "lexer.go" not in sys.argv[1]:
+if len(sys.argv) != 2 or "parse.go" not in sys.argv[1]:
     print("Fatal Error: the parsed in file is not parse.go. \n\n\n")
     exit(1)
 
@@ -9,54 +9,39 @@ fd = open(sys.argv[1], "r")
 
 res_str = ""
 for cur_line in fd.read().splitlines():
-    if '"fmt"' in cur_line:
-        res_str += cur_line + "\n"
-        res_str += '"os"\n'
-        continue
-    elif "type lexer struct {" in cur_line:
+    if "func init()" in cur_line:
         res_str += """
+
 type GramCovLogger struct {
-	gramCovMap    map[string]int
 	newUnsavedCov []string
-	outFile       *os.File
+}
+
+var gramCov GramCovLogger
+
+func LogGrammarCoverage(ruleStr string) {
+	gramCov.newUnsavedCov = append(gramCov.newUnsavedCov, ruleStr)
 }
 
 """
-        res_str += cur_line + "\n"
-        res_str += """
-    gramCov GramCovLogger
-"""
+        res_str += cur_line
         continue
-    elif "l.nakedIntType = nakedIntType" in cur_line:
-        res_str += cur_line + "\n"
+    elif "func Parse(sql string) (Statements, error)" in cur_line:
         res_str += """
-	l.gramCov.gramCovMap = make(map[string]int)
-	l.gramCov.newUnsavedCov = make([]string, 0)
-	l.gramCov.outFile, _ = os.OpenFile("./gram_cov.txt", os.O_WRONLY, 0644)
+
+func ParseWithCov(sql string) (Statements, error, []string) {
+	stmt, err := Parse(sql)
+	var newCov = make([]string, len(gramCov.newUnsavedCov))
+	copy(newCov, gramCov.newUnsavedCov)
+	gramCov.newUnsavedCov = make([]string, 0)
+	return stmt, err, newCov
+}
+
 """
+        res_str += cur_line
         continue
     else:
         res_str += cur_line + "\n"
 	
-res_str += """
-
-func (l *lexer) LogGrammarCoverage(ruleStr string) {
-	l.gramCov.newUnsavedCov = append(l.gramCov.newUnsavedCov, ruleStr)
-}
-
-func (l *lexer) HasNewGrammarCoverage() {
-	for _, ruleStr := range l.gramCov.newUnsavedCov {
-		if val, ok := l.gramCov.gramCovMap[ruleStr]; !ok || val != 1 {
-			l.gramCov.gramCovMap[ruleStr] = 1
-			l.gramCov.outFile.WriteString(ruleStr)
-		}
-	}
-
-	l.gramCov.newUnsavedCov = make([]string, 0)
-}
-
-"""
-
 fd.close()
 
 fd = open(sys.argv[1], "w")

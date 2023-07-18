@@ -1,4 +1,6 @@
 #include <iostream>
+#include <set>
+#include <fstream>
 
 #include "../include/utils.h"
 #include "../include/json.hpp"
@@ -6,12 +8,17 @@
 
 using json = nlohmann::json;
 using std::cout, std::cerr, std::endl;
+using std::set, std::string;
+using std::ofstream;
 
 IRTYPE get_ir_type_by_idx(int idx) { return static_cast<IRTYPE>(idx); }
 
 DATATYPE get_data_type_by_idx(int idx) { return static_cast<DATATYPE>(idx); }
 
 DATAFLAG get_data_flag_by_idx(int idx) { return static_cast<DATAFLAG>(idx); }
+
+static set<string> gram_cov_set;
+static ofstream cov_out("gram_cov_out.txt", ios::out);
 
 inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
 
@@ -182,6 +189,19 @@ IR *convert_json_to_IR(string all_json_str) {
       auto json_obj = json::parse(json_str);
       IR *tmp_stmt_IR = convert_json_to_IR_helper(json_obj, 0);
       v_stmt_ir.push_back(tmp_stmt_IR);
+
+      if (json_obj.contains("gramCov") && !json_obj["gramCov"].empty()) {
+        vector<string> cur_json_node = json_obj["gramCov"];
+        for (string& cur_gram_str : cur_json_node) {
+          if (gram_cov_set.count(cur_gram_str) == 0) {
+//            cerr << "Debug: trigger curGramStr: " << cur_gram_str << "\n";
+            cov_out << cur_gram_str << "\n";
+            cov_out.flush();
+            gram_cov_set.insert(cur_gram_str);
+          }
+        }
+      }
+
     } catch (json::parse_error &ex) {
       return NULL;
     }

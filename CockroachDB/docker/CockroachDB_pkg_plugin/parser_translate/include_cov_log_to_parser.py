@@ -20,7 +20,7 @@ def gen_cov_logging_func_call(cur_keyword, token_seq: str) -> str:
     for cur_token in token_seq:
         if cur_token.islower():
             #TODO: Change to Type representation instead of reuse the original keyword string?
-            res_str += f"sqllex.(*lexer).LogGrammarCoverage(\"{cur_keyword},{cur_token}\")\n"
+            res_str += f"LogGrammarCoverage(\"{cur_keyword},{cur_token}\")\n"
     return res_str
 
 grammar_fd = open("assets/cockroach_sql.y", "r")
@@ -178,7 +178,8 @@ for cur_line in parser_rule_str.splitlines():
             # Trigger the ending of one single rule action.
             cur_keyword_has_rules = True
             # res_has_cov += (f"Error: parent: {parent_level}, {cur_char}, keyword: {cur_keyword}, token_seq: {cur_token_seq}\n")
-            res_has_cov += "\n" + gen_cov_logging_func_call(cur_keyword=cur_keyword, token_seq=cur_token_seq) + "\n"
+            if "error" not in cur_token_seq:
+                res_has_cov += "\n" + gen_cov_logging_func_call(cur_keyword=cur_keyword, token_seq=cur_token_seq) + "\n"
             cur_token_seq = ""
             is_add_gram_cov = False
 
