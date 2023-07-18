@@ -1,7 +1,7 @@
 import sys
 import os
 
-if len(sys.argv) != 2 or "parse.go" not in sys.argv[1]:
+if len(sys.argv) != 2 or "lexer.go" not in sys.argv[1]:
     print("Fatal Error: the parsed in file is not parse.go. \n\n\n")
     exit(1)
 
@@ -9,45 +9,53 @@ fd = open(sys.argv[1], "r")
 
 res_str = ""
 for cur_line in fd.read().splitlines():
-    if "go/constant" in cur_line:
+    if '"fmt"' in cur_line:
         res_str += cur_line + "\n"
         res_str += '"os"\n'
         continue
-    elif "func init() {" in cur_line:
+    elif "type lexer struct {" in cur_line:
         res_str += """
 type GramCovLogger struct {
-	gram_cov_map    map[string]int
-	new_unsaved_cov []string
-	out_file        *os.File
-}
-
-var gramCov GramCovLogger
-
-func LogGrammarCoverage(ruleStr string) {
-	gramCov.new_unsaved_cov = append(gramCov.new_unsaved_cov, ruleStr)
-}
-
-func HasNewGrammarCoverage() {
-	for _, ruleStr := range gramCov.new_unsaved_cov {
-		if val, ok := gramCov.gram_cov_map[ruleStr]; !ok || val != 1 {
-			gramCov.gram_cov_map[ruleStr] = 1
-			gramCov.out_file.WriteString(ruleStr)
-		}
-	}
-
-	gramCov.new_unsaved_cov = make([]string, 0)
+	gramCovMap    map[string]int
+	newUnsavedCov []string
+	outFile       *os.File
 }
 
 """
         res_str += cur_line + "\n"
         res_str += """
-	gramCov.gram_cov_map = make(map[string]int)
-	gramCov.new_unsaved_cov = make([]string, 0)
-	gramCov.out_file, _ = os.OpenFile("./gram_cov.txt", os.O_WRONLY, 0644)
+    gramCov GramCovLogger
+"""
+        continue
+    elif "l.nakedIntType = nakedIntType" in cur_line:
+        res_str += cur_line + "\n"
+        res_str += """
+	l.gramCov.gramCovMap = make(map[string]int)
+	l.gramCov.newUnsavedCov = make([]string, 0)
+	l.gramCov.outFile, _ = os.OpenFile("./gram_cov.txt", os.O_WRONLY, 0644)
 """
         continue
     else:
         res_str += cur_line + "\n"
+	
+res_str += """
+
+func (l *lexer) LogGrammarCoverage(ruleStr string) {
+	l.gramCov.newUnsavedCov = append(l.gramCov.newUnsavedCov, ruleStr)
+}
+
+func (l *lexer) HasNewGrammarCoverage() {
+	for _, ruleStr := range l.gramCov.newUnsavedCov {
+		if val, ok := l.gramCov.gramCovMap[ruleStr]; !ok || val != 1 {
+			l.gramCov.gramCovMap[ruleStr] = 1
+			l.gramCov.outFile.WriteString(ruleStr)
+		}
+	}
+
+	l.gramCov.newUnsavedCov = make([]string, 0)
+}
+
+"""
 
 fd.close()
 
