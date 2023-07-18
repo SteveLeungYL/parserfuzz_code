@@ -4,6 +4,7 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/cockroachdb/cockroach/pkg/sql/parser"
 	_ "github.com/cockroachdb/cockroach/pkg/sql/sem/builtins"
 	"github.com/cockroachdb/cockroach/pkg/sql/sem/tree"
@@ -14,7 +15,7 @@ func ParseHelper(inData string) (*C.char, int) {
 
 	// The return res from parser.Parse is an array of Statement structure.
 	// Each element is one statement from the query.
-	astTreeList, err := parser.Parse(inData)
+	astTreeList, err, gramCov := parser.ParseWithCov(inData)
 	if err != nil {
 		return nil, 0
 	}
@@ -39,6 +40,15 @@ func ParseHelper(inData string) (*C.char, int) {
 		if jErr != nil {
 			return nil, 0
 		}
+
+		var m map[string]interface{}
+		jErr = json.Unmarshal(jsonBytes, &m)
+		if jErr != nil {
+			return nil, 0
+		}
+		m["gramCov"] = gramCov
+		jsonBytes, jErr = json.Marshal(m)
+
 		jsonStr := string(jsonBytes)
 		jsonStrAllStatement += jsonStr + "\n"
 	}
