@@ -99,10 +99,16 @@ WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql
 RUN cp -r  /home/cockroach/CockroachDB_pkg_plugin/parser_helper ./parser_helper
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parser_helper
 
+# Instruement the original parser file to print gramamr coverage.
+RUN cp -r /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y /home/cockroach/CockroachDB_pkg_plugin/parser_translate/assets/cockroach_sql.y
+WORKDIR /home/cockroach/CockroachDB_pkg_plugin/parser_translate
+RUN python3 include_cov_log_to_parser.py && python3 rewrite_parser_code_to_include_log_func.py /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parse.go
+RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/parser_translate/assets/cockroach_sql_inst_modi.y /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y
+
 # Compile the Cockroach befroe generating the parser shared library. 
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # WIll fail because of the instrumentation.
-RUN make; exit 0
+RUN make buildshort; exit 0
 
 # Fix a proj problem that could crash our build process. 
 USER cockroach
