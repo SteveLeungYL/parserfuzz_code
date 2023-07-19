@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 #include <fstream>
+#include <ctime>
 
 #include "../include/utils.h"
 #include "../include/json.hpp"
@@ -195,7 +196,7 @@ IR *convert_json_to_IR(string all_json_str) {
         for (string& cur_gram_str : cur_json_node) {
           if (gram_cov_set.count(cur_gram_str) == 0) {
 //            cerr << "Debug: trigger curGramStr: " << cur_gram_str << "\n";
-            cov_out << cur_gram_str << "\n";
+            cov_out << cur_gram_str << "," << time(nullptr) <<"\n";
             cov_out.flush();
             gram_cov_set.insert(cur_gram_str);
           }
