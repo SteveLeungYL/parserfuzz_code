@@ -104,7 +104,7 @@ def calc_total_edge_num():
                     seen_token.append(cur_token)
                     # all_token_enum_num += len(all_rule_maps[cur_token])
                     all_token_enum_num += 1
-                    all_pos_edge_pair_fd.write(f"{rewrite_keyword_type_name(cur_keyword)},{rewrite_keyword_type_name(cur_token)}\n")
+                    all_pos_edge_pair_fd.write(f"{cur_keyword},{cur_token}\n")
 
             total_edge_num += all_token_enum_num
             print("for keyword: %s, rule: %s, getting edge: %d, accumulative total: %d" % (cur_keyword, token_seq, all_token_enum_num, total_edge_num))
