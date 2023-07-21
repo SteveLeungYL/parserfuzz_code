@@ -107,7 +107,11 @@ res_str = ""
 
 skip_line = 0
 for cur_line in main_test_fd.read().splitlines():
-    if "goleak" in cur_line:
+    if "goleak.VerifyTestMain" in cur_line:
+        # ignore goleak
+        skip_line = 1
+        continue
+    elif "goleak" in cur_line:
         # ignore goleak.
         continue
     elif skip_line > 0:

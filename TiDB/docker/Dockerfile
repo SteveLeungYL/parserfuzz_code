@@ -98,7 +98,8 @@ RUN python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
 
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
 RUN cp -r /home/tidb/tidb_pkg_plugin/globalcov ./globalcov
-RUN make && GOPATH=/home/tidb/go_projects cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov
+RUN make 
+RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov
 
 USER root
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
