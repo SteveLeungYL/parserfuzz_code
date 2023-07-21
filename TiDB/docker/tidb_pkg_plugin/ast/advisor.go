@@ -29,8 +29,6 @@ type IndexAdviseStmt struct {
 	MaxMinutes  uint64
 	MaxIndexNum *MaxIndexNumClause
 	LinesInfo   *LinesClause
-
-	SqlRsgInterface
 }
 
 // RSG fuzzer inject.
@@ -132,8 +130,6 @@ func (n *IndexAdviseStmt) Accept(v Visitor) (Node, bool) {
 type MaxIndexNumClause struct {
 	PerTable uint64
 	PerDB    uint64
-
-	SqlRsgInterface
 }
 
 // RSG fuzzer inject.

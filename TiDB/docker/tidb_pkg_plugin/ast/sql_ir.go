@@ -11,6 +11,7 @@ const (
 	TypeIntegerLiteral
 	TypeFloatLiteral
 	TypeStringLiteral
+	TypeIdentifier
 	TypeIndexAdviseStmt
 	TypeMaxIndexNumClause
 )
@@ -18,6 +19,8 @@ const (
 const (
 	DataNone SQLRightDataType = iota
 	DataUnknownType
+	DataCharSet
+	DataEncryptionName
 	DataChangeFeed
 	DataDatabaseName
 	DataSuperRegion

@@ -29,6 +29,8 @@ type node struct {
 
 	text   string
 	offset int
+
+	SqlRsgInterface
 }
 
 // SetOriginTextPosition implements Node interface.

@@ -22,6 +22,7 @@ import (
 	"github.com/pingcap/tidb/parser/terror"
 	"github.com/pingcap/tidb/parser/tidb"
 	"github.com/pingcap/tidb/parser/types"
+	"strconv"
 )
 
 var (
@@ -83,6 +84,91 @@ type DatabaseOption struct {
 	Value          string
 	UintValue      uint64
 	TiFlashReplica *TiFlashReplicaSpec
+
+	SqlRsgInterface
+}
+
+func (n *DatabaseOption) LogCurrentNode(depth int) *SqlRsgIR {
+	var rootNode = &SqlRsgIR{
+		IRType:   TypeUnknown,
+		DataType: DataNone,
+		Prefix:   "",
+		Infix:    "",
+		Suffix:   "",
+		Depth:    depth,
+	}
+
+	switch n.Tp {
+	case DatabaseOptionCharset:
+		prefix := "CHARACTER SET = "
+		lNode := &SqlRsgIR{
+			IRType:   TypeIdentifier,
+			DataType: DataCharSet,
+			Str:      n.Value,
+			Prefix:   prefix,
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		prefix = ""
+		rootNode.LNode = lNode
+	case DatabaseOptionCollate:
+		prefix := "COLLATE = "
+		lNode := &SqlRsgIR{
+			IRType:   TypeIdentifier,
+			DataType: DataCollationName,
+			Str:      n.Value,
+			Prefix:   prefix,
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		prefix = ""
+		rootNode.LNode = lNode
+	case DatabaseOptionEncryption:
+		prefix := "ENCRYPTION = "
+		lNode := &SqlRsgIR{
+			IRType:   TypeIdentifier,
+			DataType: DataEncryptionName,
+			Str:      n.Value,
+			Prefix:   prefix,
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		prefix = ""
+		rootNode.LNode = lNode
+	case DatabaseOptionPlacementPolicy:
+		placementOpt := PlacementOption{
+			Tp:        PlacementOptionPolicy,
+			UintValue: n.UintValue,
+			StrValue:  n.Value,
+		}
+		lNode := placementOpt.LogCurrentNode(depth + 1)
+		rootNode.LNode = lNode
+	case DatabaseSetTiFlashReplica:
+		prefix := "SET TIFLASH REPLICA "
+		lNode := &SqlRsgIR{
+			IRType:   TypeIntegerLiteral,
+			DataType: DataNone,
+			IValue:   int64(n.TiFlashReplica.Count),
+			Str:      strconv.FormatUint(n.TiFlashReplica.Count, 10),
+			Prefix:   "",
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		midfix := ""
+		if len(n.TiFlashReplica.Labels) != 0 {
+			midfix = " LOCATION LABELS \"zone\" "
+		}
+
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+		rootNode.LNode = lNode
+	}
+
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -134,6 +220,49 @@ type CreateDatabaseStmt struct {
 	IfNotExists bool
 	Name        string
 	Options     []*DatabaseOption
+
+	SqlRsgInterface
+}
+
+func (n *CreateDatabaseStmt) LogCurrentNode(depth int) *SqlRsgIR {
+	rootNode := &SqlRsgIR{
+		IRType:   TypeUnknown,
+		DataType: DataNone,
+		Prefix:   "",
+		Infix:    "",
+		Suffix:   "",
+		Depth:    depth,
+	}
+	prefix := "CREATE DATABASE "
+	if n.IfNotExists {
+		prefix += "IF NOT EXISTS "
+	}
+
+	lNode := &SqlRsgIR{
+		IRType:   TypeIdentifier,
+		DataType: DataDatabaseName,
+		Str:      n.Name,
+		Depth:    depth + 1,
+	}
+
+	rootNode.LNode = lNode
+	rootNode.Prefix = prefix
+
+	for _, option := range n.Options {
+		rNode := option.LogCurrentNode(depth + 1)
+		midfix := " "
+
+		rootNode = &SqlRsgIR{
+			IRType:   TypeUnknown,
+			DataType: DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -670,10 +799,12 @@ const (
 )
 
 // IndexOption is the index options.
-//    KEY_BLOCK_SIZE [=] value
-//  | index_type
-//  | WITH PARSER parser_name
-//  | COMMENT 'string'
+//
+//	  KEY_BLOCK_SIZE [=] value
+//	| index_type
+//	| WITH PARSER parser_name
+//	| COMMENT 'string'
+//
 // See http://dev.mysql.com/doc/refman/5.7/en/create-table.html
 type IndexOption struct {
 	node
@@ -1936,6 +2067,8 @@ type PlacementOption struct {
 	Tp        PlacementOptionType
 	StrValue  string
 	UintValue uint64
+
+	SqlRsgInterface
 }
 
 func (n *PlacementOption) Restore(ctx *format.RestoreCtx) error {

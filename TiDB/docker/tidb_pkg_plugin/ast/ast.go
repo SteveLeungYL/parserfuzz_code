@@ -48,6 +48,8 @@ type Node interface {
 	SetOriginTextPosition(offset int)
 	// OriginTextPosition get the start offset of this node in the origin text.
 	OriginTextPosition() int
+
+	SqlRsgInterface
 }
 
 // Flags indicates whether an expression contains certain types of expression.
@@ -137,6 +139,8 @@ type ResultField struct {
 	// Referenced indicates the result field has been referenced or not.
 	// If not, we don't need to get the values.
 	Referenced bool
+
+	SqlRsgInterface
 }
 
 // ResultSetNode interface has a ResultFields property, represents a Node that returns result set.
