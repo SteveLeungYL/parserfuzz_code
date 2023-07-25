@@ -95,6 +95,7 @@ const (
 	DataStorageParams
 	DataPolicyName
 	DataTableSpaceName
+	DataForeignKeyName
 )
 
 const (

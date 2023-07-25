@@ -5579,115 +5579,185 @@ func (n *AlterTableSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 		}
 	case AlterTableAddColumns:
-		ctx.WriteKeyWord("ADD COLUMN ")
+		prefix += "ADD COLUMN "
 		if n.IfNotExists {
-			ctx.WriteKeyWord("IF NOT EXISTS ")
+			prefix += "IF NOT EXISTS "
 		}
 		if n.Position != nil && len(n.NewColumns) == 1 {
-			if err := n.NewColumns[0].Restore(ctx); err != nil {
-				return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewColumns[%d]", 0)
-			}
+			lNode := n.NewColumns[0].LogCurrentNode(depth + 1)
+			midfix := ""
 			if n.Position.Tp != ColumnPositionNone {
-				ctx.WritePlain(" ")
+				midfix = " "
 			}
-			if err := n.Position.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
-			}
+			rNode := n.Position.LogCurrentNode(depth + 1)
+
+			rootNode.LNode = lNode
+			rootNode.RNode = rNode
+			rootNode.Infix = midfix
+
 		} else {
 			lenCols := len(n.NewColumns)
-			ctx.WritePlain("(")
+			tmpRootNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
 			for i, col := range n.NewColumns {
+				tmpMidfix := ""
 				if i != 0 {
-					ctx.WritePlain(", ")
+					tmpMidfix = ", "
 				}
-				if err := col.Restore(ctx); err != nil {
-					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewColumns[%d]", i)
+				colNode := col.LogCurrentNode(depth + 1)
+				if i == 0 {
+					tmpRootNode.LNode = colNode
+				} else { // i > 0
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    colNode,
+						Infix:    tmpMidfix,
+						Depth:    depth,
+					}
 				}
 			}
 			for i, constraint := range n.NewConstraints {
+				tmpMidfix := ""
 				if i != 0 || lenCols >= 1 {
-					ctx.WritePlain(", ")
+					tmpMidfix = ", "
 				}
-				if err := constraint.Restore(ctx); err != nil {
-					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewConstraints[%d]", i)
+				constraintNode := constraint.LogCurrentNode(depth + 1)
+				if i == 0 && lenCols == 0 {
+					tmpRootNode.LNode = constraintNode
+				} else { // i > 0
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    constraintNode,
+						Infix:    tmpMidfix,
+						Depth:    depth,
+					}
 				}
 			}
-			ctx.WritePlain(")")
+			tmpRootNode.Prefix = "("
+			tmpRootNode.Suffix = ")"
+
+			rootNode.Prefix = prefix
+			rootNode.LNode = tmpRootNode
 		}
 	case AlterTableAddConstraint:
-		ctx.WriteKeyWord("ADD ")
-		if err := n.Constraint.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Constraint")
-		}
+		prefix += "ADD "
+		lNode := n.Constraint.LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
 	case AlterTableDropColumn:
-		ctx.WriteKeyWord("DROP COLUMN ")
+		prefix += "DROP COLUMN "
 		if n.IfExists {
-			ctx.WriteKeyWord("IF EXISTS ")
+			prefix += "IF EXISTS "
 		}
-		if err := n.OldColumnName.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
-		}
+
+		lNode := n.OldColumnName.LogCurrentNode(depth + 1)
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
 	// TODO: RestrictOrCascadeOpt not support
 	case AlterTableDropPrimaryKey:
-		ctx.WriteKeyWord("DROP PRIMARY KEY")
+		prefix += "DROP PRIMARY KEY"
+		rootNode.Prefix = prefix
 	case AlterTableDropIndex:
-		ctx.WriteKeyWord("DROP INDEX ")
+		prefix += "DROP INDEX "
 		if n.IfExists {
-			ctx.WriteKeyWord("IF EXISTS ")
+			prefix += "IF EXISTS "
 		}
-		ctx.WriteName(n.Name)
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataIndexName,
+			Str:      n.Name,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
 	case AlterTableDropForeignKey:
-		ctx.WriteKeyWord("DROP FOREIGN KEY ")
+		prefix += "DROP FOREIGN KEY "
 		if n.IfExists {
-			ctx.WriteKeyWord("IF EXISTS ")
+			prefix += "IF EXISTS "
 		}
-		ctx.WriteName(n.Name)
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataForeignKeyName,
+			Str:      n.Name,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
 	case AlterTableModifyColumn:
-		ctx.WriteKeyWord("MODIFY COLUMN ")
+		prefix = "MODIFY COLUMN "
 		if n.IfExists {
-			ctx.WriteKeyWord("IF EXISTS ")
+			prefix += "IF EXISTS "
 		}
-		if err := n.NewColumns[0].Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0]")
-		}
+		lNode := n.NewColumns[0].LogCurrentNode(depth + 1)
+		midfix := ""
 		if n.Position.Tp != ColumnPositionNone {
-			ctx.WritePlain(" ")
+			midfix = " "
 		}
-		if err := n.Position.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
-		}
+		rNode := n.Position.LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+		rootNode.LNode = lNode
+		rootNode.RNode = rNode
+
 	case AlterTableChangeColumn:
-		ctx.WriteKeyWord("CHANGE COLUMN ")
+		prefix += "CHANGE COLUMN "
 		if n.IfExists {
-			ctx.WriteKeyWord("IF EXISTS ")
+			prefix += "IF EXISTS "
 		}
-		if err := n.OldColumnName.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
-		}
-		ctx.WritePlain(" ")
-		if err := n.NewColumns[0].Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0]")
-		}
+		lNode := n.OldColumnName.LogCurrentNode(depth + 1)
+		midfix := " "
+		rNode := n.NewColumns[0].LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+		rootNode.LNode = lNode
+		rootNode.RNode = rNode
+
+		midfix = ""
 		if n.Position.Tp != ColumnPositionNone {
-			ctx.WritePlain(" ")
+			midfix = " "
 		}
-		if err := n.Position.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
+		rNode = n.Position.LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
 		}
+
 	case AlterTableRenameColumn:
-		ctx.WriteKeyWord("RENAME COLUMN ")
-		if err := n.OldColumnName.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
-		}
-		ctx.WriteKeyWord(" TO ")
-		if err := n.NewColumnName.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumnName")
-		}
+		prefix += "RENAME COLUMN "
+		lNode := n.OldColumnName.LogCurrentNode(depth + 1)
+		midfix := " TO "
+		rNode := n.NewColumnName.LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+		rootNode.LNode = lNode
+		rootNode.RNode = rNode
+
 	case AlterTableRenameTable:
-		ctx.WriteKeyWord("RENAME AS ")
-		if err := n.NewTable.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewTable")
-		}
+		prefix += "RENAME AS "
+		lNode := n.NewTable.LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
 	case AlterTableAlterColumn:
 		ctx.WriteKeyWord("ALTER COLUMN ")
 		if err := n.NewColumns[0].Restore(ctx); err != nil {
