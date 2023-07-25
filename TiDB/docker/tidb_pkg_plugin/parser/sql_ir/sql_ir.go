@@ -25,6 +25,14 @@ const (
 	TypeConstraint
 	TypeColumnDef
 	TypeFieldType
+	TypeCreateDatabaseStmt
+	TypeCreateTableStmt
+	TypeDropTableStmt
+	TypeDropPlacementPolicyStmt
+	TypeDropSequenceStmt
+	TypeRenameTableStmt
+	TypeTableToTable
+	TypeCreateViewStmt
 )
 
 const (
