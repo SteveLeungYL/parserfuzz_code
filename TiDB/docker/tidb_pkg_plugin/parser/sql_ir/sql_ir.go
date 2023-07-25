@@ -33,6 +33,21 @@ const (
 	TypeRenameTableStmt
 	TypeTableToTable
 	TypeCreateViewStmt
+	TypeCreatePlacementPolicyStmt
+	TypeCreateSequenceStmt
+	TypeIndexLockAndAlgorithm
+	TypeCreateIndexStmt
+	TypeDropIndexStmt
+	TypeLockTablesStmt
+	TypeUnlockTablesStmt
+	TypeCleanupTableLockStmt
+	TypeRepairTableStmt
+	TypePlacementOption
+	TypeTableOption
+	TypeSequenceOption
+	TypeColumnPosition
+	TypeAlterOrderItem
+	TypeAlterTableSpec
 )
 
 const (
@@ -78,6 +93,8 @@ const (
 	DataLiteral
 	DataViewColumnName
 	DataStorageParams
+	DataPolicyName
+	DataTableSpaceName
 )
 
 const (

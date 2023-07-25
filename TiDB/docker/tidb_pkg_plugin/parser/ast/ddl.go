@@ -2938,6 +2938,49 @@ type CreatePlacementPolicyStmt struct {
 	PlacementOptions []*PlacementOption
 }
 
+func (n *CreatePlacementPolicyStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "CREATE "
+	if n.OrReplace {
+		prefix += "OR REPLACE "
+	}
+	prefix += "PLACEMENT POLICY "
+	if n.IfNotExists {
+		prefix += "IF NOT EXISTS "
+	}
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataPolicyName,
+		Str:      n.PolicyName.O,
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	for _, option := range n.PlacementOptions {
+		midfix := " "
+		rNode := option.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeCreatePlacementPolicyStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *CreatePlacementPolicyStmt) Restore(ctx *format.RestoreCtx) error {
 	if ctx.Flags.HasTiDBSpecialCommentFlag() {
@@ -2981,6 +3024,51 @@ type CreateSequenceStmt struct {
 	Name        *TableName
 	SeqOptions  []*SequenceOption
 	TblOptions  []*TableOption
+}
+
+func (n *CreateSequenceStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "CREATE SEQUENCE "
+	if n.IfNotExists {
+		prefix += "IF NOT EXISTS "
+	}
+	lNode := n.Name.LogCurrentNode(depth + 1)
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	for _, option := range n.SeqOptions {
+		midfix := " "
+		rNode := option.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+	for _, option := range n.TblOptions {
+		midfix := " "
+		rNode := option.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeCreateSequenceStmt
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -3029,6 +3117,36 @@ type IndexLockAndAlgorithm struct {
 
 	LockTp      LockType
 	AlgorithmTp AlgorithmType
+}
+
+func (n *IndexLockAndAlgorithm) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := ""
+	if n.AlgorithmTp != AlgorithmTypeDefault {
+		prefix += "ALGORITHM"
+		prefix += " = " + n.AlgorithmTp.String()
+	}
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+	prefix = ""
+
+	if n.LockTp != LockTypeDefault {
+		midfix := "LOCK = " + n.LockTp.String()
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeIndexLockAndAlgorithm
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -3088,6 +3206,107 @@ type CreateIndexStmt struct {
 	IndexOption             *IndexOption
 	KeyType                 IndexKeyType
 	LockAlg                 *IndexLockAndAlgorithm
+}
+
+func (n *CreateIndexStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "CREATE "
+
+	switch n.KeyType {
+	case IndexKeyTypeUnique:
+		prefix += "UNIQUE "
+	case IndexKeyTypeSpatial:
+		prefix += "SPATIAL "
+	case IndexKeyTypeFullText:
+		prefix += "FULLTEXT "
+	}
+
+	prefix += "INDEX "
+	if n.IfNotExists {
+		prefix += "IF NOT EXISTS "
+	}
+
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataIndexName,
+		Str:      n.IndexName,
+		Depth:    depth,
+	}
+
+	midfix := " ON "
+
+	rNode := n.Table.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+	midfix = ""
+
+	var tmpRootNode *sql_ir.SqlRsgIR
+	for i, indexColName := range n.IndexPartSpecifications {
+		midfix = ""
+		if i != 0 {
+			midfix = ", "
+		}
+		curIndexCovNode := indexColName.LogCurrentNode(depth + 1)
+		if i == 0 {
+			tmpRootNode.LNode = curIndexCovNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    curIndexCovNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+	tmpRootNode.Prefix = " ( "
+	tmpRootNode.Suffix = " ) "
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Depth:    depth,
+	}
+	midfix = ""
+
+	if n.IndexOption.Tp != model.IndexTypeInvalid || n.IndexOption.KeyBlockSize > 0 || n.IndexOption.Comment != "" || len(n.IndexOption.ParserName.O) > 0 || n.IndexOption.Visibility != IndexVisibilityDefault {
+		midfix = " "
+		rNode = n.IndexOption.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	if n.LockAlg != nil {
+		midfix = " "
+		rNode = n.LockAlg.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeCreateIndexStmt
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -3186,6 +3405,53 @@ type DropIndexStmt struct {
 	LockAlg   *IndexLockAndAlgorithm
 }
 
+func (n *DropIndexStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "DROP INDEX "
+
+	if n.IfExists {
+		prefix += "IF EXISTS "
+	}
+
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataIndexName,
+		Str:      n.IndexName,
+		Depth:    depth,
+	}
+
+	midfix := " ON "
+
+	rNode := n.Table.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+	midfix = ""
+
+	if n.LockAlg != nil {
+		midfix = " "
+		rNode = n.LockAlg.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeDropIndexStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *DropIndexStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("DROP INDEX ")
@@ -3264,6 +3530,47 @@ func (n *LockTablesStmt) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
+func (n *LockTablesStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "LOCK TABLES "
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, tl := range n.TableLocks {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		tableNode := tl.Table.LogCurrentNode(depth + 1)
+		tmpMidfix := " " + tl.Type.String()
+		tmpNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    tableNode,
+			Infix:    tmpMidfix,
+			Depth:    depth,
+		}
+
+		if i == 0 {
+			rootNode.LNode = tmpNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    tmpNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+	rootNode.Prefix = prefix
+	rootNode.IRType = sql_ir.TypeLockTablesStmt
+	return rootNode
+}
+
 // Restore implements Node interface.
 func (n *LockTablesStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("LOCK TABLES ")
@@ -3288,6 +3595,18 @@ type UnlockTablesStmt struct {
 func (n *UnlockTablesStmt) Accept(v Visitor) (Node, bool) {
 	_, _ = v.Enter(n)
 	return v.Leave(n)
+}
+
+func (n *UnlockTablesStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "UNLOCK TABLES"
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeUnlockTablesStmt
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -3318,6 +3637,40 @@ func (n *CleanupTableLockStmt) Accept(v Visitor) (Node, bool) {
 		n.Tables[i] = node.(*TableName)
 	}
 	return v.Leave(n)
+}
+
+func (n *CleanupTableLockStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "ADMIN CLEANUP TABLE LOCK "
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range n.Tables {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+		if i == 0 {
+			rootNode.LNode = vNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+
+		}
+	}
+	rootNode.Prefix = prefix
+	rootNode.IRType = sql_ir.TypeCleanupTableLockStmt
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -3361,6 +3714,25 @@ func (n *RepairTableStmt) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
+func (n *RepairTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "ADMIN REPAIR TABLE "
+	lNode := n.Table.LogCurrentNode(depth + 1)
+	midfix := " "
+	rNode := n.CreateStmt.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeRepairTableStmt
+	return nil
+}
+
 // Restore implements Node interface.
 func (n *RepairTableStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ADMIN REPAIR TABLE ")
@@ -3400,6 +3772,148 @@ type PlacementOption struct {
 	UintValue uint64
 
 	sql_ir.SqlRsgInterface
+}
+
+func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	switch n.Tp {
+	case PlacementOptionPrimaryRegion:
+		prefix += "PRIMARY_REGION = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataRegionName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case PlacementOptionRegions:
+		prefix += "REGIONS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataRegionName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionFollowerCount:
+		prefix += "FOLLOWERS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatUint(n.UintValue, 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case PlacementOptionVoterCount:
+		prefix += "VOTERS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatUint(n.UintValue, 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionLearnerCount:
+		prefix += "LEARNERS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatUint(n.UintValue, 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionSchedule:
+		prefix += "SCHEDULE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataSchemaName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionConstraints:
+		prefix += "CONSTRAINTS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataConstraintName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionLeaderConstraints:
+		prefix += "LEADER_CONSTRAINTS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataConstraintName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionFollowerConstraints:
+		prefix += "FOLLOWER_CONSTRAINTS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataConstraintName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionVoterConstraints:
+		prefix += "VOTER_CONSTRAINTS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataConstraintName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionLearnerConstraints:
+		prefix += "LEARNER_CONSTRAINTS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataConstraintName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case PlacementOptionPolicy:
+		prefix += "PLACEMENT POLICY = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataPolicyName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	default:
+		// Do nothing here.
+	}
+	rootNode.IRType = sql_ir.TypePlacementOption
+	return rootNode
+
 }
 
 func (n *PlacementOption) Restore(ctx *format.RestoreCtx) error {
@@ -3569,6 +4083,551 @@ type TableOption struct {
 	TableNames []*TableName
 
 	sql_ir.SqlRsgInterface
+}
+
+func (n *TableOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	switch n.Tp {
+	case TableOptionEngine:
+		prefix += "ENGINE = "
+		tmpStr := "''"
+		if n.StrValue != "" {
+			tmpStr = n.StrValue
+		}
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataNone,
+			Str:      tmpStr,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case TableOptionCharset:
+		if n.UintValue == TableOptionCharsetWithConvertTo {
+			prefix += "CONVERT TO "
+		} else {
+			prefix += "DEFAULT "
+		}
+		prefix += "CHARACTER SET "
+		if n.UintValue == TableOptionCharsetWithoutConvertTo {
+			prefix += "= "
+		}
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataCharSet,
+				Str:      n.StrValue,
+				Depth:    depth,
+			}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionCollate:
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataCollationName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		prefix = "DEFAULT COLLATE = "
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case TableOptionAutoIncrement:
+		if n.BoolValue {
+			prefix += "FORCE "
+		}
+		prefix += "AUTO_INCREMENT = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   int64(n.UintValue),
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+
+	case TableOptionAutoIdCache:
+		prefix += "AUTO_ID_CACHE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   int64(n.UintValue),
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		rootNode.IRType = sql_ir.TypeTableOption
+		return rootNode
+
+	case TableOptionAutoRandomBase:
+		if n.BoolValue {
+			prefix += "FORCE "
+			rootNode.Prefix = prefix
+		}
+		prefix += "AUTO_RANDOM_BASE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   int64(n.UintValue),
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionComment:
+		prefix += "COMMENT = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionAvgRowLength:
+		prefix += "AVG_ROW_LENGTH = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionCheckSum:
+		prefix += "CHECKSUM = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionCompression:
+		prefix += "COMPRESSION = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionConnection:
+		prefix += "CONNECTION = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionPassword:
+		prefix += "PASSWORD = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionKeyBlockSize:
+		prefix += "KEY_BLOCK_SIZE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionMaxRows:
+		prefix += "MAX_ROWS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionMinRows:
+		prefix += "MIN_ROWS = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionDelayKeyWrite:
+		prefix += "DELAY_KEY_WRITE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.UintValue), 10),
+			IValue:   int64(n.UintValue),
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionRowFormat:
+		prefix += "ROW_FORMAT + "
+		switch n.UintValue {
+		case RowFormatDefault:
+			prefix += "DEFAULT "
+		case RowFormatDynamic:
+			prefix += "DYNAMIC "
+		case RowFormatFixed:
+			prefix += "FIXED "
+		case RowFormatCompressed:
+			prefix += "COMPRESSED "
+		case RowFormatRedundant:
+			prefix += "REDUNDANT "
+		case RowFormatCompact:
+			prefix += "COMPACT "
+		case TokuDBRowFormatDefault:
+			prefix += "TOKUDB_DEFAULT "
+		case TokuDBRowFormatFast:
+			prefix += "TOKUDB_FAST "
+		case TokuDBRowFormatSmall:
+			prefix += "TOKUDB_SMALL "
+		case TokuDBRowFormatZlib:
+			prefix += "TOKUDB_ZLIB "
+		case TokuDBRowFormatQuickLZ:
+			prefix += "TOKUDB_QUICKLZ "
+		case TokuDBRowFormatLzma:
+			prefix += "TOKUDB_LZMA "
+		case TokuDBRowFormatSnappy:
+			prefix += "TOKUDB_SNAPPY "
+		case TokuDBRowFormatUncompressed:
+			prefix += "TOKUDB_UNCOMPRESSED "
+		default:
+			prefix += ""
+		}
+		rootNode.Prefix = prefix
+	case TableOptionStatsPersistent:
+		// TODO: not support
+		prefix += "STATS_PERSISTENT = DEFAULT"
+		rootNode.Prefix = prefix
+	case TableOptionStatsAutoRecalc:
+		prefix += "STATS_AUTO_RECALC = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIntegerLiteral,
+					DataType: sql_ir.DataNone,
+					Str:      strconv.FormatInt(int64(n.UintValue), 10),
+					IValue:   int64(n.UintValue),
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionShardRowID:
+		prefix += "SHARD_ROW_ID_BITS = "
+		lNode :=
+			&sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      strconv.FormatInt(int64(n.UintValue), 10),
+				IValue:   int64(n.UintValue),
+				Depth:    depth,
+			}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case TableOptionPreSplitRegion:
+		prefix += "PRE_SPLIT_REGIONS = "
+		lNode :=
+			&sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      strconv.FormatInt(int64(n.UintValue), 10),
+				IValue:   int64(n.UintValue),
+				Depth:    depth,
+			}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case TableOptionPackKeys:
+		// TODO: not support
+		prefix += "PACK_KEYS = DEFAULT"
+		rootNode.Prefix = prefix
+	case TableOptionTablespace:
+		prefix += "TABLESPACE = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataTableSpaceName,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionNodegroup:
+		prefix += "NODEGROUP = "
+		lNode :=
+			&sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      strconv.FormatInt(int64(n.UintValue), 10),
+				IValue:   int64(n.UintValue),
+				Depth:    depth,
+			}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case TableOptionDataDirectory:
+		prefix += "DATA DIRECTORY = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionIndexDirectory:
+		prefix += "INDEX DIRECTORY  = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionStorageMedia:
+		prefix += "STORAGE "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionStatsSamplePages:
+		prefix += "STATS_SAMPLE_PAGES = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIntegerLiteral,
+					DataType: sql_ir.DataNone,
+					Str:      strconv.FormatInt(int64(n.UintValue), 10),
+					IValue:   int64(n.UintValue),
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionSecondaryEngine:
+		prefix += "SECONDARY_ENGINE "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionSecondaryEngineNull:
+		prefix += "SECONDARY_ENGINE = NULL"
+		rootNode.Prefix = prefix
+	case TableOptionInsertMethod:
+		prefix += "INSERT_METHOD "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionTableCheckSum:
+		prefix += "TABLE_CHECKSUM = "
+		lNode :=
+			&sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      strconv.FormatInt(int64(n.UintValue), 10),
+				IValue:   int64(n.UintValue),
+				Depth:    depth,
+			}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case TableOptionUnion:
+		prefix += "UNION = ("
+		for i, tableName := range n.TableNames {
+			midfix := ""
+			if i != 0 {
+				midfix = ", "
+			}
+			tableNameNode := tableName.LogCurrentNode(depth + 1)
+			if i == 0 {
+				rootNode.LNode = tableNameNode
+			} else {
+				rootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    rootNode,
+					RNode:    tableNameNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode.Prefix = prefix
+		rootNode.Suffix = ")"
+	case TableOptionEncryption:
+		prefix += "ENCRYPTION = "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      n.StrValue,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+	case TableOptionPlacementPolicy:
+		placementOpt := PlacementOption{
+			Tp:        PlacementOptionPolicy,
+			UintValue: n.UintValue,
+			StrValue:  n.StrValue,
+		}
+		return placementOpt.LogCurrentNode(depth)
+	case TableOptionStatsBuckets:
+		prefix += "STATS_BUCKETS = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIntegerLiteral,
+					DataType: sql_ir.DataNone,
+					Str:      strconv.FormatInt(int64(n.UintValue), 10),
+					IValue:   int64(n.UintValue),
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionStatsTopN:
+		prefix += "STATS_TOPN = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIntegerLiteral,
+					DataType: sql_ir.DataNone,
+					Str:      strconv.FormatInt(int64(n.UintValue), 10),
+					IValue:   int64(n.UintValue),
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionStatsSampleRate:
+		prefix += "STATS_SAMPLE_RATE = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIntegerLiteral,
+					DataType: sql_ir.DataNone,
+					Str:      "1",      // Cannot cast the original type
+					IValue:   int64(1), // Cannot cast the original type
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+	case TableOptionStatsColsChoice:
+		prefix += "STATS_COL_CHOICE = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					Str:      n.StrValue, // Cannot cast the original type
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+
+	case TableOptionStatsColList:
+		prefix += "STATS_COL_LIST = "
+		var lNode *sql_ir.SqlRsgIR = nil
+		if n.Default {
+			prefix += "DEFAULT "
+		} else {
+			lNode =
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					Str:      n.StrValue, // Cannot cast the original type
+					Depth:    depth,
+				}
+		}
+		rootNode.Prefix = prefix
+		if lNode != nil {
+			rootNode.LNode = lNode
+		}
+
+	default:
+		// Do nothing.
+	}
+
+	rootNode.IRType = sql_ir.TypeTableOption
+	return nil
+
 }
 
 func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
@@ -3876,6 +4935,110 @@ const (
 type SequenceOption struct {
 	Tp       SequenceOptionType
 	IntValue int64
+	sql_ir.SqlRsgInterface
+}
+
+func (n *SequenceOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	switch n.Tp {
+	case SequenceOptionIncrementBy:
+		prefix += "INCREMENT BY "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case SequenceStartWith:
+		prefix += "START WITH "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case SequenceNoMinValue:
+		prefix += "NO MINVALUE "
+		rootNode.Prefix = prefix
+	case SequenceMinValue:
+		prefix += "MINVALUE "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case SequenceNoMaxValue:
+		prefix += "NO MAXVALUE "
+		rootNode.Prefix = prefix
+	case SequenceMaxValue:
+		prefix += "MAXVALUE  "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case SequenceNoCache:
+		prefix += "NOCACHE "
+	case SequenceCache:
+		prefix += "CACHE  "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	case SequenceNoCycle:
+		prefix += "NOCYCLE "
+		rootNode.Prefix = prefix
+	case SequenceCycle:
+		prefix += "CYCLE "
+		rootNode.Prefix = prefix
+	case SequenceRestart:
+		prefix += "RESTART "
+		rootNode.Prefix = prefix
+	case SequenceRestartWith:
+		prefix += "RESTART WITH "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.IntValue,
+			Str:      strconv.FormatInt(n.IntValue, 10),
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	default:
+		// Do nothing here.
+	}
+	rootNode.IRType = sql_ir.TypeSequenceOption
+	return rootNode
+
 }
 
 func (n *SequenceOption) Restore(ctx *format.RestoreCtx) error {
@@ -3933,6 +5096,34 @@ type ColumnPosition struct {
 	Tp ColumnPositionType
 	// RelativeColumn is the column the newly added column after if type is ColumnPositionAfter
 	RelativeColumn *ColumnName
+}
+
+func (n *ColumnPosition) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	switch n.Tp {
+	case ColumnPositionNone:
+		// do nothing
+	case ColumnPositionFirst:
+		prefix += "FIRST "
+		rootNode.Prefix = prefix
+	case ColumnPositionAfter:
+		prefix += "AFTER "
+		lNode := n.RelativeColumn.LogCurrentNode(depth + 1)
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+	default:
+		// do nothing.
+	}
+
+	rootNode.IRType = sql_ir.TypeColumnPosition
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -4149,6 +5340,27 @@ type AlterOrderItem struct {
 	Desc   bool
 }
 
+func (n *AlterOrderItem) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := n.Column.LogCurrentNode(depth + 1)
+	midfix := ""
+	if n.Desc {
+		midfix = " DESC"
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeAlterOrderItem
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *AlterOrderItem) Restore(ctx *format.RestoreCtx) error {
 	if err := n.Column.Restore(ctx); err != nil {
@@ -4172,6 +5384,642 @@ func (n *AlterTableSpec) IsAllPlacementRule() bool {
 	default:
 		return false
 	}
+}
+
+func (n *AlterTableSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if n.IsAllPlacementRule() {
+		rootNode.IRType = sql_ir.TypeAlterTableSpec
+		return rootNode
+	}
+	prefix := ""
+
+	switch n.Tp {
+	case AlterTableSetTiFlashReplica:
+		prefix += "SET TIFLASH REPLICA "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   int64(n.TiFlashReplica.Count),
+			Str:      strconv.FormatInt(int64(n.TiFlashReplica.Count), 10),
+			Depth:    depth,
+		}
+		if len(n.TiFlashReplica.Labels) == 0 {
+			rootNode.LNode = lNode
+			rootNode.Prefix = prefix
+			break
+		}
+		midfix := " LOCATION LABELS "
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, v := range n.TiFlashReplica.Labels {
+			tmpMidfix := ""
+			if i > 0 {
+				tmpMidfix = ", "
+			}
+			curStrNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Str:      v,
+				Depth:    depth,
+			}
+			if i == 0 {
+				tmpRootNode.LNode = curStrNode
+			} else { //i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    curStrNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode.LNode = lNode
+		rootNode.RNode = tmpRootNode
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+
+	case AlterTableAddStatistics:
+		prefix += "ADD STATS_EXTENDED "
+		if n.IfNotExists {
+			prefix += "IF NOT EXISTS "
+		}
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataStatsName,
+			Str:      n.Statistics.StatsName,
+			Depth:    depth,
+		}
+
+		midfix := ""
+		switch n.Statistics.StatsType {
+		case StatsTypeCardinality:
+			midfix = " CARDINALITY("
+		case StatsTypeDependency:
+			midfix = " DEPENDENCY("
+		case StatsTypeCorrelation:
+			midfix = " CORRELATION("
+		}
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, col := range n.Statistics.Columns {
+			tmpMidfix := ""
+			if i != 0 {
+				tmpMidfix = ", "
+			}
+			colNode := col.LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRootNode.LNode = colNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					Infix:    tmpMidfix,
+					LNode:    tmpRootNode,
+					RNode:    colNode,
+					Depth:    depth,
+				}
+			}
+		}
+
+		rootNode.Prefix = prefix
+		rootNode.Infix = midfix
+		rootNode.Suffix = ")"
+		rootNode.LNode = lNode
+		rootNode.RNode = tmpRootNode
+
+	case AlterTableDropStatistics:
+		prefix += "DROP STATS_EXTENDED "
+		if n.IfExists {
+			prefix += "IF EXISTS "
+		}
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataStatsName,
+			Str:      n.Statistics.StatsName,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+
+	case AlterTableOption:
+		switch {
+		case len(n.Options) == 2 && n.Options[0].Tp == TableOptionCharset && n.Options[1].Tp == TableOptionCollate:
+			if n.Options[0].UintValue == TableOptionCharsetWithConvertTo {
+				prefix += "CONVERT TO "
+			}
+			prefix += "CHARACTER SET "
+			var lNode *sql_ir.SqlRsgIR = nil
+			if n.Options[0].Default {
+				prefix += "DEFAULT"
+			} else {
+				lNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIdentifier,
+					DataType: sql_ir.DataCharSet,
+					Str:      n.Options[0].StrValue,
+					Depth:    depth,
+				}
+			}
+			rootNode.Prefix = prefix
+			rootNode.LNode = lNode
+			prefix = ""
+
+			midfix := " COLLATE "
+			rNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataCollationName,
+				Str:      n.Options[1].StrValue,
+				Depth:    depth,
+			}
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+
+		case n.Options[0].Tp == TableOptionCharset && n.Options[0].Default:
+			if n.Options[0].UintValue == TableOptionCharsetWithConvertTo {
+				prefix += "CONVERT TO "
+			}
+			prefix += "CHARACTER SET DEFAULT"
+
+		default:
+			for i, opt := range n.Options {
+				optNode := opt.LogCurrentNode(depth + 1)
+				if i == 0 {
+					rootNode.LNode = optNode
+				} else { // i > 0
+					rootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    rootNode,
+						RNode:    optNode,
+						Infix:    " ",
+						Depth:    depth,
+					}
+				}
+			}
+		}
+	case AlterTableAddColumns:
+		ctx.WriteKeyWord("ADD COLUMN ")
+		if n.IfNotExists {
+			ctx.WriteKeyWord("IF NOT EXISTS ")
+		}
+		if n.Position != nil && len(n.NewColumns) == 1 {
+			if err := n.NewColumns[0].Restore(ctx); err != nil {
+				return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewColumns[%d]", 0)
+			}
+			if n.Position.Tp != ColumnPositionNone {
+				ctx.WritePlain(" ")
+			}
+			if err := n.Position.Restore(ctx); err != nil {
+				return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
+			}
+		} else {
+			lenCols := len(n.NewColumns)
+			ctx.WritePlain("(")
+			for i, col := range n.NewColumns {
+				if i != 0 {
+					ctx.WritePlain(", ")
+				}
+				if err := col.Restore(ctx); err != nil {
+					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewColumns[%d]", i)
+				}
+			}
+			for i, constraint := range n.NewConstraints {
+				if i != 0 || lenCols >= 1 {
+					ctx.WritePlain(", ")
+				}
+				if err := constraint.Restore(ctx); err != nil {
+					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.NewConstraints[%d]", i)
+				}
+			}
+			ctx.WritePlain(")")
+		}
+	case AlterTableAddConstraint:
+		ctx.WriteKeyWord("ADD ")
+		if err := n.Constraint.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Constraint")
+		}
+	case AlterTableDropColumn:
+		ctx.WriteKeyWord("DROP COLUMN ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		if err := n.OldColumnName.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
+		}
+	// TODO: RestrictOrCascadeOpt not support
+	case AlterTableDropPrimaryKey:
+		ctx.WriteKeyWord("DROP PRIMARY KEY")
+	case AlterTableDropIndex:
+		ctx.WriteKeyWord("DROP INDEX ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		ctx.WriteName(n.Name)
+	case AlterTableDropForeignKey:
+		ctx.WriteKeyWord("DROP FOREIGN KEY ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		ctx.WriteName(n.Name)
+	case AlterTableModifyColumn:
+		ctx.WriteKeyWord("MODIFY COLUMN ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		if err := n.NewColumns[0].Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0]")
+		}
+		if n.Position.Tp != ColumnPositionNone {
+			ctx.WritePlain(" ")
+		}
+		if err := n.Position.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
+		}
+	case AlterTableChangeColumn:
+		ctx.WriteKeyWord("CHANGE COLUMN ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		if err := n.OldColumnName.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
+		}
+		ctx.WritePlain(" ")
+		if err := n.NewColumns[0].Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0]")
+		}
+		if n.Position.Tp != ColumnPositionNone {
+			ctx.WritePlain(" ")
+		}
+		if err := n.Position.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Position")
+		}
+	case AlterTableRenameColumn:
+		ctx.WriteKeyWord("RENAME COLUMN ")
+		if err := n.OldColumnName.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.OldColumnName")
+		}
+		ctx.WriteKeyWord(" TO ")
+		if err := n.NewColumnName.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumnName")
+		}
+	case AlterTableRenameTable:
+		ctx.WriteKeyWord("RENAME AS ")
+		if err := n.NewTable.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewTable")
+		}
+	case AlterTableAlterColumn:
+		ctx.WriteKeyWord("ALTER COLUMN ")
+		if err := n.NewColumns[0].Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0]")
+		}
+		if len(n.NewColumns[0].Options) == 1 {
+			ctx.WriteKeyWord("SET DEFAULT ")
+			expr := n.NewColumns[0].Options[0].Expr
+			if valueExpr, ok := expr.(ValueExpr); ok {
+				if err := valueExpr.Restore(ctx); err != nil {
+					return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0].Options[0].Expr")
+				}
+			} else {
+				ctx.WritePlain("(")
+				if err := expr.Restore(ctx); err != nil {
+					return errors.Annotate(err, "An error occurred while restore AlterTableSpec.NewColumns[0].Options[0].Expr")
+				}
+				ctx.WritePlain(")")
+			}
+		} else {
+			ctx.WriteKeyWord(" DROP DEFAULT")
+		}
+	case AlterTableLock:
+		ctx.WriteKeyWord("LOCK ")
+		ctx.WritePlain("= ")
+		ctx.WriteKeyWord(n.LockType.String())
+	case AlterTableWriteable:
+		ctx.WriteKeyWord("READ ")
+		if n.Writeable {
+			ctx.WriteKeyWord("WRITE")
+		} else {
+			ctx.WriteKeyWord("ONLY")
+		}
+	case AlterTableOrderByColumns:
+		ctx.WriteKeyWord("ORDER BY ")
+		for i, alterOrderItem := range n.OrderByList {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			if err := alterOrderItem.Restore(ctx); err != nil {
+				return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.OrderByList[%d]", i)
+			}
+		}
+	case AlterTableAlgorithm:
+		ctx.WriteKeyWord("ALGORITHM ")
+		ctx.WritePlain("= ")
+		ctx.WriteKeyWord(n.Algorithm.String())
+	case AlterTableRenameIndex:
+		ctx.WriteKeyWord("RENAME INDEX ")
+		ctx.WriteName(n.FromKey.O)
+		ctx.WriteKeyWord(" TO ")
+		ctx.WriteName(n.ToKey.O)
+	case AlterTableForce:
+		// TODO: not support
+		ctx.WriteKeyWord("FORCE")
+		ctx.WritePlain(" /* AlterTableForce is not supported */ ")
+	case AlterTableAddPartitions:
+		ctx.WriteKeyWord("ADD PARTITION")
+		if n.IfNotExists {
+			ctx.WriteKeyWord(" IF NOT EXISTS")
+		}
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord(" NO_WRITE_TO_BINLOG")
+		}
+		if n.PartDefinitions != nil {
+			ctx.WritePlain(" (")
+			for i, def := range n.PartDefinitions {
+				if i != 0 {
+					ctx.WritePlain(", ")
+				}
+				if err := def.Restore(ctx); err != nil {
+					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.PartDefinitions[%d]", i)
+				}
+			}
+			ctx.WritePlain(")")
+		} else if n.Num != 0 {
+			ctx.WriteKeyWord(" PARTITIONS ")
+			ctx.WritePlainf("%d", n.Num)
+		}
+	case AlterTablePartitionOptions:
+		restoreWithoutSpecialComment := func() error {
+			origFlags := ctx.Flags
+			defer func() {
+				ctx.Flags = origFlags
+			}()
+			ctx.Flags &= ^format.RestoreTiDBSpecialComment
+			ctx.WriteKeyWord("PARTITION ")
+			ctx.WriteName(n.PartitionNames[0].O)
+			ctx.WritePlain(" ")
+
+			for i, opt := range n.Options {
+				if i != 0 {
+					ctx.WritePlain(" ")
+				}
+				if err := opt.Restore(ctx); err != nil {
+					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.Options[%d] for PARTITION `%s`", i, n.PartitionNames[0].O)
+				}
+			}
+			return nil
+		}
+
+		var err error
+		if ctx.Flags.HasTiDBSpecialCommentFlag() {
+			// AlterTablePartitionOptions now only supports placement options, so add put all options to special comment
+			err = ctx.WriteWithSpecialComments(tidb.FeatureIDPlacement, restoreWithoutSpecialComment)
+		} else {
+			err = restoreWithoutSpecialComment()
+		}
+
+		if err != nil {
+			return err
+		}
+	case AlterTablePartitionAttributes:
+		ctx.WriteKeyWord("PARTITION ")
+		ctx.WriteName(n.PartitionNames[0].O)
+		ctx.WritePlain(" ")
+
+		spec := n.AttributesSpec
+		if err := spec.Restore(ctx); err != nil {
+			return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.AttributesSpec")
+		}
+	case AlterTableCoalescePartitions:
+		ctx.WriteKeyWord("COALESCE PARTITION ")
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord("NO_WRITE_TO_BINLOG ")
+		}
+		ctx.WritePlainf("%d", n.Num)
+	case AlterTableDropPartition:
+		ctx.WriteKeyWord("DROP PARTITION ")
+		if n.IfExists {
+			ctx.WriteKeyWord("IF EXISTS ")
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableTruncatePartition:
+		ctx.WriteKeyWord("TRUNCATE PARTITION ")
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableCheckPartitions:
+		ctx.WriteKeyWord("CHECK PARTITION ")
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableOptimizePartition:
+		ctx.WriteKeyWord("OPTIMIZE PARTITION ")
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord("NO_WRITE_TO_BINLOG ")
+		}
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableRepairPartition:
+		ctx.WriteKeyWord("REPAIR PARTITION ")
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord("NO_WRITE_TO_BINLOG ")
+		}
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableImportPartitionTablespace:
+		ctx.WriteKeyWord("IMPORT PARTITION ")
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+		} else {
+			for i, name := range n.PartitionNames {
+				if i != 0 {
+					ctx.WritePlain(",")
+				}
+				ctx.WriteName(name.O)
+			}
+		}
+		ctx.WriteKeyWord(" TABLESPACE")
+	case AlterTableDiscardPartitionTablespace:
+		ctx.WriteKeyWord("DISCARD PARTITION ")
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+		} else {
+			for i, name := range n.PartitionNames {
+				if i != 0 {
+					ctx.WritePlain(",")
+				}
+				ctx.WriteName(name.O)
+			}
+		}
+		ctx.WriteKeyWord(" TABLESPACE")
+	case AlterTablePartition:
+		if err := n.Partition.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore AlterTableSpec.Partition")
+		}
+	case AlterTableEnableKeys:
+		ctx.WriteKeyWord("ENABLE KEYS")
+	case AlterTableDisableKeys:
+		ctx.WriteKeyWord("DISABLE KEYS")
+	case AlterTableRemovePartitioning:
+		ctx.WriteKeyWord("REMOVE PARTITIONING")
+	case AlterTableWithValidation:
+		ctx.WriteKeyWord("WITH VALIDATION")
+	case AlterTableWithoutValidation:
+		ctx.WriteKeyWord("WITHOUT VALIDATION")
+	case AlterTableRebuildPartition:
+		ctx.WriteKeyWord("REBUILD PARTITION ")
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord("NO_WRITE_TO_BINLOG ")
+		}
+		if n.OnAllPartitions {
+			ctx.WriteKeyWord("ALL")
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			}
+			ctx.WriteName(name.O)
+		}
+	case AlterTableReorganizePartition:
+		ctx.WriteKeyWord("REORGANIZE PARTITION")
+		if n.NoWriteToBinlog {
+			ctx.WriteKeyWord(" NO_WRITE_TO_BINLOG")
+		}
+		if n.OnAllPartitions {
+			return nil
+		}
+		for i, name := range n.PartitionNames {
+			if i != 0 {
+				ctx.WritePlain(",")
+			} else {
+				ctx.WritePlain(" ")
+			}
+			ctx.WriteName(name.O)
+		}
+		ctx.WriteKeyWord(" INTO ")
+		if n.PartDefinitions != nil {
+			ctx.WritePlain("(")
+			for i, def := range n.PartDefinitions {
+				if i != 0 {
+					ctx.WritePlain(", ")
+				}
+				if err := def.Restore(ctx); err != nil {
+					return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.PartDefinitions[%d]", i)
+				}
+			}
+			ctx.WritePlain(")")
+		}
+	case AlterTableExchangePartition:
+		ctx.WriteKeyWord("EXCHANGE PARTITION ")
+		ctx.WriteName(n.PartitionNames[0].O)
+		ctx.WriteKeyWord(" WITH TABLE ")
+		n.NewTable.Restore(ctx)
+		if !n.WithValidation {
+			ctx.WriteKeyWord(" WITHOUT VALIDATION")
+		}
+	case AlterTableSecondaryLoad:
+		ctx.WriteKeyWord("SECONDARY_LOAD")
+	case AlterTableSecondaryUnload:
+		ctx.WriteKeyWord("SECONDARY_UNLOAD")
+	case AlterTableAlterCheck:
+		ctx.WriteKeyWord("ALTER CHECK ")
+		ctx.WriteName(n.Constraint.Name)
+		if !n.Constraint.Enforced {
+			ctx.WriteKeyWord(" NOT")
+		}
+		ctx.WriteKeyWord(" ENFORCED")
+	case AlterTableDropCheck:
+		ctx.WriteKeyWord("DROP CHECK ")
+		ctx.WriteName(n.Constraint.Name)
+	case AlterTableImportTablespace:
+		ctx.WriteKeyWord("IMPORT TABLESPACE")
+	case AlterTableDiscardTablespace:
+		ctx.WriteKeyWord("DISCARD TABLESPACE")
+	case AlterTableIndexInvisible:
+		ctx.WriteKeyWord("ALTER INDEX ")
+		ctx.WriteName(n.IndexName.O)
+		switch n.Visibility {
+		case IndexVisibilityVisible:
+			ctx.WriteKeyWord(" VISIBLE")
+		case IndexVisibilityInvisible:
+			ctx.WriteKeyWord(" INVISIBLE")
+		}
+	case AlterTableAttributes:
+		spec := n.AttributesSpec
+		if err := spec.Restore(ctx); err != nil {
+			return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.AttributesSpec")
+		}
+	case AlterTableCache:
+		ctx.WriteKeyWord("CACHE")
+	case AlterTableNoCache:
+		ctx.WriteKeyWord("NOCACHE")
+	case AlterTableStatsOptions:
+		spec := n.StatsOptionsSpec
+		if err := spec.Restore(ctx); err != nil {
+			return errors.Annotatef(err, "An error occurred while restore AlterTableSpec.StatsOptionsSpec")
+		}
+
+	default:
+		// TODO: not support
+		ctx.WritePlainf(" /* AlterTableType(%d) is not supported */ ", n.Tp)
+	}
+	return nil
+
 }
 
 // Restore implements Node interface.
