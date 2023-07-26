@@ -64,6 +64,19 @@ const (
 	TypeStatsOptionsSpec
 	TypeAlterPlacementPolicyStmt
 	TypeAlterSequenceStmt
+	TypeJoin
+	TypeTableName
+	TypeIndexHint
+	TypeDeleteTableList
+	TypeOnCondition
+	TypeTableSource
+	TypeWildCardField
+	TypeSelectField
+	TypeFieldList
+	TypeTableRefsClause
+	TypeByItem
+	TypeGroupByClause
+	TypeHavingClause
 )
 
 const (

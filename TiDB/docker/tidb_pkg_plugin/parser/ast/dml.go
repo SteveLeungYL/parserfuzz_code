@@ -95,9 +95,9 @@ func (*Join) resultSet() {}
 // If the right child is a join tree, we need to handle it differently to make the precedence get right.
 // Here is the example: t1 join t2 join t3
 //
-//	               JOIN ON t2.a = t3.a
+//				   JOIN ON t2.a = t3.a
 //	t1    join    /    \
-//	            t2      t3
+//				t2      t3
 //
 // (left)         (right)
 //
@@ -106,14 +106,14 @@ func (*Join) resultSet() {}
 //	  JOIN
 //	 /    \
 //	t1	   JOIN ON t2.a = t3.a
-//	      /   \
-//	     t2    t3
+//		  /   \
+//		 t2    t3
 //
 // The precedence would be t1 join (t2 join t3 on t2.a=t3.a), not (t1 join t2) join t3 on t2.a=t3.a
 // We need to find the left-most child of the right child, and build a cross join of the left-hand side
 // of the left child(t1), and the right hand side with the original left-most child of the right child(t2).
 //
-//	    JOIN t2.a = t3.a
+//		JOIN t2.a = t3.a
 //	   /    \
 //	 JOIN    t3
 //	 /  \
@@ -152,6 +152,139 @@ func NewCrossJoin(left, right ResultSetNode) (n *Join) {
 	newCrossJoin := &Join{Left: left, Right: leftMostLeafFatherOfRight.Left, Tp: CrossJoin}
 	leftMostLeafFatherOfRight.Left = newCrossJoin
 	return rj
+}
+
+func (n *Join) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := ""
+
+	useCommaJoin := false
+	_, leftIsJoin := n.Left.(*Join)
+
+	if leftIsJoin && n.Left.(*Join).Right == nil {
+		if ts, ok := n.Left.(*Join).Left.(*TableSource); ok {
+			switch ts.Source.(type) {
+			case *SelectStmt, *SetOprStmt:
+				useCommaJoin = true
+			}
+		}
+	}
+
+	if leftIsJoin && !useCommaJoin {
+		prefix += "("
+	}
+	lNode := n.Left.LogCurrentNode(depth - 1)
+
+	midfix := ""
+	if leftIsJoin && !useCommaJoin {
+		midfix = ")"
+	}
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+	}
+	if n.Right == nil {
+		rootNode.IRType = sql_ir.TypeJoin
+		return rootNode
+	}
+	midfix = ""
+	if n.NaturalJoin {
+		midfix += " NATURAL"
+	}
+	switch n.Tp {
+	case LeftJoin:
+		midfix += " LEFT"
+	case RightJoin:
+		midfix += " RIGHT"
+	}
+	if n.StraightJoin {
+		midfix += " STRAIGHT_JOIN "
+	} else {
+		if useCommaJoin {
+			midfix += ", "
+		} else {
+			midfix += " JOIN "
+		}
+	}
+	_, rightIsJoin := n.Right.(*Join)
+	if rightIsJoin {
+		midfix += "("
+	}
+	rNode := n.Right.LogCurrentNode(depth + 1)
+	suffix := ""
+	if rightIsJoin {
+		suffix = ")"
+	}
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Suffix:   suffix,
+		Depth:    depth,
+	}
+	midfix = ""
+	suffix = ""
+
+	if n.On != nil {
+		midfix += " "
+		rNode = n.On.LogCurrentNode(depth + 1)
+		rootNode =
+			&sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		midfix = ""
+	}
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if len(n.Using) != 0 {
+		tmpMidfix := " USING ( "
+		for i, v := range n.Using {
+			if i != 0 {
+				tmpMidfix = ","
+			}
+			vNode := v.LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRootNode.LNode = vNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+
+		tmpRootNode.Prefix = tmpMidfix
+		tmpRootNode.Suffix = ")"
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeJoin
+
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -287,6 +420,59 @@ type TableName struct {
 
 func (*TableName) resultSet() {}
 
+func (n *TableName) LogCurrentNodeName(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	var lNode *sql_ir.SqlRsgIR
+	midfix := ""
+	if n.Schema.String() != "" {
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataSchemaName,
+			Str:      n.Schema.String(),
+			Depth:    depth,
+		}
+		midfix = "."
+	}
+	//else if ctx.DefaultDB != "" {
+	//	// Try CTE, for a CTE table name, we shouldn't write the database name.
+	//	if !ctx.IsCTETableName(n.Name.L) {
+	//		ctx.WriteName(ctx.DefaultDB)
+	//		ctx.WritePlain(".")
+	//	}
+	//}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataTableName,
+		Str:      n.Name.String(),
+		Depth:    depth,
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeUnknown // This is not the top level Restore.
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *TableName) restoreName(ctx *format.RestoreCtx) {
 	if n.Schema.String() != "" {
@@ -300,6 +486,60 @@ func (n *TableName) restoreName(ctx *format.RestoreCtx) {
 		}
 	}
 	ctx.WriteName(n.Name.String())
+}
+
+func (n *TableName) LogCurrentNodePartitions(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if len(n.PartitionNames) > 0 {
+		prefix += " PARTITION"
+		for i, v := range n.PartitionNames {
+			tmpMidfix := ""
+			if i != 0 {
+				tmpMidfix = ", "
+			}
+			nameNode :=
+				&sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIdentifier,
+					DataType: sql_ir.DataPartitionName,
+					Str:      v.String(),
+					Depth:    depth,
+				}
+			if i == 0 {
+				tmpRootNode.LNode = nameNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    nameNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+
+		tmpRootNode.Prefix = "("
+		tmpRootNode.Suffix = ")"
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    tmpRootNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeUnknown // This is not the top level Restore.
+	return rootNode
+
 }
 
 func (n *TableName) restorePartitions(ctx *format.RestoreCtx) {
@@ -316,6 +556,35 @@ func (n *TableName) restorePartitions(ctx *format.RestoreCtx) {
 	}
 }
 
+func (n *TableName) LogCurrentNodeIndexHints(depth int) *sql_ir.SqlRsgIR {
+	midfix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, value := range n.IndexHints {
+		midfix = " "
+		valueNode := value.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			rootNode.LNode = valueNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    valueNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeUnknown // This is not the top level Restore.
+	return rootNode
+}
+
 func (n *TableName) restoreIndexHints(ctx *format.RestoreCtx) error {
 	for _, value := range n.IndexHints {
 		ctx.WritePlain(" ")
@@ -324,6 +593,65 @@ func (n *TableName) restoreIndexHints(ctx *format.RestoreCtx) error {
 		}
 	}
 	return nil
+}
+
+func (n *TableName) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	lNode := n.LogCurrentNodeName(depth)
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Depth:    depth,
+	}
+	rNode := n.LogCurrentNodePartitions(depth)
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Depth:    depth,
+	}
+
+	rNode = n.LogCurrentNodeIndexHints(depth)
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Depth:    depth,
+	}
+
+	midfix := ""
+	if n.AsOf != nil {
+		midfix = " "
+		asOfNode := n.AsOf.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    asOfNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	if n.TableSample != nil {
+		midfix = " "
+		rNode = n.TableSample.LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeTableName
+	return rootNode
+
 }
 
 func (n *TableName) Restore(ctx *format.RestoreCtx) error {
@@ -373,6 +701,74 @@ type IndexHint struct {
 	IndexNames []model.CIStr
 	HintType   IndexHintType
 	HintScope  IndexHintScope
+	sql_ir.SqlRsgInterface
+}
+
+func (n *IndexHint) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	switch n.HintType {
+	case HintUse:
+		prefix += "USE INDEX"
+	case HintIgnore:
+		prefix += "IGNORE INDEX"
+	case HintForce:
+		prefix += "FORCE INDEX"
+	default: // Prevent accidents
+		// Do nothing.
+	}
+
+	switch n.HintScope {
+	case HintForScan:
+		prefix += ""
+	case HintForJoin:
+		prefix += " FOR JOIN"
+	case HintForOrderBy:
+		prefix += " FOR ORDER BY"
+	case HintForGroupBy:
+		prefix += " FOR GROUP BY"
+	default: // Prevent accidents
+		// Do nothing.
+	}
+	prefix += " ("
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, value := range n.IndexNames {
+		midfix := ""
+		if i > 0 {
+			midfix = ", "
+		}
+		nameNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Str:      value.O,
+			Depth:    depth,
+		}
+
+		if i == 0 {
+			rootNode.LNode = nameNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    nameNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+	}
+	rootNode.Prefix = prefix
+	rootNode.Suffix = ")"
+
+	rootNode.IRType = sql_ir.TypeIndexHint
+
+	return rootNode
+
 }
 
 // IndexHint Restore (The const field uses switch to facilitate understanding)
@@ -446,6 +842,40 @@ type DeleteTableList struct {
 	Tables []*TableName
 }
 
+func (n *DeleteTableList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	for i, t := range n.Tables {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		tNode := t.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			rootNode.LNode = tNode
+		} else {
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    tNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeDeleteTableList
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *DeleteTableList) Restore(ctx *format.RestoreCtx) error {
 	for i, t := range n.Tables {
@@ -485,6 +915,26 @@ type OnCondition struct {
 	Expr ExprNode
 }
 
+func (n *OnCondition) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	prefix += " ON "
+
+	lNode := n.Expr.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeOnCondition
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *OnCondition) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ON ")
@@ -522,6 +972,121 @@ type TableSource struct {
 }
 
 func (*TableSource) resultSet() {}
+
+func (n *TableSource) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	needParen := false
+	switch n.Source.(type) {
+	case *SelectStmt, *SetOprStmt:
+		needParen = true
+	}
+
+	if tn, tnCase := n.Source.(*TableName); tnCase {
+
+		lNode := tn.LogCurrentNodeName(depth + 1)
+		rNode := tn.LogCurrentNodePartitions(depth + 1)
+
+		rootNode.LNode = lNode
+		rootNode.RNode = rNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
+		if asName := n.AsName.String(); asName != "" {
+			midfix := " AS "
+			rNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataTableAliasName,
+				Str:      asName,
+				Depth:    depth,
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		if tn.AsOf != nil {
+			midfix := " "
+			asNode := tn.AsOf.LogCurrentNode(depth + 1)
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    asNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		rNode = tn.LogCurrentNodeIndexHints(depth)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Depth:    depth,
+		}
+
+		if tn.TableSample != nil {
+			midfix := " "
+			tabSamNode := tn.TableSample.LogCurrentNode(depth + 1)
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    tabSamNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+
+		}
+
+		if needParen {
+			rootNode.Prefix += "("
+			rootNode.Suffix += ")"
+		}
+	} else {
+
+		lNode := n.Source.LogCurrentNode(depth + 1)
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		prefix = ""
+		if needParen {
+			rootNode.Prefix += "("
+			rootNode.Infix += ")"
+		}
+
+		if asName := n.AsName.String(); asName != "" {
+			rootNode.Infix = " AS "
+			rNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataTableAliasName,
+				Str:      asName,
+				Depth:    depth,
+			}
+			rootNode.RNode = rNode
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeTableSource
+
+	return rootNode
+
+}
 
 // Restore implements Node interface.
 func (n *TableSource) Restore(ctx *format.RestoreCtx) error {
@@ -650,6 +1215,51 @@ type WildCardField struct {
 	Schema model.CIStr
 }
 
+func (n *WildCardField) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if schema := n.Schema.String(); schema != "" {
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataSchemaName,
+			Str:      schema,
+			Depth:    depth,
+		}
+		midfix := "."
+		rootNode.LNode = lNode
+		rootNode.Infix = midfix
+	}
+
+	if table := n.Table.String(); table != "" {
+		rNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataTableName,
+			Str:      table,
+			Depth:    depth,
+		}
+
+		suffix := "."
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Suffix:   suffix,
+			Depth:    depth,
+		}
+	}
+	rootNode.Suffix += "*"
+
+	rootNode.IRType = sql_ir.TypeWildCardField
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *WildCardField) Restore(ctx *format.RestoreCtx) error {
 	if schema := n.Schema.String(); schema != "" {
@@ -696,6 +1306,51 @@ type SelectField struct {
 	AuxiliaryColInOrderBy bool
 }
 
+func (n *SelectField) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if n.WildCard != nil {
+		lNode := n.WildCard.LogCurrentNode(depth + 1)
+		rootNode.LNode = lNode
+	}
+	if n.Expr != nil {
+		rNode := n.Expr.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Depth:    depth,
+		}
+	}
+	if asName := n.AsName.String(); asName != "" {
+		midfix := " AS "
+		asNameNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataTableAliasName,
+			Str:      asName,
+			Depth:    depth,
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    asNameNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeSelectField
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *SelectField) Restore(ctx *format.RestoreCtx) error {
 	if n.WildCard != nil {
@@ -739,6 +1394,39 @@ type FieldList struct {
 	Fields []*SelectField
 }
 
+func (n *FieldList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range n.Fields {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			rootNode.LNode = vNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeFieldList
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *FieldList) Restore(ctx *format.RestoreCtx) error {
 	for i, v := range n.Fields {
@@ -776,6 +1464,22 @@ type TableRefsClause struct {
 	TableRefs *Join
 }
 
+func (n *TableRefsClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := n.TableRefs.LogCurrentNode(depth + 1)
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeTableRefsClause
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *TableRefsClause) Restore(ctx *format.RestoreCtx) error {
 	if err := n.TableRefs.Restore(ctx); err != nil {
@@ -808,6 +1512,28 @@ type ByItem struct {
 	NullOrder bool
 }
 
+func (n *ByItem) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := n.Expr.LogCurrentNode(depth + 1)
+
+	midfix := ""
+	if n.Desc {
+		midfix = " DESC"
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeByItem
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *ByItem) Restore(ctx *format.RestoreCtx) error {
 	if err := n.Expr.Restore(ctx); err != nil {
@@ -838,6 +1564,49 @@ func (n *ByItem) Accept(v Visitor) (Node, bool) {
 type GroupByClause struct {
 	node
 	Items []*ByItem
+}
+
+func (n *GroupByClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	prefix += "GROUP BY "
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range n.Items {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+		if i == 0 {
+			tmpRootNode.LNode = vNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		LNode:    tmpRootNode,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeGroupByClause
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -875,6 +1644,25 @@ func (n *GroupByClause) Accept(v Visitor) (Node, bool) {
 type HavingClause struct {
 	node
 	Expr ExprNode
+}
+
+func (n *HavingClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "HAVING "
+
+	exprNode := n.Expr.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    exprNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeHavingClause
+	return rootNode
+
 }
 
 // Restore implements Node interface.
