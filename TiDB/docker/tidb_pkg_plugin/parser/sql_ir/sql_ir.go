@@ -77,6 +77,11 @@ const (
 	TypeByItem
 	TypeGroupByClause
 	TypeHavingClause
+	TypeOrderByClause
+	TypeTableSample
+	TypeCommonTableExpression
+	TypeWithClause
+	TypeSelectStmt
 )
 
 const (

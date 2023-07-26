@@ -14,6 +14,8 @@
 package ast
 
 import (
+	"strconv"
+
 	"github.com/pingcap/errors"
 	"github.com/pingcap/tidb/parser/auth"
 	"github.com/pingcap/tidb/parser/format"
@@ -1696,6 +1698,41 @@ type OrderByClause struct {
 	ForUnion bool
 }
 
+func (n *OrderByClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := "ORDER BY "
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, item := range n.Items {
+		midfix := ""
+		if i != 0 {
+			midfix = ","
+		}
+		itemNode := item.LogCurrentNode(depth + 1)
+		if i == 0 {
+			rootNode.LNode = itemNode
+		} else {
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    itemNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.Prefix = prefix
+	rootNode.IRType = sql_ir.TypeOrderByClause
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *OrderByClause) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ORDER BY ")
@@ -1750,6 +1787,74 @@ type TableSample struct {
 	Expr             ExprNode
 	SampleClauseUnit SampleClauseUnitType
 	RepeatableSeed   ExprNode
+}
+
+func (n *TableSample) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "TABLESAMPLE "
+
+	switch n.SampleMethod {
+	case SampleMethodTypeBernoulli:
+		prefix += "BERNOULLI "
+	case SampleMethodTypeSystem:
+		prefix += "SYSTEM "
+	case SampleMethodTypeTiDBRegion:
+		prefix += "REGION "
+	}
+	prefix += "("
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	if n.Expr != nil {
+		lNode := n.Expr.LogCurrentNode(depth + 1)
+		rootNode.LNode = lNode
+	}
+
+	rootNode.Prefix = prefix
+
+	midfix := ""
+	switch n.SampleClauseUnit {
+	case SampleClauseUnitTypeDefault:
+	case SampleClauseUnitTypePercent:
+		midfix += " PERCENT"
+	case SampleClauseUnitTypeRow:
+		midfix += " ROWS"
+
+	}
+	midfix += ")"
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	midfix = ""
+	if n.RepeatableSeed != nil {
+		midfix += " REPEATABLE"
+		midfix += "("
+		rNode := n.RepeatableSeed.LogCurrentNode(depth + 1)
+		suffix := ")"
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Suffix:   suffix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeTableSample
+	return rootNode
+
 }
 
 func (s *TableSample) Restore(ctx *format.RestoreCtx) error {
@@ -1838,6 +1943,82 @@ type CommonTableExpression struct {
 	Query       *SubqueryExpr
 	ColNameList []model.CIStr
 	IsRecursive bool
+}
+
+func (n *CommonTableExpression) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataTableAliasName,
+		Str:      n.Name.O,
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Depth:    depth,
+	}
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if len(n.ColNameList) > 0 {
+		for j, name := range n.ColNameList {
+			tmpMidfix := ""
+			if j != 0 {
+				tmpMidfix = ", "
+			}
+			colNameNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataColumnName, // TODO:: Should be DataColumnName or DataColumnAliasName?
+				Str:      name.String(),
+				Depth:    depth,
+			}
+
+			if j == 0 {
+				tmpRootNode.LNode = colNameNode
+			} else { // j > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    colNameNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+		tmpRootNode.Prefix = "("
+		tmpRootNode.Suffix = ")"
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Depth:    depth,
+	}
+
+	midfix := " AS "
+	rNode := n.Query.LogCurrentNode(depth + 1)
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeCommonTableExpression
+	return rootNode
+
 }
 
 // Restore implements Node interface
@@ -1942,6 +2123,45 @@ type SelectStmt struct {
 
 func (*SelectStmt) resultSet() {}
 
+func (n *WithClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	prefix := "WITH "
+	if n.IsRecursive {
+		prefix += "RECURSIVE "
+	}
+	for i, cte := range n.CTEs {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		cteNode := cte.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			rootNode.LNode = cteNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    cteNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+	rootNode.Suffix = " "
+	rootNode.IRType = sql_ir.TypeWithClause
+
+	return rootNode
+
+}
+
 func (n *WithClause) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("WITH ")
 	if n.IsRecursive {
@@ -1971,6 +2191,484 @@ func (n *WithClause) Accept(v Visitor) (Node, bool) {
 		}
 	}
 	return v.Leave(n)
+}
+
+func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	if !n.WithBeforeBraces && n.With != nil {
+		withNode := n.With.LogCurrentNode(depth + 1)
+		rootNode.LNode = withNode
+	}
+
+	midfix := n.Kind.String() + " "
+	rootNode.Infix = midfix
+
+	midfix = ""
+	var rNode *sql_ir.SqlRsgIR = nil
+
+	switch n.Kind {
+	case SelectStmtKindSelect:
+		if n.SelectStmtOpts.Priority > 0 {
+			midfix += mysql.Priority2Str[n.SelectStmtOpts.Priority] + " "
+		}
+
+		if n.SelectStmtOpts.SQLSmallResult {
+			midfix += "SQL_SMALL_RESULT "
+		}
+
+		if n.SelectStmtOpts.SQLBigResult {
+			midfix += "SQL_BIG_RESULT "
+		}
+
+		if n.SelectStmtOpts.SQLBufferResult {
+			midfix += "SQL_BUFFER_RESULT "
+		}
+
+		if !n.SelectStmtOpts.SQLCache {
+			midfix += "SQL_NO_CACHE "
+		}
+
+		if n.SelectStmtOpts.CalcFoundRows {
+			midfix += "SQL_CALC_FOUND_ROWS "
+		}
+
+		if n.TableHints != nil && len(n.TableHints) != 0 {
+			tmpRootNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
+			for i, tableHint := range n.TableHints {
+				tableHintNode := tableHint.LogCurrentNode(depth + 1)
+				if i == 0 {
+					tmpRootNode.LNode = tableHintNode
+				} else {
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    tableHintNode,
+						Infix:    " ",
+						Depth:    depth,
+					}
+				}
+			}
+			tmpRootNode.Prefix = "/*+ "
+			tmpRootNode.Suffix = "*/ "
+
+			rNode = tmpRootNode
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			midfix = ""
+			rNode = nil
+		}
+
+		if n.Distinct {
+			midfix += "DISTINCT "
+		} else if n.SelectStmtOpts.ExplicitAll {
+			midfix += "ALL "
+		}
+		if n.SelectStmtOpts.StraightJoin {
+			midfix += "STRAIGHT_JOIN "
+		}
+		if n.Fields != nil {
+
+			tmpRooNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
+			for i, field := range n.Fields.Fields {
+				midfix := ""
+				if i != 0 {
+					midfix = ", "
+				}
+				fieldNode := field.LogCurrentNode(depth + 1)
+				if i == 0 {
+					tmpRooNode.LNode = fieldNode
+				} else { // i > 0
+					tmpRooNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRooNode,
+						RNode:    fieldNode,
+						Infix:    midfix,
+						Depth:    depth,
+					}
+				}
+			}
+			rNode = tmpRooNode
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+
+		if n.From != nil {
+			midfix += " FROM "
+			rNode = n.From.LogCurrentNode(depth + 1)
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+
+		if n.From == nil && n.Where != nil {
+			midfix += " FROM DUAL"
+		}
+
+		if n.Where != nil {
+			midfix += "WHERE "
+			whereNode := n.Where.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    whereNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+
+		if n.GroupBy != nil {
+			midfix += " "
+			groupByNode := n.GroupBy.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    groupByNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+
+		if n.Having != nil {
+			midfix += " "
+			havingNode := n.Having.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    havingNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+
+		if n.WindowSpecs != nil {
+			midfix += " WINDOW "
+			tmpRootNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
+			for i, windowsSpec := range n.WindowSpecs {
+				tmpMidfix := ""
+				if i != 0 {
+					tmpMidfix = ", "
+				}
+				windowsSpecNode := windowsSpec.LogCurrentNode(depth + 1)
+				if i == 0 {
+					tmpRootNode.LNode = windowsSpecNode
+				} else { // i > 0
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    windowsSpecNode,
+						Infix:    tmpMidfix,
+						Depth:    depth,
+					}
+				}
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    tmpRootNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	case SelectStmtKindTable:
+		fromNode := n.From.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    fromNode,
+			Depth:    depth,
+		}
+
+	case SelectStmtKindValues:
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, v := range n.Lists {
+			vNode := v.LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRootNode.LNode = vNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    ", ",
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		rNode = nil
+		midfix = ""
+	}
+
+	if n.OrderBy != nil {
+		midfix += " "
+		orderbyNode := n.OrderBy.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    orderbyNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+		rNode = nil
+	}
+
+	if n.Limit != nil {
+		midfix += " "
+		limitNode := n.Limit.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    limitNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+		rNode = nil
+	}
+
+	if n.LockInfo != nil {
+		midfix += " "
+		switch n.LockInfo.LockType {
+		case SelectLockNone:
+		case SelectLockForUpdateNoWait:
+			midfix += "for update"
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+				rootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    rootNode,
+					RNode:    rNode,
+					Infix:    midfix,
+					Suffix:   " nowait",
+					Depth:    depth,
+				}
+				rNode = nil
+				midfix = ""
+			}
+		case SelectLockForUpdateWaitN:
+			midfix += "for update"
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+				rootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    rootNode,
+					RNode:    rNode,
+					Infix:    midfix,
+					Suffix:   " nowait",
+					Depth:    depth,
+				}
+				rNode = nil
+				midfix = ""
+			}
+			midfix += " wait"
+			rNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				IValue:   int64(n.LockInfo.WaitSec),
+				Str:      strconv.FormatInt(int64(n.LockInfo.WaitSec), 10),
+				Depth:    depth,
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		case SelectLockForShareNoWait:
+			midfix += "for share"
+			rNode = nil
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Suffix:   " nowait ",
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		case SelectLockForUpdateSkipLocked:
+			midfix += "FOR UPDATE"
+			rNode = nil
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Suffix:   " skip locked",
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		case SelectLockForShareSkipLocked:
+			midfix += "FOR SHARE"
+			rNode = nil
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Suffix:   " skip locked",
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		default:
+			midfix += n.LockInfo.LockType.String()
+			rNode = nil
+			if len(n.LockInfo.Tables) != 0 {
+				midfix += " OF "
+				rNode = LogCurrentNodeTablesHelper(depth, n.LockInfo.Tables)
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			rNode = nil
+			midfix = ""
+		}
+	}
+
+	if n.SelectIntoOpt != nil {
+		midfix += " "
+		selectIntoNode := n.SelectIntoOpt.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    selectIntoNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+	}
+
+	if n.IsInBraces {
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			Prefix:   "(",
+			Infix:    ")",
+			Depth:    depth,
+		}
+	}
+
+	if n.WithBeforeBraces {
+		lNode := n.With.LogCurrentNode(depth + 1)
+		// Special condition, place the brace covered SELECT after the with before braces.
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rootNode,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeSelectStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -2185,6 +2883,38 @@ func (n *SelectStmt) Restore(ctx *format.RestoreCtx) error {
 		}
 	}
 	return nil
+}
+
+func LogCurrentNodeTablesHelper(depth int, ts []*TableName) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range ts {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+		if i == 0 {
+			rootNode.LNode = vNode
+		} else {
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeUnknown // This is not the top level Restore.
+
+	return rootNode
 }
 
 func restoreTables(ctx *format.RestoreCtx, ts []*TableName) error {
