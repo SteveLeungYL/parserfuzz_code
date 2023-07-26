@@ -48,6 +48,22 @@ const (
 	TypeColumnPosition
 	TypeAlterOrderItem
 	TypeAlterTableSpec
+	TypeAlterTableStmt
+	TypeTruncateTableStmt
+	TypeSubPartitionDefinition
+	TypePartitionDefinitionClauseNone
+	TypePartitionDefinitionClauseLessThan
+	TypePartitionDefinitionClauseIn
+	TypePartitionDefinitionClauseHistory
+	TypePartitionDefinition
+	TypePartitionMethod
+	TypePartitionOptions
+	TypeRecoverTableStmt
+	TypeFlashBackTableStmt
+	TypeAttributesSpec
+	TypeStatsOptionsSpec
+	TypeAlterPlacementPolicyStmt
+	TypeAlterSequenceStmt
 )
 
 const (
