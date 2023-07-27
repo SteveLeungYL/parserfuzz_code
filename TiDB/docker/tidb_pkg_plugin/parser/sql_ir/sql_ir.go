@@ -82,6 +82,19 @@ const (
 	TypeCommonTableExpression
 	TypeWithClause
 	TypeSelectStmt
+	TypeSetOprSelectList
+	TypeSetOprStmt
+	TypeColumnNameOrUserVar
+	TypeLoadDataStmt
+	TypeFieldsClause
+	TypeLinesClause
+	TypeCallStmt
+	TypePriorityEnum
+	TypeInsertStmt
+	TypeDeleteStmt
+	TypeNonTransactionalDeleteStmt
+	TypeUpdateStmt
+	TypeLimit
 )
 
 const (

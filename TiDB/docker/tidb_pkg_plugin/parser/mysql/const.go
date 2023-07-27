@@ -15,6 +15,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/pingcap/tidb/parser/sql_ir"
 	"strings"
 
 	"github.com/pingcap/errors"
@@ -580,6 +581,29 @@ func Str2Priority(val string) PriorityEnum {
 	default:
 		return NoPriority
 	}
+}
+
+func (n *PriorityEnum) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	switch *n {
+	case NoPriority:
+		break
+	case LowPriority:
+		rootNode.Prefix = "LOW_PRIORITY"
+	case HighPriority:
+		rootNode.Prefix = "HIGH_PRIORITY"
+	case DelayedPriority:
+		rootNode.Prefix = "DELAYED"
+	default:
+		break
+	}
+
+	rootNode.IRType = sql_ir.TypePriorityEnum
+	return rootNode
 }
 
 // Restore implements Node interface.
