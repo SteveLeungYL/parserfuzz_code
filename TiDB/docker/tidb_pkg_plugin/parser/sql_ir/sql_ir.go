@@ -95,6 +95,17 @@ const (
 	TypeNonTransactionalDeleteStmt
 	TypeUpdateStmt
 	TypeLimit
+	TypeUserIdentity
+	TypeRoleIdentity
+	TypeShowStmt
+	TypeWindowSpec
+	TypeSelectIntoOption
+	TypePartitionByClause
+	TypeFrameClause
+	TypeFrameBound
+	TypeSplitRegionStmt
+	TypeSplitOption
+	TypeAsOfClause
 )
 
 const (

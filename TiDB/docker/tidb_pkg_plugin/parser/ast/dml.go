@@ -22,6 +22,7 @@ import (
 	"github.com/pingcap/tidb/parser/model"
 	"github.com/pingcap/tidb/parser/mysql"
 	"github.com/pingcap/tidb/parser/sql_ir"
+	"github.com/tiancaiamao/appdash/traceapp/tmpl"
 )
 
 var (
@@ -5400,304 +5401,605 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 		return "", nil
 	}
-	restoreGlobalScope := func() {
+
+	restoreGlobalScope := func() string {
+		prefix := ""
 		if n.GlobalScope {
-			ctx.WriteKeyWord("GLOBAL ")
+			prefix += " GLOBAL "
 		} else {
-			ctx.WriteKeyWord("SESSION ")
+			prefix += " SESSION "
 		}
-	}
-	restoreShowLikeOrWhereOpt := func() error {
-		if n.Pattern != nil && n.Pattern.Pattern != nil {
-			ctx.WriteKeyWord(" LIKE ")
-			if err := n.Pattern.Pattern.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.Pattern")
-			}
-		} else if n.Where != nil {
-			ctx.WriteKeyWord(" WHERE ")
-			if err := n.Where.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.Where")
-			}
-		}
-		return nil
+		return prefix
 	}
 
-	ctx.WriteKeyWord("SHOW ")
+	restoreShowLikeOrWhereOpt := func() (string, *sql_ir.SqlRsgIR) {
+		prefix := ""
+		if n.Pattern != nil && n.Pattern.Pattern != nil {
+			prefix += " LIKE "
+			patternNode := n.Pattern.LogCurrentNode(depth + 1)
+			return prefix, patternNode
+		} else if n.Where != nil {
+			prefix += " WHERE "
+			whereNode := n.Where.LogCurrentNode(depth + 1)
+			return prefix, whereNode
+		}
+		return "", nil
+	}
+
+	// Actual start here.
+	prefix := "SHOW "
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
 	switch n.Tp {
 	case ShowCreateTable:
-		ctx.WriteKeyWord("CREATE TABLE ")
-		if err := n.Table.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-		}
+		prefix += "CREATE TABLE "
+		tableNode := n.Table.LogCurrentNode(depth + 1)
+
+		rootNode.LNode = tableNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowCreateView:
-		ctx.WriteKeyWord("CREATE VIEW ")
-		if err := n.Table.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.VIEW")
-		}
+		prefix += "CREATE VIEW "
+		tableNode := n.Table.LogCurrentNode(depth + 1)
+
+		rootNode.LNode = tableNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowCreateDatabase:
-		ctx.WriteKeyWord("CREATE DATABASE ")
+		prefix += "CREATE DATABASE "
 		if n.IfNotExists {
-			ctx.WriteKeyWord("IF NOT EXISTS ")
+			prefix += "IF NOT EXISTS "
 		}
-		ctx.WriteName(n.DBName)
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataDatabaseName,
+			Str:      n.DBName,
+			Depth:    depth,
+		}
+
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowCreateSequence:
-		ctx.WriteKeyWord("CREATE SEQUENCE ")
-		if err := n.Table.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.SEQUENCE")
-		}
+		prefix += "CREATE SEQUENCE "
+		tableNode := n.Table.LogCurrentNode(depth + 1)
+
+		rootNode.LNode = tableNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowCreatePlacementPolicy:
-		ctx.WriteKeyWord("CREATE PLACEMENT POLICY ")
-		ctx.WriteName(n.DBName)
+
+		prefix += "CREATE PLACEMENT POLICY "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataPolicyName,
+			Str:      n.DBName,
+			Depth:    depth,
+		}
+
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowCreateUser:
-		ctx.WriteKeyWord("CREATE USER ")
-		if err := n.User.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.User")
-		}
+
+		prefix += "CREATE USER "
+		lNode := n.User.LogCurrentNode(depth + 1)
+
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		prefix = ""
 	case ShowGrants:
-		ctx.WriteKeyWord("GRANTS")
+
+		prefix += "GRANTS"
+
 		if n.User != nil {
-			ctx.WriteKeyWord(" FOR ")
-			if err := n.User.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.User")
-			}
+			prefix += " FOR "
+			userNode := n.User.LogCurrentNode(depth + 1)
+
+			rootNode.LNode = userNode
 		}
+
+		rootNode.Prefix = prefix
+		prefix = ""
+
 		if n.Roles != nil {
-			ctx.WriteKeyWord(" USING ")
+			midfix := " USING "
+			tmpRootNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
+
 			for i, r := range n.Roles {
-				if err := r.Restore(ctx); err != nil {
-					return errors.Annotate(err, "An error occurred while restore ShowStmt.User")
-				}
-				if i != len(n.Roles)-1 {
-					ctx.WritePlain(", ")
+				rNode := r.LogCurrentNode(depth + 1)
+				if i == 0 {
+					tmpRootNode.LNode = rNode
+				} else { // i > 0
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    rNode,
+						Infix:    ", ",
+						Depth:    depth,
+					}
 				}
 			}
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    tmpRootNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
 		}
+		prefix = ""
+
 	case ShowMasterStatus:
-		ctx.WriteKeyWord("MASTER STATUS")
+		prefix += "MASTER STATUS"
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowProcessList:
-		restoreOptFull()
-		ctx.WriteKeyWord("PROCESSLIST")
+		prefix += restoreOptFull() + " PROCESSLIST "
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowStatsExtended:
-		ctx.WriteKeyWord("STATS_EXTENDED")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_EXTENDED"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
+
 	case ShowStatsMeta:
-		ctx.WriteKeyWord("STATS_META")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_META"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
+
 	case ShowStatsHistograms:
-		ctx.WriteKeyWord("STATS_HISTOGRAMS")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_HISTOGRAMS "
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
+
 	case ShowStatsTopN:
-		ctx.WriteKeyWord("STATS_TOPN")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_TOPN"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
+
 	case ShowStatsBuckets:
-		ctx.WriteKeyWord("STATS_BUCKETS")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_BUCKETS"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
 	case ShowStatsHealthy:
-		ctx.WriteKeyWord("STATS_HEALTHY")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "STATS_HEALTHY"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
 	case ShowHistogramsInFlight:
-		ctx.WriteKeyWord("HISTOGRAMS_IN_FLIGHT")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "HISTOGRAMS_IN_FLIGHT"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
 	case ShowColumnStatsUsage:
-		ctx.WriteKeyWord("COLUMN_STATS_USAGE")
-		if err := restoreShowLikeOrWhereOpt(); err != nil {
-			return err
+		prefix += "COLUMN_STATS_USAGE"
+
+		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
+		if lNode != nil {
+			rootNode.LNode = lNode
 		}
+		rootNode.Prefix = prefix + tmpPrefix
+		prefix = ""
 	case ShowProfiles:
-		ctx.WriteKeyWord("PROFILES")
+		prefix += "PROFILES"
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowProfile:
-		ctx.WriteKeyWord("PROFILE")
+		prefix += "PROFILE"
 		if len(n.ShowProfileTypes) > 0 {
 			for i, tp := range n.ShowProfileTypes {
-				if i != 0 {
-					ctx.WritePlain(",")
+				tmpRootNode := &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					Depth:    depth,
 				}
-				ctx.WritePlain(" ")
 				switch tp {
 				case ProfileTypeCPU:
-					ctx.WriteKeyWord("CPU")
+					tmpRootNode.Prefix = "CPU"
 				case ProfileTypeMemory:
-					ctx.WriteKeyWord("MEMORY")
+					tmpRootNode.Prefix = "MEMORY"
 				case ProfileTypeBlockIo:
-					ctx.WriteKeyWord("BLOCK IO")
+					tmpRootNode.Prefix = "BLOCK IO"
 				case ProfileTypeContextSwitch:
-					ctx.WriteKeyWord("CONTEXT SWITCHES")
+					tmpRootNode.Prefix = "CONTEXT SWITCHES"
 				case ProfileTypeIpc:
-					ctx.WriteKeyWord("IPC")
+					tmpRootNode.Prefix = "IPC"
 				case ProfileTypePageFaults:
-					ctx.WriteKeyWord("PAGE FAULTS")
+					tmpRootNode.Prefix = "PAGE FAULTS"
 				case ProfileTypeSource:
-					ctx.WriteKeyWord("SOURCE")
+					tmpRootNode.Prefix = "SOURCE"
 				case ProfileTypeSwaps:
-					ctx.WriteKeyWord("SWAPS")
+					tmpRootNode.Prefix = "SWAPS"
 				case ProfileTypeAll:
-					ctx.WriteKeyWord("ALL")
+					tmpRootNode.Prefix = "ALL"
 				}
-			}
-		}
-		if n.ShowProfileArgs != nil {
-			ctx.WriteKeyWord(" FOR QUERY ")
-			ctx.WritePlainf("%d", *n.ShowProfileArgs)
-		}
-		if n.ShowProfileLimit != nil {
-			ctx.WritePlain(" ")
-			if err := n.ShowProfileLimit.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.WritePlain")
+
+				if i == 0 {
+					rootNode.LNode = tmpRootNode
+				} else { // i > 0
+					rootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    rootNode,
+						RNode:    tmpRootNode,
+						Infix:    ", ",
+						Depth:    depth,
+					}
+				}
 			}
 		}
 
+		if n.ShowProfileArgs != nil {
+			midfix := " FOR QUERY "
+			rNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				IValue:   int64(*n.ShowProfileArgs),
+				Str:      strconv.FormatInt(int64(*n.ShowProfileArgs), 10),
+				Depth:    depth,
+			}
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		if n.ShowProfileLimit != nil {
+			midfix := " "
+			showNode := n.ShowProfileLimit.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    showNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		rootNode.Prefix = prefix
+		prefix = ""
+
 	case ShowPrivileges:
-		ctx.WriteKeyWord("PRIVILEGES")
+		prefix += "PRIVILEGES"
+		rootNode.Prefix = prefix
+		prefix = ""
 	case ShowBuiltins:
-		ctx.WriteKeyWord("BUILTINS")
+		prefix += "BUILTINS"
+		rootNode.Prefix = prefix
+		prefix = ""
 	case ShowCreateImport:
-		ctx.WriteKeyWord("CREATE IMPORT ")
-		ctx.WriteName(n.DBName)
+		prefix += "CREATE IMPORT "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataDatabaseName,
+			Str:      n.DBName,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+		prefix = ""
+
 	case ShowPlacementForDatabase:
-		ctx.WriteKeyWord("PLACEMENT FOR DATABASE ")
-		ctx.WriteName(n.DBName)
+		prefix += "PLACEMENT FOR DATABASE "
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataDatabaseName,
+			Str:      n.DBName,
+			Depth:    depth,
+		}
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+		prefix = ""
+
 	case ShowPlacementForTable:
-		ctx.WriteKeyWord("PLACEMENT FOR TABLE ")
-		if err := n.Table.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-		}
+		prefix += "PLACEMENT FOR TABLE "
+		lNode := n.Table.LogCurrentNode(depth + 1)
+
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+		prefix = ""
 	case ShowPlacementForPartition:
-		ctx.WriteKeyWord("PLACEMENT FOR TABLE ")
-		if err := n.Table.Restore(ctx); err != nil {
-			return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
+		prefix += "PLACEMENT FOR TABLE "
+		lNode := n.Table.LogCurrentNode(depth + 1)
+		midfix := " PARTITION "
+		rNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataPartitionName,
+			Str:      n.Partition.String(),
+			Depth:    depth,
 		}
-		ctx.WriteKeyWord(" PARTITION ")
-		ctx.WriteName(n.Partition.String())
-	// ShowTargetFilterable
+
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+		rootNode.RNode = rNode
+		rootNode.Infix = midfix
+		prefix = ""
+
 	default:
 		switch n.Tp {
 		case ShowEngines:
-			ctx.WriteKeyWord("ENGINES")
+			prefix += "ENGINES"
 		case ShowConfig:
-			ctx.WriteKeyWord("CONFIG")
+			prefix += "CONFIG"
 		case ShowDatabases:
-			ctx.WriteKeyWord("DATABASES")
+			prefix += "DATABASES"
 		case ShowCharset:
-			ctx.WriteKeyWord("CHARSET")
+			prefix += "CHARSET"
 		case ShowTables:
-			restoreOptFull()
-			ctx.WriteKeyWord("TABLES")
-			restoreShowDatabaseNameOpt()
+			prefix += restoreOptFull() + "TABLES"
+			tmpPrefix, lNode := restoreShowDatabaseNameOpt()
+			if lNode != nil {
+				rootNode.LNode = lNode
+			}
+			rootNode.Prefix = prefix + tmpPrefix
+			prefix = ""
+
 		case ShowOpenTables:
-			ctx.WriteKeyWord("OPEN TABLES")
-			restoreShowDatabaseNameOpt()
+			prefix += "OPEN TABLES"
+			tmpPrefix, lNode := restoreShowDatabaseNameOpt()
+			if lNode != nil {
+				rootNode.LNode = lNode
+			}
+			rootNode.Prefix = prefix + tmpPrefix
+			prefix = ""
 		case ShowTableStatus:
-			ctx.WriteKeyWord("TABLE STATUS")
-			restoreShowDatabaseNameOpt()
+			prefix += "TABLE STATUS"
+			tmpPrefix, lNode := restoreShowDatabaseNameOpt()
+			if lNode != nil {
+				rootNode.LNode = lNode
+			}
+			rootNode.Prefix = prefix + tmpPrefix
+			prefix = ""
 		case ShowIndex:
 			// here can be INDEX INDEXES KEYS
 			// FROM or IN
-			ctx.WriteKeyWord("INDEX IN ")
-			if err := n.Table.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-			} // TODO: remember to check this case
+			prefix += "INDEX IN "
+			lNode := n.Table.LogCurrentNode(depth + 1)
+			rootNode.Prefix = prefix
+			rootNode.LNode = lNode
+			prefix = ""
+
 		case ShowColumns: // equivalent to SHOW FIELDS
 			if n.Extended {
-				ctx.WriteKeyWord("EXTENDED ")
+				prefix += "EXTENDED "
 			}
-			restoreOptFull()
-			ctx.WriteKeyWord("COLUMNS")
+			prefix += restoreOptFull() + " COLUMNS "
+			var lNode *sql_ir.SqlRsgIR
 			if n.Table != nil {
 				// FROM or IN
-				ctx.WriteKeyWord(" IN ")
-				if err := n.Table.Restore(ctx); err != nil {
-					return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-				}
+				prefix += " IN "
+				lNode = n.Table.LogCurrentNode(depth + 1)
 			}
-			restoreShowDatabaseNameOpt()
+			midfix, rNode := restoreShowDatabaseNameOpt()
+
+			rootNode.LNode = lNode
+			rootNode.RNode = rNode
+			rootNode.Prefix = prefix
+			rootNode.Infix = midfix
+			prefix = ""
+
 		case ShowWarnings:
-			ctx.WriteKeyWord("WARNINGS")
+			prefix += "WARNINGS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowErrors:
-			ctx.WriteKeyWord("ERRORS")
+			prefix += "ERRORS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowVariables:
-			restoreGlobalScope()
-			ctx.WriteKeyWord("VARIABLES")
+			prefix += restoreGlobalScope() + "VARIABLES"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowStatus:
-			restoreGlobalScope()
-			ctx.WriteKeyWord("STATUS")
+			prefix += restoreGlobalScope() + " STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowCollation:
-			ctx.WriteKeyWord("COLLATION")
+			prefix += "COLLATION "
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowTriggers:
-			ctx.WriteKeyWord("TRIGGERS")
-			restoreShowDatabaseNameOpt()
+			prefix += "TRIGGERS"
+			tmpPrefix, lNode := restoreShowDatabaseNameOpt()
+			if lNode != nil {
+				rootNode.LNode = lNode
+			}
+			rootNode.Prefix = prefix + tmpPrefix
+			prefix = ""
+
 		case ShowProcedureStatus:
-			ctx.WriteKeyWord("PROCEDURE STATUS")
+			prefix += "PROCEDURE STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowEvents:
-			ctx.WriteKeyWord("EVENTS")
-			restoreShowDatabaseNameOpt()
+			prefix += "EVENTS"
+			tmpPrefix, lNode := restoreShowDatabaseNameOpt()
+			if lNode != nil {
+				rootNode.LNode = lNode
+			}
+			rootNode.Prefix = prefix + tmpPrefix
+			prefix = ""
+
 		case ShowPlugins:
-			ctx.WriteKeyWord("PLUGINS")
+			prefix += "PLUGINS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowBindings:
 			if n.GlobalScope {
-				ctx.WriteKeyWord("GLOBAL ")
+				prefix += "GLOBAL "
 			} else {
-				ctx.WriteKeyWord("SESSION ")
+				prefix += "SESSION "
 			}
-			ctx.WriteKeyWord("BINDINGS")
+			prefix += "BINDINGS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowBindingCacheStatus:
-			ctx.WriteKeyWord("BINDING_CACHE STATUS")
+			prefix += "BINDING_CACHE STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowPumpStatus:
-			ctx.WriteKeyWord("PUMP STATUS")
+			prefix += "PUMP STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowDrainerStatus:
-			ctx.WriteKeyWord("DRAINER STATUS")
+			prefix += "DRAINER STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowAnalyzeStatus:
-			ctx.WriteKeyWord("ANALYZE STATUS")
+			prefix += "ANALYZE STATUS"
+			rootNode.Prefix = prefix
+			prefix = ""
+
 		case ShowRegions:
-			ctx.WriteKeyWord("TABLE ")
-			if err := n.Table.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-			}
+			prefix += "TABLE "
+			lNode := n.Table.LogCurrentNode(depth + 1)
+
+			rootNode.Prefix = prefix
+			rootNode.LNode = lNode
+			prefix = ""
+
 			if len(n.IndexName.L) > 0 {
-				ctx.WriteKeyWord(" INDEX ")
-				ctx.WriteName(n.IndexName.String())
+				midfix := " INDEX "
+				rNode := &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIdentifier,
+					DataType: sql_ir.DataIndexName,
+					Str:      n.IndexName.String(),
+					Depth:    depth,
+				}
+				rootNode.Infix = midfix
+				rootNode.RNode = rNode
 			}
-			ctx.WriteKeyWord(" REGIONS")
-			if err := restoreShowLikeOrWhereOpt(); err != nil {
-				return err
+
+			midfix := " REGIONS"
+			tmpMidfix, rNode := restoreShowLikeOrWhereOpt()
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix + tmpMidfix,
+				Depth:    depth,
 			}
-			return nil
+
+			rootNode.IRType = sql_ir.TypeShowStmt
+
+			return rootNode
 		case ShowTableNextRowId:
-			ctx.WriteKeyWord("TABLE ")
-			if err := n.Table.Restore(ctx); err != nil {
-				return errors.Annotate(err, "An error occurred while restore ShowStmt.Table")
-			}
-			ctx.WriteKeyWord(" NEXT_ROW_ID")
-			return nil
+
+			prefix += "TABLE "
+			lNode := n.Table.LogCurrentNode(depth + 1)
+			midfix := " NEXT_ROW_ID"
+
+			rootNode.Prefix = prefix
+			rootNode.LNode = lNode
+			rootNode.Infix = midfix
+			prefix = ""
+
+			return rootNode
+
 		case ShowBackups:
-			ctx.WriteKeyWord("BACKUPS")
+			prefix += "BACKUPS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowRestores:
-			ctx.WriteKeyWord("RESTORES")
+			prefix += "RESTORES"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowImports:
-			ctx.WriteKeyWord("IMPORTS")
+			prefix += "IMPORTS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowPlacement:
-			ctx.WriteKeyWord("PLACEMENT")
+			prefix += "PLACEMENT"
+			rootNode.Prefix = prefix
+			prefix = ""
 		case ShowPlacementLabels:
-			ctx.WriteKeyWord("PLACEMENT LABELS")
+			prefix += "PLACEMENT LABELS"
+			rootNode.Prefix = prefix
+			prefix = ""
 		default:
-			return errors.New("Unknown ShowStmt type")
+			// Do nothing here.
 		}
-		restoreShowLikeOrWhereOpt()
+		// the rootNode has been setup correct above. Use a new one if necessary.
+
+		midfix, rNode := restoreShowLikeOrWhereOpt()
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
 	}
-	return nil
+
+	rootNode.IRType = sql_ir.TypeShowStmt
+	return rootNode
 
 }
 
@@ -6072,6 +6374,112 @@ type WindowSpec struct {
 	OnlyAlias bool
 }
 
+func (n *WindowSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	midfix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	if name := n.Name.String(); name != "" {
+		lNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataWindowName,
+			Str:      name,
+			Depth:    depth,
+		}
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+		prefix = ""
+
+		if n.OnlyAlias {
+			rootNode.IRType = sql_ir.TypeWindowSpec
+			return rootNode
+		}
+		midfix += " AS "
+	}
+
+	midfix += "("
+	sep := ""
+	if refName := n.Ref.String(); refName != "" {
+		rNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataWindowName,
+			Str:      refName,
+			Depth:    depth,
+		}
+		sep = " "
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+	}
+
+	if n.PartitionBy != nil {
+		midfix += sep
+		rNode := n.PartitionBy.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+		sep = " "
+	}
+	if n.OrderBy != nil {
+		midfix += sep
+		rNode := n.OrderBy.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+		sep = " "
+	}
+	if n.Frame != nil {
+		midfix += sep
+		rNode := n.Frame.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+		sep = " "
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Infix:    midfix,
+		Suffix:   ")",
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeWindowSpec
+
+	return rootNode
+}
+
 // Restore implements Node interface.
 func (n *WindowSpec) Restore(ctx *format.RestoreCtx) error {
 	if name := n.Name.String(); name != "" {
@@ -6160,6 +6568,45 @@ type SelectIntoOption struct {
 	LinesInfo  *LinesClause
 }
 
+func (n *SelectIntoOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if n.Tp != SelectIntoOutfile {
+		// only support SELECT/TABLE/VALUES ... INTO OUTFILE statement now
+		return rootNode
+	}
+
+	prefix := "INTO OUTFILE " + n.FileName
+	var lNode *sql_ir.SqlRsgIR = nil
+
+	if n.FieldsInfo != nil {
+		lNode = n.FieldsInfo.LogCurrentNode(depth + 1)
+	}
+
+	rootNode.Prefix = prefix
+	rootNode.LNode = lNode
+	prefix = ""
+
+	if n.LinesInfo != nil {
+		linesNode := n.LinesInfo.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    linesNode,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeSelectIntoOption
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *SelectIntoOption) Restore(ctx *format.RestoreCtx) error {
 	if n.Tp != SelectIntoOutfile {
@@ -6196,6 +6643,39 @@ type PartitionByClause struct {
 	node
 
 	Items []*ByItem
+}
+
+func (n *PartitionByClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "PARTITION BY "
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	for i, v := range n.Items {
+		vNode := v.LogCurrentNode(depth + 1)
+		if i == 0 {
+			rootNode.LNode = vNode
+		} else { // i > 0
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    vNode,
+				Infix:    ", ",
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode.Prefix = prefix
+	rootNode.IRType = sql_ir.TypePartitionByClause
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -6246,6 +6726,39 @@ type FrameClause struct {
 
 	Type   FrameType
 	Extent FrameExtent
+}
+
+func (n *FrameClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	switch n.Type {
+	case Rows:
+		prefix += " ROWS "
+	case Ranges:
+		prefix += " RANGE "
+	default:
+		rootNode.IRType = sql_ir.TypeFrameClause
+		return rootNode
+	}
+	prefix += " BETWEEN "
+	lNode := n.Extent.Start.LogCurrentNode(depth + 1)
+	midfix := " AND "
+	rNode := n.Extent.End.LogCurrentNode(depth + 1)
+
+	rootNode.Prefix = prefix
+	rootNode.Infix = midfix
+	rootNode.LNode = lNode
+	rootNode.RNode = rNode
+
+	rootNode.IRType = sql_ir.TypeFrameClause
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -6318,6 +6831,56 @@ type FrameBound struct {
 	Unit TimeUnitType
 }
 
+func (n *FrameBound) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	midfix := ""
+	var lNode *sql_ir.SqlRsgIR = nil
+	if n.UnBounded {
+		prefix += "UNBOUNDED"
+	}
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	switch n.Type {
+	case CurrentRow:
+		prefix += "CURRENT ROW"
+	case Preceding, Following:
+		if n.Unit != TimeUnitInvalid {
+			prefix += "INTERVAL "
+		}
+		if n.Expr != nil {
+			lNode = n.Expr.LogCurrentNode(depth + 1)
+			rootNode.Prefix = prefix
+			rootNode.LNode = lNode
+		}
+		if n.Unit != TimeUnitInvalid {
+			midfix += " " + n.Unit.String()
+		}
+		if n.Type == Preceding {
+			midfix += " PRECEDING"
+		} else {
+			midfix += " FOLLOWING"
+		}
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeFrameBound
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *FrameBound) Restore(ctx *format.RestoreCtx) error {
 	if n.UnBounded {
@@ -6382,11 +6945,111 @@ type SplitOption struct {
 	Upper      []ExprNode
 	Num        int64
 	ValueLists [][]ExprNode
+	sql_ir.SqlRsgInterface
 }
 
 type SplitSyntaxOption struct {
 	HasRegionFor bool
 	HasPartition bool
+}
+
+func (n *SplitRegionStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "SPLIT "
+	if n.SplitSyntaxOpt != nil {
+		if n.SplitSyntaxOpt.HasRegionFor {
+			prefix += "REGION FOR "
+		}
+		if n.SplitSyntaxOpt.HasPartition {
+			prefix += "PARTITION "
+
+		}
+	}
+	prefix += "TABLE "
+
+	lNode := n.Table.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	if len(n.PartitionNames) > 0 {
+		midfix := " PARTITION "
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, v := range n.PartitionNames {
+			partitionNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataPartitionName,
+				Str:      v.String(),
+				Depth:    depth,
+			}
+
+			if i == 0 {
+				tmpRootNode.LNode = partitionNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    partitionNode,
+					Infix:    ", ",
+					Depth:    depth,
+				}
+			}
+		}
+		tmpRootNode.Prefix = "("
+		tmpRootNode.Suffix = ")"
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	if len(n.IndexName.L) > 0 {
+		midfix := " INDEX "
+		indexNameNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataIndexName,
+			Str:      n.IndexName.String(),
+			Depth:    depth,
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    indexNameNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+	splitOptNode := n.SplitOpt.LogCurrentNode(depth + 1)
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    splitOptNode,
+		Infix:    " ",
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSplitRegionStmt
+
+	return rootNode
 }
 
 func (n *SplitRegionStmt) Restore(ctx *format.RestoreCtx) error {
@@ -6465,6 +7128,145 @@ func (n *SplitRegionStmt) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
+func (n *SplitOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	prefix := ""
+	if len(n.ValueLists) == 0 {
+		prefix += "BETWEEN "
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+
+		for j, v := range n.Lower {
+			vNode := v.LogCurrentNode(depth + 1)
+			if j == 0 {
+				tmpRootNode.LNode = vNode
+			} else {
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    ", ",
+					Depth:    depth,
+				}
+			}
+		}
+
+		tmpRootNode.Prefix = "("
+		tmpRootNode.Suffix = ")"
+
+		rootNode.Prefix = prefix
+		rootNode.LNode = tmpRootNode
+
+		midfix := " AND "
+		tmpRootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for j, v := range n.Upper {
+			vNode := v.LogCurrentNode(depth + 1)
+			if j == 0 {
+				tmpRootNode.LNode = vNode
+			} else {
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    ", ",
+					Depth:    depth,
+				}
+			}
+		}
+		tmpRootNode.Prefix = "("
+		tmpRootNode.Suffix = ")"
+
+		rootNode.Infix = midfix
+		rootNode.RNode = tmpRootNode
+
+		midfix = " REGIONS"
+		rNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			IValue:   n.Num,
+			Str:      strconv.FormatInt(n.Num, 10),
+			Depth:    depth,
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+		rootNode.IRType = sql_ir.TypeSplitOption
+		return rootNode
+	}
+	prefix += "BY "
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, row := range n.ValueLists {
+		tmptmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for j, v := range row {
+			vNode := v.LogCurrentNode(depth + 1)
+			if j == 0 {
+				tmptmpRootNode.LNode = vNode
+			} else { // i > 0
+				tmptmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmptmpRootNode,
+					RNode:    vNode,
+					Infix:    ", ",
+					Depth:    depth,
+				}
+			}
+		}
+
+		tmptmpRootNode.Prefix = "("
+		tmptmpRootNode.Suffix = ")"
+
+		if i == 0 {
+			tmpRootNode.LNode = tmptmpRootNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    tmptmpRootNode,
+				Infix:    ", ",
+				Depth:    depth,
+			}
+		}
+
+	}
+
+	rootNode.Prefix = prefix
+	rootNode.LNode = tmpRootNode
+	rootNode.IRType = sql_ir.TypeSplitOption
+	return rootNode
+
+}
+
 func (n *SplitOption) Restore(ctx *format.RestoreCtx) error {
 	if len(n.ValueLists) == 0 {
 		ctx.WriteKeyWord("BETWEEN ")
@@ -6537,6 +7339,25 @@ func (m FulltextSearchModifier) WithQueryExpansion() bool {
 type AsOfClause struct {
 	node
 	TsExpr ExprNode
+}
+
+func (n *AsOfClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "AS OF TIMESTAMP "
+	lNode := n.TsExpr.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeAsOfClause
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.

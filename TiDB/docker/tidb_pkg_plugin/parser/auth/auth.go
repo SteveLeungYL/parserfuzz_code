@@ -15,7 +15,9 @@ package auth
 
 import (
 	"fmt"
+
 	"github.com/pingcap/tidb/parser/format"
+	"github.com/pingcap/tidb/parser/sql_ir"
 )
 
 const (
@@ -30,6 +32,30 @@ type UserIdentity struct {
 	CurrentUser  bool
 	AuthUsername string // Username matched in privileges system
 	AuthHostname string // Match in privs system (i.e. could be a wildcard)
+
+	sql_ir.SqlRsgInterface
+}
+
+func (n *UserIdentity) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	prefix := ""
+	if n.CurrentUser {
+		prefix += "CURRENT_USER"
+	}
+	/* Do not use the custom user and host name here. Always fix to CurrentUser */
+	//else {
+	//ctx.WriteName(user.Username)
+	//ctx.WritePlain("@")
+	//ctx.WriteName(user.Hostname)
+	//}
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeUserIdentity
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -68,6 +94,43 @@ func (user *UserIdentity) LoginString() string {
 type RoleIdentity struct {
 	Username string
 	Hostname string
+
+	sql_ir.SqlRsgInterface
+}
+
+func (n *RoleIdentity) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataRoleName,
+		Str:      n.Username,
+		Depth:    depth,
+	}
+	var rNode *sql_ir.SqlRsgIR
+
+	midfix := ""
+	if n.Hostname != "" {
+		midfix += "@"
+		rNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataRoleName,
+			Str:      n.Hostname,
+			Depth:    depth,
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeRoleIdentity
+	return rootNode
+
 }
 
 func (role *RoleIdentity) Restore(ctx *format.RestoreCtx) error {
