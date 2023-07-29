@@ -106,6 +106,29 @@ const (
 	TypeSplitRegionStmt
 	TypeSplitOption
 	TypeAsOfClause
+	TypeBinaryOperationExpr
+	TypeWhenClause
+	TypeCaseExpr
+	TypeSubqueryExpr
+	TypeCompareSubqueryExpr
+	TypeTableNameExpr
+	TypeColumnName
+	TypeColumnNameExpr
+	TypeDefaultExpr
+	TypeExistsSubqueryExpr
+	TypePatternInExpr
+	TypeIsNullExpr
+	TypePatternLikeExpr
+	TypeParenthesesExpr
+	TypePositionExpr
+	TypePatternRegexpExpr
+	TypeRowExpr
+	TypeUnaryOperationExpr
+	TypeValuesExpr
+	TypeVariableExpr
+	TypeMaxValueExpr
+	TypeMatchAgainst
+	TypeSetCollationExpr
 )
 
 const (
@@ -154,6 +177,7 @@ const (
 	DataPolicyName
 	DataTableSpaceName
 	DataForeignKeyName
+	DataVariableName
 )
 
 const (

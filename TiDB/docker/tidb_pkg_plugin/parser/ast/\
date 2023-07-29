@@ -18,7 +18,6 @@ import (
 	"io"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/pingcap/errors"
@@ -937,27 +936,16 @@ type DefaultExpr struct {
 func (n *DefaultExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	prefix := "DEFAULT"
 	midfix := ""
-	suffix := ""
 	var lNode *sql_ir.SqlRsgIR
 	if n.Name != nil {
-		midfix = "("
-		lNode = n.Name.LogCurrentNode(depth + 1)
-		suffix = ")"
+		midix = "("
+		lN
+		if err := n.Name.Restore(ctx); err != nil {
+			return errors.Annotate(err, "An error occurred while restore DefaultExpr.Name")
+		}
+		ctx.WritePlain(")")
 	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Prefix:   prefix,
-		Infix:    midfix,
-		Suffix:   suffix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeDefaultExpr
-
-	return rootNode
+	return nil
 }
 
 // Restore implements Node interface.
@@ -996,31 +984,6 @@ type ExistsSubqueryExpr struct {
 	Sel ExprNode
 	// Not is true, the expression is "not exists".
 	Not bool
-}
-
-func (n *ExistsSubqueryExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := ""
-	if n.Not {
-		prefix += "NOT EXISTS "
-	} else {
-		prefix += "EXISTS "
-	}
-
-	lNode := n.Sel.LogCurrentNode(depth + 1)
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Prefix:   prefix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeExistsSubqueryExpr
-
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1067,79 +1030,6 @@ type PatternInExpr struct {
 	Not bool
 	// Sel is the subquery, may be rewritten to other type of expression.
 	Sel ExprNode
-}
-
-func (n *PatternInExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-	midfix := ""
-	if n.Not {
-		midfix += " NOT IN "
-	} else {
-		midfix += " IN "
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-	midfix = ""
-
-	if n.Sel != nil {
-		rNode := n.Sel.LogCurrentNode(depth + 1)
-		rootNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeUnknown,
-			DataType: sql_ir.DataNone,
-			LNode:    rootNode,
-			RNode:    rNode,
-			Depth:    depth,
-		}
-	} else {
-		tmpRootNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeUnknown,
-			DataType: sql_ir.DataNone,
-			Depth:    depth,
-		}
-		for i, expr := range n.List {
-			midfix := ""
-			if i > 0 {
-				midfix = ", "
-			}
-			exprNode := expr.LogCurrentNode(depth + 1)
-
-			if i == 0 {
-				tmpRootNode.LNode = exprNode
-			} else { // i > 0
-				tmpRootNode = &sql_ir.SqlRsgIR{
-					IRType:   sql_ir.TypeUnknown,
-					DataType: sql_ir.DataNone,
-					LNode:    tmpRootNode,
-					RNode:    exprNode,
-					Infix:    midfix,
-					Depth:    depth,
-				}
-			}
-		}
-		tmpRootNode.Prefix = "("
-		tmpRootNode.Suffix = ")"
-
-		rootNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeUnknown,
-			DataType: sql_ir.DataNone,
-			LNode:    rootNode,
-			RNode:    tmpRootNode,
-			Depth:    depth,
-		}
-
-	}
-
-	rootNode.IRType = sql_ir.TypePatternInExpr
-
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1226,31 +1116,6 @@ type IsNullExpr struct {
 	Not bool
 }
 
-func (n *IsNullExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-
-	midfix := ""
-
-	if n.Not {
-		midfix += " IS NOT NULL"
-	} else {
-		midfix += " IS NULL"
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeIsNullExpr
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *IsNullExpr) Restore(ctx *format.RestoreCtx) error {
 	if err := n.Expr.Restore(ctx); err != nil {
@@ -1298,32 +1163,6 @@ type IsTruthExpr struct {
 	Not bool
 	// True indicates checking true or false.
 	True int64
-}
-
-func (n *IsTruthExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-	midfix := ""
-	if n.Not {
-		midfix += " IS NOT"
-	} else {
-		midfix += " IS"
-	}
-	if n.True > 0 {
-		midfix += " TRUE"
-	} else {
-		midfix += " FALSE"
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1388,55 +1227,6 @@ type PatternLikeExpr struct {
 
 	PatChars []byte
 	PatTypes []byte
-}
-
-func (n *PatternLikeExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-
-	midfix := ""
-	if n.Not {
-		midfix += " NOT LIKE "
-	} else {
-		midfix += " LIKE "
-	}
-
-	rNode := n.Pattern.LogCurrentNode(depth + 1)
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		RNode:    rNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	midfix = ""
-	escape := string(n.Escape)
-
-	if escape != "\\" {
-		midfix += " ESCAPE "
-		rNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeStringLiteral,
-			DataType: sql_ir.DataNone,
-			Str:      escape,
-			Depth:    depth,
-		}
-
-		rootNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeUnknown,
-			DataType: sql_ir.DataNone,
-			LNode:    rootNode,
-			RNode:    rNode,
-			Infix:    midfix,
-			Depth:    depth,
-		}
-	}
-
-	rootNode.IRType = sql_ir.TypePatternLikeExpr
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1517,26 +1307,6 @@ type ParenthesesExpr struct {
 	Expr ExprNode
 }
 
-func (n *ParenthesesExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := "("
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-	midfix := ")"
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Prefix:   prefix,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeParenthesesExpr
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *ParenthesesExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WritePlain("(")
@@ -1584,29 +1354,6 @@ type PositionExpr struct {
 	Refer *ResultField
 }
 
-func (n *PositionExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		IValue:   int64(n.N),
-		Str:      strconv.FormatInt(int64(n.N), 10),
-		Depth:    depth,
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypePositionExpr
-
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *PositionExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WritePlainf("%d", n.N)
@@ -1649,33 +1396,6 @@ type PatternRegexpExpr struct {
 	Re *regexp.Regexp
 	// Sexpr is the string for Expr expression.
 	Sexpr *string
-}
-
-func (n *PatternRegexpExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-	midfix := ""
-
-	if n.Not {
-		midfix += " NOT REGEXP "
-	} else {
-		midfix += " REGEXP "
-	}
-
-	rNode := n.Pattern.LogCurrentNode(depth + 1)
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		RNode:    rNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypePatternRegexpExpr
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1736,43 +1456,6 @@ type RowExpr struct {
 	Values []ExprNode
 }
 
-func (n *RowExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := "ROW ("
-	suffix := ")"
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		Depth:    depth,
-	}
-	for i, v := range n.Values {
-		midfix := ""
-		if i != 0 {
-			midfix = ","
-		}
-		vNode := v.LogCurrentNode(depth + 1)
-		if i == 0 {
-			rootNode.LNode = vNode
-		} else {
-			rootNode = &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeUnknown,
-				DataType: sql_ir.DataNone,
-				LNode:    rootNode,
-				RNode:    vNode,
-				Infix:    midfix,
-				Depth:    depth,
-			}
-		}
-	}
-
-	rootNode.Prefix = prefix
-	rootNode.Suffix = suffix
-	rootNode.IRType = sql_ir.TypeRowExpr
-
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *RowExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ROW")
@@ -1820,25 +1503,6 @@ type UnaryOperationExpr struct {
 	V ExprNode
 }
 
-func (n *UnaryOperationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Op.LogCurrentNode(depth + 1)
-	rNode := n.V.LogCurrentNode(depth + 1)
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		RNode:    rNode,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeUnaryOperationExpr
-
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *UnaryOperationExpr) Restore(ctx *format.RestoreCtx) error {
 	if err := n.Op.Restore(ctx); err != nil {
@@ -1876,27 +1540,6 @@ type ValuesExpr struct {
 	exprNode
 	// Column is column name.
 	Column *ColumnNameExpr
-}
-
-func (n *ValuesExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := "VALUES ( "
-	lNode := n.Column.LogCurrentNode(depth + 1)
-	suffix := ")"
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		Prefix:   prefix,
-		Suffix:   suffix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeValuesExpr
-
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -1946,53 +1589,6 @@ type VariableExpr struct {
 	ExplicitScope bool
 	// Value is the variable value.
 	Value ExprNode
-}
-
-func (n *VariableExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := ""
-	if n.IsSystem {
-		prefix += "@@"
-		if n.ExplicitScope {
-			if n.IsGlobal {
-				prefix += "GLOBAL"
-			} else {
-				prefix += "SESSION"
-			}
-			prefix += "."
-		}
-	} else {
-		prefix += "@"
-	}
-
-	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataVariableName,
-		Str:      n.Name,
-		Depth:    depth,
-	}
-
-	midfix := ""
-	var rNode *sql_ir.SqlRsgIR
-	if n.Value != nil {
-		midfix = " := "
-		rNode = n.Value.LogCurrentNode(depth + 1)
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		RNode:    rNode,
-		Prefix:   prefix,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeVariableExpr
-
-	return rootNode
-
 }
 
 // Restore implements Node interface.
@@ -2051,22 +1647,6 @@ type MaxValueExpr struct {
 	exprNode
 }
 
-func (n *MaxValueExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := "MAXVALUE"
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		Prefix:   prefix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeMaxValueExpr
-	return rootNode
-
-}
-
 // Restore implements Node interface.
 func (n *MaxValueExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("MAXVALUE")
@@ -2096,66 +1676,6 @@ type MatchAgainst struct {
 	Against ExprNode
 	// Modifier
 	Modifier FulltextSearchModifier
-}
-
-func (n *MatchAgainst) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	prefix := "MATCH ("
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		Depth:    depth,
-	}
-	for i, v := range n.ColumnNames {
-		midfix := ""
-		if i != 0 {
-			midfix = ", "
-		}
-		vNode := v.LogCurrentNode(depth + 1)
-		if i == 0 {
-			rootNode.LNode = vNode
-		} else { // i > 0
-			rootNode = &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeUnknown,
-				DataType: sql_ir.DataNone,
-				LNode:    rootNode,
-				RNode:    vNode,
-				Infix:    midfix,
-				Depth:    depth,
-			}
-		}
-	}
-	midfix := " ) AGAINST ( "
-	rNode := n.Against.LogCurrentNode(depth + 1)
-	rootNode = &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    rootNode,
-		RNode:    rNode,
-		Prefix:   prefix,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	midfix = ""
-	if n.Modifier.IsBooleanMode() {
-		midfix += " IN BOOLEAN MODE"
-	} else if n.Modifier.WithQueryExpansion() {
-		midfix += " WITH QUERY EXPANSION"
-	}
-	midfix += ")"
-
-	rootNode = &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    rootNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeMatchAgainst
-
-	return rootNode
 }
 
 func (n *MatchAgainst) Restore(ctx *format.RestoreCtx) error {
@@ -2234,31 +1754,6 @@ type SetCollationExpr struct {
 	Expr ExprNode
 	// Collate is the name of collation to set.
 	Collate string
-}
-
-func (n *SetCollationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-
-	lNode := n.Expr.LogCurrentNode(depth + 1)
-	midfix := " COLLATE "
-	rNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataCollationName,
-		Str:      n.Collate,
-		Depth:    depth,
-	}
-
-	rootNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeUnknown,
-		DataType: sql_ir.DataNone,
-		LNode:    lNode,
-		RNode:    rNode,
-		Infix:    midfix,
-		Depth:    depth,
-	}
-
-	rootNode.IRType = sql_ir.TypeSetCollationExpr
-	return rootNode
-
 }
 
 // Restore implements Node interface.

@@ -17,6 +17,7 @@ import (
 	"io"
 
 	"github.com/pingcap/tidb/parser/format"
+	"github.com/pingcap/tidb/parser/sql_ir"
 )
 
 // Op is opcode type.
@@ -232,6 +233,26 @@ func (o Op) Format(w io.Writer) {
 // IsKeyword returns whether the operator is a keyword.
 func (o Op) IsKeyword() bool {
 	return ops[o].isKeyword
+}
+
+func (n Op) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+	info := &ops[n]
+	prefix := ""
+	if info.isKeyword {
+		prefix += info.literal
+	} else {
+		prefix += info.literal
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Prefix: prefix,
+			Depth:    depth,
+		}
+
+	rootNode.IRType = sql_ir.TypeUnknown // This is not the top level Restore.
+	return rootNode
 }
 
 // Restore the Op into a Writer
