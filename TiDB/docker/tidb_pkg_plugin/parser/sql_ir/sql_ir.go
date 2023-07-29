@@ -129,6 +129,13 @@ const (
 	TypeMaxValueExpr
 	TypeMatchAgainst
 	TypeSetCollationExpr
+	TypeFuncCallExpr
+	TypeFuncCastExpr
+	TypeTrimDirectionExpr
+	TypeAggregateFuncExpr
+	TypeWindowFuncExpr
+	TypeTimeUnitExpr
+	TypeGetFormatSelectorExpr
 )
 
 const (

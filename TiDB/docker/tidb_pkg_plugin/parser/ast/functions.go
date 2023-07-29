@@ -22,6 +22,7 @@ import (
 	"github.com/pingcap/errors"
 	"github.com/pingcap/tidb/parser/format"
 	"github.com/pingcap/tidb/parser/model"
+	"github.com/pingcap/tidb/parser/sql_ir"
 	"github.com/pingcap/tidb/parser/types"
 )
 
@@ -370,6 +371,289 @@ type FuncCallExpr struct {
 	Args []ExprNode
 }
 
+func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	var lNode *sql_ir.SqlRsgIR
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	var specialLiteral string
+	switch n.FnName.L {
+	case DateLiteral:
+		specialLiteral = "DATE "
+	case TimeLiteral:
+		specialLiteral = "TIME "
+	case TimestampLiteral:
+		specialLiteral = "TIMESTAMP "
+	}
+	if specialLiteral != "" {
+		prefix += specialLiteral
+		lNode = n.Args[0].LogCurrentNode(depth + 1)
+		rootNode.Prefix = prefix
+		rootNode.LNode = lNode
+		rootNode.IRType = sql_ir.TypeFuncCallExpr
+		return rootNode
+	}
+
+	midfix := ""
+	if len(n.Schema.String()) != 0 {
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataSchemaName,
+			Str:      n.Schema.O,
+			Depth:    depth,
+		}
+		midfix = "."
+	}
+
+	rootNode.Prefix = prefix
+	rootNode.LNode = lNode
+	rootNode.Infix = midfix
+	prefix = ""
+	midfix = ""
+
+	var rNode *sql_ir.SqlRsgIR
+	if n.Tp == FuncCallExprTypeGeneric {
+		rNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataFunctionName,
+			Str:      n.FnName.O,
+			Depth:    depth,
+		}
+	} else {
+		rNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataFunctionName,
+			Str:      n.FnName.O,
+			Depth:    depth,
+		}
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Depth:    depth,
+	}
+
+	midfix = "( "
+	switch n.FnName.L {
+	case "convert":
+		rNode = n.Args[0].LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = " USING "
+
+		rNode = n.Args[1].LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+
+	case "adddate", "subdate", "date_add", "date_sub":
+
+		rNode = n.Args[0].LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Depth:    depth,
+		}
+
+		midfix = ", INTERVAL "
+		rNode = n.Args[1].LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+		midfix = " "
+		rNode = n.Args[2].LogCurrentNode(depth + 1)
+		rootnode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+	case "extract":
+		rNode = n.Args[0].LogCurrentNode(depth + 1)
+		rootnode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Depth:    depth,
+		}
+
+		midfix = " FROM "
+		rNode = n.Args[1].LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+	case "position":
+
+		rNode = n.Args[0].LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Depth:    depth,
+		}
+
+		midfix = " IN "
+		rNode = n.Args[1].LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+	case "trim":
+		switch len(n.Args) {
+		case 3:
+			rNode = n.Args[2].LogCurrentNode(depth + 1)
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    lNode,
+				RNode:    rNode,
+				Depth:    depth,
+			}
+
+			midfix += " "
+			fallthrough
+		case 2:
+			if expr, isValue := n.Args[1].(ValueExpr); !isValue || expr.GetValue() != nil {
+				rNode = n.Args[1].LogCurrentNode(depth + 1)
+				rootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    rootNode,
+					RNode:    rNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+				midfix = " "
+			}
+			midfix += "FROM "
+			fallthrough
+		case 1:
+			rNode = n.Args[0].LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+			midfix = ""
+		}
+	case WeightString:
+		rNode = n.Args[0].LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		midfix = ""
+
+		if len(n.Args) == 3 {
+			midfix += " AS " + n.Args[1].(ValueExpr).GetValue().(string) + "("
+			rNode = n.Args[2].LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Suffix:   ")",
+				Depth:    depth,
+			}
+		}
+	default:
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, argv := range n.Args {
+			midfix = ""
+			if i != 0 {
+				midfix = ", "
+			}
+			argvNode := argv.LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRootNode.LNode = argvNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    argvNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+		}
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeFuncCallExpr
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *FuncCallExpr) Restore(ctx *format.RestoreCtx) error {
 	var specialLiteral string
@@ -556,6 +840,70 @@ type FuncCastExpr struct {
 	ExplicitCharSet bool
 }
 
+func (n *FuncCastExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	switch n.FunctionType {
+	case CastFunction:
+		prefix := "CAST ("
+		lNode := n.Expr.LogCurrentNode(depth + 1)
+		midfix := " AS "
+		rNode := n.Tp.LogCurrentNode(depth + 1)
+		suffix := ")"
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Suffix:   suffix,
+			Depth:    depth,
+		}
+
+	case CastConvertFunction:
+		prefix := "CONVERT ("
+		lNode := n.Expr.LogCurrentNode(depth + 1)
+		midfix := ", "
+		rNode := n.Tp.LogCurrentNode(depth + 1)
+		suffix := ")"
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Suffix:   suffix,
+			Depth:    depth,
+		}
+
+	case CastBinaryOperator:
+		prefix := "BINARY "
+		lNode := n.Expr.LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			Prefix:   prefix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeFuncCastExpr
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *FuncCastExpr) Restore(ctx *format.RestoreCtx) error {
 	switch n.FunctionType {
@@ -657,6 +1005,22 @@ type TrimDirectionExpr struct {
 	Direction TrimDirectionType
 }
 
+func (n *TrimDirectionExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := n.Direction.String()
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeTrimDirectionExpr
+
+	return rootNode
+}
+
 // Restore implements Node interface.
 func (n *TrimDirectionExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord(n.Direction.String())
@@ -743,6 +1107,124 @@ type AggregateFuncExpr struct {
 	Distinct bool
 	// Order is only used in GROUP_CONCAT
 	Order *OrderByClause
+}
+
+func (n *AggregateFuncExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	topLNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataFunctionName,
+		Str:      n.F,
+		Depth:    depth,
+	}
+	topMidfix := "("
+
+	if n.Distinct {
+		topMidfix += "DISTINCT "
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	switch strings.ToLower(n.F) {
+	case "group_concat":
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i := 0; i < len(n.Args)-1; i++ {
+			midfix := ""
+			if i != 0 {
+				midfix = ", "
+			}
+			argsNode := n.Args[i].LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRootNode.LNode = argsNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    argsNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+
+			rootNode.LNode = tmpRootNode
+		}
+
+		if n.Order != nil {
+			midfix := " "
+			rNode := n.Order.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		midfix := " SEPARATOR "
+		rNode := n.Args[len(n.Args)-1].LogCurrentNode(depth + 1)
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+	default:
+		tmpRooNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, argv := range n.Args {
+			midfix := ""
+			if i != 0 {
+				midfix = ", "
+			}
+			argvNode := argv.LogCurrentNode(depth + 1)
+			if i == 0 {
+				tmpRooNode.LNode = argvNode
+			} else { // i > 0
+				tmpRooNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRooNode,
+					RNode:    argvNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode.LNode = tmpRooNode
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    topLNode,
+		RNode:    rootNode,
+		Infix:    topMidfix,
+		Suffix:   ")",
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeAggregateFuncExpr
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -859,6 +1341,78 @@ type WindowFuncExpr struct {
 	FromLast bool
 	// Spec is the specification of this window.
 	Spec WindowSpec
+}
+
+func (n *WindowFuncExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	topLNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataFunctionName,
+		Str:      n.F,
+		Depth:    depth,
+	}
+
+	tmpRooNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range n.Args {
+		midfix := ""
+		if i != 0 {
+			midfix += ", "
+		} else if n.Distinct {
+			midfix += "DISTINCT "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			tmpRooNode.LNode = vNode
+		} else {
+			tmpRooNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRooNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+	tmpRooNode.Prefix = "("
+	tmpRooNode.Suffix = ")"
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    topLNode,
+		RNode:    tmpRooNode,
+		Depth:    depth,
+	}
+
+	midfix := ""
+	if n.FromLast {
+		midfix += " FROM LAST"
+	}
+	if n.IgnoreNull {
+		midfix += " IGNORE NULLS"
+	}
+	midfix += " OVER "
+	rNode := n.Spec.LogCurrentNode(depth + 1)
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeWindowFuncExpr
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -1044,6 +1598,22 @@ type TimeUnitExpr struct {
 	Unit TimeUnitType
 }
 
+func (n *TimeUnitExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := n.Unit.String()
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeTimeUnitExpr
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *TimeUnitExpr) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord(n.Unit.String())
@@ -1095,6 +1665,22 @@ func (selector GetFormatSelectorType) String() string {
 	default:
 		return ""
 	}
+}
+
+func (n *GetFormatSelectorExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := n.Selector.String()
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeGetFormatSelectorExpr
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
