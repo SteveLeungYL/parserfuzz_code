@@ -136,6 +136,33 @@ const (
 	TypeWindowFuncExpr
 	TypeTimeUnitExpr
 	TypeGetFormatSelectorExpr
+	TypeAuthOption
+	TypeTraceStmt
+	TypeExplainForStmt
+	TypeExplainStmt
+	TypePlanReplayerStmt
+	TypeCompactTableStmt
+	TypePrepareStmt
+	TypeDeallocateStmt
+	TypeExecuteStmt
+	TypeBeginStmt
+	TypeBinlogStmt
+	TypeCompletionType
+	TypeCommitStmt
+	TypeRollbackStmt
+	TypeUseStmt
+	TypeVariableAssignment
+	TypeFlushStmt
+	TypeKillStmt
+	TypeSetStmt
+	TypeSetConfigStmt
+	TypeSetPwdStmt
+	TypeChangeStmt
+	TypeSetRoleStmt
+	TypeSetDefaultRoleStmt
+	TypeUserSpec
+	TypeTLSOption
+	TypeResourceOption
 )
 
 const (

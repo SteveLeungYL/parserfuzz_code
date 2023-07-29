@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
+	"os/user"
 	"strconv"
 	"strings"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/pingcap/tidb/parser/format"
 	"github.com/pingcap/tidb/parser/model"
 	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/parser/sql_ir"
 )
 
 var (
@@ -102,6 +104,33 @@ type AuthOption struct {
 	AuthPlugin   string
 }
 
+func (n *AuthOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "IDENTIFIED"
+
+	if n.AuthPlugin != "" {
+		prefix += " WITH "
+		prefix += n.AuthPlugin
+	}
+	if n.ByAuthString {
+		prefix += " BY " + n.AuthString
+	} else if n.HashString != "" {
+		prefix += " AS " + n.HashString
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeAuthOption
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *AuthOption) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("IDENTIFIED")
@@ -128,6 +157,35 @@ type TraceStmt struct {
 
 	TracePlan       bool
 	TracePlanTarget string
+}
+
+func (n *TraceStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "TRACE "
+
+	if n.TracePlan {
+		prefix += "PLAN "
+		if n.TracePlanTarget != "" {
+			prefix += "TARGET = " + n.TracePlanTarget + " "
+		}
+	} else if n.Format != "row" {
+		prefix += "FORMAT = " + n.Format + " "
+	}
+
+	lNode := n.Stmt.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeTraceStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -178,6 +236,30 @@ type ExplainForStmt struct {
 	ConnectionID uint64
 }
 
+func (n *ExplainForStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "EXPLAIN FORMAT = " + n.Format + " FOR CONNECTION"
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		IValue:   int64(n.ConnectionID),
+		Str:      strconv.FormatUint(n.ConnectionID, 10),
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeExplainForStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *ExplainForStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("EXPLAIN ")
@@ -210,6 +292,60 @@ type ExplainStmt struct {
 	Stmt    StmtNode
 	Format  string
 	Analyze bool
+}
+
+func (n *ExplainStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if showStmt, ok := n.Stmt.(*ShowStmt); ok {
+		prefix += "DESC "
+
+		lNode := showStmt.LogCurrentNode(depth + 1)
+
+		rootNode.LNode = lNode
+		rootNode.Prefix = prefix
+
+		midfix := ""
+		if showStmt.Column != nil {
+			midfix = " "
+			rNode := showStmt.Column.LogCurrentNode(depth + 1)
+
+			rootNode.RNode = rNode
+			rootNode.Infix = midfix
+		}
+
+		rootNode.IRType = sql_ir.TypeExplainStmt
+		return rootNode
+	}
+
+	midfix := "EXPLAIN "
+	if n.Analyze {
+		midfix += "ANALYZE "
+	}
+
+	if !n.Analyze || strings.ToLower(n.Format) != "row" {
+		midfix += "FORMAT = " + n.Format + " "
+	}
+	rNode := n.Stmt.LogCurrentNode(depth + 1)
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Infix:    midfix,
+		RNode:    rNode,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeExplainStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -272,6 +408,85 @@ type PlanReplayerStmt struct {
 	OrderBy *OrderByClause
 	// Limit is the limit clause.
 	Limit *Limit
+}
+
+func (n *PlanReplayerStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if n.Load {
+		prefix += "PLAN REPLAYER LOAD " + n.File
+		rootNode.Prefix = prefix
+		rootNode.IRType = sql_ir.TypePlanReplayerStmt
+		return rootNode
+	}
+
+	prefix += "PLAN REPLAYER DUMP EXPLAIN "
+	if n.Analyze {
+		prefix += "ANALYZE "
+	}
+
+	if n.Stmt == nil {
+		prefix += "SLOW QUERY"
+		if n.Where != nil {
+			prefix += " WHERE "
+			lNode := n.Where.LogCurrentNode(depth + 1)
+
+			rootNode.LNode = lNode
+		}
+
+		rootNode.Prefix = prefix
+		prefix = ""
+
+		if n.OrderBy != nil {
+			midfix := " "
+			rNode := n.OrderBy.LogCurrentNode(depth + 1)
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+
+		rootNode.Prefix = prefix
+		prefix = ""
+
+		if n.Limit != nil {
+			midfix := " "
+			rNode := n.Limit.LogCurrentNode(depth + 1)
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    rootNode,
+				RNode:    rNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+		rootNode.Prefix = prefix
+		prefix = ""
+
+		rootNode.IRType = sql_ir.TypePlanReplayerStmt
+		return rootNode
+
+	}
+
+	lNode := n.Stmt.LogCurrentNode(depth + 1)
+	rootNode.LNode = lNode
+	rootNode.Prefix = prefix
+
+	rootNode.IRType = sql_ir.TypePlanReplayerStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -379,6 +594,29 @@ type CompactTableStmt struct {
 	ReplicaKind CompactReplicaKind
 }
 
+func (n *CompactTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "ALTER TABLE "
+	lNode := n.Table.LogCurrentNode(depth + 1)
+
+	// Note: There is only TiFlash replica available now. TiKV will be added later.
+	midfix := " COMPACT " + string(n.ReplicaKind) + " REPLICA"
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeCompactTableStmt
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *CompactTableStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ALTER TABLE ")
@@ -417,6 +655,65 @@ type PrepareStmt struct {
 	Name    string
 	SQLText string
 	SQLVar  *VariableExpr
+}
+
+func (n *PrepareStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "PREPARE "
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataStatementPreparedName,
+		Str:      n.Name,
+		Depth:    depth,
+	}
+	midfix := " FROM "
+
+	if n.SQLText != "" {
+		rNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeStringLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      n.SQLText,
+			Depth:    depth,
+		}
+
+		rootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		rootNode.IRType = sql_ir.TypePrepareStmt
+		return rootNode
+	}
+
+	if n.SQLVar != nil {
+		rNode := n.SQLVar.LogCurrentNode(depth + 1)
+		rootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			RNode:    rNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		rootNode.IRType = sql_ir.TypePrepareStmt
+		return rootNode
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypePrepareStmt
+
+	// Return empty
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -462,6 +759,29 @@ type DeallocateStmt struct {
 	Name string
 }
 
+func (n *DeallocateStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "DEALLOCATE PREPARE "
+	nameNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataStatementPreparedName,
+		Str:      n.Name,
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    nameNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeDeallocateStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *DeallocateStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("DEALLOCATE PREPARE ")
@@ -500,6 +820,67 @@ type ExecuteStmt struct {
 	BinaryArgs interface{}
 	ExecID     uint32
 	IdxInMulti int
+}
+
+func (n *ExecuteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "EXECUTE "
+	nameNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataStatementPreparedName,
+		Str:      n.Name,
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    nameNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	if len(n.UsingVars) > 0 {
+		topMidfix := " USING "
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, val := range n.UsingVars {
+			midfix := ""
+			if i != 0 {
+				midfix = ", "
+			}
+			valNode := val.LogCurrentNode(depth + 1)
+
+			if i == 0 {
+				tmpRootNode.LNode = valNode
+			} else {
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    valNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Infix:    topMidfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeExecuteStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -549,6 +930,49 @@ type BeginStmt struct {
 	AsOf *AsOfClause
 }
 
+func (n *BeginStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	if n.Mode == "" {
+		if n.ReadOnly {
+			prefix += "START TRANSACTION READ ONLY"
+			if n.AsOf != nil {
+				prefix += " "
+
+				lNode := n.AsOf.LogCurrentNode(depth + 1)
+
+				rootNode := &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnaryOperationExpr,
+					DataType: sql_ir.DataNone,
+					LNode:    lNode,
+					Prefix:   prefix,
+					Depth:    depth,
+				}
+
+				rootNode.IRType = sql_ir.TypeBeginStmt
+				return rootNode
+			}
+		} else if n.CausalConsistencyOnly {
+			prefix += "START TRANSACTION WITH CAUSAL CONSISTENCY ONLY"
+		} else {
+			prefix += "START TRANSACTION"
+		}
+		rootNode.Prefix = prefix
+	} else {
+		prefix += "BEGIN " + n.Mode
+		rootNode.Prefix = prefix
+	}
+
+	rootNode.IRType = sql_ir.TypeBeginStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *BeginStmt) Restore(ctx *format.RestoreCtx) error {
 	if n.Mode == "" {
@@ -588,6 +1012,22 @@ type BinlogStmt struct {
 	Str string
 }
 
+func (n *BinlogStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "BINLOG " + n.Str
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeBinlogStmt
+
+	return rootNode
+}
+
 // Restore implements Node interface.
 func (n *BinlogStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("BINLOG ")
@@ -615,6 +1055,30 @@ const (
 	CompletionTypeRelease
 )
 
+func (n *CompletionType) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	switch *n {
+	case CompletionTypeDefault:
+		break
+	case CompletionTypeChain:
+		prefix += " AND CHAIN"
+	case CompletionTypeRelease:
+		prefix += " RELEASE "
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeCompletionType
+	return nil
+
+}
+
 func (n CompletionType) Restore(ctx *format.RestoreCtx) error {
 	switch n {
 	case CompletionTypeDefault:
@@ -633,6 +1097,24 @@ type CommitStmt struct {
 	stmtNode
 	// CompletionType overwrites system variable `completion_type` within transaction
 	CompletionType CompletionType
+}
+
+func (n *CommitStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "COMMIT"
+	lNode := n.CompletionType.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeCommitStmt
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -662,6 +1144,25 @@ type RollbackStmt struct {
 	CompletionType CompletionType
 }
 
+func (n *RollbackStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "ROLLBACK"
+	lNode := n.CompletionType.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeRollbackStmt
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *RollbackStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("ROLLBACK")
@@ -687,6 +1188,30 @@ type UseStmt struct {
 	stmtNode
 
 	DBName string
+}
+
+func (n *UseStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "USE "
+	dbNameNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataDatabaseName,
+		Str:      n.DBName,
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    dbNameNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeUseStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -727,6 +1252,66 @@ type VariableAssignment struct {
 	// For SetCharsetStmt, Value is charset, ExtendValue is collation.
 	// TODO: Use SetStmt to implement set password statement.
 	ExtendValue ValueExpr
+}
+
+func (n *VariableAssignment) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	midfix := ""
+	var lNode *sql_ir.SqlRsgIR = nil
+
+	if n.IsSystem {
+		prefix += "@@"
+		if n.IsGlobal {
+			prefix += "GLOBAL"
+		} else {
+			prefix += "SESSION"
+		}
+		prefix += "."
+	} else if n.Name != SetNames && n.Name != SetCharset {
+		prefix += "@"
+	}
+	if n.Name == SetNames {
+		prefix += "NAMES "
+	} else if n.Name == SetCharset {
+		prefix += "CHARSET "
+	} else {
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataVariableName,
+			Str:      n.Name,
+			Depth:    depth,
+		}
+		midfix = " = "
+	}
+
+	rNode := n.Value.LogCurrentNode(depth + 1)
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	if n.ExtendValue != nil {
+		midfix = " COLLATE "
+		rNode = n.ExtendValue.LogCurrentNode(depth + 1)
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    rNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeVariableAssignment
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -814,6 +1399,155 @@ type FlushStmt struct {
 	Tables          []*TableName // For FlushTableStmt, if Tables is empty, it means flush all tables.
 	ReadLock        bool
 	Plugins         []string
+}
+
+func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+
+	prefix := "FLUSH "
+	if n.NoWriteToBinLog {
+		prefix += "NO_WRITE_TO_BINLOG "
+	}
+
+	switch n.Tp {
+	case FlushTables:
+		prefix += "TABLES"
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, v := range n.Tables {
+			midfix := " "
+			if i == 0 {
+				midfix = " "
+			} else {
+				midfix = ", "
+			}
+
+			vNode := v.LogCurrentNode(depth + 1)
+
+			if i == 0 {
+				tmpRootNode.LNode = vNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    midfix,
+					Depth:    depth,
+				}
+			}
+		}
+
+		midfix := ""
+		if n.ReadLock {
+			midfix = " WITH READ LOCK"
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    tmpRootNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		prefix = ""
+		midfix = "''"
+
+	case FlushPrivileges:
+		prefix += "PRIVILEGES"
+		rootNode.Prefix = prefix
+		prefix = ""
+
+	case FlushStatus:
+		prefix += "STATUS"
+		rootNode.Prefix = prefix
+		prefix = ""
+
+	case FlushTiDBPlugin:
+		prefix += "TIDB PLUGINS"
+
+		tmpRootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, v := range n.Plugins {
+			tmpMidfix := ""
+			if i == 0 {
+				tmpMidfix = " "
+			} else {
+				tmpMidfix = ", "
+			}
+			vNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataNone,
+				Str:      v,
+				Depth:    depth,
+			}
+
+			if i == 0 {
+				tmpRootNode.LNode = vNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    vNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+
+			rootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				Prefix:   prefix,
+				Depth:    depth,
+			}
+
+			prefix = ""
+		}
+	case FlushHosts:
+		prefix += "HOSTS"
+		rootNode.Prefix = prefix
+		prefix = ""
+	case FlushLogs:
+		switch n.LogType {
+		case LogTypeDefault:
+			prefix += "LOGS"
+		case LogTypeBinary:
+			prefix += "BINARY LOGS"
+		case LogTypeEngine:
+			prefix += "ENGINE LOGS"
+		case LogTypeError:
+			prefix += "ERROR LOGS"
+		case LogTypeGeneral:
+			prefix += "GENERAL LOGS"
+		case LogTypeSlow:
+			prefix += "SLOW LOGS"
+		}
+		rootNode.Prefix = prefix
+		prefix = ""
+	case FlushClientErrorsSummary:
+		prefix += "CLIENT_ERRORS_SUMMARY"
+		rootNode.Prefix = prefix
+		prefix = ""
+	default:
+		break
+	}
+
+	rootNode.IRType = sql_ir.TypeFlushStmt
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -909,6 +1643,38 @@ type KillStmt struct {
 	TiDBExtension bool
 }
 
+func (n *KillStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "KILL"
+	if n.TiDBExtension {
+		prefix += " TIDB"
+	}
+	if n.Query {
+		prefix += " QUERY "
+	}
+
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		IValue:   int64(n.ConnectionID),
+		Str:      strconv.FormatInt(int64(n.ConnectionID), 10),
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeKillStmt
+
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *KillStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("KILL")
@@ -937,6 +1703,49 @@ type SetStmt struct {
 	stmtNode
 	// Variables is the list of variable assignment.
 	Variables []*VariableAssignment
+}
+
+func (n *SetStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "SET "
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, v := range n.Variables {
+		midfix := ""
+		if i != 0 {
+			midfix = ", "
+		}
+		vNode := v.LogCurrentNode(depth + 1)
+		if i == 0 {
+			tmpRootNode.LNode = vNode
+		} else {
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    vNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    tmpRootNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSetStmt
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -978,6 +1787,38 @@ type SetConfigStmt struct {
 	Instance string // '127.0.0.1:3306'
 	Name     string // the variable name
 	Value    ExprNode
+}
+
+func (n *SetConfigStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "SET CONFIG "
+	if n.Type != "" {
+		prefix += n.Type
+	} else {
+		prefix += n.Instance
+	}
+	prefix += " "
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeIdentifier,
+		DataType: sql_ir.DataVariableName,
+		Str:      n.Name,
+		Depth:    depth,
+	}
+	midfix := " = "
+	rNode := n.Value.LogCurrentNode(depth + 1)
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSetConfigStmt
+	return rootNode
+
 }
 
 func (n *SetConfigStmt) Restore(ctx *format.RestoreCtx) error {
@@ -1037,6 +1878,46 @@ type SetPwdStmt struct {
 	Password string
 }
 
+func (n *SetPwdStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	prefix := "SET PASSWORD"
+
+	if n.User != nil {
+		prefix += " FOR "
+		lNode := n.User.LogCurrentNode(depth + 1)
+		rootNode.LNode = lNode
+	}
+
+	rootNode.Prefix = prefix
+	prefix = ""
+
+	midfix := " = "
+	rNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeStringLiteral,
+		DataType: sql_ir.DataNone,
+		Str:      n.Password,
+		Depth:    depth,
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSetPwdStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *SetPwdStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("SET PASSWORD")
@@ -1072,6 +1953,22 @@ type ChangeStmt struct {
 	NodeType string
 	State    string
 	NodeID   string
+}
+
+func (n *ChangeStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "CHANGE " + n.NodeType + " TO NODE_STATE = " + n.State + " FOR NODE_ID " + n.NodeID
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeChangeStmt
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -1120,6 +2017,55 @@ type SetRoleStmt struct {
 	RoleList   []*auth.RoleIdentity
 }
 
+func (n *SetRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "SET ROLE"
+	switch n.SetRoleOpt {
+	case SetRoleDefault:
+		prefix += "SET ROLE DEFAULT "
+	case SetRoleNone:
+		prefix += " NONE "
+	case SetRoleAll:
+		prefix += " ALL "
+	case SetRoleAllExcept:
+		prefix += " ALL EXCEPT "
+	}
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, role := range n.RoleList {
+		roleNode := role.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			tmpRootNode.LNode = roleNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    roleNode,
+				Infix:    ", ",
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    tmpRootNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSetRoleStmt
+
+	return rootNode
+}
+
 func (n *SetRoleStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("SET ROLE")
 	switch n.SetRoleOpt {
@@ -1161,6 +2107,93 @@ type SetDefaultRoleStmt struct {
 	SetRoleOpt SetRoleStmtType
 	RoleList   []*auth.RoleIdentity
 	UserList   []*auth.UserIdentity
+}
+
+func (n *SetDefaultRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "SET DEFAULT ROLE"
+	switch n.SetRoleOpt {
+	case SetRoleNone:
+		prefix += " NONE"
+	case SetRoleAll:
+		prefix += " ALL"
+	default:
+	}
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, role := range n.RoleList {
+		midfix := " "
+		if i > 0 {
+			midfix = ", "
+		}
+		roleNode := role.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			tmpRootNode.LNode = roleNode
+			tmpRootNode.Infix = midfix
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    roleNode,
+				Infix:    midfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    tmpRootNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+	prefix = ""
+
+	midfix := " TO"
+	tmpRootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, user := range n.UserList {
+		tmpMidfix := " "
+		if i > 0 {
+			tmpMidfix = ", "
+		}
+		userNode := user.LogCurrentNode(depth + 1)
+		if i == 0 {
+			tmpRootNode.LNode = userNode
+			tmpRootNode.Infix = midfix
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    userNode,
+				Infix:    tmpMidfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeSetDefaultRoleStmt
+	return rootNode
 }
 
 func (n *SetDefaultRoleStmt) Restore(ctx *format.RestoreCtx) error {
@@ -1211,6 +2244,31 @@ type UserSpec struct {
 	User    *auth.UserIdentity
 	AuthOpt *AuthOption
 	IsRole  bool
+}
+
+func (n *UserSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	lNode := n.User.LogCurrentNode(depth + 1)
+	midfix := ""
+	var rNode *sql_ir.SqlRsgIR
+
+	if n.AuthOpt != nil {
+		midfix = " "
+		rNode = n.AuthOpt.LogCurrentNode(depth + 1)
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeUserSpec
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -1297,6 +2355,40 @@ type TLSOption struct {
 	Value string
 }
 
+func (n *TLSOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	switch n.Type {
+	case TlsNone:
+		prefix += "NONE"
+	case Ssl:
+		prefix += "SSL"
+	case X509:
+		prefix += "X509"
+	case Cipher:
+		prefix += "CIPHER " + n.Value
+	case Issuer:
+		prefix += "ISSUER " + n.Value
+	case Subject:
+		prefix += "SUBJECT " + n.Value
+	case SAN:
+		prefix += "SAN " + n.Value
+	default:
+		break
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeTLSOption
+	return rootNode
+
+}
+
 func (t *TLSOption) Restore(ctx *format.RestoreCtx) error {
 	switch t.Type {
 	case TlsNone:
@@ -1333,6 +2425,41 @@ const (
 type ResourceOption struct {
 	Type  int
 	Count int64
+}
+
+func (n *ResourceOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	switch n.Type {
+	case MaxQueriesPerHour:
+		prefix += "MAX_QUERIES_PER_HOUR "
+	case MaxUpdatesPerHour:
+		prefix += "MAX_UPDATES_PER_HOUR  "
+	case MaxConnectionsPerHour:
+		prefix += "MAX_CONNECTIONS_PER_HOUR "
+	case MaxUserConnections:
+		prefix += "MAX_USER_CONNECTIONS "
+	default:
+		break
+	}
+	lNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		IValue:   int64(n.Count),
+		Str:      strconv.FormatInt(int64(n.Count), 10),
+		Depth:    depth,
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeResourceOption
+	return rootNode
 }
 
 func (r *ResourceOption) Restore(ctx *format.RestoreCtx) error {
@@ -1808,9 +2935,10 @@ type StatisticsSpec struct {
 
 // CreateStatisticsStmt is a statement to create extended statistics.
 // Examples:
-//   CREATE STATISTICS stats1 (cardinality) ON t(a, b, c);
-//   CREATE STATISTICS stats2 (dependency) ON t(a, b);
-//   CREATE STATISTICS stats3 (correlation) ON t(a, b);
+//
+//	CREATE STATISTICS stats1 (cardinality) ON t(a, b, c);
+//	CREATE STATISTICS stats2 (dependency) ON t(a, b);
+//	CREATE STATISTICS stats3 (correlation) ON t(a, b);
 type CreateStatisticsStmt struct {
 	stmtNode
 
@@ -1878,7 +3006,8 @@ func (n *CreateStatisticsStmt) Accept(v Visitor) (Node, bool) {
 
 // DropStatisticsStmt is a statement to drop extended statistics.
 // Examples:
-//   DROP STATISTICS stats1;
+//
+//	DROP STATISTICS stats1;
 type DropStatisticsStmt struct {
 	stmtNode
 
@@ -2009,6 +3138,7 @@ const (
 )
 
 // ShowSlow is used for the following command:
+//
 //	admin show slow top [ internal | all] N
 //	admin show slow recent N
 type ShowSlow struct {
