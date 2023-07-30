@@ -199,6 +199,9 @@ const (
 	TypeShowImportStmt
 	TypeHintTable
 	TypeTableOptimizerHint
+	TypeAnalyzeTableStmt
+	TypeDropStatsStmt
+	TypeLoadStatsStmt
 )
 
 const (

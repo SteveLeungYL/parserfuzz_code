@@ -17,6 +17,8 @@ import (
 	"github.com/pingcap/errors"
 	"github.com/pingcap/tidb/parser/format"
 	"github.com/pingcap/tidb/parser/model"
+	"github.com/pingcap/tidb/parser/sql_ir"
+	"strconv"
 )
 
 var (
@@ -93,6 +95,303 @@ func (hot HistogramOperationType) String() string {
 type AnalyzeOpt struct {
 	Type  AnalyzeOptionType
 	Value ValueExpr
+}
+
+func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	if n.Incremental {
+		prefix += "ANALYZE INCREMENTAL TABLE "
+	} else {
+		prefix += "ANALYZE TABLE "
+	}
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, table := range n.TableNames {
+		tmpMidfix := ""
+		if i != 0 {
+			tmpMidfix = ","
+		}
+		tableNode := table.LogCurrentNode(depth + 1)
+
+		if i == 0 {
+			tmpRootNode.LNode = tableNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    tableNode,
+				Infix:    tmpMidfix,
+				Depth:    depth,
+			}
+		}
+	}
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    tmpRootNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	midfix := ""
+	if len(n.PartitionNames) != 0 {
+		midfix = " PARTITION "
+	}
+	tmpRootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, partition := range n.PartitionNames {
+		tmpMidfix := ""
+		if i != 0 {
+			tmpMidfix = ", "
+		}
+		partitionNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataPartitionName,
+			Str:      partition.O,
+			Depth:    depth,
+		}
+		if i == 0 {
+			tmpRootNode.LNode = partitionNode
+		} else {
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    partitionNode,
+				Infix:    tmpMidfix,
+				Depth:    depth,
+			}
+		}
+	}
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+	midfix = ""
+
+	tmpRootNode = nil
+	if n.HistogramOperation != HistogramOperationNop {
+		midfix += " " + (n.HistogramOperation.String()) + " "
+		if len(n.ColumnNames) > 0 {
+			midfix += "ON "
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				Depth:    depth,
+			}
+			for i, columnName := range n.ColumnNames {
+				tmpMidfix := ""
+				if i != 0 {
+					tmpMidfix = ","
+				}
+				columnNameNode := &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeIdentifier,
+					DataType: sql_ir.DataColumnName,
+					Str:      columnName.O,
+					Depth:    depth,
+				}
+				if i == 0 {
+					tmpRootNode.LNode = columnNameNode
+				} else { // i > 0
+					tmpRootNode = &sql_ir.SqlRsgIR{
+						IRType:   sql_ir.TypeUnknown,
+						DataType: sql_ir.DataNone,
+						LNode:    tmpRootNode,
+						RNode:    columnNameNode,
+						Infix:    tmpMidfix,
+						Depth:    depth,
+					}
+				}
+			}
+		}
+	}
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	midfix = ""
+
+	switch n.ColumnChoice {
+	case model.AllColumns:
+		midfix = " ALL COLUMNS"
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	case model.PredicateColumns:
+		midfix = " PREDICATE COLUMNS"
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	case model.ColumnList:
+		midfix = " COLUMNS "
+		tmpRootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, columnName := range n.ColumnNames {
+			tmpMidfix := ""
+			if i != 0 {
+				tmpMidfix = ","
+			}
+			columnName := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIdentifier,
+				DataType: sql_ir.DataColumnName,
+				Str:      columnName.O,
+				Depth:    depth,
+			}
+
+			if i == 0 {
+				tmpRootNode.LNode = columnName
+			} else {
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    columnName,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+
+		midfix = ""
+	}
+
+	midfix = ""
+	if n.IndexFlag {
+		midfix += " INDEX"
+	}
+
+	tmpRootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, index := range n.IndexNames {
+		tmpMidfix := ""
+		if i != 0 {
+			tmpMidfix = ","
+		} else {
+			tmpMidfix = " "
+		}
+		indexNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataIndexName,
+			Str:      index.O,
+			Depth:    depth,
+		}
+		if i == 0 {
+			tmpRootNode.LNode = indexNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    indexNode,
+				Infix:    tmpMidfix,
+				Depth:    depth,
+			}
+		}
+	}
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		RNode:    tmpRootNode,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	midfix = ""
+	if len(n.AnalyzeOpts) != 0 {
+		midfix = " WITH"
+		tmpRootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			Depth:    depth,
+		}
+		for i, opt := range n.AnalyzeOpts {
+			tmpMidfix := ""
+			if i != 0 {
+				tmpMidfix = ","
+			}
+			valueNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				IValue:   0,
+				Str:      strconv.FormatInt(int64(0), 10),
+				Depth:    depth,
+			}
+			tmptmpRootNode := &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    valueNode,
+				Infix:    AnalyzeOptionString[opt.Type],
+				Depth:    depth,
+			}
+			if i == 0 {
+				tmpRootNode.LNode = tmptmpRootNode
+			} else { // i > 0
+				tmpRootNode = &sql_ir.SqlRsgIR{
+					IRType:   sql_ir.TypeUnknown,
+					DataType: sql_ir.DataNone,
+					LNode:    tmpRootNode,
+					RNode:    tmptmpRootNode,
+					Infix:    tmpMidfix,
+					Depth:    depth,
+				}
+			}
+		}
+		rootNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    rootNode,
+			RNode:    tmpRootNode,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+	}
+
+	rootNode.IRType = sql_ir.TypeAnalyzeTableStmt
+
+	return rootNode
 }
 
 // Restore implements Node interface.
@@ -197,6 +496,76 @@ type DropStatsStmt struct {
 	IsGlobalStats  bool
 }
 
+func (n *DropStatsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "DROP STATS "
+
+	lNode := n.Table.LogCurrentNode(depth + 1)
+
+	midfix := ""
+	if n.IsGlobalStats {
+		midfix += " GLOBAL"
+		rootNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeUnknown,
+			DataType: sql_ir.DataNone,
+			LNode:    lNode,
+			Prefix:   prefix,
+			Infix:    midfix,
+			Depth:    depth,
+		}
+		rootNode.IRType = sql_ir.TypeDropStatsStmt
+		return rootNode
+	}
+
+	if len(n.PartitionNames) != 0 {
+		midfix += " PARTITION "
+	}
+
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
+	for i, partition := range n.PartitionNames {
+		tmpMidfix := ""
+		if i != 0 {
+			tmpMidfix = ","
+		}
+		partitionNode := &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIdentifier,
+			DataType: sql_ir.DataPartitionName,
+			Str:      partition.O,
+			Depth:    depth,
+		}
+		if i == 0 {
+			tmpRootNode.LNode = partitionNode
+		} else { // i > 0
+			tmpRootNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    tmpRootNode,
+				RNode:    partitionNode,
+				Infix:    tmpMidfix,
+				Depth:    depth,
+			}
+		}
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    tmpRootNode,
+		Prefix:   prefix,
+		Infix:    midfix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeDropStatsStmt
+	return rootNode
+
+}
+
 // Restore implements Node interface.
 func (n *DropStatsStmt) Restore(ctx *format.RestoreCtx) error {
 	ctx.WriteKeyWord("DROP STATS ")
@@ -241,6 +610,20 @@ type LoadStatsStmt struct {
 	stmtNode
 
 	Path string
+}
+
+func (n *LoadStatsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "LOAD STATS " + n.Path
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeLoadStatsStmt
+	return rootNode
 }
 
 // Restore implements Node interface.
