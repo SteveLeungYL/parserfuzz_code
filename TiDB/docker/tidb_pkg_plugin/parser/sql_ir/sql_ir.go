@@ -163,6 +163,42 @@ const (
 	TypeUserSpec
 	TypeTLSOption
 	TypeResourceOption
+	TypePasswordOrLockOption
+	TypeCreateUserStmt
+	TypeAlterUserStmt
+	TypeAlterInstanceStmt
+	TypeDropUserStmt
+	TypeCreateBindingStmt
+	TypeDropBindingStmt
+	TypeSetBindingStmt
+	TypeCreateStatisticsStmt
+	TypeDropStatisticsStmt
+	TypeDoStmt
+	TypeShowSlow
+	TypeAdminStmt
+	TypePrivElem
+	TypeObjectTypeType
+	TypeGrantLevel
+	TypeRevokeStmt
+	TypeRevokeRoleStmt
+	TypeGrantStmt
+	TypeGrantRoleStmt
+	TypeShutdownStmt
+	TypeRestartStmt
+	TypeRenameUserStmt
+	TypeHelpStmt
+	TypeUserToUser
+	TypeBRIEOption
+	TypeBRIEStmt
+	TypePurgeImportStmt
+	TypeCreateImportStmt
+	TypeStopImportStmt
+	TypeResumeImportStmt
+	TypeAlterImportStmt
+	TypeDropImportStmt
+	TypeShowImportStmt
+	TypeHintTable
+	TypeTableOptimizerHint
 )
 
 const (
