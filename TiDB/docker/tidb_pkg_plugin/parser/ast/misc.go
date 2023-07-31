@@ -15,10 +15,8 @@ package ast
 
 import (
 	"bytes"
-	"container/list"
 	"fmt"
 	"net/url"
-	"os/user"
 	"strconv"
 	"strings"
 
@@ -29,7 +27,6 @@ import (
 	"github.com/pingcap/tidb/parser/model"
 	"github.com/pingcap/tidb/parser/mysql"
 	"github.com/pingcap/tidb/parser/sql_ir"
-	"github.com/tiancaiamao/appdash/traceapp/tmpl"
 )
 
 var (
@@ -6296,7 +6293,7 @@ func (n *CreateImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				DataType: sql_ir.DataNone,
 				LNode:    tmpRootNode,
 				RNode:    optNode,
-				Infix:    " ",
+				Infix:    midfix,
 				Depth:    depth,
 			}
 		}

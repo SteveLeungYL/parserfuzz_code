@@ -22,7 +22,6 @@ import (
 	"github.com/pingcap/tidb/parser/model"
 	"github.com/pingcap/tidb/parser/mysql"
 	"github.com/pingcap/tidb/parser/sql_ir"
-	"github.com/tiancaiamao/appdash/traceapp/tmpl"
 )
 
 var (

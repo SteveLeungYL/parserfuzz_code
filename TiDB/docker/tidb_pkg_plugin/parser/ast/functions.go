@@ -492,7 +492,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 		midfix = " "
 		rNode = n.Args[2].LogCurrentNode(depth + 1)
-		rootnode = &sql_ir.SqlRsgIR{
+		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
 			LNode:    rootNode,
@@ -503,7 +503,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	case "extract":
 		rNode = n.Args[0].LogCurrentNode(depth + 1)
-		rootnode = &sql_ir.SqlRsgIR{
+		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
 			LNode:    lNode,
