@@ -24,7 +24,7 @@ export CC = g++
 export DEBUG = -g
 export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lmysqlclient
+LDFLAGS = -ldl -lmysqlclient -lpthread
 
 
 all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator unit-test rsg-unit-test

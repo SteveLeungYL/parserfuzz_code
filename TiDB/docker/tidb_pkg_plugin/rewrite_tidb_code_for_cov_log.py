@@ -16,7 +16,7 @@ for cur_line in mod_fd.read().splitlines():
         res_str += "replace github.com/pingcap/tidb/globalcov => ./globalcov\n"
     elif "./parser" in cur_line:
         res_str += "github.com/pingcap/tidb/globalcov => ./globalcov\n"
-    
+
 mod_fd.close()
 
 with open(os.path.join(db_dir, "go.mod"), "w") as mod_fd:
@@ -70,7 +70,7 @@ func TestCov() {
 
 		tmpCtrlReadInt := binary.LittleEndian.Uint32(tmpCtrlRead)
 
-		if tmpCtrlReadInt == 1 {
+		if tmpCtrlReadInt == 3 {
 			// Log the code coverage.
 			globalcov.SaveGlobalCov()
 			// Clean up the coverage log.
@@ -123,7 +123,7 @@ for cur_line in main_test_fd.read().splitlines():
         skip_line -= 1
         continue
     res_str += cur_line + "\n"
-    
+
 main_test_fd.close()
 
 with open(os.path.join(db_dir, "tidb-server/main_test.go"), "w") as main_test_fd:
