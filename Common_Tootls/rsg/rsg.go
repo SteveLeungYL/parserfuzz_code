@@ -866,6 +866,9 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 	} else if dbmsName == "mysqlSquirrel" {
 		// TODO: Implement replaying mode.
 		resStr = r.generateMySQLSquirrel(root, rootPathNode, 0, depth, rootDepth)
+	} else if dbmsName == "tidb" {
+		// TODO: Implement replaying mode.
+		resStr = r.generateTiDB(root, rootPathNode, 0, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))
 	}
@@ -3473,6 +3476,211 @@ func (r *RSG) generateCockroach(root string, rootPathNode *PathNode, parentHash 
 					replayExprIdx += 1
 					// We won't decrease depth number in replaying mode.
 					v = r.generateCockroach(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+				}
+
+			}
+			if v == nil {
+				fmt.Printf("\n\n\nError: v == nil in the RSG. Root: %s, item: %s\n\n\n", root, item.Value)
+				return nil
+			}
+			ret = append(ret, v...)
+		default:
+			panic("unknown item type")
+		}
+	}
+	return ret
+}
+
+func (r *RSG) generateTiDB(root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
+
+	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
+	replayingMode := false
+	isChooseCompRule := false
+	isFavPathNode := false
+
+	if rootPathNode == nil {
+		fmt.Printf("\n\n\nError: rootPathNode is nil. \n\n\n")
+		// Return nil is different from return an empty array.
+		// Return nil represent error.
+		return nil
+	}
+
+	if len(r.allProds[root]) == 0 {
+		fmt.Printf("Error: Getting empty r.allProds[root], root is: %s\n", root)
+		ret := make([]string, 0)
+		ret = append(ret, root)
+		return ret
+	}
+
+	// Initialize to an empty slice instead of nil because nil means error.
+	ret := make([]string, 0)
+
+	//fmt.Printf("\n\n\n From root: %s, getting allProds size: %d, depth: %d \n\n\n", root, len(r.allProds[root]), depth)
+	var curChosenRule *yacc.ExpressionNode
+	if rootPathNode.ExprProds == nil {
+		// Not in the replaying mode, choose one node using MABChooseARM and proceed.
+		replayingMode = false
+
+		curRuleSet := r.PrioritizeParserRules(root, parentHash, depth)
+
+		curChosenRule = r.MABChooseArm(curRuleSet)
+
+		// Mark the current parent to child rule as triggered.
+		r.MarkEdgeCov(parentHash, curChosenRule.UniqueHash)
+
+		// Check whether all rules in the current root keyword is triggered.
+		// If not all are triggered, set is isFav = true
+		isFavPathNode = r.CheckIsFav(root, parentHash)
+
+		// Check whether the chosen rule is complex rule, i.e., select, expr, nexpr etc.
+		for _, val := range r.allCompProds[root] {
+			if val == curChosenRule {
+				//fmt.Printf("\n\n\nDebugging: Complex rule matched: val: %v, curChosenRule: %v\n\n\n", val.Items, curChosenRule.Items)
+				isChooseCompRule = true
+				break
+			}
+		}
+		rootPathNode.ExprProds = curChosenRule
+		rootPathNode.Children = []*PathNode{}
+	} else {
+		// Replay mode, directly reuse the previous chosen rule.
+		replayingMode = true
+		curChosenRule = rootPathNode.ExprProds
+	}
+
+	if curChosenRule == nil {
+		fmt.Printf("\n\n\nERROR: getting nil curChosenRule. \n\n\n")
+		return nil
+	}
+
+	rootHash := curChosenRule.UniqueHash
+
+	replayExprIdx := 0
+
+	for _, item := range curChosenRule.Items {
+		switch item.Typ {
+		case yacc.TypLiteral:
+			v := item.Value[1 : len(item.Value)-1]
+			ret = append(ret, v)
+			continue
+		case yacc.TypToken:
+
+			var v []string
+			tokenStr := item.Value
+
+			if depth < 0 {
+				if tokenStr == "SelectStmt" {
+					ret = append(ret, " SELECT 'abc' ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "Expression" {
+					ret = append(ret, " True ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "SimpleExpr" {
+					ret = append(ret, " True ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				}
+			}
+
+			switch tokenStr {
+			case "Identifier":
+				v = []string{"v0"}
+
+			case "StringLiteral":
+				v = []string{`'string'`}
+			case "stringLit":
+				v = []string{`'string'`}
+			case "not":
+				v = []string{"NOT"}
+			case "not2":
+				v = []string{"NOT"}
+			case "falseKwd":
+				v = []string{"FALSE"}
+			case "trueKwd":
+				v = []string{"TRUE"}
+			case "intLit":
+				v = []string{fmt.Sprint(r.Intn(1000) - 500)}
+			case "floatLit":
+				v = []string{fmt.Sprint(r.Float64())}
+			case "decLit":
+				v = []string{fmt.Sprint(r.Float64())}
+			case "BITCONST":
+				v = []string{`B'10010'`}
+			case "andnot":
+				v = []string{"&^"}
+			case "assignmentEq":
+				v = []string{":="}
+			case "eq":
+				v = []string{"="}
+			case "ge":
+				v = []string{">="}
+			case "le":
+				v = []string{"<="}
+			case "jss":
+				v = []string{"->"}
+			case "juss":
+				v = []string{"->>"}
+			case "lsh":
+				v = []string{"<<"}
+			case "neq":
+				v = []string{"!="}
+			case "neqSynonym":
+				v = []string{"<>"}
+			case "nulleq":
+				v = []string{"<=>"}
+			case "paramMarker":
+				v = []string{"?"}
+			case "rsh":
+				v = []string{">>"}
+			default:
+
+				isFirstQuote := false
+				// The only way to get a rune from the string seems to be retrieved from for
+				if item.Value[0] == '"' {
+					isFirstQuote = true
+				}
+
+				if isFirstQuote {
+					ret = append(ret, item.Value)
+					continue
+				}
+
+				var newChildPathNode *PathNode
+				if !replayingMode {
+					newChildPathNode = &PathNode{
+						Id:        r.pathId,
+						Parent:    rootPathNode,
+						ExprProds: nil,
+						Children:  []*PathNode{},
+						IsFav:     isFavPathNode,
+						// Debug
+						//ParentStr: root,
+					}
+					r.pathId += 1
+					rootPathNode.Children = append(rootPathNode.Children, newChildPathNode)
+					if isChooseCompRule {
+						// Choosing the complex rules, depth - 1.
+						v = r.generateTiDB(item.Value, newChildPathNode, rootHash, depth-1, rootDepth)
+					} else {
+						// If not choosing the complex rules, depth not decrease.
+						v = r.generateTiDB(item.Value, newChildPathNode, rootHash, depth, rootDepth)
+					}
+				} else {
+					if replayExprIdx >= len(rootPathNode.Children) {
+						fmt.Printf("\n\n\nERROR: The replaying node is not consistent with the saved structure. \n"+
+							"root: %s, idx: %d, children size: %d"+
+							"\n\n\n", root, replayExprIdx, len(rootPathNode.Children))
+						return nil
+					}
+					newChildPathNode = rootPathNode.Children[replayExprIdx]
+					replayExprIdx += 1
+					// We won't decrease depth number in replaying mode.
+					v = r.generateTiDB(item.Value, newChildPathNode, rootHash, depth, rootDepth)
 				}
 
 			}
