@@ -52,6 +52,9 @@ USER root
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
 RUN apt update
 RUN apt -y install nodejs
+RUN pip3 install psutil
+RUN pip3 install mysql-connector-python mysql-connector-python
+RUN apt -y install libmysqlclient-dev
 
 WORKDIR /home/tidb
 
@@ -96,12 +99,34 @@ WORKDIR /home/tidb/tidb_pkg_plugin/goInst
 RUN go build && cp ./goInstr /home/tidb/go_projects/src/github.com/tidb/tidb/goInstr && cp /home/tidb/tidb_pkg_plugin/inst_script.py /home/tidb/go_projects/src/github.com/tidb/inst_script.py && cp /home/tidb/tidb_pkg_plugin/rewrite_tidb_code_for_cov_log.py /home/tidb/go_projects/src/github.com/tidb/rewrite_tidb_code_for_cov_log.py
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 # Replace the parser folder first, and then rewrite the binary.
-RUN rm -rf ./tidb/parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./tidb/parser && python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
+RUN python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
 
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
 RUN cp -r /home/tidb/tidb_pkg_plugin/globalcov ./globalcov
 RUN make
-RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov
+RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov; cp ../bin/tidb-with-cov /home/tidb/tidb-with-cov
+# Finished the building of the TiDB applicaton.
+
+
+# Build the parser-helper module, and the grammar coverage logging module
+USER tidb
+WORKDIR /home/tidb/go_projects/src/github.com/tidb
+RUN rm -rf tidb && cp -r tidb_ori tidb
+WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb
+RUN rm -rf ./parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./parser && cd ./parser/parser_helper && bash build.sh && cp ./parser_helper.* /home/tidb/tidb_pkg_plugin/
+
+
+
+# Next, build the fuzzer source code.
+COPY src /home/tidb/src
+USER root
+RUN chown -R tidb:tidb /home/tidb/src
+USER tidb
+WORKDIR /home/tidb/tidb_pkg_plugin/rsg/
+RUN bash build.sh
+WORKDIR /home/tidb/src/
+RUN cp /home/tidb/tidb_pkg_plugin/rsg/rsg_helper.* ./rsg/ && cp /home/tidb/tidb_pkg_plugin/parser_helper.* ./parser/
+RUN make -j$(nproc)
 
 USER root
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
