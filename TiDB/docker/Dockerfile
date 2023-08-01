@@ -55,15 +55,15 @@ RUN apt -y install nodejs
 
 WORKDIR /home/tidb
 
-USER tidb 
+USER tidb
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
-# Download the original Go library. Set it up. 
+# Download the original Go library. Set it up.
 RUN wget https://go.dev/dl/go1.20.linux-arm64.tar.gz
 RUN tar -xf go1.20.linux-arm64.tar.gz
 USER root
 RUN cp -r go /usr/local/
-USER tidb 
+USER tidb
 RUN echo 'export PATH="/usr/local/go/bin:$PATH"' >> ~/.bashrc
 RUN echo 'export PATH="/home/tidb/.yarn/bin:$PATH"' >> ~/.bashrc
 ENV PATH="/usr/local/go/bin:$PATH"
@@ -76,10 +76,11 @@ WORKDIR /usr/local/go/src/cmd
 RUN cp -r ./internal/edit ./edit
 
 # No need for AFL. TiDB is a Golang program. Construct the GOPATH folder.
-USER tidb 
+USER tidb
 RUN mkdir -p /home/tidb/go_projects/src/github.com/tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 RUN git clone https://github.com/pingcap/tidb.git
+RUN cd tidb && git checkout v6.1.7
 RUN cp -r tidb tidb_ori
 RUN echo 'export GOPATH="/home/tidb/go_projects"' >> ~/.bashrc
 ENV GOPATH="/home/tidb/go_projects"
@@ -94,11 +95,12 @@ USER tidb
 WORKDIR /home/tidb/tidb_pkg_plugin/goInst
 RUN go build && cp ./goInstr /home/tidb/go_projects/src/github.com/tidb/tidb/goInstr && cp /home/tidb/tidb_pkg_plugin/inst_script.py /home/tidb/go_projects/src/github.com/tidb/inst_script.py && cp /home/tidb/tidb_pkg_plugin/rewrite_tidb_code_for_cov_log.py /home/tidb/go_projects/src/github.com/tidb/rewrite_tidb_code_for_cov_log.py
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
-RUN python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
+# Replace the parser folder first, and then rewrite the binary.
+RUN rm -rf ./tidb/parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./tidb/parser && python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
 
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
 RUN cp -r /home/tidb/tidb_pkg_plugin/globalcov ./globalcov
-RUN make 
+RUN make
 RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov
 
 USER root
