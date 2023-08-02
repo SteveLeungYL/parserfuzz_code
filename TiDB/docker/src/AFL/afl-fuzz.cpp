@@ -118,7 +118,7 @@ using namespace std;
 /* Lots of globals, but mostly for the status UI and other things where it
    really makes no sense to haul them around as function parameters. */
 
-#define INIT_LIB_PATH "./cockroach_initlib"
+#define INIT_LIB_PATH "./tidb_initlib"
 char* g_library_path;
 
 u64 total_input_failed = 0;
@@ -143,6 +143,8 @@ u64 total_instan_succeed_num = 0;
 u64 total_instan_num = 0;
 u64 total_alias_type_error_num = 0;
 u64 total_instan_caused_error_num = 0;
+
+char** global_use_argv = nullptr;
 
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
@@ -465,6 +467,8 @@ enum SQLSTATUS {
 
 static string socket_path = "";
 
+EXP_ST void init_forkserver(char** argv);
+
 class MysqlClient {
   public:
   MysqlClient(const char* host, char* user_name, char* passwd)
@@ -518,6 +522,7 @@ class MysqlClient {
     if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL) {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
+      init_forkserver(global_use_argv);
       return false;
     }
     // database_id++;
@@ -8002,6 +8007,7 @@ int main(int argc, char** argv)
         sync_fuzzers(use_argv);
     }
 
+    global_use_argv = use_argv;
     skipped_fuzz = fuzz_one(use_argv);
 
     if (!stop_soon && sync_id && !skipped_fuzz) {

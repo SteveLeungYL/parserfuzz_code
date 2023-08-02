@@ -12,11 +12,11 @@ using std::string;
  */
 
 void rsg_initialize() {
-  const string parser_file_str = "./cockroach_sql_modi.y";
+  const string parser_file_str = "./tidb_parser_modi.y";
   GoString parser_file_gostr = {parser_file_str.c_str(),
                                 long(parser_file_str.size())};
 
-  const string dbms_name = "cockroachdb";
+  const string dbms_name = "tidb";
   GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
 
   RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3);
@@ -35,7 +35,7 @@ string rsg_generate(const string& input_str) {
 
     GoString gostr_input = {input_str.c_str(), long(input_str.size())};
 
-    const string dbms_name_str = "cockroachdb";
+    const string dbms_name_str = "tidb";
     GoString dbms_name = {dbms_name_str.c_str(), long(dbms_name_str.size())};
 
     // Actual Parsing.
