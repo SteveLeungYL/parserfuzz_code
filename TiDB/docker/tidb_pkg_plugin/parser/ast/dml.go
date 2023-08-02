@@ -1974,7 +1974,7 @@ func (n *CommonTableExpression) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 			colNameNode := &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataColumnName, // TODO:: Should be DataColumnName or DataColumnAliasName?
+				DataType: sql_ir.DataColumnAliasName,
 				Str:      name.String(),
 				Depth:    depth,
 			}
@@ -4116,6 +4116,8 @@ func (n *InsertStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				}
 			}
 		}
+
+		tmpRootNode.IRType = sql_ir.TypeValuesClause
 
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,

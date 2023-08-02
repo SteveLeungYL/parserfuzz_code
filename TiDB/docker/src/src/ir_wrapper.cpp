@@ -21,25 +21,18 @@ bool IRWrapper::is_in_subquery(IR *cur_stmt, IR *check_node,
     } else if (cur_iter->type_ ==
                TypeStmt) { // Iter to the parent node. This is Not a subquery.
       return false;
-    } else if (cur_iter->get_ir_type() == TypeSelect &&
+    } else if (cur_iter->get_ir_type() == TypeSelectStmt &&
                cur_iter->get_parent() != NULL &&
                cur_iter->get_parent()->get_ir_type() != TypeStmt) {
-      // cerr << "Debug: for " << cur_iter->to_string() << ", kSelectStmt return
-      // true. returns " << get_parent_type_str(cur_iter) << "\n";
       return true; // In a subquery.
-    } else if (cur_iter->get_ir_type() == TypeParenSelect &&
-               cur_iter->get_parent() != NULL &&
-               cur_iter->get_parent()->get_ir_type() != TypeSelectClause &&
-               cur_iter->get_parent()->get_ir_type() != TypeSelect &&
-               cur_iter->get_parent()->get_ir_type() != TypeParenSelect) {
-      // cerr << "Debug: for " << cur_iter->to_string() << ", kSelectWithParens
-      // return true \n";
+    } else if (cur_iter->get_ir_type() == TypeSubqueryExpr &&
+               cur_iter->get_parent() != NULL) {
       return true; // In a subquery.
     }
     cur_iter =
         cur_iter
             ->get_parent(); // Assuming cur_iter->get_parent() will always get
-                            // to kStatementList. Otherwise, it would be error.
+                            // to TypeStmt. Otherwise, it would be error.
     continue;
   }
   /* Unexpected, should not happen. */
@@ -643,7 +636,7 @@ IR *IRWrapper::get_p_parent_with_a_type(IR *cur_IR, int depth) {
 
 bool IRWrapper::is_exist_group_clause(IR *cur_stmt) {
   vector<IR *> v_group_clause =
-      get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
+      get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupByClause, false);
   for (IR *group_clause : v_group_clause) {
     if (!group_clause->is_empty()) {
       return true;
@@ -654,7 +647,7 @@ bool IRWrapper::is_exist_group_clause(IR *cur_stmt) {
 
 bool IRWrapper::is_exist_having_clause(IR *cur_stmt) {
   vector<IR *> v_having_clause =
-      get_ir_node_in_stmt_with_type(cur_stmt, TypeHaving, false);
+      get_ir_node_in_stmt_with_type(cur_stmt, TypeHavingClause, false);
   for (IR *having_clause : v_having_clause) {
     if (!having_clause->is_empty()) {
       return true;
@@ -665,7 +658,7 @@ bool IRWrapper::is_exist_having_clause(IR *cur_stmt) {
 
 bool IRWrapper::is_exist_limit_clause(IR *cur_stmt) {
   vector<IR *> v_limit_clause =
-      get_ir_node_in_stmt_with_type(cur_stmt, TypeLimitCluster, false);
+      get_ir_node_in_stmt_with_type(cur_stmt, TypeLimit, false);
   for (IR *limit_clause : v_limit_clause) {
     if (!limit_clause->is_empty()) {
       return true;
@@ -679,14 +672,9 @@ bool IRWrapper::is_exist_UNION_SELECT(IR *cur_stmt) {
     cerr << "Error: Given cur_stmt is NULL. \n";
     return false;
   }
-  // Do not ignore suffix.
-  vector<IR *> v_simple_select = get_ir_node_in_stmt_with_type(
-      cur_stmt, TypeUnionClause, false, false, false);
-  for (IR *cur_simple_select : v_simple_select) {
-    if (cur_simple_select->get_middle() == "UNION" ||
-        cur_simple_select->get_middle() == "UNION ALL") {
-      return true;
-    }
+  string to_str = cur_stmt->to_string();
+  if (findStringIn(to_str, "UNION")) {
+    return true;
   }
   return false;
 }
@@ -696,14 +684,9 @@ bool IRWrapper::is_exist_INTERSECT_SELECT(IR *cur_stmt) {
     cerr << "Error: Given cur_stmt is NULL. \n";
     return false;
   }
-  // Do not ignore suffix.
-  vector<IR *> v_simple_select = get_ir_node_in_stmt_with_type(
-      cur_stmt, TypeUnionClause, false, false, false);
-  for (IR *cur_simple_select : v_simple_select) {
-    if (cur_simple_select->get_middle() == "INTERSECT" ||
-        cur_simple_select->get_middle() == "INTERSECT ALL") {
-      return true;
-    }
+  string to_str = cur_stmt->to_string();
+  if (findStringIn(to_str, "INTERSECT") || findStringIn(to_str, "INTERSECT ALL")) {
+    return true;
   }
   return false;
 }
@@ -713,14 +696,9 @@ bool IRWrapper::is_exist_EXCEPT_SELECT(IR *cur_stmt) {
     cerr << "Error: Given cur_stmt is NULL. \n";
     return false;
   }
-  // Do not ignore suffix.
-  vector<IR *> v_simple_select = get_ir_node_in_stmt_with_type(
-      cur_stmt, TypeUnionClause, false, false, false);
-  for (IR *cur_simple_select : v_simple_select) {
-    if (cur_simple_select->get_middle() == "EXCEPT" ||
-        cur_simple_select->get_middle() == "EXCEPT ALL") {
-      return true;
-    }
+  string to_str = cur_stmt->to_string();
+  if (findStringIn(to_str, "EXCEPT") || findStringIn(to_str, "EXCEPT ALL")) {
+    return true;
   }
   return false;
 }
@@ -729,24 +707,6 @@ bool IRWrapper::is_exist_set_operator(IR *cur_stmt) {
   return is_exist_UNION_SELECT(cur_stmt) ||
          is_exist_INTERSECT_SELECT(cur_stmt) ||
          is_exist_EXCEPT_SELECT(cur_stmt);
-}
-
-vector<IR *> IRWrapper::get_select_exprs(IR *cur_stmt) {
-  vector<IR *> res_vec;
-
-  vector<IR *> select_exprs_list =
-      this->get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
-
-  if (select_exprs_list.size() > 0) {
-    IR *cur_list = select_exprs_list[0];
-    if (cur_list->get_right()) {
-      res_vec.push_back(cur_list->get_right());
-    } else {
-      res_vec.push_back(cur_list->get_left());
-    }
-  }
-
-  return res_vec;
 }
 
 IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR *cur_ir) {
@@ -846,35 +806,4 @@ void IRWrapper::iter_cur_node_with_handler(IR *cur_node, handler_t handler) {
   }
 
   return;
-}
-
-vector<IR *> IRWrapper::get_expr_vec_from_expr_list(IR *expr_list) {
-
-  if (expr_list->get_ir_type() != TypeExprs) {
-    cerr << "ERROR: Not getting TypeExprs from get_expr_vec_from_expr_list, "
-            "getting: "
-         << get_string_by_ir_type(expr_list->get_ir_type()) << "\n\n\n";
-    return {};
-  }
-
-  vector<IR *> tmp_vec;
-  vector<IR *> res_vec;
-  IR *cur_expr_node = expr_list;
-
-  while (cur_expr_node && cur_expr_node->get_ir_type() == TypeExprs) {
-    tmp_vec.push_back(cur_expr_node);
-    cur_expr_node = cur_expr_node->get_left();
-  }
-
-  res_vec.push_back(cur_expr_node);
-
-  while (tmp_vec.size()) {
-    cur_expr_node = tmp_vec.back();
-    tmp_vec.pop_back();
-    if (cur_expr_node && cur_expr_node->get_right()) {
-      res_vec.push_back(cur_expr_node->get_right());
-    }
-  }
-
-  return res_vec;
 }

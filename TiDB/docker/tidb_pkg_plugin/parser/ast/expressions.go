@@ -119,6 +119,15 @@ func (n *BetweenExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Infix:    midfix,
 		Depth:    depth,
 	}
+
+	rootNode.IRType = sql_ir.TypeBetweenExpr
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 	return rootNode
 
 }
@@ -261,6 +270,15 @@ func (n *BinaryOperationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	rootNode.Suffix = ")"
 
 	rootNode.IRType = sql_ir.TypeBinaryOperationExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 }
@@ -444,6 +462,14 @@ func (n *CaseExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	rootNode.Suffix = " END"
 	rootNode.IRType = sql_ir.TypeCaseExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -558,6 +584,14 @@ func (n *SubqueryExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeSubqueryExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -642,6 +676,14 @@ func (n *CompareSubqueryExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeCompareSubqueryExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -709,6 +751,14 @@ func (n *TableNameExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeTableNameExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 
@@ -894,6 +944,14 @@ func (n *ColumnNameExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeColumnNameExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -957,6 +1015,14 @@ func (n *DefaultExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeDefaultExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 }
 
@@ -1018,6 +1084,14 @@ func (n *ExistsSubqueryExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeExistsSubqueryExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 
@@ -1138,6 +1212,14 @@ func (n *PatternInExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypePatternInExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1247,6 +1329,15 @@ func (n *IsNullExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeIsNullExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1322,6 +1413,17 @@ func (n *IsTruthExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Infix:    midfix,
 		Depth:    depth,
 	}
+
+	rootNode.IRType = sql_ir.TypeIsTruthExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1435,6 +1537,15 @@ func (n *PatternLikeExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypePatternLikeExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1533,6 +1644,15 @@ func (n *ParenthesesExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeParenthesesExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1602,6 +1722,13 @@ func (n *PositionExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypePositionExpr
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 
@@ -1674,6 +1801,15 @@ func (n *PatternRegexpExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypePatternRegexpExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1769,6 +1905,14 @@ func (n *RowExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	rootNode.Suffix = suffix
 	rootNode.IRType = sql_ir.TypeRowExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1835,6 +1979,14 @@ func (n *UnaryOperationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeUnaryOperationExpr
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 
 }
@@ -1894,6 +2046,14 @@ func (n *ValuesExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeValuesExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 
@@ -1990,6 +2150,14 @@ func (n *VariableExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeVariableExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 
 	return rootNode
 
@@ -2155,6 +2323,14 @@ func (n *MatchAgainst) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	rootNode.IRType = sql_ir.TypeMatchAgainst
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
+
 	return rootNode
 }
 
@@ -2257,6 +2433,14 @@ func (n *SetCollationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rootNode.IRType = sql_ir.TypeSetCollationExpr
+
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
+	rootNode.IRType = sql_ir.TypeExpr
 	return rootNode
 
 }

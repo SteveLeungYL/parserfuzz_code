@@ -193,7 +193,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
       cur_root->deep_drop();
       return res_vec;
     }
-    if (new_stmt_ir->get_left()->get_ir_type() == TypeSelect) {
+    if (new_stmt_ir->get_left()->get_ir_type() == TypeSelectStmt) {
       new_stmt_ir->deep_drop();
       new_stmt_ir = NULL;
     }
@@ -437,7 +437,7 @@ void Mutator::init_library() {
     string_types_.insert(TypeStringLiteral);
 
     split_stmt_types_.insert(TypeStmt);
-    split_substmt_types_.insert({TypeSelect});
+    split_substmt_types_.insert({TypeSelectStmt});
 
     not_mutatable_types_.insert({TypeRoot, TypeStmtList, TypeStmt});
 
@@ -763,9 +763,10 @@ void Mutator::_extract_struct(IR *root) {
   } else if (root->get_ir_type() == TypeStringLiteral) {
     root->str_val_ = "0";
     return;
-  } else if (root->get_ir_type() == TypeDBool) {
-    root->str_val_ = "0";
-    return;
+    /* Does not use the TypeDBool in the */
+//  } else if (root->get_ir_type() == TypeDBool) {
+//    root->str_val_ = "0";
+//    return;
   }
 
   if (root->left_ || root->right_ || root->data_type_ == DataFunctionName)
@@ -799,7 +800,7 @@ string Mutator::extract_struct_deep(IR *root) {
   string res = "";
 
   vector<IR *> ir_to_deep_drop;
-  this->remove_type_annotation(root, ir_to_deep_drop);
+//  this->remove_type_annotation(root, ir_to_deep_drop);
   for (auto cur_ir : ir_to_deep_drop) {
     cur_ir->deep_drop();
   }
@@ -814,7 +815,7 @@ void Mutator::_extract_struct_deep(IR *root) {
 
   // Helper function for extract_struct_deep.
 
-  if (root->get_ir_type() == TypeSetVar) {
+  if (root->get_ir_type() == TypeSetStmt) {
     // Remove SET VAR statement.
     IR *parent = root->get_parent();
     if (parent != NULL && parent->get_ir_type() == TypeStmt) {
@@ -826,25 +827,25 @@ void Mutator::_extract_struct_deep(IR *root) {
     return;
   }
 
-  if (root->get_ir_type() == TypeArray) {
-    // Reset the array type to a pure literal.
-    root->set_str_val("x");
-    root->op_->prefix_ = "";
-    root->op_->middle_ = "";
-    root->op_->suffix_ = "";
-
-    if (root->get_left()) {
-      root->get_left()->deep_drop();
-      root->update_left(NULL);
-    }
-    if (root->get_right()) {
-      root->get_right()->deep_drop();
-      root->update_right(NULL);
-    }
-
-    // Do not continue;
-    return;
-  }
+//  if (root->get_ir_type() == TypeArray) {
+//    // Reset the array type to a pure literal.
+//    root->set_str_val("x");
+//    root->op_->prefix_ = "";
+//    root->op_->middle_ = "";
+//    root->op_->suffix_ = "";
+//
+//    if (root->get_left()) {
+//      root->get_left()->deep_drop();
+//      root->update_left(NULL);
+//    }
+//    if (root->get_right()) {
+//      root->get_right()->deep_drop();
+//      root->update_right(NULL);
+//    }
+//
+//    // Do not continue;
+//    return;
+//  }
 
   if (root->left_) {
     _extract_struct_deep(root->left_);
@@ -886,9 +887,9 @@ void Mutator::_extract_struct_deep(IR *root) {
   } else if (root->get_ir_type() == TypeStringLiteral) {
     root->str_val_ = "x";
     return;
-  } else if (root->get_ir_type() == TypeDBool) {
-    root->str_val_ = "x";
-    return;
+//  } else if (root->get_ir_type() == TypeDBool) {
+//    root->str_val_ = "x";
+//    return;
   }
 
   if (root->left_ || root->right_ || root->data_type_ == DataFunctionName)
@@ -1202,7 +1203,7 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
 
     /* See if current node type is matching split_set. If yes, disconnect
      * node->left and node->right. */
-    if (node->get_ir_type() == TypeCTECluster) {
+    if (node->get_ir_type() == TypeWithClause) {
       // If the sub-statement is inside the WITH CTE clause,
       // fix them first before the main statement.
       if (node->get_right() != NULL) {
@@ -1211,8 +1212,8 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
       pair<bool, IR *> cur_m_save =
           make_pair<bool, IR *>(false, node->get_right());
       m_save[node] = cur_m_save;
-    } else if (node->get_ir_type() == TypeCreateView ||
-               node->get_ir_type() == TypeCreateTableAs) {
+    } else if (node->get_ir_type() == TypeCreateViewStmt ||
+               node->get_ir_type() == TypeCreateTableAsStmt) {
       // If the statement is in the Create Table AS
       // or Create view as, fix the subquery first.
       res_list.push_front(node->get_right());
@@ -1347,7 +1348,7 @@ string Mutator::find_cloest_table_name(IR *ir_to_fix, bool is_debug_info) {
   string closest_table_name = "";
   IR *closest_table_ir = NULL;
   vector<DATATYPE> search_type = {DataTableName, DataTableAliasName};
-  vector<IRTYPE> cap_type = {TypeSelect};
+  vector<IRTYPE> cap_type = {TypeSelectStmt};
   closest_table_ir =
       p_oracle->ir_wrapper
           .find_closest_nearby_IR_with_type<vector<DATATYPE>, vector<IRTYPE>>(
@@ -1429,7 +1430,7 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
 
   vector<IRTYPE> v_matched_literal_types = {
       TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral, TypeIdentifier};
-  vector<IRTYPE> v_capped_ir_types = {TypeSelectClause, TypeSelect};
+  vector<IRTYPE> v_capped_ir_types = {TypeSubqueryExpr, TypeSelectStmt};
   IR *near_literal_node =
       p_oracle->ir_wrapper
           .find_closest_nearby_IR_with_type<vector<IRTYPE>, vector<IRTYPE>>(
@@ -1526,9 +1527,7 @@ void Mutator::instan_database_schema_name(IR *ir_to_fix, bool is_debug_info) {
 void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
                                 bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetStmt)) {
     return;
   }
 
@@ -1643,7 +1642,7 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
           v_table_names_single[get_rand_int(v_table_names_single.size())];
 
       int trial = 10;
-      while (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsert) &&
+      while (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsertStmt) &&
              trial-- != 0 &&
              find(v_view_name.begin(), v_view_name.end(), used_name) !=
                  v_view_name.end()) {
@@ -1664,7 +1663,7 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
       used_name = v_table_names[get_rand_int(v_table_names.size())];
 
       int trial = 10;
-      while (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsert) &&
+      while (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsertStmt) &&
              trial-- != 0 &&
              find(v_view_name.begin(), v_view_name.end(), used_name) !=
                  v_view_name.end()) {
@@ -1815,9 +1814,9 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
    * The Alias name will be saved into the
    */
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-    return;
-  }
+//  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+//    return;
+//  }
 
   if (ir_to_fix->data_type_ == DataTableAliasName) {
 
@@ -1922,7 +1921,7 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
     m_alias_table2column_single[alias_name] =
         m_table2columns[closest_table_name];
     v_table_alias_names_single.push_back(alias_name);
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFrom)) {
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeTableRefsClause)) {
       if (is_debug_info) {
         cerr << "\n\n\n The table alias: " << alias_name
              << " is defined "
@@ -1946,9 +1945,7 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 
 void Mutator::instan_view_name(IR *ir_to_fix, bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetStmt)) {
     return;
   }
 
@@ -2257,12 +2254,12 @@ void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
         ir_to_fix->set_str_val(tmp_index_name);
         ir_to_fix->set_is_instantiated(true);
       } else {
-        if (ir_to_fix->get_parent() != nullptr &&
-            ir_to_fix->get_parent()->get_ir_type() == TypeIndexFlags) {
-          ir_to_fix->get_parent()->op_->prefix_ = "";
-          ir_to_fix->set_str_val("");
-          ir_to_fix->set_is_instantiated(true);
-        }
+//        if (ir_to_fix->get_parent() != nullptr &&
+//            ir_to_fix->get_parent()->get_ir_type() == TypeIndexFlags) {
+//          ir_to_fix->get_parent()->op_->prefix_ = "";
+//          ir_to_fix->set_str_val("");
+//          ir_to_fix->set_is_instantiated(true);
+//        }
       }
     }
   }
@@ -2275,9 +2272,7 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
                                  vector<IR *> &ir_to_deep_drop,
                                  bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetStmt)) {
     return;
   }
 
@@ -2466,10 +2461,8 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
   // Column name inside the TypeNameList.
   else if (ir_to_fix->data_type_ == DataColumnName &&
            ir_to_fix->data_flag_ == ContextUse &&
-           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList) &&
-           !p_oracle->ir_wrapper.is_ir_in(
-               ir_to_fix, TypeFamilyTableDef) && // Not inside the FAMILY.
-           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeUpdateExpr)) {
+           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFieldList) &&
+           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeUpdateStmt)) {
 
     //        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
     //            // Ignore the case that is not in TypeNameList.
@@ -2525,7 +2518,7 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
     }
 
     IR *name_list =
-        p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
+        p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeFieldList);
 
     string closest_table_name =
         this->find_cloest_table_name(name_list, is_debug_info);
@@ -2651,7 +2644,7 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
     name_list->update_left(nullptr);
     name_list->update_right(nullptr);
 
-    new_name_list_expr->set_ir_type(TypeNameList);
+    new_name_list_expr->set_ir_type(TypeFieldList);
     name_list->update_left(new_name_list_expr);
     name_list->op_->middle_ = "";
     name_list->set_is_instantiated(true);
@@ -2836,9 +2829,9 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
                                        vector<IR *> &ir_to_deep_drop,
                                        bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-    return;
-  }
+//  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+//    return;
+//  }
 
   if (ir_to_fix->data_type_ == DataColumnAliasName) {
 
@@ -2848,235 +2841,238 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 
     ir_to_fix->set_is_instantiated(true);
 
-    string closest_table_alias_name = "";
+    // TODO: Recover the alias name instantiation.
+    ir_to_fix->set_str_val("a0");
 
-    /* Three situations:
-     * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-     * Customer FROM Customers;`
-     * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
-     * c(x);`
-     * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100)
-     * SELECT * FROM r WHERE c = 100;
-     *
-     * The 2 and 3 cases are similar.
-     * */
-
-    bool is_alias_clause = false;
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
-      is_alias_clause = true;
-    }
-
-    if (is_alias_clause) {
-      /* Fix the TypeAliasClause scenario first.
-       * This scenario must be handled before the ContextUse of
-       * DataColumnName.
-       * In this case, the TypeTableAlias is provided, we need to
-       * connect the TypeTableAlias to the TypeColumnAlias.
-       * Challenge: We need to make sure the number of
-       * alise column matched the SELECT clause element in the subquery.
-       * Luckily, we can ensure that when running in this scenario,
-       * the subquery has already been instantiated, so that all the column
-       * mappings are correct.
-       */
-
-      // First, check the nearby select subquery.
-      IR *select_subquery =
-          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
-                                                                TypeSelect);
-      if (select_subquery != NULL && select_subquery != cur_stmt_root) {
-        if (is_debug_info) {
-          cerr << "\n\n\nDependency: when fixing the select subquery, "
-                  "found select subquery: "
-               << select_subquery->to_string() << "\n\n\n";
-        }
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\nDependency: Cannot find the select subquery from the "
-                  "current stmt. "
-                  "Remove the current column alias clause. \n\n\n";
-        }
-
-        IR *alias_clause = p_oracle->ir_wrapper.get_parent_node_with_type(
-            ir_to_fix, TypeAliasClause);
-        if (alias_clause == NULL) {
-          cerr << "\n\n\nFATAL ERROR: Cannot find the TypeAliasClause in the "
-                  "TypeAliasClause instantiation. \n\n\n";
-          return;
-        }
-
-        // Remove the column alias clause, AS `ta0(x, x, x)`, to `AS ta0`.
-        IR *column_alias_clause = alias_clause->get_right();
-        if (column_alias_clause != NULL) {
-          alias_clause->update_right(NULL);
-          p_oracle->ir_wrapper.iter_cur_node_with_handler(
-              column_alias_clause, [](IR *cur_node) -> void {
-                cur_node->set_is_instantiated(true);
-                cur_node->set_data_flag(ContextNoModi);
-              });
-          ir_to_deep_drop.push_back(column_alias_clause);
-          alias_clause->op_->middle_ = "";
-          alias_clause->op_->suffix_ = "";
-        }
-
-        return;
-      }
-
-      // Search whether there are columns defined in the `TypeSelectExprs`.
-      vector<IR *> all_column_in_subselect =
-          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
-                                                             TypeSelectExpr);
-      vector<IR *> all_table_in_subselect =
-          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
-                                                             DataTableName);
-      vector<IR *> all_stars_in_subselect =
-          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-              select_subquery, TypeUnqualifiedStar);
-
-      // Try to handle the columns defined in the subquery first.
-      // Only look at the columns defined in the SELECT clause:
-      // e.g. `SELECT v1, v2 FROM v0`
-
-      vector<IR *> ref_column_in_subselect;
-      vector<string> new_column_alias_names;
-      string ret_str = "";
-      for (auto &cur_column_in_subselect : all_column_in_subselect) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect,
-                                          TypeSelectExprs)) {
-          if (is_debug_info) {
-            cerr << "\n\n\nFound column name in TypeSelectExprs: "
-                 << cur_column_in_subselect->to_string() << "\n\n\n";
-          }
-          ref_column_in_subselect.push_back(
-              cur_column_in_subselect->get_left());
-        }
-      }
-
-      int ref_col_idx = 0;
-      if (ref_column_in_subselect.size() > 0) {
-        for (auto &cur_column_in_sub : ref_column_in_subselect) {
-          string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
-          string new_column_alias_name = gen_column_alias_name();
-          m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
-          if (m_column2datatype.count(cur_col_in_sub_str) == 0 &&
-              cur_column_in_sub->get_ir_type() != TypeIdentifier) {
-            m_column2datatype[cur_col_in_sub_str] =
-                cur_column_in_sub->data_affinity;
-          }
-          new_column_alias_names.push_back(new_column_alias_name);
-          if (ref_col_idx > 0) {
-            ret_str += ", ";
-          }
-          ref_col_idx++;
-          ret_str += new_column_alias_name;
-          if (is_debug_info) {
-            cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                 << " to column name " << cur_col_in_sub_str
-                 << " in TypeSelectExprs. ";
-          }
-        }
-      }
-      // Inherit the ref_col_idx.
-      if (all_stars_in_subselect.size() > 0 &&
-          all_table_in_subselect.size() > 0) {
-        IR *cur_select_table = all_table_in_subselect.front();
-        for (string &matched_column :
-             m_table2columns[cur_select_table->get_str_val()]) {
-          string new_column_alias_name = gen_column_alias_name();
-          m_alias2column_single[new_column_alias_name] = matched_column;
-          new_column_alias_names.push_back(new_column_alias_name);
-          if (ref_col_idx > 0) {
-            ret_str += ", ";
-          }
-          ref_col_idx++;
-          ret_str += new_column_alias_name;
-          if (is_debug_info) {
-            cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                 << " to column name " << matched_column
-                 << " in TypeSelectExprs. ";
-          }
-        }
-      }
-
-      // Next, match the table alias name.
-      IR *alias_table_ir =
-          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-              ir_to_fix, DataTableAliasName);
-      string alias_table_str;
-      if (alias_table_ir != NULL) {
-        alias_table_str = alias_table_ir->get_str_val();
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\nError: Cannot find table alias name inside the "
-                  "TypeAliasClause \n\n\n";
-          ir_to_fix->set_str_val("x");
-          return;
-        }
-      }
-
-      for (string &cur_new_column_alias_name : new_column_alias_names) {
-        m_alias_table2column_single[alias_table_str].push_back(
-            cur_new_column_alias_name);
-      }
-
-      // Actually replace the current node.
-      IR *alias_clause_ir = p_oracle->ir_wrapper.get_parent_node_with_type(
-          ir_to_fix, TypeAliasClause);
-      if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
-        if (is_debug_info) {
-          cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR "
-                  "from Columnaliaslist. \n\n\n";
-        }
-        return;
-      }
-
-      ir_to_deep_drop.push_back(alias_clause_ir->get_right());
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          alias_clause_ir->get_right(), [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-      if (ret_str != "") {
-        IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
-        alias_clause_ir->update_right(new_column_alias_list);
-      } else {
-        // ret_str == ""
-        // If no column alias observed, remove the empty bracket.
-        alias_clause_ir->update_right(NULL);
-        alias_clause_ir->op_->middle_ = "";
-        alias_clause_ir->op_->suffix_ = "";
-      }
-
-      return;
-
-    } else {
-      /* Fix the TypeSelectExprs scenario now.
-       * No need for extra work for this scenario because it is
-       * not very interesting.
-       * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-       * Customer FROM Customers;`
-       */
-
-      IR *near_table_ir =
-          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-              ir_to_fix, DataTableName);
-      string near_table_str;
-      if (near_table_ir != NULL) {
-        near_table_str = near_table_ir->get_str_val();
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\nError: Cannot find table alias name inside the "
-                  "TypeAliasClause \n\n\n";
-          ir_to_fix->set_str_val("x");
-          return;
-        }
-      }
-
-      string column_alias_name = gen_column_alias_name();
-      ir_to_fix->set_str_val(column_alias_name);
-
-      m_alias_table2column_single[near_table_str].push_back(column_alias_name);
-      return;
-    }
+//    string closest_table_alias_name = "";
+//
+//    /* Three situations:
+//     * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+//     * Customer FROM Customers;`
+//     * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
+//     * c(x);`
+//     * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100)
+//     * SELECT * FROM r WHERE c = 100;
+//     *
+//     * The 2 and 3 cases are similar.
+//     * */
+//
+//    bool is_alias_clause = false;
+////    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
+//    is_alias_clause = true;
+////    }
+//
+//    if (is_alias_clause) {
+//      /* Fix the TypeAliasClause scenario first.
+//       * This scenario must be handled before the ContextUse of
+//       * DataColumnName.
+//       * In this case, the TypeTableAlias is provided, we need to
+//       * connect the TypeTableAlias to the TypeColumnAlias.
+//       * Challenge: We need to make sure the number of
+//       * alise column matched the SELECT clause element in the subquery.
+//       * Luckily, we can ensure that when running in this scenario,
+//       * the subquery has already been instantiated, so that all the column
+//       * mappings are correct.
+//       */
+//
+//      // First, check the nearby select subquery.
+//      IR *select_subquery =
+//          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
+//                                                                TypeSubqueryExpr);
+//      if (select_subquery != NULL && select_subquery != cur_stmt_root) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDependency: when fixing the select subquery, "
+//                  "found select subquery: "
+//               << select_subquery->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDependency: Cannot find the select subquery from the "
+//                  "current stmt. "
+//                  "Remove the current column alias clause. \n\n\n";
+//        }
+//
+//        IR *alias_clause = p_oracle->ir_wrapper.get_parent_node_with_type(
+//            ir_to_fix, TypeAliasClause);
+//        if (alias_clause == NULL) {
+//          cerr << "\n\n\nFATAL ERROR: Cannot find the TypeAliasClause in the "
+//                  "TypeAliasClause instantiation. \n\n\n";
+//          return;
+//        }
+//
+//        // Remove the column alias clause, AS `ta0(x, x, x)`, to `AS ta0`.
+//        IR *column_alias_clause = alias_clause->get_right();
+//        if (column_alias_clause != NULL) {
+//          alias_clause->update_right(NULL);
+//          p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//              column_alias_clause, [](IR *cur_node) -> void {
+//                cur_node->set_is_instantiated(true);
+//                cur_node->set_data_flag(ContextNoModi);
+//              });
+//          ir_to_deep_drop.push_back(column_alias_clause);
+//          alias_clause->op_->middle_ = "";
+//          alias_clause->op_->suffix_ = "";
+//        }
+//
+//        return;
+//      }
+//
+//      // Search whether there are columns defined in the `TypeSelectExprs`.
+//      vector<IR *> all_column_in_subselect =
+//          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
+//                                                             TypeSelectExpr);
+//      vector<IR *> all_table_in_subselect =
+//          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
+//                                                             DataTableName);
+//      vector<IR *> all_stars_in_subselect =
+//          p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//              select_subquery, TypeUnqualifiedStar);
+//
+//      // Try to handle the columns defined in the subquery first.
+//      // Only look at the columns defined in the SELECT clause:
+//      // e.g. `SELECT v1, v2 FROM v0`
+//
+//      vector<IR *> ref_column_in_subselect;
+//      vector<string> new_column_alias_names;
+//      string ret_str = "";
+//      for (auto &cur_column_in_subselect : all_column_in_subselect) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect,
+//                                          TypeSelectExprs)) {
+//          if (is_debug_info) {
+//            cerr << "\n\n\nFound column name in TypeSelectExprs: "
+//                 << cur_column_in_subselect->to_string() << "\n\n\n";
+//          }
+//          ref_column_in_subselect.push_back(
+//              cur_column_in_subselect->get_left());
+//        }
+//      }
+//
+//      int ref_col_idx = 0;
+//      if (ref_column_in_subselect.size() > 0) {
+//        for (auto &cur_column_in_sub : ref_column_in_subselect) {
+//          string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
+//          string new_column_alias_name = gen_column_alias_name();
+//          m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
+//          if (m_column2datatype.count(cur_col_in_sub_str) == 0 &&
+//              cur_column_in_sub->get_ir_type() != TypeIdentifier) {
+//            m_column2datatype[cur_col_in_sub_str] =
+//                cur_column_in_sub->data_affinity;
+//          }
+//          new_column_alias_names.push_back(new_column_alias_name);
+//          if (ref_col_idx > 0) {
+//            ret_str += ", ";
+//          }
+//          ref_col_idx++;
+//          ret_str += new_column_alias_name;
+//          if (is_debug_info) {
+//            cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+//                 << " to column name " << cur_col_in_sub_str
+//                 << " in TypeSelectExprs. ";
+//          }
+//        }
+//      }
+//      // Inherit the ref_col_idx.
+//      if (all_stars_in_subselect.size() > 0 &&
+//          all_table_in_subselect.size() > 0) {
+//        IR *cur_select_table = all_table_in_subselect.front();
+//        for (string &matched_column :
+//             m_table2columns[cur_select_table->get_str_val()]) {
+//          string new_column_alias_name = gen_column_alias_name();
+//          m_alias2column_single[new_column_alias_name] = matched_column;
+//          new_column_alias_names.push_back(new_column_alias_name);
+//          if (ref_col_idx > 0) {
+//            ret_str += ", ";
+//          }
+//          ref_col_idx++;
+//          ret_str += new_column_alias_name;
+//          if (is_debug_info) {
+//            cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+//                 << " to column name " << matched_column
+//                 << " in TypeSelectExprs. ";
+//          }
+//        }
+//      }
+//
+//      // Next, match the table alias name.
+//      IR *alias_table_ir =
+//          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+//              ir_to_fix, DataTableAliasName);
+//      string alias_table_str;
+//      if (alias_table_ir != NULL) {
+//        alias_table_str = alias_table_ir->get_str_val();
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nError: Cannot find table alias name inside the "
+//                  "TypeAliasClause \n\n\n";
+//          ir_to_fix->set_str_val("x");
+//          return;
+//        }
+//      }
+//
+//      for (string &cur_new_column_alias_name : new_column_alias_names) {
+//        m_alias_table2column_single[alias_table_str].push_back(
+//            cur_new_column_alias_name);
+//      }
+//
+//      // Actually replace the current node.
+//      IR *alias_clause_ir = p_oracle->ir_wrapper.get_parent_node_with_type(
+//          ir_to_fix, TypeAliasClause);
+//      if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR "
+//                  "from Columnaliaslist. \n\n\n";
+//        }
+//        return;
+//      }
+//
+//      ir_to_deep_drop.push_back(alias_clause_ir->get_right());
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          alias_clause_ir->get_right(), [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//      if (ret_str != "") {
+//        IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
+//        alias_clause_ir->update_right(new_column_alias_list);
+//      } else {
+//        // ret_str == ""
+//        // If no column alias observed, remove the empty bracket.
+//        alias_clause_ir->update_right(NULL);
+//        alias_clause_ir->op_->middle_ = "";
+//        alias_clause_ir->op_->suffix_ = "";
+//      }
+//
+//      return;
+//
+//    } else {
+//      /* Fix the TypeSelectExprs scenario now.
+//       * No need for extra work for this scenario because it is
+//       * not very interesting.
+//       * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+//       * Customer FROM Customers;`
+//       */
+//
+//      IR *near_table_ir =
+//          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+//              ir_to_fix, DataTableName);
+//      string near_table_str;
+//      if (near_table_ir != NULL) {
+//        near_table_str = near_table_ir->get_str_val();
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nError: Cannot find table alias name inside the "
+//                  "TypeAliasClause \n\n\n";
+//          ir_to_fix->set_str_val("x");
+//          return;
+//        }
+//      }
+//
+//      string column_alias_name = gen_column_alias_name();
+//      ir_to_fix->set_str_val(column_alias_name);
+//
+//      m_alias_table2column_single[near_table_str].push_back(column_alias_name);
+//      return;
+//    }
   }
 
   return;
@@ -3084,9 +3080,9 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 
 void Mutator::instan_sql_type_name(IR *ir_to_fix, bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-    return;
-  }
+//  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+//    return;
+//  }
 
   IRTYPE type = ir_to_fix->get_ir_type();
   DATATYPE data_type = ir_to_fix->get_data_type();
@@ -3123,7 +3119,7 @@ void Mutator::instan_sql_type_name(IR *ir_to_fix, bool is_debug_info) {
   }
 }
 
-void Mutator::instan_foreign_table_name(IR *ir_to_fix, bool is_debug_info) {
+//void Mutator::instan_foreign_table_name(IR *ir_to_fix, bool is_debug_info) {
 
   /* TODO: FIXME: Foreign table handling. Add it back later. */
   //    if (
@@ -3172,7 +3168,7 @@ void Mutator::instan_foreign_table_name(IR *ir_to_fix, bool is_debug_info) {
   //        }
   //
   //      }
-}
+//}
 
 void Mutator::instan_statistic_name(IR *ir_to_fix, bool is_debug_info) {
 
@@ -3336,9 +3332,13 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
                              vector<IR *> &ir_to_deep_drop,
                              bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetStmt) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetBindingStmt) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetCollationExpr) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetConfigStmt) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetDefaultRoleStmt) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetOprStmt)
+      ) {
     /*
      * Should not change any literals inside the TypeOptStorageParams and
      * TypeSetVar clause. These literals are for Storage Parameters (Storage
@@ -3348,467 +3348,470 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
     return;
   }
 
-  /* First Loop, handles IN expression and Values clause.  */
-  IRTYPE type = ir_to_fix->get_ir_type();
+  // TODO: Disable the complicated literal instantiation for now.
+  return;
 
-  if ((type == TypeFloatLiteral || type == TypeStringLiteral ||
-       type == TypeDBool || type == TypeIntegerLiteral) &&
-      (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeINExpr) ||
-       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)
-       //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeTuple)
-       )) {
-    /* Completely rewritten Literal handling and mutation logic.
-     * The idea is to search for the closest Column Name or fixed literals,
-     * and try to match the type of the column name or literal.
-     * */
-
-    ir_to_fix->set_is_instantiated(true);
-
-    // Handle the ValuesClause.
-    // Get the TypeExprsNode first.
-    IR *type_exprs_node =
-        p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeExprs);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
-              "expression:"
-           << type_exprs_node->to_string() << "\n\n\n";
-    }
-
-    // Remove the original expressions.
-    if (type_exprs_node == nullptr || type_exprs_node->get_left() == nullptr) {
-      // TODO: Dynamic fixing error?
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Getting NULL left node from type_exprs_node. "
-                "Give up and ignore. \n\n\n";
-      }
-      return;
-    }
-
-    IR *type_exprs_left_node = type_exprs_node->get_left();
-    type_exprs_node->update_left(nullptr);
-    // Avoid further handling of the child node from `TypeValueClauses`
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        type_exprs_left_node, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-    if (type_exprs_left_node != nullptr) {
-      ir_to_deep_drop.push_back(type_exprs_left_node);
-    }
-
-    IR *type_exprs_right_node = type_exprs_node->get_right();
-    type_exprs_node->update_right(nullptr);
-    // Avoid further handling of the child node from `TypeValueClauses`
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        type_exprs_right_node, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-    if (type_exprs_right_node != nullptr) {
-      ir_to_deep_drop.push_back(type_exprs_right_node);
-    }
-    type_exprs_node->op_->middle_ = "";
-
-    /* Reconstruct the new type expressions clause that matched the referenced
-     * table.
-     */
-
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeINExpr)) {
-      /* Fix for the IN clause. */
-      vector<DATATYPE> search_type = {DataColumnName, DataColumnAliasName};
-      vector<IRTYPE> cap_type = {TypeSelect};
-      IR *closet_column_node =
-          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
-              ir_to_fix, search_type, cap_type);
-
-      if (closet_column_node == nullptr) {
-        if (is_debug_info) {
-          cerr << "\n\n\nLOGIC ERROR: Inside the IN clause, cannot find the "
-                  "nearby column name. Dummy fix. Return. \n\n\n";
-        }
-        IR *new_dummy_node =
-            new IR(TypeIntegerLiteral, OP0(), nullptr, nullptr);
-        new_dummy_node->mutate_literal(AFFIINT);
-        new_dummy_node->set_is_instantiated(true);
-        type_exprs_node->update_left(new_dummy_node);
-        return;
-      }
-
-      string col_str = closet_column_node->get_str_val();
-      DataAffinity col_affi = m_column2datatype[col_str];
-
-      // Avoid 0.
-      int num_of_in_elem = get_rand_int(5) + 1;
-
-      string ret_str = "";
-      for (int in_idx = 0; in_idx < num_of_in_elem; in_idx++) {
-
-        if (in_idx != 0) {
-          ret_str += ", ";
-        }
-        ret_str += col_affi.get_mutated_literal();
-      }
-
-      IR *new_type_exprs_node = new IR(TypeStringLiteral, ret_str);
-      new_type_exprs_node->set_is_instantiated(true);
-
-      type_exprs_node->update_left(new_type_exprs_node);
-
-      if (is_debug_info) {
-        cerr << "\n\n\nDependency: getting new IN clause expression: "
-             << new_type_exprs_node->to_string() << ". \n\n\n";
-      }
-
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          type_exprs_left_node, [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-
-      return;
-    } // IN clause
-
-    /* else, VALUE clause only?  */
-
-    // Search whether there are referenced columns in the `TypeNameList`.
-    // If there is, should be the first TypeNameList from the statement.
-    vector<IR *> v_type_name_list =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
-                                                           TypeNameList, false);
-
-    vector<DataAffinity> referencing_affinity;
-    if (v_type_name_list.size() == 0) {
-      // Cannot find a specifically referenced column name list.
-      // Use the referenced table name to refer to the column name list.
-      if (is_debug_info) {
-        cerr << "\n\n\nDependency: Cannot find the column name list from "
-                "the statement. \n\n\n";
-      }
-
-      // Find the table name used in this statement.
-      if (v_table_names_single.size() == 0) {
-        if (is_debug_info) {
-          cerr << "\n\n\nERROR: Cannot find the column name list AND table "
-                  "name from the statement. \n\n\n";
-        }
-        DataAffinity cur_affi;
-        cur_affi.set_data_affinity(AFFISTRING);
-        referencing_affinity.push_back(cur_affi);
-      } else {
-        // Found the table name referenced from the statement.
-        if (is_debug_info) {
-          cerr << "\n\n\nFound the table name referenced from the "
-                  "statement, "
-                  "table name: "
-               << v_table_names_single.front() << ". \n\n\n";
-        }
-        string cur_table_name = v_table_names_single.front();
-        vector<string> column_list;
-        bool is_alias = false;
-        if (m_alias_table2column_single.count(cur_table_name) > 0) {
-          is_alias = true;
-          column_list = m_alias_table2column_single[cur_table_name];
-        } else {
-          is_alias = false;
-          column_list = m_table2columns[cur_table_name];
-        }
-        for (const string &cur_column_str : column_list) {
-          string actual_column_str = cur_column_str;
-          if (is_alias && m_alias2column_single.count(actual_column_str) > 0) {
-            if (is_debug_info) {
-              cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the "
-                      "column alias: "
-                   << cur_column_str << " to column name: " << actual_column_str
-                   << "\n\n\n";
-            }
-            actual_column_str = m_alias2column_single[cur_column_str];
-          }
-          if (m_column2datatype.count(actual_column_str) > 0) {
-            DataAffinity cur_affi = m_column2datatype[actual_column_str];
-            referencing_affinity.push_back(cur_affi);
-            if (is_debug_info) {
-              cerr << "\n\n\nMatching column: " << cur_column_str
-                   << " from table: " << cur_table_name << " with data type: "
-                   << get_string_by_affinity_type(cur_affi.get_data_affinity())
-                   << "\n\n\n";
-            }
-          } else {
-            DataAffinity cur_affi;
-            cur_affi.set_data_affinity(AFFISTRING);
-            referencing_affinity.push_back(cur_affi);
-            if (is_debug_info) {
-              cerr << "\n\n\n Cannot find matching column types: "
-                   << cur_column_str << ". Using dummy AFFISTRING instead. "
-                   << "\n\n\n";
-            }
-          }
-        }
-      }
-    } else {
-      if (is_debug_info) {
-        cerr << "\n\n\nDependency: Find the column name list from the stmt:"
-             << v_type_name_list.front()->to_string() << ". \n\n\n";
-      }
-
-      IR *type_list_node = v_type_name_list.front();
-      vector<string> &v_column_str = this->v_column_names_single;
-      if (v_column_str.size() != 0) {
-        for (string &cur_column_str : v_column_str) {
-          string actual_column_str = cur_column_str;
-          if (m_alias2column_single.count(cur_column_str)) {
-            actual_column_str = m_alias2column_single[cur_column_str];
-            if (is_debug_info) {
-              cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the "
-                      "column alias: "
-                   << cur_column_str << " to column name: " << actual_column_str
-                   << "\n\n\n";
-            }
-          }
-          DataAffinity cur_affi = m_column2datatype[actual_column_str];
-          referencing_affinity.push_back(cur_affi);
-          if (is_debug_info) {
-            cerr << "\n\n\nMatching column: " << cur_column_str
-                 << " with data type: "
-                 << get_string_by_affinity_type(cur_affi.get_data_affinity())
-                 << "\n\n\n";
-          }
-        }
-      }
-
-      else {
-
-        vector<IR *> v_column_node =
-            p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                type_list_node, DataColumnName, false);
-        for (IR *cur_column_node : v_column_node) {
-          string cur_column_str = cur_column_node->get_str_val();
-          if (m_column2datatype.count(cur_column_str) ||
-              m_alias2column_single.count(cur_column_str)) {
-            string actual_column_str = cur_column_str;
-            if (m_alias2column_single.count(cur_column_str)) {
-              actual_column_str = m_alias2column_single[cur_column_str];
-              if (is_debug_info) {
-                cerr << "\n\n\nDependency: INFO: In literal fixing, mapping "
-                        "the column alias: "
-                     << cur_column_str
-                     << " to column name: " << actual_column_str << "\n\n\n";
-              }
-            }
-            DataAffinity cur_affi = m_column2datatype[actual_column_str];
-            referencing_affinity.push_back(cur_affi);
-            if (is_debug_info) {
-              cerr << "\n\n\nMatching column: " << cur_column_str
-                   << " with data type: "
-                   << get_string_by_affinity_type(cur_affi.get_data_affinity())
-                   << "\n\n\n";
-            }
-          } else {
-            DataAffinity cur_affi;
-            cur_affi.set_data_affinity(AFFISTRING);
-            referencing_affinity.push_back(cur_affi);
-            if (is_debug_info) {
-              cerr << "\n\n\n Cannot find matching column types: "
-                   << cur_column_str << ". Using dummy AFFISTRING instead. "
-                   << "\n\n\n";
-            }
-          }
-        }
-      }
-    }
-
-    // After we get a list of referencing_affinity, we can now begin to fill
-    // in the ValuesClause expression.
-    string ret_str = "";
-    int idx = 0;
-    for (DataAffinity &cur_affi : referencing_affinity) {
-      if (idx != 0) {
-        ret_str += ", ";
-      }
-      ret_str += cur_affi.get_mutated_literal();
-      idx++;
-    }
-    IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
-    new_values_expr_node->set_is_instantiated(true);
-
-    type_exprs_node->update_left(new_values_expr_node);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDependency: getting new values clause expression: "
-           << new_values_expr_node->to_string() << ". \n\n\n";
-    }
-
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        type_exprs_left_node, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-
-    return;
-  }
-
-  /* The second loop */
-
-  type = ir_to_fix->get_ir_type();
-
-  if (type == TypeFloatLiteral || type == TypeStringLiteral ||
-      type == TypeDBool || type == TypeIntegerLiteral) {
-    /* Continue from the previous loop, we now search around the ir_to_fix
-     * and see if we can find column name or literals that can help deduce
-     * Data Affinity.
-     * */
-
-    ir_to_fix->set_is_instantiated(true);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
-           << "\n whole stmt: " << cur_stmt_root->to_string() << "\n\n\n";
-    }
-
-    // Do not change the Data Affinity type for IS / IS NOT `TRUE/FALSE`.
-    if (ir_to_fix->get_ir_type() == TypeDBool &&
-        ir_to_fix->get_parent() != nullptr &&
-        ir_to_fix->get_parent()->get_parent() != nullptr &&
-        ir_to_fix->get_parent()->get_parent()->get_ir_type() ==
-            TypeBinExprFmtWithParen &&
-        (ir_to_fix->get_parent()->get_parent()->get_middle() == " IS " ||
-         ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT ")) {
-      if (is_debug_info) {
-        cerr << "\n\n\nDebug: Instantiate Boolean in IS or IS NOT statement. "
-                "\n\n\n";
-      }
-      if (get_rand_int(2)) {
-        ir_to_fix->set_str_val("TRUE");
-      } else {
-        ir_to_fix->set_str_val("FALSE");
-      }
-      return;
-    }
-
-    // If the literal already has fixed data affinity type, skip the
-    // mutation.
-    if (ir_to_fix->get_data_flag() == ContextNoModi) {
-      if (is_debug_info) {
-        cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string()
-             << " because it has "
-                "flag ContextNoModi. \n\n\n";
-      }
-      return;
-    }
-
-    ir_to_fix->set_data_affinity(
-        this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
-
-    /* After knowing the data affinity of the literal,
-     * we have three choices to instantiate the value.
-     * 1. If the statement contains one column that matches the
-     * data type, use the column with probability.
-     * 2. If the current data affinity is the same as previous
-     * fixed literals, reuse the value.
-     * 3. Mutate to get a new value.
-     * */
-    if (m_datatype2column.count(ir_to_fix->get_data_affinity()) &&
-        get_rand_int(10) == 0 // 1/10 chance.
-    ) {
-      if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
-        // This is a special context that the Data Affinity type of the
-        // column name node has been pre-defined.
-        // This is used in query dynamic fixing, where the replaced query nodes
-        // are saved in a whole, and the column node data affinity are
-        // preserved.
-        string cur_chosen_col =
-            vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
-
-        bool is_col_imported = false;
-        for (string cur_used_table : v_table_names_single) {
-          vector<string> v_imported_col = m_table2columns[cur_used_table];
-          if (find_vector(v_imported_col, cur_chosen_col)) {
-            is_col_imported = true;
-            break;
-          }
-        }
-
-        // Fix as column name.
-        if (is_col_imported) {
-          ir_to_fix->set_is_instantiated(true);
-          ir_to_fix->set_str_val(cur_chosen_col);
-          return;
-        }
-      }
-    }
-
-    if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
-        get_rand_int(2) == 0) {
-      // Reuse previous defined literals.
-      string tmp_new_literal =
-          vector_rand_ele(m_datatype2literals[ir_to_fix->get_data_affinity()]);
-      ir_to_fix->set_str_val(tmp_new_literal);
-      if (is_debug_info) {
-        cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
-             << ir_to_fix->to_string() << "\n\n\n";
-      }
-    } else {
-      // Now we ensure the ir_to_fix has an affinity.
-      // Mutate the literal with the affinity
-      ir_to_fix->mutate_literal(); // Handles everything.
-      m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
-          ir_to_fix->get_str_val());
-      if (is_debug_info) {
-        cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
-             << ir_to_fix->to_string()
-             << "\n whole stmt: " << cur_stmt_root->to_string() << "\n\n\n";
-      }
-    }
-  }
+//  /* First Loop, handles IN expression and Values clause.  */
+//  IRTYPE type = ir_to_fix->get_ir_type();
+//
+//  if ((type == TypeFloatLiteral || type == TypeStringLiteral ||
+////       type == TypeDBool ||
+//       type == TypeIntegerLiteral) &&
+//      (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)
+//       //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeTuple)
+//       )) {
+//    /* Completely rewritten Literal handling and mutation logic.
+//     * The idea is to search for the closest Column Name or fixed literals,
+//     * and try to match the type of the column name or literal.
+//     * */
+//
+//    ir_to_fix->set_is_instantiated(true);
+//
+//    // Handle the ValuesClause.
+//    // Get the TypeExprsNode first.
+//    IR *type_exprs_node =
+//        p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeExpr);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
+//              "expression:"
+//           << type_exprs_node->to_string() << "\n\n\n";
+//    }
+//
+//    // Remove the original expressions.
+//    if (type_exprs_node == nullptr || type_exprs_node->get_left() == nullptr) {
+//      // TODO: Dynamic fixing error?
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Getting NULL left node from type_exprs_node. "
+//                "Give up and ignore. \n\n\n";
+//      }
+//      return;
+//    }
+//
+//    IR *type_exprs_left_node = type_exprs_node->get_left();
+//    type_exprs_node->update_left(nullptr);
+//    // Avoid further handling of the child node from `TypeValueClauses`
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        type_exprs_left_node, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//    if (type_exprs_left_node != nullptr) {
+//      ir_to_deep_drop.push_back(type_exprs_left_node);
+//    }
+//
+//    IR *type_exprs_right_node = type_exprs_node->get_right();
+//    type_exprs_node->update_right(nullptr);
+//    // Avoid further handling of the child node from `TypeValueClauses`
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        type_exprs_right_node, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//    if (type_exprs_right_node != nullptr) {
+//      ir_to_deep_drop.push_back(type_exprs_right_node);
+//    }
+//    type_exprs_node->op_->middle_ = "";
+//
+//    /* Reconstruct the new type expressions clause that matched the referenced
+//     * table.
+//     */
+//
+//    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeINExpr)) {
+//      /* Fix for the IN clause. */
+//      vector<DATATYPE> search_type = {DataColumnName, DataColumnAliasName};
+//      vector<IRTYPE> cap_type = {TypeSelect};
+//      IR *closet_column_node =
+//          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+//              ir_to_fix, search_type, cap_type);
+//
+//      if (closet_column_node == nullptr) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nLOGIC ERROR: Inside the IN clause, cannot find the "
+//                  "nearby column name. Dummy fix. Return. \n\n\n";
+//        }
+//        IR *new_dummy_node =
+//            new IR(TypeIntegerLiteral, OP0(), nullptr, nullptr);
+//        new_dummy_node->mutate_literal(AFFIINT);
+//        new_dummy_node->set_is_instantiated(true);
+//        type_exprs_node->update_left(new_dummy_node);
+//        return;
+//      }
+//
+//      string col_str = closet_column_node->get_str_val();
+//      DataAffinity col_affi = m_column2datatype[col_str];
+//
+//      // Avoid 0.
+//      int num_of_in_elem = get_rand_int(5) + 1;
+//
+//      string ret_str = "";
+//      for (int in_idx = 0; in_idx < num_of_in_elem; in_idx++) {
+//
+//        if (in_idx != 0) {
+//          ret_str += ", ";
+//        }
+//        ret_str += col_affi.get_mutated_literal();
+//      }
+//
+//      IR *new_type_exprs_node = new IR(TypeStringLiteral, ret_str);
+//      new_type_exprs_node->set_is_instantiated(true);
+//
+//      type_exprs_node->update_left(new_type_exprs_node);
+//
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDependency: getting new IN clause expression: "
+//             << new_type_exprs_node->to_string() << ". \n\n\n";
+//      }
+//
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          type_exprs_left_node, [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//
+//      return;
+//    } // IN clause
+//
+//    /* else, VALUE clause only?  */
+//
+//    // Search whether there are referenced columns in the `TypeNameList`.
+//    // If there is, should be the first TypeNameList from the statement.
+//    vector<IR *> v_type_name_list =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
+//                                                           TypeNameList, false);
+//
+//    vector<DataAffinity> referencing_affinity;
+//    if (v_type_name_list.size() == 0) {
+//      // Cannot find a specifically referenced column name list.
+//      // Use the referenced table name to refer to the column name list.
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDependency: Cannot find the column name list from "
+//                "the statement. \n\n\n";
+//      }
+//
+//      // Find the table name used in this statement.
+//      if (v_table_names_single.size() == 0) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nERROR: Cannot find the column name list AND table "
+//                  "name from the statement. \n\n\n";
+//        }
+//        DataAffinity cur_affi;
+//        cur_affi.set_data_affinity(AFFISTRING);
+//        referencing_affinity.push_back(cur_affi);
+//      } else {
+//        // Found the table name referenced from the statement.
+//        if (is_debug_info) {
+//          cerr << "\n\n\nFound the table name referenced from the "
+//                  "statement, "
+//                  "table name: "
+//               << v_table_names_single.front() << ". \n\n\n";
+//        }
+//        string cur_table_name = v_table_names_single.front();
+//        vector<string> column_list;
+//        bool is_alias = false;
+//        if (m_alias_table2column_single.count(cur_table_name) > 0) {
+//          is_alias = true;
+//          column_list = m_alias_table2column_single[cur_table_name];
+//        } else {
+//          is_alias = false;
+//          column_list = m_table2columns[cur_table_name];
+//        }
+//        for (const string &cur_column_str : column_list) {
+//          string actual_column_str = cur_column_str;
+//          if (is_alias && m_alias2column_single.count(actual_column_str) > 0) {
+//            if (is_debug_info) {
+//              cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the "
+//                      "column alias: "
+//                   << cur_column_str << " to column name: " << actual_column_str
+//                   << "\n\n\n";
+//            }
+//            actual_column_str = m_alias2column_single[cur_column_str];
+//          }
+//          if (m_column2datatype.count(actual_column_str) > 0) {
+//            DataAffinity cur_affi = m_column2datatype[actual_column_str];
+//            referencing_affinity.push_back(cur_affi);
+//            if (is_debug_info) {
+//              cerr << "\n\n\nMatching column: " << cur_column_str
+//                   << " from table: " << cur_table_name << " with data type: "
+//                   << get_string_by_affinity_type(cur_affi.get_data_affinity())
+//                   << "\n\n\n";
+//            }
+//          } else {
+//            DataAffinity cur_affi;
+//            cur_affi.set_data_affinity(AFFISTRING);
+//            referencing_affinity.push_back(cur_affi);
+//            if (is_debug_info) {
+//              cerr << "\n\n\n Cannot find matching column types: "
+//                   << cur_column_str << ". Using dummy AFFISTRING instead. "
+//                   << "\n\n\n";
+//            }
+//          }
+//        }
+//      }
+//    } else {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDependency: Find the column name list from the stmt:"
+//             << v_type_name_list.front()->to_string() << ". \n\n\n";
+//      }
+//
+//      IR *type_list_node = v_type_name_list.front();
+//      vector<string> &v_column_str = this->v_column_names_single;
+//      if (v_column_str.size() != 0) {
+//        for (string &cur_column_str : v_column_str) {
+//          string actual_column_str = cur_column_str;
+//          if (m_alias2column_single.count(cur_column_str)) {
+//            actual_column_str = m_alias2column_single[cur_column_str];
+//            if (is_debug_info) {
+//              cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the "
+//                      "column alias: "
+//                   << cur_column_str << " to column name: " << actual_column_str
+//                   << "\n\n\n";
+//            }
+//          }
+//          DataAffinity cur_affi = m_column2datatype[actual_column_str];
+//          referencing_affinity.push_back(cur_affi);
+//          if (is_debug_info) {
+//            cerr << "\n\n\nMatching column: " << cur_column_str
+//                 << " with data type: "
+//                 << get_string_by_affinity_type(cur_affi.get_data_affinity())
+//                 << "\n\n\n";
+//          }
+//        }
+//      }
+//
+//      else {
+//
+//        vector<IR *> v_column_node =
+//            p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//                type_list_node, DataColumnName, false);
+//        for (IR *cur_column_node : v_column_node) {
+//          string cur_column_str = cur_column_node->get_str_val();
+//          if (m_column2datatype.count(cur_column_str) ||
+//              m_alias2column_single.count(cur_column_str)) {
+//            string actual_column_str = cur_column_str;
+//            if (m_alias2column_single.count(cur_column_str)) {
+//              actual_column_str = m_alias2column_single[cur_column_str];
+//              if (is_debug_info) {
+//                cerr << "\n\n\nDependency: INFO: In literal fixing, mapping "
+//                        "the column alias: "
+//                     << cur_column_str
+//                     << " to column name: " << actual_column_str << "\n\n\n";
+//              }
+//            }
+//            DataAffinity cur_affi = m_column2datatype[actual_column_str];
+//            referencing_affinity.push_back(cur_affi);
+//            if (is_debug_info) {
+//              cerr << "\n\n\nMatching column: " << cur_column_str
+//                   << " with data type: "
+//                   << get_string_by_affinity_type(cur_affi.get_data_affinity())
+//                   << "\n\n\n";
+//            }
+//          } else {
+//            DataAffinity cur_affi;
+//            cur_affi.set_data_affinity(AFFISTRING);
+//            referencing_affinity.push_back(cur_affi);
+//            if (is_debug_info) {
+//              cerr << "\n\n\n Cannot find matching column types: "
+//                   << cur_column_str << ". Using dummy AFFISTRING instead. "
+//                   << "\n\n\n";
+//            }
+//          }
+//        }
+//      }
+//    }
+//
+//    // After we get a list of referencing_affinity, we can now begin to fill
+//    // in the ValuesClause expression.
+//    string ret_str = "";
+//    int idx = 0;
+//    for (DataAffinity &cur_affi : referencing_affinity) {
+//      if (idx != 0) {
+//        ret_str += ", ";
+//      }
+//      ret_str += cur_affi.get_mutated_literal();
+//      idx++;
+//    }
+//    IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
+//    new_values_expr_node->set_is_instantiated(true);
+//
+//    type_exprs_node->update_left(new_values_expr_node);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDependency: getting new values clause expression: "
+//           << new_values_expr_node->to_string() << ". \n\n\n";
+//    }
+//
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        type_exprs_left_node, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//
+//    return;
+//  }
+//
+//  /* The second loop */
+//
+//  type = ir_to_fix->get_ir_type();
+//
+//  if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+//      type == TypeDBool || type == TypeIntegerLiteral) {
+//    /* Continue from the previous loop, we now search around the ir_to_fix
+//     * and see if we can find column name or literals that can help deduce
+//     * Data Affinity.
+//     * */
+//
+//    ir_to_fix->set_is_instantiated(true);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
+//           << "\n whole stmt: " << cur_stmt_root->to_string() << "\n\n\n";
+//    }
+//
+//    // Do not change the Data Affinity type for IS / IS NOT `TRUE/FALSE`.
+//    if (ir_to_fix->get_ir_type() == TypeDBool &&
+//        ir_to_fix->get_parent() != nullptr &&
+//        ir_to_fix->get_parent()->get_parent() != nullptr &&
+//        ir_to_fix->get_parent()->get_parent()->get_ir_type() ==
+//            TypeBinExprFmtWithParen &&
+//        (ir_to_fix->get_parent()->get_parent()->get_middle() == " IS " ||
+//         ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT ")) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDebug: Instantiate Boolean in IS or IS NOT statement. "
+//                "\n\n\n";
+//      }
+//      if (get_rand_int(2)) {
+//        ir_to_fix->set_str_val("TRUE");
+//      } else {
+//        ir_to_fix->set_str_val("FALSE");
+//      }
+//      return;
+//    }
+//
+//    // If the literal already has fixed data affinity type, skip the
+//    // mutation.
+//    if (ir_to_fix->get_data_flag() == ContextNoModi) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string()
+//             << " because it has "
+//                "flag ContextNoModi. \n\n\n";
+//      }
+//      return;
+//    }
+//
+//    ir_to_fix->set_data_affinity(
+//        this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
+//
+//    /* After knowing the data affinity of the literal,
+//     * we have three choices to instantiate the value.
+//     * 1. If the statement contains one column that matches the
+//     * data type, use the column with probability.
+//     * 2. If the current data affinity is the same as previous
+//     * fixed literals, reuse the value.
+//     * 3. Mutate to get a new value.
+//     * */
+//    if (m_datatype2column.count(ir_to_fix->get_data_affinity()) &&
+//        get_rand_int(10) == 0 // 1/10 chance.
+//    ) {
+//      if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+//        // This is a special context that the Data Affinity type of the
+//        // column name node has been pre-defined.
+//        // This is used in query dynamic fixing, where the replaced query nodes
+//        // are saved in a whole, and the column node data affinity are
+//        // preserved.
+//        string cur_chosen_col =
+//            vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
+//
+//        bool is_col_imported = false;
+//        for (string cur_used_table : v_table_names_single) {
+//          vector<string> v_imported_col = m_table2columns[cur_used_table];
+//          if (find_vector(v_imported_col, cur_chosen_col)) {
+//            is_col_imported = true;
+//            break;
+//          }
+//        }
+//
+//        // Fix as column name.
+//        if (is_col_imported) {
+//          ir_to_fix->set_is_instantiated(true);
+//          ir_to_fix->set_str_val(cur_chosen_col);
+//          return;
+//        }
+//      }
+//    }
+//
+//    if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
+//        get_rand_int(2) == 0) {
+//      // Reuse previous defined literals.
+//      string tmp_new_literal =
+//          vector_rand_ele(m_datatype2literals[ir_to_fix->get_data_affinity()]);
+//      ir_to_fix->set_str_val(tmp_new_literal);
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
+//             << ir_to_fix->to_string() << "\n\n\n";
+//      }
+//    } else {
+//      // Now we ensure the ir_to_fix has an affinity.
+//      // Mutate the literal with the affinity
+//      ir_to_fix->mutate_literal(); // Handles everything.
+//      m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
+//          ir_to_fix->get_str_val());
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
+//             << ir_to_fix->to_string()
+//             << "\n whole stmt: " << cur_stmt_root->to_string() << "\n\n\n";
+//      }
+//    }
+//  }
 
   return;
 }
 
-void Mutator::instan_storage_param(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
-                                   bool is_debug_info) {
-
-  IRTYPE type = ir_to_fix->get_ir_type();
-  DATATYPE data_type = ir_to_fix->get_data_type();
-
-  if (type == TypeStorageParams && data_type == DataStorageParams) {
-
-    if (ir_to_fix->get_parent() == NULL) {
-      cerr << "\n\n\nLogical Error: Getting empty parent from "
-              "TypeStorageParams. \n\n\n";
-    }
-
-    IR *opt_storage_params = ir_to_fix->get_parent();
-
-    IR *opt_storage_params_left = opt_storage_params->get_left();
-    IR *opt_storage_params_right = opt_storage_params->get_right();
-
-    if (opt_storage_params_left != NULL) {
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          opt_storage_params_left, [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-      ir_to_deep_drop.push_back(opt_storage_params_left);
-    }
-    if (opt_storage_params_right != NULL) {
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          opt_storage_params_right, [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-      ir_to_deep_drop.push_back(opt_storage_params_right);
-    }
-
-    // Do not use param_num == 0;
-    IR *new_storage_param_node =
-        this->constr_rand_storage_param(get_rand_int(3) + 1);
-    new_storage_param_node->set_is_instantiated(true);
-    opt_storage_params->update_left(new_storage_param_node);
-    opt_storage_params->update_right(NULL);
-  }
-
-  return;
-}
+//void Mutator::instan_storage_param(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+//                                   bool is_debug_info) {
+//
+//  IRTYPE type = ir_to_fix->get_ir_type();
+//  DATATYPE data_type = ir_to_fix->get_data_type();
+//
+//  if (type == TypeStorageParams && data_type == DataStorageParams) {
+//
+//    if (ir_to_fix->get_parent() == NULL) {
+//      cerr << "\n\n\nLogical Error: Getting empty parent from "
+//              "TypeStorageParams. \n\n\n";
+//    }
+//
+//    IR *opt_storage_params = ir_to_fix->get_parent();
+//
+//    IR *opt_storage_params_left = opt_storage_params->get_left();
+//    IR *opt_storage_params_right = opt_storage_params->get_right();
+//
+//    if (opt_storage_params_left != NULL) {
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          opt_storage_params_left, [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//      ir_to_deep_drop.push_back(opt_storage_params_left);
+//    }
+//    if (opt_storage_params_right != NULL) {
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          opt_storage_params_right, [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//      ir_to_deep_drop.push_back(opt_storage_params_right);
+//    }
+//
+//    // Do not use param_num == 0;
+//    IR *new_storage_param_node =
+//        this->constr_rand_storage_param(get_rand_int(3) + 1);
+//    new_storage_param_node->set_is_instantiated(true);
+//    opt_storage_params->update_left(new_storage_param_node);
+//    opt_storage_params->update_right(NULL);
+//  }
+//
+//  return;
+//}
 
 void Mutator::map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
                               const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
@@ -3824,7 +3827,7 @@ void Mutator::map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
    * column mapping. */
   IR *cur_ir = ir_to_fix;
   bool is_in_create_view = false;
-  if (cur_stmt_root->get_ir_type() == TypeCreateView) {
+  if (cur_stmt_root->get_ir_type() == TypeCreateViewStmt) {
     is_in_create_view = true;
   }
   if (is_in_create_view) {
@@ -3845,7 +3848,7 @@ void Mutator::map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
 
     for (IR *cur_mentioned_column : all_mentioned_column_vec) {
       if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_column,
-                                        TypeSelectExprs)) {
+                                        TypeSelectStmt)) {
         tmp_column_vec.push_back(cur_mentioned_column);
       }
     }
@@ -3859,7 +3862,7 @@ void Mutator::map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
                all_mentioned_column_alias_vec);
 
     for (IR *cur_mentioned_alias : all_mentioned_column_alias_vec) {
-      if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_alias, TypeSelectExprs)) {
+      if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_alias, TypeSelectStmt)) {
         tmp_column_vec.push_back(cur_mentioned_alias);
       }
     }
@@ -3962,99 +3965,101 @@ void Mutator::map_create_view_column(IR *ir_to_fix,
                                      vector<IR *> &ir_to_deep_drop,
                                      bool is_debug_info) {
 
-  IR *type_name_list =
-      p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
-  if (type_name_list == NULL) {
-    if (is_debug_info) {
-      cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the "
-              "type_name_list from the statement."
-              "More debug info, view column is: "
-           << ir_to_fix->to_string() << ". \n\n\n";
-    }
-    return;
-  }
-
-  string ret_str = "";
-  IR *near_view_name_node =
-      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
-                                                            DataViewName);
-  if (near_view_name_node == NULL) {
-    if (is_debug_info) {
-      cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the "
-              "near_view_name from the "
-              "statement. More debug info, view column is: "
-           << ir_to_fix->to_string() << ". \n\n\n";
-    }
-  }
-  string near_view_name_str = near_view_name_node->to_string();
-  vector<string> matched_columns = m_table2columns[near_view_name_str];
-
-  vector<string> v_new_view_col_name_str;
-  int view_col_idx = 0;
-  for (string cur_matched_columns : matched_columns) {
-    string new_view_column_name = gen_view_column_name();
-    v_new_view_col_name_str.push_back(new_view_column_name);
-    m_column2datatype[new_view_column_name] =
-        m_column2datatype[cur_matched_columns];
-    m_datatype2column[m_column2datatype[cur_matched_columns]
-                          .get_data_affinity()]
-        .push_back(new_view_column_name);
-
-    if (view_col_idx != 0) {
-      ret_str += ", ";
-    }
-
-    view_col_idx++;
-    ret_str += new_view_column_name;
-
-    if (is_debug_info) {
-      cerr
-          << "\n\n\nDependency: INFO:: Transporting data affinity from column: "
-          << cur_matched_columns << " to view column: " << new_view_column_name
-          << ", with affinity: "
-          << get_string_by_affinity_type(
-                 m_column2datatype[new_view_column_name].get_data_affinity())
-          << ". \n\n\n";
-    }
-  }
-
-  m_table2columns[near_view_name_str] = v_new_view_col_name_str;
-
-  if (is_debug_info) {
-    for (string &view_col_name : v_new_view_col_name_str) {
-      cerr << "\n\n\nDependency: INFO:: Appending new view column: "
-           << view_col_name << " to view: " << near_view_name_str << ". \n\n\n";
-    }
-  }
-
-  // At last, switch the whole TypeNameList node in the Create View column
-  // clause.
-  //            ret_str = "(" + ret_str + ")";
-  IR *new_name_list_ir = new IR(TypeNameList, ret_str);
-
-  IR *name_list_left = type_name_list->get_left();
-  IR *name_list_right = type_name_list->get_right();
-
-  if (name_list_left != NULL) {
-    ir_to_deep_drop.push_back(name_list_left);
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        name_list_left, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-  }
-  if (name_list_right) {
-    ir_to_deep_drop.push_back(name_list_right);
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        name_list_right, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-  }
-
-  type_name_list->update_left(new_name_list_ir);
-  type_name_list->update_right(NULL);
-  type_name_list->op_->middle_ = "";
+  // TODO: Disable the create view column name instantiation for now.
+  return;
+//  IR *type_name_list =
+//      p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
+//  if (type_name_list == NULL) {
+//    if (is_debug_info) {
+//      cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the "
+//              "type_name_list from the statement."
+//              "More debug info, view column is: "
+//           << ir_to_fix->to_string() << ". \n\n\n";
+//    }
+//    return;
+//  }
+//
+//  string ret_str = "";
+//  IR *near_view_name_node =
+//      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
+//                                                            DataViewName);
+//  if (near_view_name_node == NULL) {
+//    if (is_debug_info) {
+//      cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the "
+//              "near_view_name from the "
+//              "statement. More debug info, view column is: "
+//           << ir_to_fix->to_string() << ". \n\n\n";
+//    }
+//  }
+//  string near_view_name_str = near_view_name_node->to_string();
+//  vector<string> matched_columns = m_table2columns[near_view_name_str];
+//
+//  vector<string> v_new_view_col_name_str;
+//  int view_col_idx = 0;
+//  for (string cur_matched_columns : matched_columns) {
+//    string new_view_column_name = gen_view_column_name();
+//    v_new_view_col_name_str.push_back(new_view_column_name);
+//    m_column2datatype[new_view_column_name] =
+//        m_column2datatype[cur_matched_columns];
+//    m_datatype2column[m_column2datatype[cur_matched_columns]
+//                          .get_data_affinity()]
+//        .push_back(new_view_column_name);
+//
+//    if (view_col_idx != 0) {
+//      ret_str += ", ";
+//    }
+//
+//    view_col_idx++;
+//    ret_str += new_view_column_name;
+//
+//    if (is_debug_info) {
+//      cerr
+//          << "\n\n\nDependency: INFO:: Transporting data affinity from column: "
+//          << cur_matched_columns << " to view column: " << new_view_column_name
+//          << ", with affinity: "
+//          << get_string_by_affinity_type(
+//                 m_column2datatype[new_view_column_name].get_data_affinity())
+//          << ". \n\n\n";
+//    }
+//  }
+//
+//  m_table2columns[near_view_name_str] = v_new_view_col_name_str;
+//
+//  if (is_debug_info) {
+//    for (string &view_col_name : v_new_view_col_name_str) {
+//      cerr << "\n\n\nDependency: INFO:: Appending new view column: "
+//           << view_col_name << " to view: " << near_view_name_str << ". \n\n\n";
+//    }
+//  }
+//
+//  // At last, switch the whole TypeNameList node in the Create View column
+//  // clause.
+//  //            ret_str = "(" + ret_str + ")";
+//  IR *new_name_list_ir = new IR(TypeNameList, ret_str);
+//
+//  IR *name_list_left = type_name_list->get_left();
+//  IR *name_list_right = type_name_list->get_right();
+//
+//  if (name_list_left != NULL) {
+//    ir_to_deep_drop.push_back(name_list_left);
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        name_list_left, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//  }
+//  if (name_list_right) {
+//    ir_to_deep_drop.push_back(name_list_right);
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        name_list_right, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//  }
+//
+//  type_name_list->update_left(new_name_list_ir);
+//  type_name_list->update_right(NULL);
+//  type_name_list->op_->middle_ = "";
 
   return;
 }
@@ -4062,8 +4067,7 @@ void Mutator::map_create_view_column(IR *ir_to_fix,
 void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
                                bool is_ignore_nested_expr, bool is_debug_info) {
 
-  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)) {
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetStmt)) {
     if (is_debug_info) {
       cerr << "\n\n\nInside instan_func_expr, the statment is inside "
               "TypeSetVar or"
@@ -4072,162 +4076,163 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
     return;
   }
 
-  if (ir_to_fix->get_data_type() == DataFunctionName) {
-    IR *ori_ir_to_fix = ir_to_fix;
-    ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(
-        ir_to_fix, DataFunctionExpr);
-    if (ir_to_fix == NULL) {
-      ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(ori_ir_to_fix,
-                                                                 TypeFuncObj);
-    }
-    if (ir_to_fix == NULL) {
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Inside instan_func_expr, cannot get "
-                "DataFunctionExpr/TypeFuncObj from DataFunctionName. \n\n\n";
-      }
-      return;
-    }
-  }
-
-  /* Fixing for functions.  */
-  if (ir_to_fix->get_data_type() == DataFunctionExpr ||
-      ir_to_fix->get_ir_type() == TypeFuncObj) {
-
-    if (ir_to_fix->get_data_flag() == ContextNoModi) {
-      return;
-    }
-
-    // Loop through the function expression, do not mutate the current function
-    // if the function contains nested structures.
-    vector<IR *> all_nodes_in_func_expr =
-        p_oracle->ir_wrapper.get_all_ir_node(ir_to_fix);
-    for (IR *cur_node_in_func_expr : all_nodes_in_func_expr) {
-      if (is_ignore_nested_expr) {
-        break;
-      }
-
-      if (cur_node_in_func_expr == ir_to_fix) {
-        continue;
-      }
-      if (p_oracle->is_expr_types_in_where_clause(
-              cur_node_in_func_expr->get_ir_type())) {
-        if (is_debug_info) {
-          cerr << "\n\n\nFound ir type: "
-               << get_string_by_ir_type(cur_node_in_func_expr->get_ir_type())
-               << " inside the function expression, matching with where expr "
-                  "types. \n\n\n";
-        }
-        ir_to_fix->set_is_instantiated(true);
-        break;
-      }
-    }
-
-    if (ir_to_fix->get_is_instantiated()) {
-      // If true, the function contains nested expressions, skipped.
-      if (is_debug_info) {
-        cerr << "\n\n\nInside instan_func_expr, the function expression"
-                " contains nested expressions, do not mutate on this func. "
-                "\n\n\n";
-      }
-      return;
-    }
-
-    IR *parent_node = ir_to_fix->get_parent();
-    if (parent_node == NULL) {
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Getting parent node is empty in "
-                "instan_func_expr. \n\n\n";
-      }
-      return;
-    }
-
-    DATAAFFINITYTYPE chosen_affi;
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSelectExprs)) {
-      // If in the SELECT clause, we can choose any affinity we want.
-      chosen_affi = get_random_affinity_type(
-          true, true); // no array types. Only basic types.
-    } else {
-      chosen_affi = this->get_nearby_data_affinity(ir_to_fix, is_debug_info);
-    }
-
-    IR *new_func_node =
-        constr_rand_func_with_affinity(chosen_affi, is_debug_info);
-
-    parent_node->swap_node(ir_to_fix, new_func_node);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDependency: Inside instan_func_expr, generating new "
-              "function: "
-           << new_func_node->to_string() << "\n\n\n";
-    }
-
-    ir_to_deep_drop.push_back(ir_to_fix);
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        ir_to_fix, [](IR *cur_node) -> void {
-          cur_node->set_is_instantiated(true);
-          cur_node->set_data_flag(ContextNoModi);
-        });
-  }
-
-  return;
-}
-
-void Mutator::remove_type_annotation(IR *cur_stmt_root,
-                                     vector<IR *> &ir_to_deep_drop) {
-
-  // Ignore all kinds of Column Type changes for now.
-
-  vector<IR *> v_type_annotation_node =
-      p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-          cur_stmt_root, TypeAnnotateTypeExpr, false, true);
-
-  for (IR *cur_type_anno_node : v_type_annotation_node) {
-    if (cur_type_anno_node->get_middle() != ":::") {
-      // Only remove the force type casting statement.
-      continue;
-    }
-    IR *right_node = cur_type_anno_node->get_right();
-    cur_type_anno_node->update_right(NULL);
-    cur_type_anno_node->op_->middle_ = "";
-    if (right_node != NULL) {
-      ir_to_deep_drop.push_back(right_node);
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          right_node, [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-    }
-  }
-
-  v_type_annotation_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-      cur_stmt_root, TypeCastExpr, false, true);
-
-  for (IR *cur_type_anno_node : v_type_annotation_node) {
-    if (cur_type_anno_node->get_middle() == "::") {
-      IR *right_node = cur_type_anno_node->get_right();
-      cur_type_anno_node->update_right(NULL);
-      cur_type_anno_node->op_->middle_ = "";
-      if (right_node != NULL) {
-        ir_to_deep_drop.push_back(right_node);
-        p_oracle->ir_wrapper.iter_cur_node_with_handler(
-            right_node, [](IR *cur_node) -> void {
-              cur_node->set_is_instantiated(true);
-              cur_node->set_data_flag(ContextNoModi);
-            });
-      }
-    } else if (cur_type_anno_node->get_left() != NULL &&
-               cur_type_anno_node->get_left()->get_data_type() ==
-                   DataTypeName) {
-      IR *left_node = cur_type_anno_node->get_left();
-      cur_type_anno_node->update_left(nullptr);
-      left_node->set_is_instantiated(true);
-      left_node->set_data_flag(ContextNoModi);
-      ir_to_deep_drop.push_back(left_node);
-    }
-  }
+  // TODO::Disable the function name instantiation for now.
+//  if (ir_to_fix->get_data_type() == DataFunctionName) {
+//    IR *ori_ir_to_fix = ir_to_fix;
+//    ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(
+//        ir_to_fix, DataFunctionExpr);
+//    if (ir_to_fix == NULL) {
+//      ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(ori_ir_to_fix,
+//                                                                 TypeFuncObj);
+//    }
+//    if (ir_to_fix == NULL) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Inside instan_func_expr, cannot get "
+//                "DataFunctionExpr/TypeFuncObj from DataFunctionName. \n\n\n";
+//      }
+//      return;
+//    }
+//  }
+//
+//  /* Fixing for functions.  */
+//  if (ir_to_fix->get_data_type() == DataFunctionExpr ||
+//      ir_to_fix->get_ir_type() == TypeFuncObj) {
+//
+//    if (ir_to_fix->get_data_flag() == ContextNoModi) {
+//      return;
+//    }
+//
+//    // Loop through the function expression, do not mutate the current function
+//    // if the function contains nested structures.
+//    vector<IR *> all_nodes_in_func_expr =
+//        p_oracle->ir_wrapper.get_all_ir_node(ir_to_fix);
+//    for (IR *cur_node_in_func_expr : all_nodes_in_func_expr) {
+//      if (is_ignore_nested_expr) {
+//        break;
+//      }
+//
+//      if (cur_node_in_func_expr == ir_to_fix) {
+//        continue;
+//      }
+//      if (p_oracle->is_expr_types_in_where_clause(
+//              cur_node_in_func_expr->get_ir_type())) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nFound ir type: "
+//               << get_string_by_ir_type(cur_node_in_func_expr->get_ir_type())
+//               << " inside the function expression, matching with where expr "
+//                  "types. \n\n\n";
+//        }
+//        ir_to_fix->set_is_instantiated(true);
+//        break;
+//      }
+//    }
+//
+//    if (ir_to_fix->get_is_instantiated()) {
+//      // If true, the function contains nested expressions, skipped.
+//      if (is_debug_info) {
+//        cerr << "\n\n\nInside instan_func_expr, the function expression"
+//                " contains nested expressions, do not mutate on this func. "
+//                "\n\n\n";
+//      }
+//      return;
+//    }
+//
+//    IR *parent_node = ir_to_fix->get_parent();
+//    if (parent_node == NULL) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Getting parent node is empty in "
+//                "instan_func_expr. \n\n\n";
+//      }
+//      return;
+//    }
+//
+//    DATAAFFINITYTYPE chosen_affi;
+//    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSelectExprs)) {
+//      // If in the SELECT clause, we can choose any affinity we want.
+//      chosen_affi = get_random_affinity_type(
+//          true, true); // no array types. Only basic types.
+//    } else {
+//      chosen_affi = this->get_nearby_data_affinity(ir_to_fix, is_debug_info);
+//    }
+//
+//    IR *new_func_node =
+//        constr_rand_func_with_affinity(chosen_affi, is_debug_info);
+//
+//    parent_node->swap_node(ir_to_fix, new_func_node);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDependency: Inside instan_func_expr, generating new "
+//              "function: "
+//           << new_func_node->to_string() << "\n\n\n";
+//    }
+//
+//    ir_to_deep_drop.push_back(ir_to_fix);
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        ir_to_fix, [](IR *cur_node) -> void {
+//          cur_node->set_is_instantiated(true);
+//          cur_node->set_data_flag(ContextNoModi);
+//        });
+//  }
 
   return;
 }
+
+//void Mutator::remove_type_annotation(IR *cur_stmt_root,
+//                                     vector<IR *> &ir_to_deep_drop) {
+//
+//  // Ignore all kinds of Column Type changes for now.
+//
+//  vector<IR *> v_type_annotation_node =
+//      p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//          cur_stmt_root, TypeAnnotateTypeExpr, false, true);
+//
+//  for (IR *cur_type_anno_node : v_type_annotation_node) {
+//    if (cur_type_anno_node->get_middle() != ":::") {
+//      // Only remove the force type casting statement.
+//      continue;
+//    }
+//    IR *right_node = cur_type_anno_node->get_right();
+//    cur_type_anno_node->update_right(NULL);
+//    cur_type_anno_node->op_->middle_ = "";
+//    if (right_node != NULL) {
+//      ir_to_deep_drop.push_back(right_node);
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          right_node, [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//    }
+//  }
+//
+//  v_type_annotation_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//      cur_stmt_root, TypeCastExpr, false, true);
+//
+//  for (IR *cur_type_anno_node : v_type_annotation_node) {
+//    if (cur_type_anno_node->get_middle() == "::") {
+//      IR *right_node = cur_type_anno_node->get_right();
+//      cur_type_anno_node->update_right(NULL);
+//      cur_type_anno_node->op_->middle_ = "";
+//      if (right_node != NULL) {
+//        ir_to_deep_drop.push_back(right_node);
+//        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//            right_node, [](IR *cur_node) -> void {
+//              cur_node->set_is_instantiated(true);
+//              cur_node->set_data_flag(ContextNoModi);
+//            });
+//      }
+//    } else if (cur_type_anno_node->get_left() != NULL &&
+//               cur_type_anno_node->get_left()->get_data_type() ==
+//                   DataTypeName) {
+//      IR *left_node = cur_type_anno_node->get_left();
+//      cur_type_anno_node->update_left(nullptr);
+//      left_node->set_is_instantiated(true);
+//      left_node->set_data_flag(ContextNoModi);
+//      ir_to_deep_drop.push_back(left_node);
+//    }
+//  }
+//
+//  return;
+//}
 
 bool Mutator::instan_dependency(
     IR *cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
@@ -4247,7 +4252,7 @@ bool Mutator::instan_dependency(
   vector<IR *> ir_to_deep_drop;
   string cur_ir_str = cur_stmt_root->to_string();
 
-  this->remove_type_annotation(cur_stmt_root, ir_to_deep_drop);
+//  this->remove_type_annotation(cur_stmt_root, ir_to_deep_drop);
 
   if (is_debug_info) {
     cerr << "\n\n\nAfter removing the type annotations, getting "
@@ -4308,7 +4313,7 @@ bool Mutator::instan_dependency(
       }
 
       // If NOT IN WITH clause, do not fix before the Table Name ContextUse.
-      if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
+      if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWithClause)) {
         continue;
       }
 
@@ -4347,7 +4352,7 @@ bool Mutator::instan_dependency(
       }
 
       // Fix the other aliases outside the WITH clause.
-      if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
+      if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWithClause)) {
         continue;
       }
 
@@ -4472,8 +4477,9 @@ bool Mutator::instan_dependency(
         continue;
       }
       if (ir_to_fix->data_type_ == DataColumnName &&
-          ir_to_fix->data_flag_ == ContextUse &&
-          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)) {
+          ir_to_fix->data_flag_ == ContextUse
+//          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)
+          ) {
         this->instan_column_name(ir_to_fix, cur_stmt_root, is_replace_column,
                                  ir_to_deep_drop, is_debug_info);
       }
@@ -4588,10 +4594,10 @@ bool Mutator::instan_dependency(
       IRTYPE type = ir_to_fix->get_ir_type();
       DATATYPE data_type = ir_to_fix->get_data_type();
 
-      if (type == TypeStorageParams && data_type == DataStorageParams) {
-
-        this->instan_storage_param(ir_to_fix, ir_to_deep_drop, is_debug_info);
-      }
+//      if (type == TypeStorageParams && data_type == DataStorageParams) {
+//
+//        this->instan_storage_param(ir_to_fix, ir_to_deep_drop, is_debug_info);
+//      }
     }
 
   } /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
@@ -4623,9 +4629,9 @@ bool Mutator::instan_dependency(
     /* Added mapping for Inheritance.  */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->data_type_ == DataTableName &&
-          (cur_stmt_root->get_ir_type() == TypeCreateTable ||
-           cur_stmt_root->get_ir_type() == TypeCreateView ||
-           cur_stmt_root->get_ir_type() == TypeCreateIndex) &&
+          (cur_stmt_root->get_ir_type() == TypeCreateTableStmt ||
+           cur_stmt_root->get_ir_type() == TypeCreateViewStmt  ||
+           cur_stmt_root->get_ir_type() == TypeCreateIndexStmt) &&
           //        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
           ir_to_fix->data_flag_ == ContextUse) {
         if (v_create_table_names_single.size() > 0) {
@@ -4658,7 +4664,7 @@ bool Mutator::instan_dependency(
     // Need to rewrite the column mapping.
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == DataViewColumnName) {
-        if (cur_stmt_root->get_ir_type() != TypeCreateView) {
+        if (cur_stmt_root->get_ir_type() != TypeCreateViewStmt ) {
           cerr << "\n\n\nError: Finding DataViewColumnName that is not in the "
                   "Create View statement. \n\n\n";
           continue;
@@ -4871,7 +4877,7 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
     } else {
       /* get on randomly generated query from the RSG module. */
       if (!disable_rsg_generator) {
-        select_str = this->rsg_generate_valid(TypeSelect);
+        select_str = this->rsg_generate_valid(TypeSelectStmt);
       }
 
       if (select_str == "") {
@@ -5051,10 +5057,11 @@ bool Mutator::add_all_to_library(string whole_query_str,
     }
     IR *cur_stmt_ir = v_cur_stmt_ir.front();
 
-    if (cur_stmt_ir->get_ir_type() == TypeSetVar ||
-        cur_stmt_ir->get_ir_type() == TypeCommitTransaction ||
-        cur_stmt_ir->get_ir_type() == TypeBeginTransaction ||
-        cur_stmt_ir->get_ir_type() == TypeRollbackTransaction) {
+    if (cur_stmt_ir->get_ir_type() == TypeSetStmt ||
+        cur_stmt_ir->get_ir_type() == TypeBeginStmt ||
+        cur_stmt_ir->get_ir_type() == TypeRollbackStmt ||
+        cur_stmt_ir->get_ir_type() ==TypeCommitStmt
+        ) {
       // Do not save the SET VAR statements and the transaction related
       // statements.
       root->deep_drop();
@@ -5441,7 +5448,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get Create Stmt. For the beginning.
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR *new_stmt_ir = this->get_ir_with_type(TypeCreateTable);
+  IR *new_stmt_ir = this->get_ir_with_type(TypeCreateTableStmt);
   if (new_stmt_ir == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kCreateStmt is NULL. \n\n\n";
@@ -5455,7 +5462,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get INSERT stmt
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR *new_stmt_ir_2 = this->get_ir_with_type(TypeInsert);
+  IR *new_stmt_ir_2 = this->get_ir_with_type(TypeInsertStmt);
   if (new_stmt_ir_2 == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kInsertStmt is NULL. \n\n\n";
@@ -5469,7 +5476,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get CREATE INDEX stmt
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR *new_stmt_ir_3 = this->get_ir_with_type(TypeCreateIndex);
+  IR *new_stmt_ir_3 = this->get_ir_with_type(TypeCreateIndexStmt);
   if (new_stmt_ir_3 == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kIndexStmt is NULL. \n\n\n";
@@ -5488,7 +5495,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get Create Stmt, for the end.
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir = this->get_ir_with_type(TypeCreateTable);
+  new_stmt_ir = this->get_ir_with_type(TypeCreateTableStmt);
   if (new_stmt_ir == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kCreateStmt is NULL. \n\n\n";
@@ -5502,7 +5509,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get INSERT stmt
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_2 = this->get_ir_with_type(TypeInsert);
+  new_stmt_ir_2 = this->get_ir_with_type(TypeInsertStmt);
   if (new_stmt_ir_2 == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kInsertStmt is NULL. \n\n\n";
@@ -5516,7 +5523,7 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   // Get CREATE INDEX stmt
   p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_3 = this->get_ir_with_type(TypeCreateIndex);
+  new_stmt_ir_3 = this->get_ir_with_type(TypeCreateIndexStmt);
   if (new_stmt_ir_3 == NULL) {
     cerr << "Debug: add_missing_create_table_stmt: Return false because "
             "kIndexStmt is NULL. \n\n\n";
@@ -5557,48 +5564,48 @@ IR *Mutator::constr_rand_set_stmt() {
   string ret_str = "SET SESSION " + rand_chosen_var + connector + params_str;
 
   IR *ret_ir =
-      new IR(TypeSetVar, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
+      new IR(TypeSetStmt, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
   ret_ir = new IR(TypeStmt, OP3("", "; ", ""), ret_ir, NULL);
 
   return ret_ir;
 }
 
-IR *Mutator::constr_rand_storage_param(int param_num) {
-  // Construct one SET statement as string,
-  //  and then embed the string into one IR.
-  // Return the embedded IR.
-
-  if (param_num < 1) {
-    cerr << "\n\n\n Logic Error: Inside constr_rand_storage_param. ";
-  }
-
-  if (this->all_storage_param.size() == 0 ||
-      this->storage_param_lib.size() == 0) {
-    cerr << "Error: The all_storage_param or storage_param_lib failed to init "
-            "before used. \n\n\n Abort();\n\n\n";
-    abort();
-  }
-
-  string ret_str = "";
-  for (int idx = 0; idx != param_num; idx++) {
-
-    string rand_chosen_var = vector_rand_ele(this->all_storage_param);
-    DataAffinity cur_data_affi = this->storage_param_lib[rand_chosen_var];
-
-    string params_str = cur_data_affi.get_mutated_literal();
-
-    if (idx > 0) {
-      ret_str += ", ";
-    }
-
-    ret_str += rand_chosen_var + " = " + params_str;
-  };
-
-  IR *ret_ir =
-      new IR(TypeStorageParams, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
-
-  return ret_ir;
-}
+//IR *Mutator::constr_rand_storage_param(int param_num) {
+//  // Construct one SET statement as string,
+//  //  and then embed the string into one IR.
+//  // Return the embedded IR.
+//
+//  if (param_num < 1) {
+//    cerr << "\n\n\n Logic Error: Inside constr_rand_storage_param. ";
+//  }
+//
+//  if (this->all_storage_param.size() == 0 ||
+//      this->storage_param_lib.size() == 0) {
+//    cerr << "Error: The all_storage_param or storage_param_lib failed to init "
+//            "before used. \n\n\n Abort();\n\n\n";
+//    abort();
+//  }
+//
+//  string ret_str = "";
+//  for (int idx = 0; idx != param_num; idx++) {
+//
+//    string rand_chosen_var = vector_rand_ele(this->all_storage_param);
+//    DataAffinity cur_data_affi = this->storage_param_lib[rand_chosen_var];
+//
+//    string params_str = cur_data_affi.get_mutated_literal();
+//
+//    if (idx > 0) {
+//      ret_str += ", ";
+//    }
+//
+//    ret_str += rand_chosen_var + " = " + params_str;
+//  };
+//
+//  IR *ret_ir =
+//      new IR(TypeStorageParams, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
+//
+//  return ret_ir;
+//}
 
 IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi,
                                             bool is_debug_info) {
@@ -5696,7 +5703,7 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi,
   IR *arg_IR =
       new IR(TypeUnknown, arg_names_ret_str, DataUnknownType, ContextUndefine);
   arg_IR->set_is_instantiated(true);
-  ret_IR = new IR(TypeFuncExpr, OP3("", "(", ")"), ret_IR, arg_IR);
+  ret_IR = new IR(TypeFuncCallExpr, OP3("", "(", ")"), ret_IR, arg_IR);
   ret_IR->set_is_instantiated(true);
   //  ret_IR->set_data_flag(ContextNoModi);
 
@@ -5710,756 +5717,759 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str,
    * This function only handles the error when comparing two literals.
    * */
 
-  vector<IR *> ir_to_deep_drop;
-
-  // Case 1:
-  // SELECT COUNT( *), SUM( x), REGR_SXX( x, type_op6), SUM( x), REGR_SYY( x,
-  // x), REGR_SXY( x, x) FROM v0 WHERE c1 IN (true, true, false, true, false);
-  // pq: unsupported comparison operator: c1 IN (true, true, false, true,
-  // false): expected true to be of type timestamp, found type bool
-
-  if (findStringIn(res_str, "unsupported comparison operator: ") &&
-      findStringIn(res_str, "expected") &&
-      findStringIn(res_str, "to be of type") &&
-      findStringIn(res_str, "found type ")) {
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG::Matching rule unsupported comparison operator: "
-              "\n\n\n";
-    }
-
-    string str_literal = "";
-    string str_target_type = "";
-    vector<string> v_tmp_split;
-
-    // Get the troublesome variable.
-    v_tmp_split = string_splitter(res_str, ": expected ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_literal, " to be of type ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(0);
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, " to be of type ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_target_type, ", ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(0);
-
-    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-    uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-    // Find all the matching literals.
-    vector<IR *> v_matched_node =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, str_literal, false, true);
-    for (IR *cur_matched_node : v_matched_node) {
-
-      bool is_skip = false;
-      for (auto cur_drop : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
-          is_skip = true;
-          break;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      if (is_debug_info) {
-        cerr << "\n\n\nDEBUG:: Matching node: "
-             << cur_matched_node->to_string();
-      }
-
-      //            cerr << "\n\n\naffi_library size: " <<
-      //            this->data_affi_set.size() << "\n"; cerr << "\nGetting
-      //            current need to match type: " <<
-      //            get_string_by_affinity_type(fix_affi.get_data_affinity())
-      //                << "\n\n\n";
-
-      IR *new_node = NULL;
-      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-          get_rand_int(10) < 9) {
-        //                pair<string*, int> cur_chosen_pair =
-        //                    vector_rand_ele(this->data_affi_set[fix_affi_hash]);
-        //                new_node =
-        //                this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
-        new_node =
-            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-        if (is_debug_info && new_node != NULL) {
-          cerr << "\nDEBUG:: From data affinity library, "
-               << get_string_by_affinity_type(fix_affi.get_data_affinity())
-               << " getting " << new_node->to_string() << "\n\n\n";
-        }
-      } else {
-        //                cerr << "Does not match successfully. \n";
-        //                cerr << "res_str: " << res_str << "\n\n\n";
-        new_node = new IR(TypeStringLiteral, OP0());
-        new_node->set_is_instantiated(true);
-        new_node->mutate_literal(fix_affi);
-      }
-
-      if (new_node != NULL) {
-        cur_stmt_root->swap_node(cur_matched_node, new_node);
-        ir_to_deep_drop.push_back(cur_matched_node);
-
-        this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
-
-        if (is_debug_info) {
-          cerr << ", mutated to node: " << cur_stmt_root->to_string()
-               << "\n\n\n";
-        }
-      } else {
-        if (is_debug_info) {
-          cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
-        }
-      }
-    }
-
-    for (auto cur_drop : ir_to_deep_drop) {
-      cur_drop->deep_drop();
-    }
-
-    return;
-
-  }
-
-  else if (findStringIn(res_str, "parsing as type ") &&
-           findStringIn(res_str, "could not parse")) {
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG:: Using rule could not parse and parsing as type in "
-              "the "
-              "fix_literal_op_err \n\n\n";
-    }
-
-    //        pq: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4',
-    //        '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2',
-    //        '05-08-4034 BC 06:58:13-5', '05-1 0-3656 14:14:21-3']: parsing as
-    //        type timestamp: could not parse "2ci10p4"
-
-    vector<IR *> ir_to_deep_drop;
-
-    string str_literal = "";
-    string str_target_type = "";
-    vector<string> v_tmp_split;
-
-    // Get the troublesome variable.
-    v_tmp_split = string_splitter(res_str, "could not parse ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find could not parse  in the string. \n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(1);
-
-    // Remove the "" symbol.
-    if (str_literal.size() > 0 && str_literal[0] == '"') {
-      str_literal = str_literal.substr(1, str_literal.size() - 1);
-    }
-    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '\n') {
-      str_literal = str_literal.substr(0, str_literal.size() - 1);
-    }
-    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '"') {
-      str_literal = str_literal.substr(0, str_literal.size() - 1);
-    }
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, "parsing as type ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find parsing as type  in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_target_type, ":");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find : in the string," << str_target_type
-           << "\n\n\n";
-      return;
-    }
-
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting str_target_type: " << str_target_type
-           << "\nstr_literal: " << str_literal << "\n\n\n";
-    }
-
-    str_target_type = v_tmp_split.at(0);
-
-    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-
-    // Find all the matching literals.
-    vector<IR *> v_matched_node =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, str_literal, false, true);
-
-    if (v_matched_node.size() == 0) {
-      v_matched_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-          cur_stmt_root, "'" + str_literal + "'", false, true);
-    }
-
-    for (auto cur_match_node : v_matched_node) {
-      bool is_skip = false;
-      for (IR *cur_drop : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_match_node, cur_drop)) {
-          is_skip = true;
-          break;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      IR *newLiteralNode = new IR(TypeUnknown, OP0());
-      newLiteralNode->set_is_instantiated(true);
-
-      uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-          get_rand_int(11) < 9) {
-        newLiteralNode->deep_drop();
-        newLiteralNode =
-            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-        if (is_debug_info && newLiteralNode != NULL) {
-          cerr << "\nDEBUG:: From data affinity library, "
-               << get_string_by_affinity_type(fix_affi.get_data_affinity())
-               << " getting " << newLiteralNode->to_string() << "\n\n\n";
-        }
-      } else {
-        newLiteralNode->mutate_literal(fix_affi);
-      }
-
-      cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
-      ir_to_deep_drop.push_back(cur_match_node);
-    }
-
-    for (auto ir_drop : ir_to_deep_drop) {
-      ir_drop->deep_drop();
-    }
-
-  }
-
-  else if (findStringIn(res_str, "could not parse ") &&
-           findStringIn(res_str, "as ")) {
-    // Sample:
-    // pq: could not parse "jsmx" as inet. invalid IP
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG:: Using rule could not parse and as in the "
-              "fix_literal_op_err \n\n\n";
-    }
-
-    vector<IR *> ir_to_deep_drop;
-
-    string str_literal = "";
-    string str_target_type = "";
-    vector<string> v_tmp_split;
-
-    // Get the troublesome variable.
-    v_tmp_split = string_splitter(res_str, "could not parse ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find could not parse  in the string. \n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_literal, " ");
-
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find space when retrieving the str_literal "
-              "in the string. \n\n\n";
-      return;
-    }
-
-    str_literal = v_tmp_split.at(0);
-
-    // Remove the "" symbol.
-    if (str_literal.size() > 0 && str_literal[0] == '"') {
-      str_literal = str_literal.substr(1, str_literal.size() - 1);
-    }
-    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '\n' ||
-        str_literal[str_literal.size() - 1] == ' ') {
-      str_literal = str_literal.substr(0, str_literal.size() - 1);
-    }
-    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '"') {
-      str_literal = str_literal.substr(0, str_literal.size() - 1);
-    }
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, "as ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find as (type)  in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_target_type, ".");
-    if (v_tmp_split.size() <= 1) {
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Cannot find . in the string," << str_target_type
-             << "\n\n\n";
-      }
-    } else {
-      str_target_type = v_tmp_split.at(0);
-    }
-    v_tmp_split = string_splitter(str_target_type, ":");
-    if (v_tmp_split.size() <= 1) {
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Cannot find : in the string," << str_target_type
-             << "\n\n\n";
-      }
-    } else {
-      str_target_type = v_tmp_split.at(0);
-    }
-    v_tmp_split = string_splitter(str_target_type, "type ");
-    if (v_tmp_split.size() <= 1) {
-      if (is_debug_info) {
-        cerr << "\n\n\nERROR: Cannot find type in the string,"
-             << str_target_type << "\n\n\n";
-      }
-    } else {
-      str_target_type = v_tmp_split.at(1);
-    }
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG: getting str_target_type: " << str_target_type
-           << ", getting target literal: " << str_literal << ".\n\n\n";
-    }
-
-    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-
-    // Find all the matching literals.
-    vector<IR *> v_matched_node =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, str_literal, false, true);
-
-    if (v_matched_node.size() == 0) {
-      v_matched_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-          cur_stmt_root, "'" + str_literal + "'", false, true);
-    }
-
-    for (auto cur_match_node : v_matched_node) {
-      bool is_skip = false;
-      for (IR *cur_drop : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_match_node, cur_drop)) {
-          is_skip = true;
-          break;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      IR *newLiteralNode = new IR(TypeUnknown, OP0());
-      newLiteralNode->set_is_instantiated(true);
-
-      uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-          get_rand_int(11) < 9) {
-        newLiteralNode->deep_drop();
-        newLiteralNode =
-            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-        if (is_debug_info && newLiteralNode != NULL) {
-          cerr << "\nDEBUG:: From data affinity library, "
-               << get_string_by_affinity_type(fix_affi.get_data_affinity())
-               << " getting " << newLiteralNode->to_string() << "\n\n\n";
-        }
-      } else {
-        newLiteralNode->mutate_literal(fix_affi);
-      }
-
-      cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
-      ir_to_deep_drop.push_back(cur_match_node);
-    }
-
-    for (auto ir_drop : ir_to_deep_drop) {
-      ir_drop->deep_drop();
-    }
-
-  }
-
-  else if (findStringIn(res_str, "unsupported comparison operator: ")) {
-    /*
-     * Type mismatched when comparing between two literals.
-     * SELECT COUNT( *) FROM v0 WHERE v0.c5 = B'010' AND v0.c3 = B'10001111101';
-     *   pq: unsupported comparison operator: <decimal> = <varbit>
-     * */
-
-    if (is_debug_info) {
-      cerr << "Inside the unsupported comparison operator: other types. \n\n\n";
-    }
-
-    // Get which binary operator is causing the problem. Only fixing the
-    // matching one.
-
-    vector<string> v_tmp_str;
-    v_tmp_str = string_splitter(res_str, "> ");
-    if (v_tmp_str.size() < 2) {
-      return;
-    }
-    string str_operator = v_tmp_str[1];
-    v_tmp_str = string_splitter(str_operator, " <");
-    if (v_tmp_str.size() < 2) {
-      return;
-    }
-    str_operator = v_tmp_str.front();
-    if (is_debug_info) {
-      cerr << "DEBUG:: in unsupported comparison operator: Getting "
-              "str_operator: "
-           << str_operator << "\n\n\n";
-    }
-
-    vector<Binary_Operator> tmp_bin_oper =
-        p_oracle->get_operator_supported_types(str_operator);
-
-    vector<IR *> ir_to_deep_drop;
-
-    vector<IR *> v_binary_operator =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, TypeBinExprFmtWithParen, false, true);
-    for (IR *cur_binary_operator : v_binary_operator) {
-
-      bool is_skip = false;
-      for (auto ir_drop : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, ir_drop)) {
-          is_skip = true;
-          break;
-        }
-      }
-
-      if (is_skip) {
-        continue;
-      }
-
-      string cur_binary_opt_str = cur_binary_operator->get_middle();
-      trim_string(cur_binary_opt_str);
-      if (cur_binary_opt_str != str_operator) {
-        if (is_debug_info) {
-          cerr << "\n\n\nSkip operator: " << cur_binary_operator->get_middle()
-               << " because it is not matched with: " << str_operator
-               << "\n\n\n";
-        }
-        is_skip = true;
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\n Matching operator: "
-               << cur_binary_operator->get_middle()
-               << " and it is matched with: " << str_operator << "\n\n\n";
-        }
-      }
-
-      if (is_skip) {
-        continue;
-      }
-
-      if (cur_binary_operator->get_middle() == " LIKE ") {
-        /*
-         * SELECT COUNT( *) FROM v0 WHERE c1 LIKE true;
-         * pq: unsupported comparison operator: <bool> LIKE <bool>
-         * For LIKE operator, both sides should be STRING types
-         */
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG:: Getting the LIKE error fixing. ";
-        }
-
-        IR *new_left_node = new IR(TypeUnknown, OP0(), NULL, NULL);
-        new_left_node->set_is_instantiated(true);
-
-        DataAffinity fix_affi(AFFISTRING);
-        uint64_t fix_affi_hash = fix_affi.calc_hash();
-        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-            get_rand_int(3)) {
-          new_left_node->deep_drop();
-          new_left_node =
-              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-          if (is_debug_info && new_left_node != NULL) {
-            cerr << "\nDEBUG:: From data affinity library, "
-                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                 << " getting " << new_left_node->to_string() << "\n\n\n";
-          }
-        } else if (m_datatype2column.count(AFFISTRING) > 0) {
-          string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
-          new_left_node->set_str_val(col_str);
-        } else {
-          new_left_node->mutate_literal(AFFISTRING);
-        }
-
-        IR *new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
-        ;
-        new_right_node->set_is_instantiated(true);
-        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-            get_rand_int(3)) {
-          new_right_node->deep_drop();
-          new_right_node =
-              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-          if (is_debug_info && new_right_node != NULL) {
-            cerr << "\nDEBUG:: From data affinity library, "
-                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                 << " getting " << new_right_node->to_string() << "\n\n\n";
-          }
-        } else if (m_datatype2column.count(AFFISTRING) > 0) {
-          string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
-          new_right_node->set_str_val(col_str);
-        } else {
-          new_right_node->mutate_literal(AFFISTRING);
-        }
-
-        // Replacing the old nodes.
-        IR *old_left_node = cur_binary_operator->get_left();
-        IR *old_right_node = cur_binary_operator->get_right();
-
-        cur_binary_operator->update_left(new_left_node);
-        cur_binary_operator->update_right(new_right_node);
-
-        ir_to_deep_drop.push_back(old_left_node);
-        ir_to_deep_drop.push_back(old_right_node);
-
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG::Mutated the unsupported LIKE comparison to "
-               << cur_binary_operator->to_string() << "\n\n\n";
-        }
-
-      }
-
-      else if (tmp_bin_oper.size() != 0) {
-
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG: Trying to use the saved operator types "
-                  "to fix the semantic error problem. \n\n\n";
-        }
-
-        // Get left type and right type from the binary operations.
-        string left_type_str, right_type_str;
-
-        v_tmp_str = string_splitter(res_str, " <");
-        if (v_tmp_str.size() < 3) {
-          return;
-        }
-        left_type_str = v_tmp_str[1];
-        right_type_str = v_tmp_str[2];
-
-        v_tmp_str = string_splitter(left_type_str, "> ");
-        if (v_tmp_str.size() < 2) {
-          return;
-        }
-        left_type_str = v_tmp_str[0];
-
-        v_tmp_str = string_splitter(right_type_str, ">");
-        if (v_tmp_str.size() < 2) {
-          return;
-        }
-        right_type_str = v_tmp_str[0];
-
-        DATAAFFINITYTYPE
-        left_type =
-            get_data_affinity_by_string(left_type_str).get_data_affinity(),
-        right_type =
-            get_data_affinity_by_string(right_type_str).get_data_affinity();
-
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG:: Getting binary operator left type: "
-               << get_string_by_affinity_type(left_type)
-               << " and right type: " << get_string_by_affinity_type(right_type)
-               << "\n\n\n";
-        }
-
-        vector<Binary_Operator> v_mat_left_types;
-        for (auto tmp_bin_oper : tmp_bin_oper) {
-          if (tmp_bin_oper.left == left_type) {
-            v_mat_left_types.push_back(tmp_bin_oper);
-          }
-        }
-
-        DATAAFFINITYTYPE new_left_type;
-
-        if (v_mat_left_types.size() == 0) {
-          // The left expression should never be used in this context.
-          Binary_Operator tmp_choosen_types = vector_rand_ele(tmp_bin_oper);
-          v_mat_left_types.push_back(tmp_choosen_types);
-
-          new_left_type = tmp_choosen_types.left;
-
-          DataAffinity tmp_data_affi(new_left_type);
-          uint64_t tmp_hash = tmp_data_affi.calc_hash();
-          if (data_affi_set.count(tmp_hash) != 0 &&
-              data_affi_set[tmp_hash].size() != 0) {
-            IR *new_left_node =
-                vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
-            IR *ori_left_node = cur_binary_operator->get_left();
-            cur_binary_operator->update_left(new_left_node);
-            ir_to_deep_drop.push_back(ori_left_node);
-          } else {
-            IR *new_left_node = new IR(TypeStringLiteral, string(""));
-            new_left_node->mutate_literal(new_left_type);
-            IR *ori_left_node = cur_binary_operator->get_left();
-            cur_binary_operator->update_left(new_left_node);
-            ir_to_deep_drop.push_back(ori_left_node);
-          }
-        } else {
-          new_left_type = left_type;
-        }
-
-        if (v_mat_left_types.size() == 0) {
-          return;
-        }
-
-        DATAAFFINITYTYPE new_right_type =
-            vector_rand_ele(v_mat_left_types).right;
-        DataAffinity tmp_data_affi(new_right_type);
-        uint64_t tmp_hash = tmp_data_affi.calc_hash();
-        if (data_affi_set.count(tmp_hash) != 0 &&
-            data_affi_set[tmp_hash].size() != 0) {
-          IR *new_right_node =
-              vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
-          IR *ori_right_node = cur_binary_operator->get_right();
-          cur_binary_operator->update_right(new_right_node);
-          ir_to_deep_drop.push_back(ori_right_node);
-        } else {
-          IR *new_right_node = new IR(TypeStringLiteral, string(""));
-          new_right_node->mutate_literal(new_right_type);
-          IR *ori_right_node = cur_binary_operator->get_right();
-          cur_binary_operator->update_right(new_right_node);
-          ir_to_deep_drop.push_back(ori_right_node);
-        }
-
-        if (is_debug_info) {
-          cerr << "For operator: " << str_operator << "\nfixing the left type: "
-               << get_string_by_affinity_type(new_left_type)
-               << "\n right type: "
-               << get_string_by_affinity_type(new_right_type)
-               << "\n new operator: " << cur_binary_operator->to_string()
-               << "\n ori res_str: " << res_str << "\n\n\n";
-        }
-
-      }
-
-      else {
-        // TODO:: Not accurate any more.
-        /*
-         * If it is other types of comparison, follow the types from the left
-         * side. select * FROM v0 where 123 < 'abc'; ERROR: unsupported
-         * comparison operator: <int> < <string>
-         */
-
-        /*
-         * This rule also matches the two sides column comparisons.
-         * select * from v0 where c1 > c2;
-         * ERROR: unsupported comparison operator: <int> > <string>
-         * */
-
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG:: Getting the other types (non-like) of the "
-                  "comparison operator fixing. ";
-        }
-
-        string str_target_type = "";
-        vector<string> v_tmp_split;
-
-        // Get the troublesome variable.
-        v_tmp_split = string_splitter(res_str, " operator: <");
-        if (v_tmp_split.size() <= 1) {
-          cerr << "\n\n\nERROR: Cannot find  operator: < in the string "
-               << res_str << "\n\n\n";
-          return;
-        }
-        str_target_type = v_tmp_split.at(1);
-
-        v_tmp_split = string_splitter(str_target_type, ">");
-        if (v_tmp_split.size() <= 1) {
-          cerr << "\n\n\nERROR: Cannot find > in the string: "
-               << str_target_type << " \n\n\n";
-          return;
-        }
-        str_target_type = v_tmp_split.at(0);
-
-        if (is_debug_info) {
-          cerr << "\n\n\nGetting str_target_type: " << str_target_type
-               << "\n\n\n";
-        }
-
-        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-        uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-        //                cerr << "\n\n\naffi_library size: " <<
-        //                this->data_affi_set.size() << "\n"; cerr << "\nGetting
-        //                current need to match type: " <<
-        //                get_string_by_affinity_type(fix_affi.get_data_affinity())
-        //                     << "\n\n\n";
-
-        IR *new_node = NULL;
-        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-            get_rand_int(10) != 0) {
-          //                    pair<string*, int> cur_chosen_pair =
-          //                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
-          //                    new_node =
-          //                    this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
-          new_node =
-              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-          if (is_debug_info && new_node != NULL) {
-            cerr << "\nDEBUG:: From data affinity library, "
-                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                 << " getting " << new_node->to_string() << "\n\n\n";
-          }
-        } else {
-          new_node = new IR(TypeUnknown, OP0(), NULL, NULL);
-          new_node->set_is_instantiated(true);
-          new_node->mutate_literal(fix_affi);
-        }
-
-        if (new_node != NULL) {
-          IR *old_right_node = cur_binary_operator->get_right();
-          cur_binary_operator->update_right(new_node);
-          if (old_right_node != NULL) {
-            ir_to_deep_drop.push_back(old_right_node);
-          }
-
-          this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
-
-          if (is_debug_info) {
-            cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
-                 << cur_binary_operator->to_string() << "\n\n\n";
-          }
-        } else {
-          if (is_debug_info) {
-            cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
-          }
-        }
-      }
-    }
-
-    for (auto ir_drop : ir_to_deep_drop) {
-      ir_drop->deep_drop();
-    }
-  }
-
+  // Give up the fixing algorithm in the TiDB implementation for now.
+  return;
+//
+//  vector<IR *> ir_to_deep_drop;
+//
+//  // Case 1:
+//  // SELECT COUNT( *), SUM( x), REGR_SXX( x, type_op6), SUM( x), REGR_SYY( x,
+//  // x), REGR_SXY( x, x) FROM v0 WHERE c1 IN (true, true, false, true, false);
+//  // pq: unsupported comparison operator: c1 IN (true, true, false, true,
+//  // false): expected true to be of type timestamp, found type bool
+//
+//  if (findStringIn(res_str, "unsupported comparison operator: ") &&
+//      findStringIn(res_str, "expected") &&
+//      findStringIn(res_str, "to be of type") &&
+//      findStringIn(res_str, "found type ")) {
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG::Matching rule unsupported comparison operator: "
+//              "\n\n\n";
+//    }
+//
+//    string str_literal = "";
+//    string str_target_type = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the troublesome variable.
+//    v_tmp_split = string_splitter(res_str, ": expected ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_literal, " to be of type ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(0);
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, " to be of type ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_target_type, ", ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(0);
+//
+//    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//    uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//    // Find all the matching literals.
+//    vector<IR *> v_matched_node =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, str_literal, false, true);
+//    for (IR *cur_matched_node : v_matched_node) {
+//
+//      bool is_skip = false;
+//      for (auto cur_drop : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDEBUG:: Matching node: "
+//             << cur_matched_node->to_string();
+//      }
+//
+//      //            cerr << "\n\n\naffi_library size: " <<
+//      //            this->data_affi_set.size() << "\n"; cerr << "\nGetting
+//      //            current need to match type: " <<
+//      //            get_string_by_affinity_type(fix_affi.get_data_affinity())
+//      //                << "\n\n\n";
+//
+//      IR *new_node = NULL;
+//      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//          get_rand_int(10) < 9) {
+//        //                pair<string*, int> cur_chosen_pair =
+//        //                    vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+//        //                new_node =
+//        //                this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+//        new_node =
+//            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//        if (is_debug_info && new_node != NULL) {
+//          cerr << "\nDEBUG:: From data affinity library, "
+//               << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//               << " getting " << new_node->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        //                cerr << "Does not match successfully. \n";
+//        //                cerr << "res_str: " << res_str << "\n\n\n";
+//        new_node = new IR(TypeStringLiteral, OP0());
+//        new_node->set_is_instantiated(true);
+//        new_node->mutate_literal(fix_affi);
+//      }
+//
+//      if (new_node != NULL) {
+//        cur_stmt_root->swap_node(cur_matched_node, new_node);
+//        ir_to_deep_drop.push_back(cur_matched_node);
+//
+//        this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
+//
+//        if (is_debug_info) {
+//          cerr << ", mutated to node: " << cur_stmt_root->to_string()
+//               << "\n\n\n";
+//        }
+//      } else {
+//        if (is_debug_info) {
+//          cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
+//        }
+//      }
+//    }
+//
+//    for (auto cur_drop : ir_to_deep_drop) {
+//      cur_drop->deep_drop();
+//    }
+//
+//    return;
+//
+//  }
+//
+//  else if (findStringIn(res_str, "parsing as type ") &&
+//           findStringIn(res_str, "could not parse")) {
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG:: Using rule could not parse and parsing as type in "
+//              "the "
+//              "fix_literal_op_err \n\n\n";
+//    }
+//
+//    //        pq: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4',
+//    //        '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2',
+//    //        '05-08-4034 BC 06:58:13-5', '05-1 0-3656 14:14:21-3']: parsing as
+//    //        type timestamp: could not parse "2ci10p4"
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    string str_literal = "";
+//    string str_target_type = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the troublesome variable.
+//    v_tmp_split = string_splitter(res_str, "could not parse ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find could not parse  in the string. \n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(1);
+//
+//    // Remove the "" symbol.
+//    if (str_literal.size() > 0 && str_literal[0] == '"') {
+//      str_literal = str_literal.substr(1, str_literal.size() - 1);
+//    }
+//    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '\n') {
+//      str_literal = str_literal.substr(0, str_literal.size() - 1);
+//    }
+//    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '"') {
+//      str_literal = str_literal.substr(0, str_literal.size() - 1);
+//    }
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, "parsing as type ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find parsing as type  in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_target_type, ":");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find : in the string," << str_target_type
+//           << "\n\n\n";
+//      return;
+//    }
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting str_target_type: " << str_target_type
+//           << "\nstr_literal: " << str_literal << "\n\n\n";
+//    }
+//
+//    str_target_type = v_tmp_split.at(0);
+//
+//    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//
+//    // Find all the matching literals.
+//    vector<IR *> v_matched_node =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, str_literal, false, true);
+//
+//    if (v_matched_node.size() == 0) {
+//      v_matched_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//          cur_stmt_root, "'" + str_literal + "'", false, true);
+//    }
+//
+//    for (auto cur_match_node : v_matched_node) {
+//      bool is_skip = false;
+//      for (IR *cur_drop : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_match_node, cur_drop)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      IR *newLiteralNode = new IR(TypeUnknown, OP0());
+//      newLiteralNode->set_is_instantiated(true);
+//
+//      uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//          get_rand_int(11) < 9) {
+//        newLiteralNode->deep_drop();
+//        newLiteralNode =
+//            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//        if (is_debug_info && newLiteralNode != NULL) {
+//          cerr << "\nDEBUG:: From data affinity library, "
+//               << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//               << " getting " << newLiteralNode->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        newLiteralNode->mutate_literal(fix_affi);
+//      }
+//
+//      cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
+//      ir_to_deep_drop.push_back(cur_match_node);
+//    }
+//
+//    for (auto ir_drop : ir_to_deep_drop) {
+//      ir_drop->deep_drop();
+//    }
+//
+//  }
+//
+//  else if (findStringIn(res_str, "could not parse ") &&
+//           findStringIn(res_str, "as ")) {
+//    // Sample:
+//    // pq: could not parse "jsmx" as inet. invalid IP
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG:: Using rule could not parse and as in the "
+//              "fix_literal_op_err \n\n\n";
+//    }
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    string str_literal = "";
+//    string str_target_type = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the troublesome variable.
+//    v_tmp_split = string_splitter(res_str, "could not parse ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find could not parse  in the string. \n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_literal, " ");
+//
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find space when retrieving the str_literal "
+//              "in the string. \n\n\n";
+//      return;
+//    }
+//
+//    str_literal = v_tmp_split.at(0);
+//
+//    // Remove the "" symbol.
+//    if (str_literal.size() > 0 && str_literal[0] == '"') {
+//      str_literal = str_literal.substr(1, str_literal.size() - 1);
+//    }
+//    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '\n' ||
+//        str_literal[str_literal.size() - 1] == ' ') {
+//      str_literal = str_literal.substr(0, str_literal.size() - 1);
+//    }
+//    if (str_literal.size() > 0 && str_literal[str_literal.size() - 1] == '"') {
+//      str_literal = str_literal.substr(0, str_literal.size() - 1);
+//    }
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, "as ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find as (type)  in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_target_type, ".");
+//    if (v_tmp_split.size() <= 1) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Cannot find . in the string," << str_target_type
+//             << "\n\n\n";
+//      }
+//    } else {
+//      str_target_type = v_tmp_split.at(0);
+//    }
+//    v_tmp_split = string_splitter(str_target_type, ":");
+//    if (v_tmp_split.size() <= 1) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Cannot find : in the string," << str_target_type
+//             << "\n\n\n";
+//      }
+//    } else {
+//      str_target_type = v_tmp_split.at(0);
+//    }
+//    v_tmp_split = string_splitter(str_target_type, "type ");
+//    if (v_tmp_split.size() <= 1) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nERROR: Cannot find type in the string,"
+//             << str_target_type << "\n\n\n";
+//      }
+//    } else {
+//      str_target_type = v_tmp_split.at(1);
+//    }
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG: getting str_target_type: " << str_target_type
+//           << ", getting target literal: " << str_literal << ".\n\n\n";
+//    }
+//
+//    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//
+//    // Find all the matching literals.
+//    vector<IR *> v_matched_node =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, str_literal, false, true);
+//
+//    if (v_matched_node.size() == 0) {
+//      v_matched_node = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//          cur_stmt_root, "'" + str_literal + "'", false, true);
+//    }
+//
+//    for (auto cur_match_node : v_matched_node) {
+//      bool is_skip = false;
+//      for (IR *cur_drop : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_match_node, cur_drop)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      IR *newLiteralNode = new IR(TypeUnknown, OP0());
+//      newLiteralNode->set_is_instantiated(true);
+//
+//      uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//          get_rand_int(11) < 9) {
+//        newLiteralNode->deep_drop();
+//        newLiteralNode =
+//            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//        if (is_debug_info && newLiteralNode != NULL) {
+//          cerr << "\nDEBUG:: From data affinity library, "
+//               << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//               << " getting " << newLiteralNode->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        newLiteralNode->mutate_literal(fix_affi);
+//      }
+//
+//      cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
+//      ir_to_deep_drop.push_back(cur_match_node);
+//    }
+//
+//    for (auto ir_drop : ir_to_deep_drop) {
+//      ir_drop->deep_drop();
+//    }
+//
+//  }
+//
+//  else if (findStringIn(res_str, "unsupported comparison operator: ")) {
+//    /*
+//     * Type mismatched when comparing between two literals.
+//     * SELECT COUNT( *) FROM v0 WHERE v0.c5 = B'010' AND v0.c3 = B'10001111101';
+//     *   pq: unsupported comparison operator: <decimal> = <varbit>
+//     * */
+//
+//    if (is_debug_info) {
+//      cerr << "Inside the unsupported comparison operator: other types. \n\n\n";
+//    }
+//
+//    // Get which binary operator is causing the problem. Only fixing the
+//    // matching one.
+//
+//    vector<string> v_tmp_str;
+//    v_tmp_str = string_splitter(res_str, "> ");
+//    if (v_tmp_str.size() < 2) {
+//      return;
+//    }
+//    string str_operator = v_tmp_str[1];
+//    v_tmp_str = string_splitter(str_operator, " <");
+//    if (v_tmp_str.size() < 2) {
+//      return;
+//    }
+//    str_operator = v_tmp_str.front();
+//    if (is_debug_info) {
+//      cerr << "DEBUG:: in unsupported comparison operator: Getting "
+//              "str_operator: "
+//           << str_operator << "\n\n\n";
+//    }
+//
+//    vector<Binary_Operator> tmp_bin_oper =
+//        p_oracle->get_operator_supported_types(str_operator);
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    vector<IR *> v_binary_operator =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, TypeBinExprFmtWithParen, false, true);
+//    for (IR *cur_binary_operator : v_binary_operator) {
+//
+//      bool is_skip = false;
+//      for (auto ir_drop : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, ir_drop)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      string cur_binary_opt_str = cur_binary_operator->get_middle();
+//      trim_string(cur_binary_opt_str);
+//      if (cur_binary_opt_str != str_operator) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nSkip operator: " << cur_binary_operator->get_middle()
+//               << " because it is not matched with: " << str_operator
+//               << "\n\n\n";
+//        }
+//        is_skip = true;
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\n Matching operator: "
+//               << cur_binary_operator->get_middle()
+//               << " and it is matched with: " << str_operator << "\n\n\n";
+//        }
+//      }
+//
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      if (cur_binary_operator->get_middle() == " LIKE ") {
+//        /*
+//         * SELECT COUNT( *) FROM v0 WHERE c1 LIKE true;
+//         * pq: unsupported comparison operator: <bool> LIKE <bool>
+//         * For LIKE operator, both sides should be STRING types
+//         */
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG:: Getting the LIKE error fixing. ";
+//        }
+//
+//        IR *new_left_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+//        new_left_node->set_is_instantiated(true);
+//
+//        DataAffinity fix_affi(AFFISTRING);
+//        uint64_t fix_affi_hash = fix_affi.calc_hash();
+//        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//            get_rand_int(3)) {
+//          new_left_node->deep_drop();
+//          new_left_node =
+//              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//          if (is_debug_info && new_left_node != NULL) {
+//            cerr << "\nDEBUG:: From data affinity library, "
+//                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//                 << " getting " << new_left_node->to_string() << "\n\n\n";
+//          }
+//        } else if (m_datatype2column.count(AFFISTRING) > 0) {
+//          string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
+//          new_left_node->set_str_val(col_str);
+//        } else {
+//          new_left_node->mutate_literal(AFFISTRING);
+//        }
+//
+//        IR *new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+//        ;
+//        new_right_node->set_is_instantiated(true);
+//        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//            get_rand_int(3)) {
+//          new_right_node->deep_drop();
+//          new_right_node =
+//              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//          if (is_debug_info && new_right_node != NULL) {
+//            cerr << "\nDEBUG:: From data affinity library, "
+//                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//                 << " getting " << new_right_node->to_string() << "\n\n\n";
+//          }
+//        } else if (m_datatype2column.count(AFFISTRING) > 0) {
+//          string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
+//          new_right_node->set_str_val(col_str);
+//        } else {
+//          new_right_node->mutate_literal(AFFISTRING);
+//        }
+//
+//        // Replacing the old nodes.
+//        IR *old_left_node = cur_binary_operator->get_left();
+//        IR *old_right_node = cur_binary_operator->get_right();
+//
+//        cur_binary_operator->update_left(new_left_node);
+//        cur_binary_operator->update_right(new_right_node);
+//
+//        ir_to_deep_drop.push_back(old_left_node);
+//        ir_to_deep_drop.push_back(old_right_node);
+//
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG::Mutated the unsupported LIKE comparison to "
+//               << cur_binary_operator->to_string() << "\n\n\n";
+//        }
+//
+//      }
+//
+//      else if (tmp_bin_oper.size() != 0) {
+//
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG: Trying to use the saved operator types "
+//                  "to fix the semantic error problem. \n\n\n";
+//        }
+//
+//        // Get left type and right type from the binary operations.
+//        string left_type_str, right_type_str;
+//
+//        v_tmp_str = string_splitter(res_str, " <");
+//        if (v_tmp_str.size() < 3) {
+//          return;
+//        }
+//        left_type_str = v_tmp_str[1];
+//        right_type_str = v_tmp_str[2];
+//
+//        v_tmp_str = string_splitter(left_type_str, "> ");
+//        if (v_tmp_str.size() < 2) {
+//          return;
+//        }
+//        left_type_str = v_tmp_str[0];
+//
+//        v_tmp_str = string_splitter(right_type_str, ">");
+//        if (v_tmp_str.size() < 2) {
+//          return;
+//        }
+//        right_type_str = v_tmp_str[0];
+//
+//        DATAAFFINITYTYPE
+//        left_type =
+//            get_data_affinity_by_string(left_type_str).get_data_affinity(),
+//        right_type =
+//            get_data_affinity_by_string(right_type_str).get_data_affinity();
+//
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG:: Getting binary operator left type: "
+//               << get_string_by_affinity_type(left_type)
+//               << " and right type: " << get_string_by_affinity_type(right_type)
+//               << "\n\n\n";
+//        }
+//
+//        vector<Binary_Operator> v_mat_left_types;
+//        for (auto tmp_bin_oper : tmp_bin_oper) {
+//          if (tmp_bin_oper.left == left_type) {
+//            v_mat_left_types.push_back(tmp_bin_oper);
+//          }
+//        }
+//
+//        DATAAFFINITYTYPE new_left_type;
+//
+//        if (v_mat_left_types.size() == 0) {
+//          // The left expression should never be used in this context.
+//          Binary_Operator tmp_choosen_types = vector_rand_ele(tmp_bin_oper);
+//          v_mat_left_types.push_back(tmp_choosen_types);
+//
+//          new_left_type = tmp_choosen_types.left;
+//
+//          DataAffinity tmp_data_affi(new_left_type);
+//          uint64_t tmp_hash = tmp_data_affi.calc_hash();
+//          if (data_affi_set.count(tmp_hash) != 0 &&
+//              data_affi_set[tmp_hash].size() != 0) {
+//            IR *new_left_node =
+//                vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
+//            IR *ori_left_node = cur_binary_operator->get_left();
+//            cur_binary_operator->update_left(new_left_node);
+//            ir_to_deep_drop.push_back(ori_left_node);
+//          } else {
+//            IR *new_left_node = new IR(TypeStringLiteral, string(""));
+//            new_left_node->mutate_literal(new_left_type);
+//            IR *ori_left_node = cur_binary_operator->get_left();
+//            cur_binary_operator->update_left(new_left_node);
+//            ir_to_deep_drop.push_back(ori_left_node);
+//          }
+//        } else {
+//          new_left_type = left_type;
+//        }
+//
+//        if (v_mat_left_types.size() == 0) {
+//          return;
+//        }
+//
+//        DATAAFFINITYTYPE new_right_type =
+//            vector_rand_ele(v_mat_left_types).right;
+//        DataAffinity tmp_data_affi(new_right_type);
+//        uint64_t tmp_hash = tmp_data_affi.calc_hash();
+//        if (data_affi_set.count(tmp_hash) != 0 &&
+//            data_affi_set[tmp_hash].size() != 0) {
+//          IR *new_right_node =
+//              vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
+//          IR *ori_right_node = cur_binary_operator->get_right();
+//          cur_binary_operator->update_right(new_right_node);
+//          ir_to_deep_drop.push_back(ori_right_node);
+//        } else {
+//          IR *new_right_node = new IR(TypeStringLiteral, string(""));
+//          new_right_node->mutate_literal(new_right_type);
+//          IR *ori_right_node = cur_binary_operator->get_right();
+//          cur_binary_operator->update_right(new_right_node);
+//          ir_to_deep_drop.push_back(ori_right_node);
+//        }
+//
+//        if (is_debug_info) {
+//          cerr << "For operator: " << str_operator << "\nfixing the left type: "
+//               << get_string_by_affinity_type(new_left_type)
+//               << "\n right type: "
+//               << get_string_by_affinity_type(new_right_type)
+//               << "\n new operator: " << cur_binary_operator->to_string()
+//               << "\n ori res_str: " << res_str << "\n\n\n";
+//        }
+//
+//      }
+//
+//      else {
+//        // TODO:: Not accurate any more.
+//        /*
+//         * If it is other types of comparison, follow the types from the left
+//         * side. select * FROM v0 where 123 < 'abc'; ERROR: unsupported
+//         * comparison operator: <int> < <string>
+//         */
+//
+//        /*
+//         * This rule also matches the two sides column comparisons.
+//         * select * from v0 where c1 > c2;
+//         * ERROR: unsupported comparison operator: <int> > <string>
+//         * */
+//
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG:: Getting the other types (non-like) of the "
+//                  "comparison operator fixing. ";
+//        }
+//
+//        string str_target_type = "";
+//        vector<string> v_tmp_split;
+//
+//        // Get the troublesome variable.
+//        v_tmp_split = string_splitter(res_str, " operator: <");
+//        if (v_tmp_split.size() <= 1) {
+//          cerr << "\n\n\nERROR: Cannot find  operator: < in the string "
+//               << res_str << "\n\n\n";
+//          return;
+//        }
+//        str_target_type = v_tmp_split.at(1);
+//
+//        v_tmp_split = string_splitter(str_target_type, ">");
+//        if (v_tmp_split.size() <= 1) {
+//          cerr << "\n\n\nERROR: Cannot find > in the string: "
+//               << str_target_type << " \n\n\n";
+//          return;
+//        }
+//        str_target_type = v_tmp_split.at(0);
+//
+//        if (is_debug_info) {
+//          cerr << "\n\n\nGetting str_target_type: " << str_target_type
+//               << "\n\n\n";
+//        }
+//
+//        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//        uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//        //                cerr << "\n\n\naffi_library size: " <<
+//        //                this->data_affi_set.size() << "\n"; cerr << "\nGetting
+//        //                current need to match type: " <<
+//        //                get_string_by_affinity_type(fix_affi.get_data_affinity())
+//        //                     << "\n\n\n";
+//
+//        IR *new_node = NULL;
+//        if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//            this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//            get_rand_int(10) != 0) {
+//          //                    pair<string*, int> cur_chosen_pair =
+//          //                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+//          //                    new_node =
+//          //                    this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+//          new_node =
+//              vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//          if (is_debug_info && new_node != NULL) {
+//            cerr << "\nDEBUG:: From data affinity library, "
+//                 << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//                 << " getting " << new_node->to_string() << "\n\n\n";
+//          }
+//        } else {
+//          new_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+//          new_node->set_is_instantiated(true);
+//          new_node->mutate_literal(fix_affi);
+//        }
+//
+//        if (new_node != NULL) {
+//          IR *old_right_node = cur_binary_operator->get_right();
+//          cur_binary_operator->update_right(new_node);
+//          if (old_right_node != NULL) {
+//            ir_to_deep_drop.push_back(old_right_node);
+//          }
+//
+//          this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
+//
+//          if (is_debug_info) {
+//            cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
+//                 << cur_binary_operator->to_string() << "\n\n\n";
+//          }
+//        } else {
+//          if (is_debug_info) {
+//            cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
+//          }
+//        }
+//      }
+//    }
+//
+//    for (auto ir_drop : ir_to_deep_drop) {
+//      ir_drop->deep_drop();
+//    }
+//  }
+//
   return;
 }
 
@@ -6469,665 +6479,671 @@ void Mutator::fix_column_literal_op_err(IR *cur_stmt_root, string res_str,
    * Fix the error when comparing columns to mismatched string literals.
    */
 
-  if (
-      // Could be pq: could not parse or ERROR: could not parse
-      findStringIn(res_str, "could not parse ") &&
-      findStringIn(res_str, " as type ")) {
-    // SELECT * FROM v0 WHERE c1 > 'abc';
-    // ERROR: could not parse "abc" as type int: strconv.ParseInt: parsing
-    // "abc": invalid syntax
-
-    vector<IR *> ir_to_deep_drop;
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type "
-              "TYPE \n\n\n";
-    }
-
-    string str_literal = "";
-    string str_target_type = "";
-    vector<string> v_tmp_split;
-
-    // Get the troublesome variable.
-    v_tmp_split = string_splitter(res_str, "could not parse ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find ERROR: could not parse  in the string. "
-              "\n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_literal, " as type ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find as type in the string. \n\n\n";
-      return;
-    }
-    str_literal = v_tmp_split.at(0);
-    if (findStringIn(str_literal, "\"")) {
-      str_literal = "'" + str_literal.substr(1, str_literal.size() - 2) + "'";
-    }
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, " as type ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_target_type, ": ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(0);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting str_target_type: " << str_target_type
-           << "\nstr_literal: " << str_literal << "\n\n\n";
-    }
-
-    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting parsed fix_affi: "
-           << get_string_by_affinity_type(fix_affi.get_data_affinity())
-           << "\n\n\n";
-      vector<shared_ptr<DataAffinity>> tmp_debug_v =
-          fix_affi.get_v_tuple_types();
-      for (auto cur_debug : tmp_debug_v) {
-        cerr << get_string_by_affinity_type(cur_debug->get_data_affinity())
-             << ", ";
-      }
-      cerr << "end\n\n\n";
-    }
-
-    vector<IR *> v_matched_nodes =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, str_literal, false, true);
-    for (IR *cur_matched_node : v_matched_nodes) {
-
-      bool is_skip = false;
-      for (auto cur_drop : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
-          is_skip = true;
-          break;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      IR *new_matched_node = new IR(TypeUnknown, OP0());
-
-      new_matched_node->set_is_instantiated(true);
-
-      uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-          get_rand_int(11) < 9) {
-        new_matched_node->deep_drop();
-        new_matched_node =
-            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-        if (is_debug_info && new_matched_node != NULL) {
-          cerr << "\nDEBUG:: From data affinity library, "
-               << get_string_by_affinity_type(fix_affi.get_data_affinity())
-               << " getting " << new_matched_node->to_string() << "\n\n\n";
-        }
-      } else {
-        if (is_debug_info && new_matched_node != NULL) {
-          cerr << "\nDEBUG:: using original mutate_literal."
-               << "\n\n\n";
-        }
-        new_matched_node->mutate_literal(fix_affi);
-      }
-
-      cur_stmt_root->swap_node(cur_matched_node, new_matched_node);
-      ir_to_deep_drop.push_back(cur_matched_node);
-
-      if (is_debug_info) {
-        cerr << "\n\n\nDEBUG::Mutated the literal to "
-             << cur_matched_node->to_string() << "\n\n\n";
-      }
-    }
-
-    for (auto cur_drop : ir_to_deep_drop) {
-      cur_drop->deep_drop();
-    }
-
-    return;
-  }
-
-  else if (findStringIn(res_str, "unsupported binary operator: ") &&
-           findStringIn(res_str, "(desired ")) {
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator: (desired "
-              "...)\n\n\n";
-      cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
-    }
-
-    vector<IR *> ir_to_deep_drop;
-
-    string str_target_type = "";
-    string str_operator = "";
-    vector<string> v_tmp_split;
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, "> ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
-      return;
-    }
-    str_operator = "";
-    for (int i = 1; i < v_tmp_split.size(); i++) {
-      str_operator += v_tmp_split.at(i);
-      if ((i + 1) < v_tmp_split.size()) {
-        str_operator += "> ";
-      }
-    }
-
-    v_tmp_split = string_splitter(str_operator, " <");
-    if (v_tmp_split.size() < 2) {
-      cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
-      return;
-    }
-    str_operator = v_tmp_split.at(v_tmp_split.size() - 3);
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, "(desired <");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find (desired < in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(1);
-
-    v_tmp_split = string_splitter(str_target_type, ">)");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find >) in the string. \n\n\n";
-      return;
-    }
-    str_target_type = v_tmp_split.at(0);
-
-    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
-
-    vector<IR *> v_binary_operator =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, TypeBinaryExpr, false, true);
-    for (IR *cur_binary_operator : v_binary_operator) {
-      if (cur_binary_operator->get_middle() != (" " + str_operator + " ")) {
-        continue;
-      }
-
-      bool is_skip = false;
-      for (IR *prev_dropped : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, prev_dropped)) {
-          is_skip = true;
-          break;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      IR *par_node = cur_binary_operator->get_parent();
-      if (par_node == NULL) {
-        if (is_debug_info) {
-          cerr << "\n\n\nERROR:: Cannot find parent node from the "
-                  "cur_binary_operator->get_parent();\n\n\n";
-        }
-        return;
-      }
-      IR *new_ir = new IR(TypeUnknown, OP0(), NULL, NULL);
-      new_ir->set_is_instantiated(true);
-
-      uint64_t fix_affi_hash = fix_affi.calc_hash();
-
-      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
-          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
-          get_rand_int(11) < 9) {
-        new_ir->deep_drop();
-        new_ir =
-            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
-
-        if (is_debug_info && new_ir != NULL) {
-          cerr << "\nDEBUG:: From data affinity library, "
-               << get_string_by_affinity_type(fix_affi.get_data_affinity())
-               << " getting " << new_ir->to_string() << "\n\n\n";
-        }
-      } else {
-        new_ir->mutate_literal(fix_affi);
-      }
-
-      par_node->swap_node(cur_binary_operator, new_ir);
-
-      cur_binary_operator->parent_ = NULL;
-      ir_to_deep_drop.push_back(cur_binary_operator);
-    }
-
-    for (IR *cur_dropped : ir_to_deep_drop) {
-      cur_dropped->deep_drop();
-    }
-
-    return;
-
-  } else if (findStringIn(res_str, "unsupported binary operator")) {
-
-    /*
-     * pq: unsupported binary operator: <string> / <string>
-     * Forced change the binary operator to '=' for now.
-     * TODO:: apply operator specificed operations.
-     * */
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator. clean "
-              "\n\n\n";
-      cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
-    }
-
-    string str_operator = "";
-    vector<string> v_tmp_split;
-
-    // Get the target type name.
-    v_tmp_split = string_splitter(res_str, "> ");
-    if (v_tmp_split.size() <= 1) {
-      cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
-      return;
-    }
-    str_operator = "";
-    for (int i = 1; i < v_tmp_split.size(); i++) {
-      str_operator += v_tmp_split.at(i);
-      if ((i + 1) < v_tmp_split.size()) {
-        str_operator += "> ";
-      }
-    }
-
-    v_tmp_split = string_splitter(str_operator, " <");
-    if (v_tmp_split.size() < 2) {
-      cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
-      return;
-    }
-
-    str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, "
-              "clean, getting binary operator: "
-           << str_operator << "\n\n\n";
-    }
-
-    vector<IR *> v_binary_operator =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, TypeBinaryExpr, false, true);
-    for (IR *cur_binary_operator : v_binary_operator) {
-      string cur_binary_str = cur_binary_operator->get_middle();
-      trim_string(cur_binary_str);
-      trim_string(str_operator);
-      if (is_debug_info) {
-        cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, "
-                "clean, getting binary operator:"
-             << str_operator << ", node str:" << cur_binary_str << ".\n\n\n";
-      }
-      if (cur_binary_str != str_operator) {
-        continue;
-      }
-      cur_binary_operator->op_->middle_ = " = ";
-    }
-  }
+  // Give up the fixing algorithm in the TiDB implementation for now.
+  return;
+//
+//  if (
+//      // Could be pq: could not parse or ERROR: could not parse
+//      findStringIn(res_str, "could not parse ") &&
+//      findStringIn(res_str, " as type ")) {
+//    // SELECT * FROM v0 WHERE c1 > 'abc';
+//    // ERROR: could not parse "abc" as type int: strconv.ParseInt: parsing
+//    // "abc": invalid syntax
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type "
+//              "TYPE \n\n\n";
+//    }
+//
+//    string str_literal = "";
+//    string str_target_type = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the troublesome variable.
+//    v_tmp_split = string_splitter(res_str, "could not parse ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find ERROR: could not parse  in the string. "
+//              "\n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_literal, " as type ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find as type in the string. \n\n\n";
+//      return;
+//    }
+//    str_literal = v_tmp_split.at(0);
+//    if (findStringIn(str_literal, "\"")) {
+//      str_literal = "'" + str_literal.substr(1, str_literal.size() - 2) + "'";
+//    }
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, " as type ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_target_type, ": ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(0);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting str_target_type: " << str_target_type
+//           << "\nstr_literal: " << str_literal << "\n\n\n";
+//    }
+//
+//    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting parsed fix_affi: "
+//           << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//           << "\n\n\n";
+//      vector<shared_ptr<DataAffinity>> tmp_debug_v =
+//          fix_affi.get_v_tuple_types();
+//      for (auto cur_debug : tmp_debug_v) {
+//        cerr << get_string_by_affinity_type(cur_debug->get_data_affinity())
+//             << ", ";
+//      }
+//      cerr << "end\n\n\n";
+//    }
+//
+//    vector<IR *> v_matched_nodes =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, str_literal, false, true);
+//    for (IR *cur_matched_node : v_matched_nodes) {
+//
+//      bool is_skip = false;
+//      for (auto cur_drop : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      IR *new_matched_node = new IR(TypeUnknown, OP0());
+//
+//      new_matched_node->set_is_instantiated(true);
+//
+//      uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//          get_rand_int(11) < 9) {
+//        new_matched_node->deep_drop();
+//        new_matched_node =
+//            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//        if (is_debug_info && new_matched_node != NULL) {
+//          cerr << "\nDEBUG:: From data affinity library, "
+//               << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//               << " getting " << new_matched_node->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        if (is_debug_info && new_matched_node != NULL) {
+//          cerr << "\nDEBUG:: using original mutate_literal."
+//               << "\n\n\n";
+//        }
+//        new_matched_node->mutate_literal(fix_affi);
+//      }
+//
+//      cur_stmt_root->swap_node(cur_matched_node, new_matched_node);
+//      ir_to_deep_drop.push_back(cur_matched_node);
+//
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDEBUG::Mutated the literal to "
+//             << cur_matched_node->to_string() << "\n\n\n";
+//      }
+//    }
+//
+//    for (auto cur_drop : ir_to_deep_drop) {
+//      cur_drop->deep_drop();
+//    }
+//
+//    return;
+//  }
+//
+//  else if (findStringIn(res_str, "unsupported binary operator: ") &&
+//           findStringIn(res_str, "(desired ")) {
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator: (desired "
+//              "...)\n\n\n";
+//      cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
+//    }
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    string str_target_type = "";
+//    string str_operator = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, "> ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
+//      return;
+//    }
+//    str_operator = "";
+//    for (int i = 1; i < v_tmp_split.size(); i++) {
+//      str_operator += v_tmp_split.at(i);
+//      if ((i + 1) < v_tmp_split.size()) {
+//        str_operator += "> ";
+//      }
+//    }
+//
+//    v_tmp_split = string_splitter(str_operator, " <");
+//    if (v_tmp_split.size() < 2) {
+//      cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
+//      return;
+//    }
+//    str_operator = v_tmp_split.at(v_tmp_split.size() - 3);
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, "(desired <");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find (desired < in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(1);
+//
+//    v_tmp_split = string_splitter(str_target_type, ">)");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find >) in the string. \n\n\n";
+//      return;
+//    }
+//    str_target_type = v_tmp_split.at(0);
+//
+//    DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+//
+//    vector<IR *> v_binary_operator =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, TypeBinaryExpr, false, true);
+//    for (IR *cur_binary_operator : v_binary_operator) {
+//      if (cur_binary_operator->get_middle() != (" " + str_operator + " ")) {
+//        continue;
+//      }
+//
+//      bool is_skip = false;
+//      for (IR *prev_dropped : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, prev_dropped)) {
+//          is_skip = true;
+//          break;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      IR *par_node = cur_binary_operator->get_parent();
+//      if (par_node == NULL) {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nERROR:: Cannot find parent node from the "
+//                  "cur_binary_operator->get_parent();\n\n\n";
+//        }
+//        return;
+//      }
+//      IR *new_ir = new IR(TypeUnknown, OP0(), NULL, NULL);
+//      new_ir->set_is_instantiated(true);
+//
+//      uint64_t fix_affi_hash = fix_affi.calc_hash();
+//
+//      if (this->data_affi_set.count(fix_affi_hash) != 0 &&
+//          this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+//          get_rand_int(11) < 9) {
+//        new_ir->deep_drop();
+//        new_ir =
+//            vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+//
+//        if (is_debug_info && new_ir != NULL) {
+//          cerr << "\nDEBUG:: From data affinity library, "
+//               << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//               << " getting " << new_ir->to_string() << "\n\n\n";
+//        }
+//      } else {
+//        new_ir->mutate_literal(fix_affi);
+//      }
+//
+//      par_node->swap_node(cur_binary_operator, new_ir);
+//
+//      cur_binary_operator->parent_ = NULL;
+//      ir_to_deep_drop.push_back(cur_binary_operator);
+//    }
+//
+//    for (IR *cur_dropped : ir_to_deep_drop) {
+//      cur_dropped->deep_drop();
+//    }
+//
+//    return;
+//
+//  } else if (findStringIn(res_str, "unsupported binary operator")) {
+//
+//    /*
+//     * pq: unsupported binary operator: <string> / <string>
+//     * Forced change the binary operator to '=' for now.
+//     * TODO:: apply operator specificed operations.
+//     * */
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator. clean "
+//              "\n\n\n";
+//      cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
+//    }
+//
+//    string str_operator = "";
+//    vector<string> v_tmp_split;
+//
+//    // Get the target type name.
+//    v_tmp_split = string_splitter(res_str, "> ");
+//    if (v_tmp_split.size() <= 1) {
+//      cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
+//      return;
+//    }
+//    str_operator = "";
+//    for (int i = 1; i < v_tmp_split.size(); i++) {
+//      str_operator += v_tmp_split.at(i);
+//      if ((i + 1) < v_tmp_split.size()) {
+//        str_operator += "> ";
+//      }
+//    }
+//
+//    v_tmp_split = string_splitter(str_operator, " <");
+//    if (v_tmp_split.size() < 2) {
+//      cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
+//      return;
+//    }
+//
+//    str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, "
+//              "clean, getting binary operator: "
+//           << str_operator << "\n\n\n";
+//    }
+//
+//    vector<IR *> v_binary_operator =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, TypeBinaryExpr, false, true);
+//    for (IR *cur_binary_operator : v_binary_operator) {
+//      string cur_binary_str = cur_binary_operator->get_middle();
+//      trim_string(cur_binary_str);
+//      trim_string(str_operator);
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, "
+//                "clean, getting binary operator:"
+//             << str_operator << ", node str:" << cur_binary_str << ".\n\n\n";
+//      }
+//      if (cur_binary_str != str_operator) {
+//        continue;
+//      }
+//      cur_binary_operator->op_->middle_ = " = ";
+//    }
+//  }
 }
 
 void Mutator::fix_col_type_rel_errors(IR *cur_stmt_root, string res_str,
                                       int trial, bool is_debug_info) {
 
-  vector tmp_err_note = string_splitter(res_str, '"');
-  string ori_str = cur_stmt_root->to_string();
-
-  if (findStringIn(res_str, "argument of WHERE must be type ") &&
-      findStringIn(res_str, "not type ")) {
-    // SELECT * FROM v4 WHERE CURRENT_SETTING('07-18-0056 BC', 'true')
-    // pq: argument of WHERE must be type bool, not type string
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting rule argument of WHERE must be type.. not type... "
-              "\n\n\n";
-    }
-    vector<IR *> v_type_where =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
-                                                           TypeWhere, false);
-    if (v_type_where.size() == 0) {
-      if (is_debug_info) {
-        cerr << "\n\n\nError: Cannot find TypeWhere inside error: argument of "
-                "WHERE must be type  \n\n\n";
-      }
-      return;
-    }
-
-    for (IR *type_where : v_type_where) {
-      if (is_debug_info) {
-        cerr << "\n\n\nDebug:: Adding = 0 to type where.  \n\n\n";
-      }
-      type_where->op_->suffix_ = type_where->op_->suffix_ + " = 0";
-    }
-
-    return;
-
-  } else if (
-      //        trial < 7 &&
-      findStringIn(res_str, "(desired <") &&
-      findStringIn(res_str, "unknown function")) {
-    // select count(*) from v0 where md5(v1);
-    // ERROR: unknown signature: md5(int) (desired <bool>)
-    // The problem is that the function is directly used in the WHERE clause,
-    // where the where clause only accept BOOL type.
-
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting unknown function(signature), (desired <bool>). "
-              "Guessing it is coming from the function direct usage in the"
-              "WHERE clause. \n\n\n";
-    }
-
-    string str_func_name = "";
-    vector<string> tmp_str_split;
-    tmp_str_split = string_splitter(res_str, "unknown signature: ");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    str_func_name = tmp_str_split.at(1);
-    tmp_str_split = string_splitter(str_func_name, "(");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    str_func_name = tmp_str_split.at(0);
-
-    vector<IR *> v_func_names =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, str_func_name, false, true);
-
-    // Dirty fix, directly modify the TypeFunctionExpr type nodes.
-    for (IR *cur_func_node : v_func_names) {
-      IR *cur_func_expr = p_oracle->ir_wrapper.get_parent_node_with_type(
-          cur_func_node, TypeFuncExpr);
-      if (cur_func_expr != NULL) {
-        cur_func_expr->op_->suffix_ += " = 0";
-      }
-    }
-  } else if (
-      //        trial < 7 &&
-      findStringIn(res_str, "unknown function") ||
-      findStringIn(res_str, "unknown signature")) {
-    // Sample:
-    // res:pq: unknown signature: oid()
-
-    if (is_debug_info) {
-      cerr << "\n\n\nGetting unknown function(signature), ";
-    }
-
-    vector<IR *> all_func_ir =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, DataFunctionName, false, true);
-
-    if (is_debug_info) {
-      for (IR *cur_func_ir : all_func_ir) {
-        cerr << "\ngetting cur_func_ir: " << cur_func_ir->to_string();
-      }
-      cerr << "\n\n\n";
-    }
-
-    vector<string> v_target_func_str = string_splitter(res_str, ": ");
-    string target_func_str;
-    if (v_target_func_str.size() > 3) {
-      target_func_str = v_target_func_str[2];
-    } else {
-      if (is_debug_info) {
-        cerr << "\n\n\nError: cannot find 3 : inside the error message. \n\n\n";
-      }
-    }
-
-    if (target_func_str != "") {
-      v_target_func_str = string_splitter(target_func_str, "(");
-      if (v_target_func_str.size() > 1) {
-        target_func_str = v_target_func_str.front();
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\nError: cannot find the left bracket. \n\n\n";
-        }
-        target_func_str = "";
-      }
-    }
-
-    //        for (IR *cur_func_ir : all_func_ir) {
-    //            cur_func_ir->set_is_instantiated(false);
-    //        }
-
-    vector<IR *> ir_to_deep_drop;
-    for (IR *cur_func_ir : all_func_ir) {
-
-      if (target_func_str != "") {
-        if (findStringIn(cur_func_ir->get_str_val(), target_func_str)) {
-          if (is_debug_info) {
-            cerr << "\n\n\nDEBUG: Found cur_func_ir: "
-                 << cur_func_ir->to_string()
-                 << " matching with error node: " << target_func_str
-                 << "\n\n\n";
-          }
-          cur_func_ir->set_is_instantiated(false);
-          // ignored nested expressions.
-          this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true,
-                                 is_debug_info);
-        } else {
-          if (is_debug_info) {
-            cerr << "\n\n\nDEBUG: Ignoring cur_func_ir: "
-                 << cur_func_ir->to_string()
-                 << " because not matching with error node: " << target_func_str
-                 << "\n\n\n";
-          }
-          continue;
-        }
-      } else {
-        if (is_debug_info) {
-          cerr << "\n\n\nDEBUG: Cannot match the target_func_ir. Mutating "
-                  "everything. \n\n\n";
-        }
-        cur_func_ir->set_is_instantiated(false);
-        // ignored nested expressions.
-        this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true,
-                               is_debug_info);
-      }
-    }
-    for (IR *ir_drop : ir_to_deep_drop) {
-      ir_drop->deep_drop();
-    }
-  } else if (findStringIn(res_str, "unsupported comparison") ||
-             (findStringIn(res_str, "parsing as type ") &&
-              findStringIn(res_str, "could not parse"))) {
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
-              "unsupported comparison or parsing as type .. could not "
-              "parse\n\n\n";
-    }
-    //        pq: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4',
-    //        '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2',
-    //        '05-08-4034 BC 06:58:13-5', '05-1 0-3656 14:14:21-3']: parsing as
-    //        type timestamp: could not parse "2ci10p4"
-    fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-  } else if (findStringIn(res_str, "unsupported binary operator") ||
-             (findStringIn(res_str, "could not parse ") &&
-              findStringIn(res_str, " as type "))) {
-    if (is_debug_info) {
-      cerr
-          << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
-             "unsupported binary operator or could not parse ... as type\n\n\n";
-    }
-    // SELECT * FROM v0 WHERE c1 > 'abc';
-    // ERROR: could not parse "abc" as type int: strconv.ParseInt: parsing
-    // "abc": invalid syntax
-    fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-  } else if (findStringIn(res_str, "could not parse ") &&
-             findStringIn(res_str, "as ")) {
-    // pq: could not parse "jsmx" as inet. invalid IP
-    fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-  } else if (findStringIn(res_str, "to be of type")) {
-    // Getting error: pq: expected B'111111' to be of type string[], found type
-    // varbit
-
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
-              "to be of type\n\n\n";
-    }
-
-    string err_str_type = "";
-    vector<string> tmp_str_split;
-    tmp_str_split = string_splitter(res_str, "to be of type ");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    err_str_type = tmp_str_split.at(1);
-    tmp_str_split = string_splitter(err_str_type, ",");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    err_str_type = tmp_str_split.at(0);
-
-    string err_str_literal = "";
-    tmp_str_split = string_splitter(res_str, "expected ");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    err_str_literal = tmp_str_split.at(1);
-    tmp_str_split = string_splitter(err_str_literal, " to be of type");
-    if (tmp_str_split.size() < 2) {
-      cerr << "\n\n\n ERROR: The error message: " << res_str
-           << " does not match the pattern. \n\n\n";
-      return;
-    }
-    err_str_literal = tmp_str_split.at(0);
-
-    DataAffinity corr_affi = get_data_affinity_by_string(err_str_type);
-
-    vector<IR *> v_matched_node =
-        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-            cur_stmt_root, err_str_literal, false, true);
-
-    vector<IR *> ir_to_deep_drop;
-
-    for (IR *cur_matched_node : v_matched_node) {
-
-      bool is_skip = false;
-      for (auto cur_rov : ir_to_deep_drop) {
-        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_rov)) {
-          is_skip = true;
-        }
-      }
-      if (is_skip) {
-        continue;
-      }
-
-      IR *new_literal = new IR(TypeStringLiteral, OP0(), NULL, NULL);
-      new_literal->set_is_instantiated(true);
-      new_literal->set_data_affinity(corr_affi);
-      new_literal->mutate_literal(corr_affi);
-
-      p_oracle->ir_wrapper.iter_cur_node_with_handler(
-          cur_matched_node, [](IR *cur_node) -> void {
-            cur_node->set_is_instantiated(true);
-            cur_node->set_data_flag(ContextNoModi);
-          });
-      cur_stmt_root->swap_node(cur_matched_node, new_literal);
-      ir_to_deep_drop.push_back(cur_matched_node);
-    }
-
-    if (is_debug_info) {
-      cerr << "DEPENDENCY: Fixing semantic error. Matching rule 'to be of "
-              "type' from: \n"
-           << res_str << "\n getting new corr_affi: "
-           << get_string_by_affinity_type(corr_affi.get_data_affinity())
-           << "\n\n\n";
-    }
-
-    for (IR *cur_ir : ir_to_deep_drop) {
-      cur_ir->deep_drop();
-    }
-
-  }
-
-  else if (tmp_err_note.size() >= 3
-           //             && trial < 7
-  ) {
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
-              "tmp_err_note.size() >= 3?\n\n\n";
-    }
-
-    vector<string> v_err_note;
-
-    for (int i = 1; i < tmp_err_note.size(); i += 2) {
-      v_err_note.push_back(tmp_err_note.at(i));
-    }
-
-    if (v_err_note.size() == 0) {
-      return;
-    }
-
-    for (string &cur_err_note : v_err_note) {
-      vector<IR *> node_matching;
-      vector<string> potential_matched_str;
-      potential_matched_str.push_back(cur_err_note);
-      potential_matched_str.push_back("'" + cur_err_note + "'");
-      node_matching = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-          cur_stmt_root, potential_matched_str, false, true);
-
-      vector<IR *> node_matching_filtered;
-
-      for (IR *cur_node_matching : node_matching) {
-        if (cur_node_matching->get_data_flag() != ContextDefine &&
-            cur_node_matching->get_data_flag() != ContextUndefine &&
-            cur_node_matching->get_data_flag() != ContextNoModi) {
-          cur_node_matching->set_is_instantiated(false);
-          node_matching_filtered.push_back(cur_node_matching);
-        }
-      }
-
-      vector<vector<IR *>> tmp_node_matching;
-      tmp_node_matching.push_back(node_matching_filtered);
-
-      if (is_debug_info) {
-        cerr << "\n\n\nFor error message: \n" << res_str << "\nGetting node: ";
-        for (IR *cur_node_matching : node_matching_filtered) {
-          cerr << cur_node_matching->to_string() << ", ";
-        }
-        cerr << "\n\n";
-      }
-      this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
-    }
-  } else {
-    if (is_debug_info) {
-      cerr << "\n\n\nDEBUG: Fall back to pure whole statement instantiation. "
-              "\n\n\n";
-    }
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        cur_stmt_root,
-        [](IR *cur_node) -> void { cur_node->set_is_instantiated(false); });
-    this->reset_data_library_single_stmt();
-    this->validate(cur_stmt_root);
-  }
-
-  if (is_debug_info) {
-    cerr << "After trying to fix the error from the error message, we get ori "
-            "str: \n"
-         << ori_str << "\nto: \n"
-         << cur_stmt_root->to_string() << "\n\n\n";
-  }
+  // Give up the fixing algorithm in the TiDB implementation for now.
+  return;
+//
+//  vector tmp_err_note = string_splitter(res_str, '"');
+//  string ori_str = cur_stmt_root->to_string();
+//
+//  if (findStringIn(res_str, "argument of WHERE must be type ") &&
+//      findStringIn(res_str, "not type ")) {
+//    // SELECT * FROM v4 WHERE CURRENT_SETTING('07-18-0056 BC', 'true')
+//    // pq: argument of WHERE must be type bool, not type string
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting rule argument of WHERE must be type.. not type... "
+//              "\n\n\n";
+//    }
+//    vector<IR *> v_type_where =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
+//                                                           TypeWhere, false);
+//    if (v_type_where.size() == 0) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nError: Cannot find TypeWhere inside error: argument of "
+//                "WHERE must be type  \n\n\n";
+//      }
+//      return;
+//    }
+//
+//    for (IR *type_where : v_type_where) {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nDebug:: Adding = 0 to type where.  \n\n\n";
+//      }
+//      type_where->op_->suffix_ = type_where->op_->suffix_ + " = 0";
+//    }
+//
+//    return;
+//
+//  } else if (
+//      //        trial < 7 &&
+//      findStringIn(res_str, "(desired <") &&
+//      findStringIn(res_str, "unknown function")) {
+//    // select count(*) from v0 where md5(v1);
+//    // ERROR: unknown signature: md5(int) (desired <bool>)
+//    // The problem is that the function is directly used in the WHERE clause,
+//    // where the where clause only accept BOOL type.
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting unknown function(signature), (desired <bool>). "
+//              "Guessing it is coming from the function direct usage in the"
+//              "WHERE clause. \n\n\n";
+//    }
+//
+//    string str_func_name = "";
+//    vector<string> tmp_str_split;
+//    tmp_str_split = string_splitter(res_str, "unknown signature: ");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    str_func_name = tmp_str_split.at(1);
+//    tmp_str_split = string_splitter(str_func_name, "(");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    str_func_name = tmp_str_split.at(0);
+//
+//    vector<IR *> v_func_names =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, str_func_name, false, true);
+//
+//    // Dirty fix, directly modify the TypeFunctionExpr type nodes.
+//    for (IR *cur_func_node : v_func_names) {
+//      IR *cur_func_expr = p_oracle->ir_wrapper.get_parent_node_with_type(
+//          cur_func_node, TypeFuncExpr);
+//      if (cur_func_expr != NULL) {
+//        cur_func_expr->op_->suffix_ += " = 0";
+//      }
+//    }
+//  } else if (
+//      //        trial < 7 &&
+//      findStringIn(res_str, "unknown function") ||
+//      findStringIn(res_str, "unknown signature")) {
+//    // Sample:
+//    // res:pq: unknown signature: oid()
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nGetting unknown function(signature), ";
+//    }
+//
+//    vector<IR *> all_func_ir =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, DataFunctionName, false, true);
+//
+//    if (is_debug_info) {
+//      for (IR *cur_func_ir : all_func_ir) {
+//        cerr << "\ngetting cur_func_ir: " << cur_func_ir->to_string();
+//      }
+//      cerr << "\n\n\n";
+//    }
+//
+//    vector<string> v_target_func_str = string_splitter(res_str, ": ");
+//    string target_func_str;
+//    if (v_target_func_str.size() > 3) {
+//      target_func_str = v_target_func_str[2];
+//    } else {
+//      if (is_debug_info) {
+//        cerr << "\n\n\nError: cannot find 3 : inside the error message. \n\n\n";
+//      }
+//    }
+//
+//    if (target_func_str != "") {
+//      v_target_func_str = string_splitter(target_func_str, "(");
+//      if (v_target_func_str.size() > 1) {
+//        target_func_str = v_target_func_str.front();
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nError: cannot find the left bracket. \n\n\n";
+//        }
+//        target_func_str = "";
+//      }
+//    }
+//
+//    //        for (IR *cur_func_ir : all_func_ir) {
+//    //            cur_func_ir->set_is_instantiated(false);
+//    //        }
+//
+//    vector<IR *> ir_to_deep_drop;
+//    for (IR *cur_func_ir : all_func_ir) {
+//
+//      if (target_func_str != "") {
+//        if (findStringIn(cur_func_ir->get_str_val(), target_func_str)) {
+//          if (is_debug_info) {
+//            cerr << "\n\n\nDEBUG: Found cur_func_ir: "
+//                 << cur_func_ir->to_string()
+//                 << " matching with error node: " << target_func_str
+//                 << "\n\n\n";
+//          }
+//          cur_func_ir->set_is_instantiated(false);
+//          // ignored nested expressions.
+//          this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true,
+//                                 is_debug_info);
+//        } else {
+//          if (is_debug_info) {
+//            cerr << "\n\n\nDEBUG: Ignoring cur_func_ir: "
+//                 << cur_func_ir->to_string()
+//                 << " because not matching with error node: " << target_func_str
+//                 << "\n\n\n";
+//          }
+//          continue;
+//        }
+//      } else {
+//        if (is_debug_info) {
+//          cerr << "\n\n\nDEBUG: Cannot match the target_func_ir. Mutating "
+//                  "everything. \n\n\n";
+//        }
+//        cur_func_ir->set_is_instantiated(false);
+//        // ignored nested expressions.
+//        this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true,
+//                               is_debug_info);
+//      }
+//    }
+//    for (IR *ir_drop : ir_to_deep_drop) {
+//      ir_drop->deep_drop();
+//    }
+//  } else if (findStringIn(res_str, "unsupported comparison") ||
+//             (findStringIn(res_str, "parsing as type ") &&
+//              findStringIn(res_str, "could not parse"))) {
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+//              "unsupported comparison or parsing as type .. could not "
+//              "parse\n\n\n";
+//    }
+//    //        pq: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4',
+//    //        '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2',
+//    //        '05-08-4034 BC 06:58:13-5', '05-1 0-3656 14:14:21-3']: parsing as
+//    //        type timestamp: could not parse "2ci10p4"
+//    fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
+//  } else if (findStringIn(res_str, "unsupported binary operator") ||
+//             (findStringIn(res_str, "could not parse ") &&
+//              findStringIn(res_str, " as type "))) {
+//    if (is_debug_info) {
+//      cerr
+//          << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+//             "unsupported binary operator or could not parse ... as type\n\n\n";
+//    }
+//    // SELECT * FROM v0 WHERE c1 > 'abc';
+//    // ERROR: could not parse "abc" as type int: strconv.ParseInt: parsing
+//    // "abc": invalid syntax
+//    fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
+//  } else if (findStringIn(res_str, "could not parse ") &&
+//             findStringIn(res_str, "as ")) {
+//    // pq: could not parse "jsmx" as inet. invalid IP
+//    fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
+//  } else if (findStringIn(res_str, "to be of type")) {
+//    // Getting error: pq: expected B'111111' to be of type string[], found type
+//    // varbit
+//
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+//              "to be of type\n\n\n";
+//    }
+//
+//    string err_str_type = "";
+//    vector<string> tmp_str_split;
+//    tmp_str_split = string_splitter(res_str, "to be of type ");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    err_str_type = tmp_str_split.at(1);
+//    tmp_str_split = string_splitter(err_str_type, ",");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    err_str_type = tmp_str_split.at(0);
+//
+//    string err_str_literal = "";
+//    tmp_str_split = string_splitter(res_str, "expected ");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    err_str_literal = tmp_str_split.at(1);
+//    tmp_str_split = string_splitter(err_str_literal, " to be of type");
+//    if (tmp_str_split.size() < 2) {
+//      cerr << "\n\n\n ERROR: The error message: " << res_str
+//           << " does not match the pattern. \n\n\n";
+//      return;
+//    }
+//    err_str_literal = tmp_str_split.at(0);
+//
+//    DataAffinity corr_affi = get_data_affinity_by_string(err_str_type);
+//
+//    vector<IR *> v_matched_node =
+//        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//            cur_stmt_root, err_str_literal, false, true);
+//
+//    vector<IR *> ir_to_deep_drop;
+//
+//    for (IR *cur_matched_node : v_matched_node) {
+//
+//      bool is_skip = false;
+//      for (auto cur_rov : ir_to_deep_drop) {
+//        if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_rov)) {
+//          is_skip = true;
+//        }
+//      }
+//      if (is_skip) {
+//        continue;
+//      }
+//
+//      IR *new_literal = new IR(TypeStringLiteral, OP0(), NULL, NULL);
+//      new_literal->set_is_instantiated(true);
+//      new_literal->set_data_affinity(corr_affi);
+//      new_literal->mutate_literal(corr_affi);
+//
+//      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//          cur_matched_node, [](IR *cur_node) -> void {
+//            cur_node->set_is_instantiated(true);
+//            cur_node->set_data_flag(ContextNoModi);
+//          });
+//      cur_stmt_root->swap_node(cur_matched_node, new_literal);
+//      ir_to_deep_drop.push_back(cur_matched_node);
+//    }
+//
+//    if (is_debug_info) {
+//      cerr << "DEPENDENCY: Fixing semantic error. Matching rule 'to be of "
+//              "type' from: \n"
+//           << res_str << "\n getting new corr_affi: "
+//           << get_string_by_affinity_type(corr_affi.get_data_affinity())
+//           << "\n\n\n";
+//    }
+//
+//    for (IR *cur_ir : ir_to_deep_drop) {
+//      cur_ir->deep_drop();
+//    }
+//
+//  }
+//
+//  else if (tmp_err_note.size() >= 3
+//           //             && trial < 7
+//  ) {
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+//              "tmp_err_note.size() >= 3?\n\n\n";
+//    }
+//
+//    vector<string> v_err_note;
+//
+//    for (int i = 1; i < tmp_err_note.size(); i += 2) {
+//      v_err_note.push_back(tmp_err_note.at(i));
+//    }
+//
+//    if (v_err_note.size() == 0) {
+//      return;
+//    }
+//
+//    for (string &cur_err_note : v_err_note) {
+//      vector<IR *> node_matching;
+//      vector<string> potential_matched_str;
+//      potential_matched_str.push_back(cur_err_note);
+//      potential_matched_str.push_back("'" + cur_err_note + "'");
+//      node_matching = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+//          cur_stmt_root, potential_matched_str, false, true);
+//
+//      vector<IR *> node_matching_filtered;
+//
+//      for (IR *cur_node_matching : node_matching) {
+//        if (cur_node_matching->get_data_flag() != ContextDefine &&
+//            cur_node_matching->get_data_flag() != ContextUndefine &&
+//            cur_node_matching->get_data_flag() != ContextNoModi) {
+//          cur_node_matching->set_is_instantiated(false);
+//          node_matching_filtered.push_back(cur_node_matching);
+//        }
+//      }
+//
+//      vector<vector<IR *>> tmp_node_matching;
+//      tmp_node_matching.push_back(node_matching_filtered);
+//
+//      if (is_debug_info) {
+//        cerr << "\n\n\nFor error message: \n" << res_str << "\nGetting node: ";
+//        for (IR *cur_node_matching : node_matching_filtered) {
+//          cerr << cur_node_matching->to_string() << ", ";
+//        }
+//        cerr << "\n\n";
+//      }
+//      this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+//    }
+//  } else {
+//    if (is_debug_info) {
+//      cerr << "\n\n\nDEBUG: Fall back to pure whole statement instantiation. "
+//              "\n\n\n";
+//    }
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        cur_stmt_root,
+//        [](IR *cur_node) -> void { cur_node->set_is_instantiated(false); });
+//    this->reset_data_library_single_stmt();
+//    this->validate(cur_stmt_root);
+//  }
+//
+//  if (is_debug_info) {
+//    cerr << "After trying to fix the error from the error message, we get ori "
+//            "str: \n"
+//         << ori_str << "\nto: \n"
+//         << cur_stmt_root->to_string() << "\n\n\n";
+//  }
 }
 
 void Mutator::rollback_instan_lib_changes() {
@@ -7213,188 +7229,191 @@ void Mutator::auto_mark_data_types_from_select_stmt(
   // through function pointer. Will not change the original signature of the
   // run_target function, which is static.
 
-  vector<IR *> vec_all_nodes =
-      p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
+  //TODO: Disable this feature for now.
+  return;
 
-  for (IR *cur_node : vec_all_nodes) {
-    // Check whether the current data type matches the following types.
-    IRTYPE cur_ir_type = cur_node->get_ir_type();
-    if (cur_ir_type == TypeSubquery || cur_ir_type == TypeAndExpr ||
-        cur_ir_type == TypeOrExpr || cur_ir_type == TypeIsNullExpr ||
-        cur_ir_type == TypeIsNotNullExpr || cur_ir_type == TypeBinaryExpr ||
-        cur_ir_type == TypeUnaryExpr || cur_ir_type == TypeComparisonExpr ||
-        cur_ir_type == TypeRangeCond || cur_ir_type == TypeIsOfTypeExpr ||
-        cur_ir_type == TypeExprFmtWithParen ||
-        cur_ir_type == TypeBinExprFmtWithParen ||
-        cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
-        cur_ir_type == TypeNotExpr || cur_ir_type == TypeParenExpr ||
-        cur_ir_type == TypeIfErrExpr || cur_ir_type == TypeIfExpr ||
-        cur_ir_type == TypeNullIfExpr || cur_ir_type == TypeCoalesceExpr ||
-        cur_ir_type == TypeFuncExpr || cur_ir_type == TypeCaseExpr ||
-        cur_ir_type == TypeCastExpr || cur_ir_type == TypeIndirectionExpr ||
-        cur_ir_type == TypeAnnotateTypeExpr || cur_ir_type == TypeCollateExpr ||
-        cur_ir_type == TypeColumnAccessExpr) {
-      // For these expression types, add a bracket to the ir node,
-      // and then add the `= true` to the expression.
-      string ori_prefix_ = cur_node->op_->prefix_;
-      string ori_suffix_ = cur_node->op_->suffix_;
-
-      // Add a bracket and = true statement to the current node.
-      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
-
-      string updated_stmt = "";
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-
-      // Get the updated string, and run the statement.
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      string res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //            cerr << "\n\n\nDEBUG:From Stmt: " << updated_stmt << ";\n";
-      bool is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      if (!is_syntax_error) {
-        // If the change does not cause a syntax error, then
-        // this modification is succeeded. We can move on to
-        // the next node.
-        //                cerr << "Not syntax error: " << updated_stmt << ",
-        //                res_str: " << res_str << "\n\n\n";
-        return;
-      }
-
-      // Otherwise, the current modification = TRUE causes a syntax error,
-      // let's try to add an extra bracket to the statement and try again.
-      // Add an extra bracket and = true statement to the current node.
-      cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
-
-      // Get the updated string, and run the statement.
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      res_str.clear();
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      cerr << "\n\n\nDEBUG:From extra bracket Stmt: " << updated_stmt << ";\n";
-      is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      //            cerr << "Not syntax error: " << updated_stmt << ", res_str:
-      //            " << res_str << "\n\n\n";
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      return;
-    } else if (cur_ir_type == TypeSubquery) {
-
-      // For subqueries, add the `= true` to the expression.
-      string ori_suffix_ = cur_node->op_->suffix_;
-
-      // Add a bracket and = true statement to the current node.
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
-
-      // Get the updated string, and run the statement.
-      string updated_stmt = "";
-      // Get the updated string, and run the statement.
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      string res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
-      bool is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      // Rollback to the original statement.
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      if (!is_syntax_error) {
-        // If the change does not cause a syntax error, then
-        // this modification is succeeded. We can move on to
-        // the next node.
-        //                cerr << "Not syntax error: " << updated_stmt << ",
-        //                res_str: " << res_str << "\n\n\n";
-        return;
-      }
-
-      // Otherwise, the current modification = TRUE causes a syntax error,
-      // let's try to add an extra bracket to the statement and try again.
-      // Add an extra bracket and = true statement to the current node.
-      string ori_prefix_ = cur_node->op_->prefix_;
-      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
-
-      // Get the updated string, and run the statement.
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
-      is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      //            cerr << "Not syntax error: " << updated_stmt << ", res_str:
-      //            " << res_str << "\n\n\n";
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      return;
-    }
-  }
+//  vector<IR *> vec_all_nodes =
+//      p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
+//
+//  for (IR *cur_node : vec_all_nodes) {
+//    // Check whether the current data type matches the following types.
+//    IRTYPE cur_ir_type = cur_node->get_ir_type();
+//    if (cur_ir_type == TypeSubquery || cur_ir_type == TypeAndExpr ||
+//        cur_ir_type == TypeOrExpr || cur_ir_type == TypeIsNullExpr ||
+//        cur_ir_type == TypeIsNotNullExpr || cur_ir_type == TypeBinaryExpr ||
+//        cur_ir_type == TypeUnaryExpr || cur_ir_type == TypeComparisonExpr ||
+//        cur_ir_type == TypeRangeCond || cur_ir_type == TypeIsOfTypeExpr ||
+//        cur_ir_type == TypeExprFmtWithParen ||
+//        cur_ir_type == TypeBinExprFmtWithParen ||
+//        cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
+//        cur_ir_type == TypeNotExpr || cur_ir_type == TypeParenExpr ||
+//        cur_ir_type == TypeIfErrExpr || cur_ir_type == TypeIfExpr ||
+//        cur_ir_type == TypeNullIfExpr || cur_ir_type == TypeCoalesceExpr ||
+//        cur_ir_type == TypeFuncExpr || cur_ir_type == TypeCaseExpr ||
+//        cur_ir_type == TypeCastExpr || cur_ir_type == TypeIndirectionExpr ||
+//        cur_ir_type == TypeAnnotateTypeExpr || cur_ir_type == TypeCollateExpr ||
+//        cur_ir_type == TypeColumnAccessExpr) {
+//      // For these expression types, add a bracket to the ir node,
+//      // and then add the `= true` to the expression.
+//      string ori_prefix_ = cur_node->op_->prefix_;
+//      string ori_suffix_ = cur_node->op_->suffix_;
+//
+//      // Add a bracket and = true statement to the current node.
+//      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
+//
+//      string updated_stmt = "";
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//
+//      // Get the updated string, and run the statement.
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      string res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //            cerr << "\n\n\nDEBUG:From Stmt: " << updated_stmt << ";\n";
+//      bool is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      if (!is_syntax_error) {
+//        // If the change does not cause a syntax error, then
+//        // this modification is succeeded. We can move on to
+//        // the next node.
+//        //                cerr << "Not syntax error: " << updated_stmt << ",
+//        //                res_str: " << res_str << "\n\n\n";
+//        return;
+//      }
+//
+//      // Otherwise, the current modification = TRUE causes a syntax error,
+//      // let's try to add an extra bracket to the statement and try again.
+//      // Add an extra bracket and = true statement to the current node.
+//      cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
+//
+//      // Get the updated string, and run the statement.
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      res_str.clear();
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      cerr << "\n\n\nDEBUG:From extra bracket Stmt: " << updated_stmt << ";\n";
+//      is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      //            cerr << "Not syntax error: " << updated_stmt << ", res_str:
+//      //            " << res_str << "\n\n\n";
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      return;
+//    } else if (cur_ir_type == TypeSubquery) {
+//
+//      // For subqueries, add the `= true` to the expression.
+//      string ori_suffix_ = cur_node->op_->suffix_;
+//
+//      // Add a bracket and = true statement to the current node.
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
+//
+//      // Get the updated string, and run the statement.
+//      string updated_stmt = "";
+//      // Get the updated string, and run the statement.
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      string res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
+//      bool is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      if (!is_syntax_error) {
+//        // If the change does not cause a syntax error, then
+//        // this modification is succeeded. We can move on to
+//        // the next node.
+//        //                cerr << "Not syntax error: " << updated_stmt << ",
+//        //                res_str: " << res_str << "\n\n\n";
+//        return;
+//      }
+//
+//      // Otherwise, the current modification = TRUE causes a syntax error,
+//      // let's try to add an extra bracket to the statement and try again.
+//      // Add an extra bracket and = true statement to the current node.
+//      string ori_prefix_ = cur_node->op_->prefix_;
+//      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
+//
+//      // Get the updated string, and run the statement.
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
+//      is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      //            cerr << "Not syntax error: " << updated_stmt << ", res_str:
+//      //            " << res_str << "\n\n\n";
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      return;
+//    }
+//  }
 
   return;
 }
@@ -7407,195 +7426,198 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(
   // through function pointer. Will not change the original signature of the
   // run_target function, which is static.
 
-  vector<IR *> vec_all_nodes =
-      p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
+  // TODO:: disable this feature for now.
+  return;
 
-  vector<IR *> v_from_clause =
-      p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
-                                                         TypeFrom, false);
-  IR *from_clause = NULL;
-  if (v_from_clause.size() > 0) {
-    from_clause = v_from_clause.front();
-  }
-
-  for (IR *cur_node : vec_all_nodes) {
-    // Check whether the current data type matches the following types.
-    IRTYPE cur_ir_type = cur_node->get_ir_type();
-    if (cur_ir_type == TypeSubquery || cur_ir_type == TypeAndExpr ||
-        cur_ir_type == TypeOrExpr || cur_ir_type == TypeIsNullExpr ||
-        cur_ir_type == TypeIsNotNullExpr || cur_ir_type == TypeBinaryExpr ||
-        cur_ir_type == TypeUnaryExpr || cur_ir_type == TypeComparisonExpr ||
-        cur_ir_type == TypeRangeCond || cur_ir_type == TypeIsOfTypeExpr ||
-        cur_ir_type == TypeExprFmtWithParen ||
-        cur_ir_type == TypeBinExprFmtWithParen ||
-        cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
-        cur_ir_type == TypeNotExpr || cur_ir_type == TypeParenExpr ||
-        cur_ir_type == TypeIfErrExpr || cur_ir_type == TypeIfExpr ||
-        cur_ir_type == TypeNullIfExpr || cur_ir_type == TypeCoalesceExpr ||
-        cur_ir_type == TypeFuncExpr || cur_ir_type == TypeCaseExpr ||
-        cur_ir_type == TypeCastExpr || cur_ir_type == TypeIndirectionExpr ||
-        cur_ir_type == TypeAnnotateTypeExpr || cur_ir_type == TypeCollateExpr ||
-        cur_ir_type == TypeColumnAccessExpr) {
-      // For these expression types, add a bracket to the ir node,
-      // and then add the `= true` to the expression.
-      string ori_prefix_ = cur_node->op_->prefix_;
-      string ori_suffix_ = cur_node->op_->suffix_;
-
-      // Add a bracket and = true statement to the current node.
-      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
-
-      string updated_stmt = "";
-      updated_stmt = "SELECT " + cur_node->to_string();
-      if (from_clause) {
-        // From non-select statement, expression could reference contents
-        // from the FROM clause, therefore, we should import them
-        // for usage.
-        updated_stmt += " " + from_clause->to_string();
-      }
-
-      // Get the updated string, and run the statement.
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      string res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
-      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
-      bool is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      if (!is_syntax_error) {
-        // If the change does not cause a syntax error, then
-        // this modification is succeeded. We can move on to
-        // the next node.
-        //                cerr << "Not syntax error: " << updated_stmt << ",
-        //                res_str: " << res_str << "\n\n\n";
-        return;
-      }
-
-      // Otherwise, the current modification = TRUE causes a syntax error,
-      // let's try to add an extra bracket to the statement and try again.
-      // Add an extra bracket and = true statement to the current node.
-      cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
-
-      // Get the updated string, and run the statement.
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      res_str.clear();
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
-      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
-      is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      //      cerr << "Not syntax error: " << updated_stmt << ", res_str: " <<
-      //      res_str << "\n\n\n";
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      return;
-    } else if (cur_ir_type == TypeSubquery) {
-
-      // For subqueries, add the `= true` to the expression.
-      string ori_suffix_ = cur_node->op_->suffix_;
-
-      // Add a bracket and = true statement to the current node.
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
-
-      // Get the updated string, and run the statement.
-      string updated_stmt = "";
-      // Get the updated string, and run the statement.
-      updated_stmt = "SELECT " + cur_node->to_string();
-      if (from_clause) {
-        // From non-select statement, expression could reference contents
-        // from the FROM clause, therefore, we should import them
-        // for usage.
-        updated_stmt += " " + from_clause->to_string();
-      }
-
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      string res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
-      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
-      bool is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      // Rollback to the original statement.
-      cur_node->op_->suffix_ = ori_suffix_;
-
-      if (!is_syntax_error) {
-        // If the change does not cause a syntax error, then
-        // this modification is succeeded. We can move on to
-        // the next node.
-
-        //        cerr << "Not syntax error: " << updated_stmt << ", res_str: "
-        //        << res_str << "\n\n\n";
-        return;
-      }
-
-      // Otherwise, the current modification = TRUE causes a syntax error,
-      // let's try to add an extra bracket to the statement and try again.
-      // Add an extra bracket and = true statement to the current node.
-      string ori_prefix_ = cur_node->op_->prefix_;
-      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
-      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
-
-      // Get the updated string, and run the statement.
-      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
-        // The expression located in the FROM clause behaves a bit different
-        // than the one in the WHERE clause. Bring the expressions or subquery
-        // out as a new SELECT to check its data types. Construct a new SELECT
-        // statement. Only use the cur_node expression, instead of using the
-        // whole original SELECT.
-        updated_stmt = "SELECT " + cur_node->to_string();
-      } else {
-        updated_stmt = cur_stmt_root->to_string();
-      }
-      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
-                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
-      res_str = "";
-      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
-
-      // Analyze the res str.
-      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
-      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
-      is_syntax_error = false;
-      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
-
-      // Rollback to the original statement.
-      cur_node->op_->prefix_ = ori_prefix_;
-      cur_node->op_->suffix_ = ori_suffix_;
-      //      cerr << "Not syntax error: " << updated_stmt << ", res_str: " <<
-      //      res_str << "\n\n\n";
-
-      return;
-    }
-  }
+//  vector<IR *> vec_all_nodes =
+//      p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
+//
+//  vector<IR *> v_from_clause =
+//      p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root,
+//                                                         TypeFrom, false);
+//  IR *from_clause = NULL;
+//  if (v_from_clause.size() > 0) {
+//    from_clause = v_from_clause.front();
+//  }
+//
+//  for (IR *cur_node : vec_all_nodes) {
+//    // Check whether the current data type matches the following types.
+//    IRTYPE cur_ir_type = cur_node->get_ir_type();
+//    if (cur_ir_type == TypeSubquery || cur_ir_type == TypeAndExpr ||
+//        cur_ir_type == TypeOrExpr || cur_ir_type == TypeIsNullExpr ||
+//        cur_ir_type == TypeIsNotNullExpr || cur_ir_type == TypeBinaryExpr ||
+//        cur_ir_type == TypeUnaryExpr || cur_ir_type == TypeComparisonExpr ||
+//        cur_ir_type == TypeRangeCond || cur_ir_type == TypeIsOfTypeExpr ||
+//        cur_ir_type == TypeExprFmtWithParen ||
+//        cur_ir_type == TypeBinExprFmtWithParen ||
+//        cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
+//        cur_ir_type == TypeNotExpr || cur_ir_type == TypeParenExpr ||
+//        cur_ir_type == TypeIfErrExpr || cur_ir_type == TypeIfExpr ||
+//        cur_ir_type == TypeNullIfExpr || cur_ir_type == TypeCoalesceExpr ||
+//        cur_ir_type == TypeFuncExpr || cur_ir_type == TypeCaseExpr ||
+//        cur_ir_type == TypeCastExpr || cur_ir_type == TypeIndirectionExpr ||
+//        cur_ir_type == TypeAnnotateTypeExpr || cur_ir_type == TypeCollateExpr ||
+//        cur_ir_type == TypeColumnAccessExpr) {
+//      // For these expression types, add a bracket to the ir node,
+//      // and then add the `= true` to the expression.
+//      string ori_prefix_ = cur_node->op_->prefix_;
+//      string ori_suffix_ = cur_node->op_->suffix_;
+//
+//      // Add a bracket and = true statement to the current node.
+//      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
+//
+//      string updated_stmt = "";
+//      updated_stmt = "SELECT " + cur_node->to_string();
+//      if (from_clause) {
+//        // From non-select statement, expression could reference contents
+//        // from the FROM clause, therefore, we should import them
+//        // for usage.
+//        updated_stmt += " " + from_clause->to_string();
+//      }
+//
+//      // Get the updated string, and run the statement.
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      string res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
+//      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      bool is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      if (!is_syntax_error) {
+//        // If the change does not cause a syntax error, then
+//        // this modification is succeeded. We can move on to
+//        // the next node.
+//        //                cerr << "Not syntax error: " << updated_stmt << ",
+//        //                res_str: " << res_str << "\n\n\n";
+//        return;
+//      }
+//
+//      // Otherwise, the current modification = TRUE causes a syntax error,
+//      // let's try to add an extra bracket to the statement and try again.
+//      // Add an extra bracket and = true statement to the current node.
+//      cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
+//
+//      // Get the updated string, and run the statement.
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      res_str.clear();
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
+//      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      //      cerr << "Not syntax error: " << updated_stmt << ", res_str: " <<
+//      //      res_str << "\n\n\n";
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      return;
+//    } else if (cur_ir_type == TypeSubquery) {
+//
+//      // For subqueries, add the `= true` to the expression.
+//      string ori_suffix_ = cur_node->op_->suffix_;
+//
+//      // Add a bracket and = true statement to the current node.
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
+//
+//      // Get the updated string, and run the statement.
+//      string updated_stmt = "";
+//      // Get the updated string, and run the statement.
+//      updated_stmt = "SELECT " + cur_node->to_string();
+//      if (from_clause) {
+//        // From non-select statement, expression could reference contents
+//        // from the FROM clause, therefore, we should import them
+//        // for usage.
+//        updated_stmt += " " + from_clause->to_string();
+//      }
+//
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      string res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
+//      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      bool is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->suffix_ = ori_suffix_;
+//
+//      if (!is_syntax_error) {
+//        // If the change does not cause a syntax error, then
+//        // this modification is succeeded. We can move on to
+//        // the next node.
+//
+//        //        cerr << "Not syntax error: " << updated_stmt << ", res_str: "
+//        //        << res_str << "\n\n\n";
+//        return;
+//      }
+//
+//      // Otherwise, the current modification = TRUE causes a syntax error,
+//      // let's try to add an extra bracket to the statement and try again.
+//      // Add an extra bracket and = true statement to the current node.
+//      string ori_prefix_ = cur_node->op_->prefix_;
+//      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+//      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
+//
+//      // Get the updated string, and run the statement.
+//      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+//        // The expression located in the FROM clause behaves a bit different
+//        // than the one in the WHERE clause. Bring the expressions or subquery
+//        // out as a new SELECT to check its data types. Construct a new SELECT
+//        // statement. Only use the cur_node expression, instead of using the
+//        // whole original SELECT.
+//        updated_stmt = "SELECT " + cur_node->to_string();
+//      } else {
+//        updated_stmt = cur_stmt_root->to_string();
+//      }
+//      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt +
+//                     ";\n ROLLBACK TO SAVEPOINT foo; \n";
+//      res_str = "";
+//      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+//
+//      // Analyze the res str.
+//      //      cerr << "\n\n\nDEBUG: From ori stmt: " <<
+//      //      cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      is_syntax_error = false;
+//      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+//
+//      // Rollback to the original statement.
+//      cur_node->op_->prefix_ = ori_prefix_;
+//      cur_node->op_->suffix_ = ori_suffix_;
+//      //      cerr << "Not syntax error: " << updated_stmt << ", res_str: " <<
+//      //      res_str << "\n\n\n";
+//
+//      return;
+//    }
+//  }
 
   return;
 }

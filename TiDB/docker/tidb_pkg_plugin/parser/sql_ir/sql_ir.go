@@ -202,6 +202,11 @@ const (
 	TypeAnalyzeTableStmt
 	TypeDropStatsStmt
 	TypeLoadStatsStmt
+	TypeCreateTableAsStmt
+	TypeValuesClause
+	TypeExpr
+	TypeBetweenExpr
+	TypeIsTruthExpr
 )
 
 const (

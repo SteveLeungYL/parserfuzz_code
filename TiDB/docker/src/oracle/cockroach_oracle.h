@@ -91,7 +91,7 @@ public:
   ** Mutator::fix())
   ** If no transform is necessary, return empty vector.
   */
-  virtual IR *pre_fix_transform_select_stmt(IR *cur_stmt) { return nullptr; }
+  virtual IR *pre_fix_transform_select_stmt(IR *cur_stmt) { return cur_stmt->deep_copy(); }
   virtual vector<IR *> post_fix_transform_select_stmt(IR *cur_stmt,
                                                       unsigned multi_run_id) {
     vector<IR *> tmp {cur_stmt->deep_copy()};
@@ -200,7 +200,7 @@ protected:
 
 };
 
-#define ALLEXPRTYPESINWHERE     case TypeSubquery:  \
+#define ALLEXPRTYPESINWHERE     case TypeSubquery: \
                                 case TypeAndExpr:  \
                                 case TypeOrExpr:  \
                                 case TypeIsNullExpr:  \

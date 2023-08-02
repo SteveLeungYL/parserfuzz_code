@@ -92,8 +92,6 @@ public:
   bool compare_ir_type(IRTYPE, IRTYPE);
 
   bool is_in_subquery(IR *cur_stmt, IR *check_node, bool output_debug = false);
-  bool is_in_insert_rest(IR *cur_stmt, IR *check_node,
-                         bool output_debug = false);
 
   /*
   ** Iterately find the parent type. Skip kUnknown and keep iterating until not
@@ -122,13 +120,6 @@ public:
   bool is_exist_INTERSECT_SELECT(IR *cur_stmt);
   bool is_exist_EXCEPT_SELECT(IR *cur_stmt);
   bool is_exist_set_operator(IR *cur_stmt);
-
-  vector<IR *> get_expr_vec_from_expr_list(IR *expr_list);
-
-  vector<IR *> get_select_exprs(IR *cur_stmt);
-  int get_num_select_exprs(IR *cur_stmt) {
-    return this->get_select_exprs(cur_stmt).size();
-  }
 
   bool is_ir_in(IR *, IR *);
   bool is_ir_in(IR *, IRTYPE);

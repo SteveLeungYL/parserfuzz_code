@@ -63,10 +63,10 @@ string rsg_generate(const IRTYPE type) {
   // Convert the test string to GoString format.
   // Only supporting TypeSelect and TypeStmt.
   string input_str;
-  if (type == TypeSelect) {
-    input_str = "select_stmt";
+  if (type == TypeSelectStmt) {
+    input_str = "SelectStmt";
   } else {
-    input_str = "stmt_without_legacy_transaction";
+    input_str = "Statement";
   }
 
   return rsg_generate(input_str);

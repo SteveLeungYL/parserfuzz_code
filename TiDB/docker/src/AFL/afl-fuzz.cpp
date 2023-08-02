@@ -89,11 +89,8 @@
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
 
-#include "../oracle/cockroach_index.h"
-#include "../oracle/cockroach_norec.h"
 #include "../oracle/cockroach_opt.h"
 #include "../oracle/cockroach_oracle.h"
-#include "../oracle/cockroach_tlp.h"
 
 #include "libpq-fe.h"
 using namespace std;
@@ -7811,20 +7808,10 @@ int main(int argc, char** argv)
     {
       /* Default OPT */
       string arg = string(optarg);
-      if (arg == "NOREC")
-        p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "OPT")
+      if (arg == "OPT")
         p_oracle = new SQL_OPT();
-      // else if (arg == "LIKELY")
-      //   p_oracle = new SQL_LIKELY();
-      // else if (arg == "ROWID")
-      //   p_oracle = new SQL_ROWID();
-      else if (arg == "INDEX")
-        p_oracle = new SQL_INDEX();
-      else
-        FATAL("Oracle arguments not supported. ");
+//      else
+//        FATAL("Oracle arguments not supported. ");
     } break;
 
     default:

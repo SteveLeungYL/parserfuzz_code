@@ -2026,6 +2026,7 @@ type CreateTableStmt struct {
 
 func (n *CreateTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
+	isCreateTableAs := false
 	prefix := ""
 
 	switch n.TemporaryKeyword {
@@ -2166,6 +2167,7 @@ func (n *CreateTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	if n.Select != nil {
 		midfix := ""
+		isCreateTableAs = true
 		switch n.OnDuplicate {
 		case OnDuplicateKeyHandlingError:
 			midfix += " AS "
@@ -2208,7 +2210,11 @@ func (n *CreateTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 	}
 
-	rootNode.IRType = sql_ir.TypeCreateTableStmt
+	if !isCreateTableAs {
+		rootNode.IRType = sql_ir.TypeCreateTableStmt
+	} else {
+		rootNode.IRType = sql_ir.TypeCreateTableAsStmt
+	}
 
 	return rootNode
 
