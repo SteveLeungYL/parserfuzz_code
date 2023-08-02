@@ -207,6 +207,7 @@ const (
 	TypeExpr
 	TypeBetweenExpr
 	TypeIsTruthExpr
+	TypeWhereClause
 )
 
 const (

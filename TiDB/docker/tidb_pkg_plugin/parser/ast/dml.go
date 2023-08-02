@@ -2347,6 +2347,13 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		if n.Where != nil {
 			midfix += "WHERE "
 			whereNode := n.Where.LogCurrentNode(depth + 1)
+			whereNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeUnknown,
+				DataType: sql_ir.DataNone,
+				LNode:    whereNode,
+				Depth:    depth,
+			}
+			whereNode.IRType = sql_ir.TypeWhereClause
 			rootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
 				DataType: sql_ir.DataNone,
