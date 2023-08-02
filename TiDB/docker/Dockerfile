@@ -128,6 +128,13 @@ WORKDIR /home/tidb/src/
 RUN cp /home/tidb/tidb_pkg_plugin/rsg/rsg_helper.* ./rsg/ && cp /home/tidb/tidb_pkg_plugin/parser_helper.* ./parser/
 RUN make -j$(nproc)
 
+# At last, build the fuzz_root env.
+COPY fuzz_root /home/tidb/fuzz_root
 USER root
-WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
+RUN chown -R tidb:tidb /home/tidb/fuzz_root
+RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/tidb_pkg_plugin/rsg/tidb_parser_modi.y /home/tidb/fuzz_root/tidb_parser_modi.y \
+    && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov
+
+USER root
+WORKDIR /home/tidb/fuzz_root/
 
