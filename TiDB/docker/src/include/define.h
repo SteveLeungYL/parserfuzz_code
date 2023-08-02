@@ -204,6 +204,7 @@
   V(TypeExpr)                              \
   V(TypeBetweenExpr)                       \
   V(TypeIsTruthExpr)                       \
+  V(TypeWhereClause)                       \
   V(TypeStmtList)                          \
   V(TypeStmt)
 

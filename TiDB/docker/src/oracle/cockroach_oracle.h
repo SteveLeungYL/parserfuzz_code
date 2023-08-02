@@ -15,32 +15,39 @@ using namespace std;
 class Mutator;
 
 enum SemanticErrorType {
-    ColumnTypeRelatedError = 0,
-    AliasRelatedError,
-    SyntaxRelatedError,
-    OtherUndefinedError,
-    NoSemanticError
+  ColumnTypeRelatedError = 0,
+  AliasRelatedError,
+  SyntaxRelatedError,
+  OtherUndefinedError,
+  NoSemanticError
 };
 
 struct Binary_Operator {
-public:
+  public:
   DATAAFFINITYTYPE ret, left, right;
-  Binary_Operator(DATAAFFINITYTYPE ret, DATAAFFINITYTYPE left, DATAAFFINITYTYPE right):
-    ret(ret), left (left), right (right)
-  {}
+  Binary_Operator(DATAAFFINITYTYPE ret, DATAAFFINITYTYPE left, DATAAFFINITYTYPE right)
+      : ret(ret)
+      , left(left)
+      , right(right)
+  {
+  }
 
-  Binary_Operator(const Binary_Operator& in): ret(in.ret), left (in.left), right (in.right)
-  {}
+  Binary_Operator(const Binary_Operator& in)
+      : ret(in.ret)
+      , left(in.left)
+      , right(in.right)
+  {
+  }
 };
 
 class SQL_ORACLE {
-public:
+  public:
   /* Functions to check and count how many query validation statements are in
    * the string. */
-  virtual int count_oracle_select_stmts(IR *ir_root);
-  virtual int count_oracle_normal_stmts(IR *ir_root);
-  virtual bool is_oracle_select_stmt(IR *cur_IR);
-  virtual bool is_oracle_normal_stmt(IR *cur_IR) { return false; }
+  virtual int count_oracle_select_stmts(IR* ir_root);
+  virtual int count_oracle_normal_stmts(IR* ir_root);
+  virtual bool is_oracle_select_stmt(IR* cur_IR);
+  virtual bool is_oracle_normal_stmt(IR* cur_IR) { return false; }
 
   virtual bool is_oracle_select_stmt(string);
   virtual bool is_oracle_normal_stmt(string);
@@ -51,7 +58,8 @@ public:
    * rewrite_valid_stmt_from_ori_2() later.
    */
   virtual int get_random_append_stmts_num() { return 0; }
-  virtual IR *get_random_append_stmts(Mutator &g_mutate) {
+  virtual IR* get_random_append_stmts(Mutator& g_mutate)
+  {
     assert(!this->get_random_append_stmts_num());
     return NULL;
   }
@@ -60,9 +68,9 @@ public:
    * statement, that you do not want to mutate. */
   virtual bool mark_all_valid_node(IR* ir_root) = 0;
 
-  virtual void remove_select_stmt_from_ir(IR *ir_root);
-  virtual void remove_set_stmt_from_ir(IR *ir_root);
-  virtual void remove_oracle_select_stmt_from_ir(IR *ir_root);
+  virtual void remove_select_stmt_from_ir(IR* ir_root);
+  virtual void remove_set_stmt_from_ir(IR* ir_root);
+  virtual void remove_oracle_select_stmt_from_ir(IR* ir_root);
   string remove_select_stmt_from_str(string in);
   string remove_oracle_select_stmt_from_str(string in);
 
@@ -70,12 +78,12 @@ public:
      rewrite_2.
       If the results are all errors, return -1, all consistent, return 1, found
      inconsistent, return 0. */
-  virtual void compare_results(ALL_COMP_RES &res_out) = 0;
+  virtual void compare_results(ALL_COMP_RES& res_out) = 0;
 
-  virtual IR *get_random_mutated_select_stmt();
+  virtual IR* get_random_mutated_select_stmt();
 
   /* Helper function. */
-  void set_mutator(Mutator *mutator);
+  void set_mutator(Mutator* mutator);
 
   virtual string get_template_select_stmts() = 0;
 
@@ -91,13 +99,15 @@ public:
   ** Mutator::fix())
   ** If no transform is necessary, return empty vector.
   */
-  virtual IR *pre_fix_transform_select_stmt(IR *cur_stmt) { return cur_stmt->deep_copy(); }
-  virtual vector<IR *> post_fix_transform_select_stmt(IR *cur_stmt,
-                                                      unsigned multi_run_id) {
-    vector<IR *> tmp {cur_stmt->deep_copy()};
+  virtual IR* pre_fix_transform_select_stmt(IR* cur_stmt) { return cur_stmt->deep_copy(); }
+  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt,
+      unsigned multi_run_id)
+  {
+    vector<IR*> tmp { cur_stmt->deep_copy() };
     return tmp;
   }
-  virtual vector<IR *> post_fix_transform_select_stmt(IR *cur_stmt) {
+  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt)
+  {
     return this->post_fix_transform_select_stmt(cur_stmt, 0);
   }
 
@@ -109,15 +119,18 @@ public:
   ** Mutator::fix())
   ** If no transform is necessary, return empty vector.
   */
-  virtual IR *pre_fix_transform_normal_stmt(IR *cur_stmt) {
+  virtual IR* pre_fix_transform_normal_stmt(IR* cur_stmt)
+  {
     return nullptr;
   } // non-select stmt pre_fix transformation.
-  virtual vector<IR *> post_fix_transform_normal_stmt(IR *cur_stmt,
-                                                      unsigned multi_run_id) {
-    vector<IR *> tmp{cur_stmt->deep_copy()};
+  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt,
+      unsigned multi_run_id)
+  {
+    vector<IR*> tmp { cur_stmt->deep_copy() };
     return tmp;
   } // non-select
-  virtual vector<IR *> post_fix_transform_normal_stmt(IR *cur_stmt) {
+  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt)
+  {
     return this->post_fix_transform_normal_stmt(cur_stmt, 0);
   } // non-select
 
@@ -128,11 +141,13 @@ public:
   /* IRWrapper related */
   /* Everytime we need to modify the IR tree, we need to call this function
    * first. */
-  virtual bool init_ir_wrapper(IR *ir_root) {
+  virtual bool init_ir_wrapper(IR* ir_root)
+  {
     this->ir_wrapper.set_ir_root(ir_root);
     return true;
   }
-  virtual bool init_ir_wrapper(vector<IR *> ir_vec) {
+  virtual bool init_ir_wrapper(vector<IR*> ir_vec)
+  {
     return this->init_ir_wrapper(ir_vec.back());
   }
   IRWrapper ir_wrapper;
@@ -141,45 +156,41 @@ public:
   int num_oracle_select_mutate = 0;
   int num_oracle_select_succeed = 0;
 
-  virtual int is_res_str_error (string in_ret) {
+  virtual int is_res_str_error(string in_ret)
+  {
 #define ff(x) findStringIn(in_ret, x)
-      if (
-              !ff("internal error") && // Internal Error, not SQL error.
-              ff("pq:") ||
-              ff("ERROR: ") ||
-              ff("SQLSTATE: ")
-              ) {
-          return 1;
-      } else {
-          return 0;
-      }
+    if (
+        !ff("internal error") && // Internal Error, not SQL error.
+            ff("pq:")
+        || ff("ERROR: ") || ff("SQLSTATE: ")) {
+      return 1;
+    } else {
+      return 0;
+    }
 #undef ff
   };
 
-  virtual int is_res_str_internal_error (string in_ret) {
+  virtual int is_res_str_internal_error(string in_ret)
+  {
 #define ff(x) findStringIn(in_ret, x)
-      if (
-              ff("internal error")
-              ) {
-          return 1;
-      } else {
-          return 0;
-      }
+    if (
+        ff("internal error")) {
+      return 1;
+    } else {
+      return 0;
+    }
 #undef ff
   }
 
-  virtual int is_sql_str_transaction_related (string in_ret) {
+  virtual int is_sql_str_transaction_related(string in_ret)
+  {
 #define ff(x) findStringIn(in_ret, x)
-        if (
-                ff("BEGIN") ||
-                ff("TRANSACTION") ||
-                ff("ROLLBACK") ||
-                ff("SAVEPOINT")
-                ) {
-            return 1;
-        } else {
-            return 0;
-        }
+    if (
+        ff("BEGIN") || ff("TRANSACTION") || ff("ROLLBACK") || ff("SAVEPOINT")) {
+      return 1;
+    } else {
+      return 0;
+    }
 #undef ff
   }
 
@@ -189,47 +200,39 @@ public:
 
   virtual void init_operator_supported_types();
 
-  virtual vector<Binary_Operator> get_operator_supported_types(string in) {return this->operator_supported_types_lib[in];}
+  virtual vector<Binary_Operator> get_operator_supported_types(string in) { return this->operator_supported_types_lib[in]; }
 
-protected:
-  Mutator *g_mutator;
+  protected:
+  Mutator* g_mutator;
 
-  virtual bool mark_node_valid(IR *root);
+  virtual bool mark_node_valid(IR* root);
 
   map<string, vector<Binary_Operator>> operator_supported_types_lib;
-
 };
 
-#define ALLEXPRTYPESINWHERE     case TypeSubquery: \
-                                case TypeAndExpr:  \
-                                case TypeOrExpr:  \
-                                case TypeIsNullExpr:  \
-                                case TypeIsNotNullExpr:  \
-                                case TypeBinaryExpr:  \
-                                case TypeUnaryExpr:  \
-                                case TypeComparisonExpr:  \
-                                case TypeRangeCond:  \
-                                case TypeIsOfTypeExpr:  \
-                                case TypeExprFmtWithParen:  \
-                                case TypeBinExprFmtWithParen:  \
-                                case TypeBinExprFmtWithParenAndSubOp:  \
-                                case TypeNotExpr:  \
-                                case TypeParenExpr:  \
-                                case TypeIfErrExpr:  \
-                                case TypeIfExpr:  \
-                                case TypeNullIfExpr:  \
-                                case TypeCoalesceExpr:  \
-                                case TypeFuncExpr:  \
-                                case TypeCaseExpr:  \
-                                case TypeCastExpr:  \
-                                case TypeIndirectionExpr:  \
-                                case TypeAnnotateTypeExpr:  \
-                                case TypeCollateExpr:  \
-                                case TypeColumnAccessExpr:  \
-                                case TypeJoinTableExpr:  \
-                                case TypeAliasedTableExpr:  \
-                                case TypeParenTableExpr:
-//                                case TypeExprs:
-                                // End of the list.
+#define ALLEXPRTYPESINWHERE \
+  case TypeBetweenExpr:         \
+  case TypeBinaryOperationExpr: \
+  case TypeCaseExpr:            \
+  case TypeColumnNameExpr:      \
+  case TypeTableNameExpr:       \
+  case TypeCompareSubqueryExpr: \
+  case TypeDefaultExpr:         \
+  case TypeExistsSubqueryExpr:   \
+  case TypeIsNullExpr:          \
+  case TypeIsTruthExpr:         \
+  case TypeParenthesesExpr:     \
+  case TypePatternInExpr:       \
+  case TypePatternLikeExpr:     \
+  case TypePatternRegexpExpr:   \
+  case TypePositionExpr:        \
+  case TypeRowExpr:             \
+  case TypeSubqueryExpr:        \
+  case TypeUnaryOperationExpr:  \
+  case TypeValuesExpr:          \
+  case TypeVariableExpr:        \
+  case TypeMatchAgainst:        \
+  case TypeSetCollationExpr:    \
+    // End of this list
 
 #endif

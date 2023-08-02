@@ -8,7 +8,7 @@ bool SQL_ORACLE::mark_node_valid(IR *root) {
   /* the following types do not added to the norec_select_stmt list. They should
    * be able to mutate as usual. */
   if ( // root->type_ == kNewExpr || root->type_ == kTableOrSubquery ||
-      root->type_ == TypeGroupBy || root->type_ == TypeWindow)
+      root->type_ == TypeGroupByClause || root->type_ == TypeWindowSpec)
     return false;
   root->is_node_struct_fixed = true;
   if (root->left_ != nullptr)
@@ -65,7 +65,7 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
     }
 
     bool has_where_clause = true;
-    if (!(ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_ir_stmt, TypeWhere))) {
+    if (!(ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_ir_stmt, TypeWhereClause))) {
       // If the retrieved IR node is a simple SELECT statement that comes without
       // WHERE, try not to use it and gives it 80% chances to skip.
       has_where_clause = false;
@@ -122,7 +122,7 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
         if (mutate_ir_node->is_node_struct_fixed) {
           continue;
         }
-        if (has_where_clause && !ir_wrapper.is_ir_in(mutate_ir_node, TypeWhere)) {
+        if (has_where_clause && !ir_wrapper.is_ir_in(mutate_ir_node, TypeWhereClause)) {
           // If the SELECT statement comes with the WHERE clause, but
           // the mutated nodes does not choose the expressions to the where clause,
           // re-choose the mutated IR with possibility 80%.
@@ -249,7 +249,7 @@ int SQL_ORACLE::count_oracle_normal_stmts(IR *ir_root) {
 }
 
 bool SQL_ORACLE::is_oracle_select_stmt(IR *cur_IR) {
-  if (cur_IR != NULL && cur_IR->type_ == TypeSelect) {
+  if (cur_IR != NULL && cur_IR->type_ == TypeSelectStmt) {
     /* For dummy function, treat all SELECT stmt as oracle function.  */
     return true;
   }
@@ -260,7 +260,7 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
   vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
   for (IR *cur_stmt : stmt_vec) {
-    if (cur_stmt->type_ == TypeSelect) {
+    if (cur_stmt->type_ == TypeSelectStmt) {
       ir_wrapper.remove_stmt_and_free(cur_stmt);
     }
   }
@@ -271,7 +271,7 @@ void SQL_ORACLE::remove_set_stmt_from_ir(IR *ir_root) {
     ir_wrapper.set_ir_root(ir_root);
     vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
     for (IR *cur_stmt : stmt_vec) {
-        if (cur_stmt->type_ == TypeSetVar) {
+        if (cur_stmt->type_ == TypeSetStmt) {
             ir_wrapper.remove_stmt_and_free(cur_stmt);
         }
     }

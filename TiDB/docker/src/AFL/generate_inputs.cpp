@@ -4,9 +4,8 @@
 #include "../include/mutate.h"
 #include "../include/utils.h"
 
-#include "../oracle/cockroach_norec.h"
 #include "../oracle/cockroach_oracle.h"
-#include "../oracle/cockroach_tlp.h"
+#include "../oracle/cockroach_opt.h"
 
 #include <fstream>
 #include <iostream>
@@ -63,22 +62,22 @@ void init_stmts(string f_testcase) {
 
     switch (cur_stmt->get_ir_type()) {
     // TODO:: FIXME:: Might not be accurate
-    case TypeCreateTable: {
+    case TypeCreateTableStmt: {
       // cout << "For str: " << strip_sql << ", kCreateStmt. \n";
       v_create_stmt.push_back(saved_str);
       v_other_stmt.push_back(saved_str);
     } break;
-    case TypeInsert: {
+    case TypeInsertStmt: {
       // cout << "For str: " << strip_sql << ", kInsertStmt. \n";
       v_insert_stmt.push_back(saved_str);
       v_other_stmt.push_back(saved_str);
     } break;
-    case TypeSetVar: {
+    case TypeSetStmt: {
       // cout << "For str: " << strip_sql << ", kSetStmt. \n";
       v_set_stmt.push_back(saved_str);
       v_other_stmt.push_back(saved_str);
     } break;
-    case TypeSelect: {
+    case TypeSelectStmt: {
     } break;
     default: {
       // cout << "For str: " << strip_sql << ", kOtherStmt. \n";
@@ -133,7 +132,7 @@ void gen_inputs(string out_name) {
 
 int main() {
 
-  p_oracle = new SQL_NOREC();
+  p_oracle = new SQL_OPT();
   g_mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&g_mutator);
 

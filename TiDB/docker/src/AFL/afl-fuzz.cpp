@@ -2802,7 +2802,7 @@ EXP_ST void init_forkserver(char** argv)
                                            "msan_track_origins=0",
         0);
 
-    char* argv_list[] = { "./covtest.test", NULL };
+    char* argv_list[] = { "./tidb-with-cov", NULL };
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
 
