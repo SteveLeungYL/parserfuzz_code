@@ -19,4 +19,5 @@ pane_client.send_keys("mysql -P 8000 -u root --socket /tmp/mysql_0.sql -e \"crea
 time.sleep(5)
 create_database_window.kill_window()
 create_database_window_client.kill_window()
+session.kill_session()
 os.system("kill `pidof tidb-server-ori`")

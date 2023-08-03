@@ -77,10 +77,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <termios.h>
+#include <thread>
 #include <time.h>
 #include <unistd.h>
 #include <vector>
-#include <thread>
 
 #include <filesystem>
 #include <fstream>
@@ -2807,8 +2807,12 @@ EXP_ST void init_forkserver(char** argv)
                                            "msan_track_origins=0",
         0);
 
+    string cwd_str = std::filesystem::current_path().string();
+    string db_str = cwd_str + "/db_data";
 
-    char* argv_list[] = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-socket", strdup(socket_path.c_str()), NULL };
+    char* argv_list[]
+        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
+
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
 
@@ -7816,8 +7820,8 @@ int main(int argc, char** argv)
       string arg = string(optarg);
       if (arg == "OPT")
         p_oracle = new SQL_OPT();
-//      else
-//        FATAL("Oracle arguments not supported. ");
+      //      else
+      //        FATAL("Oracle arguments not supported. ");
     } break;
 
     default:

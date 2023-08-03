@@ -137,8 +137,11 @@ USER tidb
 RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/tidb_pkg_plugin/rsg/tidb_parser_modi.y /home/tidb/fuzz_root/tidb_parser_modi.y \
     && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov && cp -r /home/tidb/tidb-server-ori /home/tidb/fuzz_root/tidb-server-ori
 # Setup the database structure.
-RUN python3 /home/tidb/tidb_pkg_plugin/setup_tidb_database.py
+# This has been proven to be not working.
+# RUN python3 /home/tidb/tidb_pkg_plugin/setup_tidb_database.py
 
 USER root
 WORKDIR /home/tidb/fuzz_root/
+
+ENTRYPOINT echo "Setting up database. One moment. " && bash /home/tidb/tidb_pkg_plugin/setup_tidb_database.sh && bash
 
