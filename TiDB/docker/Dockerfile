@@ -41,7 +41,8 @@ RUN apt -y upgrade \
 && apt -y install llvm \
 && apt -y install clang \
 && apt install -y g++-9 \
-&& apt install -y gcc-9
+&& apt install -y gcc-9 \
+&& pip3 install libtmux
 
 RUN useradd -ms /bin/bash tidb
 USER tidb
@@ -132,8 +133,11 @@ RUN make -j$(nproc)
 COPY fuzz_root /home/tidb/fuzz_root
 USER root
 RUN chown -R tidb:tidb /home/tidb/fuzz_root
+USER tidb
 RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/tidb_pkg_plugin/rsg/tidb_parser_modi.y /home/tidb/fuzz_root/tidb_parser_modi.y \
     && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov && cp -r /home/tidb/tidb-server-ori /home/tidb/fuzz_root/tidb-server-ori
+# Setup the database structure.
+RUN python3 /home/tidb/tidb_pkg_plugin/setup_tidb_database.py
 
 USER root
 WORKDIR /home/tidb/fuzz_root/
