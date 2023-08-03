@@ -109,18 +109,20 @@ skip_line = 0
 for cur_line in main_test_fd.read().splitlines():
     if "goleak.VerifyTestMain" in cur_line:
         # ignore goleak
-        res_str += "m.Run()" # replace the original goleak call to the direct m.Run() call.
-        skip_line = 1
+        res_str += "m.Run()\n" # replace the original goleak call to the direct m.Run() call.
         continue
-    elif "goleak" in cur_line:
-        # ignore goleak.
+    elif "go.uber.org/goleak" in cur_line:
         continue
-    elif skip_line > 0:
-        skip_line -= 1
+    elif "goleak.Option" in cur_line:
+        # ignore goleak and the options line.
+        skip_line = 4
         continue
     elif "isCoverageServer == \"1\"" in cur_line:
         res_str += "TestCov()\n"
         skip_line = 3
+        skip_line -= 1
+        continue
+    elif skip_line > 0:
         skip_line -= 1
         continue
     res_str += cur_line + "\n"
