@@ -528,7 +528,7 @@ class MysqlClient {
     // database_id++;
     bool is_error = false;
 
-    vector<string> v_cmd = { "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'" };
+    vector<string> v_cmd = { "DROP DATABASE IF EXISTS test_rsg1", "CREATE DATABASE IF NOT EXISTS test_rsg1", "USE test_rsg1", "SELECT 'Successful'" };
     for (string cmd : v_cmd) {
       if (mysql_real_query(&tmp_m, cmd.c_str(), cmd.size())) {
         is_error = true;
@@ -840,14 +840,14 @@ class MysqlClient {
       mysql_close(&tmp_m);
       return 0;
     }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), 0) == NULL) {
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_rsg1", bind_to_port, socket_path.c_str(), 0) == NULL) {
       fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       return 0;
     }
 
     bool is_error = false;
-    vector<string> v_cmd = { " DROP DATABASE IF EXISTS test_sqlright1 ", " CREATE DATABASE IF NOT EXISTS test_sqlright1 ", " USE test_sqlright1 ", " SELECT 'Successful' " };
+    vector<string> v_cmd = { " DROP DATABASE IF EXISTS test_rsg1 ", " CREATE DATABASE IF NOT EXISTS test_rsg1 ", " USE test_rsg1 ", " SELECT 'Successful' " };
     for (string cmd : v_cmd) {
       if (mysql_real_query(&tmp_m, cmd.c_str(), cmd.size())) {
         is_error = true;
@@ -2807,7 +2807,8 @@ EXP_ST void init_forkserver(char** argv)
                                            "msan_track_origins=0",
         0);
 
-    char* argv_list[] = { "./tidb-with-cov", NULL };
+
+    char* argv_list[] = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-socket", strdup(socket_path.c_str()), NULL };
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
 

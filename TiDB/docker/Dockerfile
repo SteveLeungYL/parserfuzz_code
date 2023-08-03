@@ -54,7 +54,7 @@ RUN apt update
 RUN apt -y install nodejs
 RUN pip3 install psutil
 RUN pip3 install mysql-connector-python mysql-connector-python
-RUN apt -y install libmysqlclient-dev
+RUN apt -y install libmysqlclient-dev mysql-client
 
 WORKDIR /home/tidb
 
@@ -104,7 +104,7 @@ RUN python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
 RUN cp -r /home/tidb/tidb_pkg_plugin/globalcov ./globalcov
 RUN make
-RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov; cp ../bin/tidb-with-cov /home/tidb/tidb-with-cov
+RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov; cp ../bin/tidb-with-cov /home/tidb/tidb-with-cov && cp ../bin/tidb-server /home/tidb/tidb-server-ori
 # Finished the building of the TiDB applicaton.
 
 
@@ -133,7 +133,7 @@ COPY fuzz_root /home/tidb/fuzz_root
 USER root
 RUN chown -R tidb:tidb /home/tidb/fuzz_root
 RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/tidb_pkg_plugin/rsg/tidb_parser_modi.y /home/tidb/fuzz_root/tidb_parser_modi.y \
-    && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov
+    && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov && cp -r /home/tidb/tidb-server-ori /home/tidb/fuzz_root/tidb-server-ori
 
 USER root
 WORKDIR /home/tidb/fuzz_root/
