@@ -257,7 +257,14 @@ func (n *Join) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			if i != 0 {
 				tmpMidfix = ","
 			}
+
 			vNode := v.LogCurrentNode(depth + 1)
+			columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataColumnName)
+			for _, columnNameNode := range columnNameNodeList {
+				columnNameNode.DataType = sql_ir.DataColumnName
+				columnNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			if i == 0 {
 				tmpRootNode.LNode = vNode
 			} else { // i > 0
@@ -429,10 +436,11 @@ func (n *TableName) LogCurrentNodeName(depth int) *sql_ir.SqlRsgIR {
 	midfix := ""
 	if n.Schema.String() != "" {
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataSchemaName,
-			Str:      n.Schema.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataSchemaName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Schema.String(),
+			Depth:       depth,
 		}
 		midfix = "."
 	}
@@ -454,10 +462,11 @@ func (n *TableName) LogCurrentNodeName(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataTableName,
-		Str:      n.Name.String(),
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataTableName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name.String(),
+		Depth:       depth,
 	}
 
 	rootNode = &sql_ir.SqlRsgIR{
@@ -508,10 +517,11 @@ func (n *TableName) LogCurrentNodePartitions(depth int) *sql_ir.SqlRsgIR {
 			}
 			nameNode :=
 				&sql_ir.SqlRsgIR{
-					IRType:   sql_ir.TypeIdentifier,
-					DataType: sql_ir.DataPartitionName,
-					Str:      v.String(),
-					Depth:    depth,
+					IRType:      sql_ir.TypeIdentifier,
+					DataType:    sql_ir.DataPartitionName,
+					ContextFlag: sql_ir.ContextUse,
+					Str:         v.String(),
+					Depth:       depth,
 				}
 			if i == 0 {
 				tmpRootNode.LNode = nameNode
@@ -744,10 +754,11 @@ func (n *IndexHint) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			midfix = ", "
 		}
 		nameNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeUnknown,
-			DataType: sql_ir.DataNone,
-			Str:      value.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         value.O,
+			Depth:       depth,
 		}
 
 		if i == 0 {
@@ -858,6 +869,11 @@ func (n *DeleteTableList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			midfix = ", "
 		}
 		tNode := t.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataTableName
+			tableNameNode.ContextFlag = sql_ir.ContextUndefine
+		}
 
 		if i == 0 {
 			rootNode.LNode = tNode
@@ -1003,10 +1019,11 @@ func (n *TableSource) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		if asName := n.AsName.String(); asName != "" {
 			midfix := " AS "
 			rNode = &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataTableAliasName,
-				Str:      asName,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataTableAliasName,
+				ContextFlag: sql_ir.ContextDefine,
+				Str:         asName,
+				Depth:       depth,
 			}
 			rootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
@@ -1075,10 +1092,11 @@ func (n *TableSource) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		if asName := n.AsName.String(); asName != "" {
 			rootNode.Infix = " AS "
 			rNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataTableAliasName,
-				Str:      asName,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataTableAliasName,
+				ContextFlag: sql_ir.ContextDefine,
+				Str:         asName,
+				Depth:       depth,
 			}
 			rootNode.RNode = rNode
 		}
@@ -1226,10 +1244,11 @@ func (n *WildCardField) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	if schema := n.Schema.String(); schema != "" {
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataSchemaName,
-			Str:      schema,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataSchemaName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         schema,
+			Depth:       depth,
 		}
 		midfix := "."
 		rootNode.LNode = lNode
@@ -1238,10 +1257,11 @@ func (n *WildCardField) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	if table := n.Table.String(); table != "" {
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataTableName,
-			Str:      table,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataTableName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         table,
+			Depth:       depth,
 		}
 
 		suffix := "."
@@ -1332,10 +1352,11 @@ func (n *SelectField) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if asName := n.AsName.String(); asName != "" {
 		midfix := " AS "
 		asNameNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataTableAliasName,
-			Str:      asName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataColumnAliasName,
+			ContextFlag: sql_ir.ContextDefine,
+			Str:         asName,
+			Depth:       depth,
 		}
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -1948,10 +1969,11 @@ type CommonTableExpression struct {
 func (n *CommonTableExpression) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataTableAliasName,
-		Str:      n.Name.O,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataTableAliasName,
+		ContextFlag: sql_ir.ContextDefine,
+		Str:         n.Name.O,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -1973,10 +1995,11 @@ func (n *CommonTableExpression) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			colNameNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataColumnAliasName,
-				Str:      name.String(),
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataColumnAliasName,
+				ContextFlag: sql_ir.ContextDefine,
+				Str:         name.String(),
+				Depth:       depth,
 			}
 
 			if j == 0 {
@@ -2905,6 +2928,11 @@ func LogCurrentNodeTablesHelper(depth int, ts []*TableName) *sql_ir.SqlRsgIR {
 			midfix = ", "
 		}
 		vNode := v.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataTableName
+			tableNameNode.ContextFlag = sql_ir.ContextUse
+		}
 		if i == 0 {
 			rootNode.LNode = vNode
 		} else {
@@ -3368,6 +3396,12 @@ func (n *Assignment) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	lNode := n.Column.LogCurrentNode(depth + 1)
+	columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
+	for _, columnNameNode := range columnNameNodeList {
+		columnNameNode.DataType = sql_ir.DataColumnName
+		columnNameNode.ContextFlag = sql_ir.ContextUse
+	}
+
 	midfix := " = "
 	rNode := n.Expr.LogCurrentNode(depth + 1)
 
@@ -3425,6 +3459,12 @@ func (n *ColumnNameOrUserVar) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	if n.ColumnName != nil {
 		lNode := n.ColumnName.LogCurrentNode(depth + 1)
+		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
+		for _, columnNameNode := range columnNameNodeList {
+			columnNameNode.DataType = sql_ir.DataColumnName
+			columnNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		rootNode.LNode = lNode
 	}
 
@@ -3514,6 +3554,12 @@ func (n *LoadDataStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	prefix += " INTO TABLE "
 
 	lNode := n.Table.LogCurrentNode(depth + 1)
+	tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+	for _, tableNameNode := range tableNameNodeList {
+		tableNameNode.DataType = sql_ir.DataTableName
+		tableNameNode.ContextFlag = sql_ir.ContextUse
+	}
+
 	rNode := n.FieldsInfo.LogCurrentNode(depth + 1)
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -4012,10 +4058,11 @@ func (n *InsertStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 		for i := 0; i < len(n.PartitionNames); i++ {
 			partitionNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataPartitionName,
-				Str:      n.PartitionNames[i].O,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataPartitionName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         n.PartitionNames[i].O,
+				Depth:       depth,
 			}
 			if i == 0 {
 				tmpRootNode.LNode = partitionNode
@@ -4052,7 +4099,14 @@ func (n *InsertStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:    depth,
 		}
 		for i, v := range n.Columns {
+
 			vNode := v.LogCurrentNode(depth + 1)
+			columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataColumnName)
+			for _, columnNameNode := range columnNameNodeList {
+				columnNameNode.DataType = sql_ir.DataColumnName
+				columnNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			if i == 0 {
 				tmpRootNode.LNode = vNode
 			} else { // i > 0
@@ -4773,6 +4827,13 @@ func (n *NonTransactionalDeleteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR 
 	if n.ShardColumn != nil {
 		prefix += "ON "
 		lNode = n.ShardColumn.LogCurrentNode(depth + 1)
+
+		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
+		for _, columnNameNode := range columnNameNodeList {
+			columnNameNode.DataType = sql_ir.DataColumnName
+			columnNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		midfix = " "
 	}
 
@@ -5400,10 +5461,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		if n.DBName != "" {
 			// FROM OR IN
 			dbNameNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataDatabaseName,
-				Str:      n.DBName,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataDatabaseName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         n.DBName,
+				Depth:       depth,
 			}
 			return " IN ", dbNameNode
 		}
@@ -5446,6 +5508,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowCreateTable:
 		prefix += "CREATE TABLE "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataTableName
+			tableNameNode.ContextFlag = sql_ir.ContextDefine
+		}
 
 		rootNode.LNode = tableNode
 		rootNode.Prefix = prefix
@@ -5454,6 +5521,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowCreateView:
 		prefix += "CREATE VIEW "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataViewName
+			tableNameNode.ContextFlag = sql_ir.ContextDefine
+		}
 
 		rootNode.LNode = tableNode
 		rootNode.Prefix = prefix
@@ -5465,10 +5537,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			prefix += "IF NOT EXISTS "
 		}
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataDatabaseName,
-			Str:      n.DBName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataDatabaseName,
+			ContextFlag: sql_ir.ContextDefine,
+			Str:         n.DBName,
+			Depth:       depth,
 		}
 
 		rootNode.LNode = lNode
@@ -5478,6 +5551,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowCreateSequence:
 		prefix += "CREATE SEQUENCE "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataSequenceName
+			tableNameNode.ContextFlag = sql_ir.ContextDefine
+		}
 
 		rootNode.LNode = tableNode
 		rootNode.Prefix = prefix
@@ -5487,10 +5565,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 		prefix += "CREATE PLACEMENT POLICY "
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataPolicyName,
-			Str:      n.DBName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataPolicyName,
+			ContextFlag: sql_ir.ContextDefine,
+			Str:         n.DBName,
+			Depth:       depth,
 		}
 
 		rootNode.LNode = lNode
@@ -5736,10 +5815,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowCreateImport:
 		prefix += "CREATE IMPORT "
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataDatabaseName,
-			Str:      n.DBName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataDatabaseName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.DBName,
+			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -5748,10 +5828,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowPlacementForDatabase:
 		prefix += "PLACEMENT FOR DATABASE "
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataDatabaseName,
-			Str:      n.DBName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataDatabaseName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.DBName,
+			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -5760,6 +5841,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowPlacementForTable:
 		prefix += "PLACEMENT FOR TABLE "
 		lNode := n.Table.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataTableName
+			tableNameNode.ContextFlag = sql_ir.ContextUse
+		}
 
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -5767,12 +5853,19 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case ShowPlacementForPartition:
 		prefix += "PLACEMENT FOR TABLE "
 		lNode := n.Table.LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+		for _, tableNameNode := range tableNameNodeList {
+			tableNameNode.DataType = sql_ir.DataTableName
+			tableNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		midfix := " PARTITION "
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataPartitionName,
-			Str:      n.Partition.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataPartitionName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Partition.String(),
+			Depth:       depth,
 		}
 
 		rootNode.Prefix = prefix
@@ -5821,6 +5914,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			// FROM or IN
 			prefix += "INDEX IN "
 			lNode := n.Table.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
 			rootNode.Prefix = prefix
 			rootNode.LNode = lNode
 			prefix = ""
@@ -5835,6 +5933,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				// FROM or IN
 				prefix += " IN "
 				lNode = n.Table.LogCurrentNode(depth + 1)
+				tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+				for _, tableNameNode := range tableNameNodeList {
+					tableNameNode.DataType = sql_ir.DataTableName
+					tableNameNode.ContextFlag = sql_ir.ContextUse
+				}
 			}
 			midfix, rNode := restoreShowDatabaseNameOpt()
 
@@ -5925,6 +6028,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		case ShowRegions:
 			prefix += "TABLE "
 			lNode := n.Table.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
 
 			rootNode.Prefix = prefix
 			rootNode.LNode = lNode
@@ -5933,10 +6041,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			if len(n.IndexName.L) > 0 {
 				midfix := " INDEX "
 				rNode := &sql_ir.SqlRsgIR{
-					IRType:   sql_ir.TypeIdentifier,
-					DataType: sql_ir.DataIndexName,
-					Str:      n.IndexName.String(),
-					Depth:    depth,
+					IRType:      sql_ir.TypeIdentifier,
+					DataType:    sql_ir.DataIndexName,
+					ContextFlag: sql_ir.ContextUse,
+					Str:         n.IndexName.String(),
+					Depth:       depth,
 				}
 				rootNode.Infix = midfix
 				rootNode.RNode = rNode
@@ -5961,6 +6070,11 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 			prefix += "TABLE "
 			lNode := n.Table.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
 			midfix := " NEXT_ROW_ID"
 
 			rootNode.Prefix = prefix
@@ -6394,10 +6508,11 @@ func (n *WindowSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	if name := n.Name.String(); name != "" {
 		lNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataWindowName,
-			Str:      name,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataWindowName,
+			ContextFlag: sql_ir.ContextDefine,
+			Str:         name,
+			Depth:       depth,
 		}
 		rootNode.LNode = lNode
 		rootNode.Prefix = prefix
@@ -6414,10 +6529,11 @@ func (n *WindowSpec) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	sep := ""
 	if refName := n.Ref.String(); refName != "" {
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataWindowName,
-			Str:      refName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataWindowName,
+			ContextFlag: sql_ir.ContextUse, // TODO:: not sure here.
+			Str:         refName,
+			Depth:       depth,
 		}
 		sep = " "
 		rootNode = &sql_ir.SqlRsgIR{
@@ -6976,6 +7092,11 @@ func (n *SplitRegionStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	prefix += "TABLE "
 
 	lNode := n.Table.LogCurrentNode(depth + 1)
+	tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+	for _, tableNameNode := range tableNameNodeList {
+		tableNameNode.DataType = sql_ir.DataTableName
+		tableNameNode.ContextFlag = sql_ir.ContextUse
+	}
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -6995,10 +7116,11 @@ func (n *SplitRegionStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 		for i, v := range n.PartitionNames {
 			partitionNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataPartitionName,
-				Str:      v.String(),
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataPartitionName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         v.String(),
+				Depth:       depth,
 			}
 
 			if i == 0 {
@@ -7030,10 +7152,11 @@ func (n *SplitRegionStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if len(n.IndexName.L) > 0 {
 		midfix := " INDEX "
 		indexNameNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataIndexName,
-			Str:      n.IndexName.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.IndexName.String(),
+			Depth:       depth,
 		}
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,

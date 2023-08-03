@@ -402,10 +402,11 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	midfix := ""
 	if len(n.Schema.String()) != 0 {
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataSchemaName,
-			Str:      n.Schema.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataSchemaName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Schema.O,
+			Depth:       depth,
 		}
 		midfix = "."
 	}
@@ -419,17 +420,19 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	var rNode *sql_ir.SqlRsgIR
 	if n.Tp == FuncCallExprTypeGeneric {
 		rNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataFunctionName,
-			Str:      n.FnName.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataFunctionName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.FnName.O,
+			Depth:       depth,
 		}
 	} else {
 		rNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataFunctionName,
-			Str:      n.FnName.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataFunctionName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.FnName.O,
+			Depth:       depth,
 		}
 	}
 
@@ -1112,10 +1115,11 @@ type AggregateFuncExpr struct {
 func (n *AggregateFuncExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	topLNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataFunctionName,
-		Str:      n.F,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataFunctionName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.F,
+		Depth:       depth,
 	}
 	topMidfix := "("
 
@@ -1346,10 +1350,11 @@ type WindowFuncExpr struct {
 func (n *WindowFuncExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	topLNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataFunctionName,
-		Str:      n.F,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataFunctionName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.F,
+		Depth:       depth,
 	}
 
 	tmpRooNode := &sql_ir.SqlRsgIR{

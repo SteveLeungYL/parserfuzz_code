@@ -743,6 +743,12 @@ type TableNameExpr struct {
 func (n *TableNameExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	lNode := n.Name.LogCurrentNode(depth + 1)
+	tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+	for _, tableNameNode := range tableNameNodeList {
+		tableNameNode.DataType = sql_ir.DataTableName
+		tableNameNode.ContextFlag = sql_ir.ContextUse
+	}
+
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
@@ -813,10 +819,11 @@ func (n *ColumnName) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		// TODO: This is not accurate. If the table name comes from the CTE,
 		// remove the schema here !!!
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataSchemaName,
-			Str:      n.Schema.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataSchemaName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Schema.O,
+			Depth:       depth,
 		}
 		midfix = "."
 	}
@@ -832,10 +839,11 @@ func (n *ColumnName) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	midfix = ""
 	if n.Table.O != "" {
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataTableName,
-			Str:      n.Table.O,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataTableName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Table.O,
+			Depth:       depth,
 		}
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -848,10 +856,11 @@ func (n *ColumnName) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	rNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataColumnName,
-		Str:      n.Name.O,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataColumnName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name.O,
+		Depth:       depth,
 	}
 
 	rootNode = &sql_ir.SqlRsgIR{
@@ -934,6 +943,11 @@ type ColumnNameExpr struct {
 func (n *ColumnNameExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	lNode := n.Name.LogCurrentNode(depth + 1)
+	columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
+	for _, columnNameNode := range columnNameNodeList {
+		columnNameNode.DataType = sql_ir.DataColumnName
+		columnNameNode.ContextFlag = sql_ir.ContextUse
+	}
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -1000,6 +1014,12 @@ func (n *DefaultExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.Name != nil {
 		midfix = "("
 		lNode = n.Name.LogCurrentNode(depth + 1)
+		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
+		for _, columnNameNode := range columnNameNodeList {
+			columnNameNode.DataType = sql_ir.DataColumnName
+			columnNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		suffix = ")"
 	}
 
@@ -2126,10 +2146,11 @@ func (n *VariableExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataVariableName,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataVariableName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 
 	midfix := ""
@@ -2280,6 +2301,12 @@ func (n *MatchAgainst) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			midfix = ", "
 		}
 		vNode := v.LogCurrentNode(depth + 1)
+		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataColumnName)
+		for _, columnNameNode := range columnNameNodeList {
+			columnNameNode.DataType = sql_ir.DataColumnName
+			columnNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		if i == 0 {
 			rootNode.LNode = vNode
 		} else { // i > 0
@@ -2417,10 +2444,11 @@ func (n *SetCollationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	lNode := n.Expr.LogCurrentNode(depth + 1)
 	midfix := " COLLATE "
 	rNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataCollationName,
-		Str:      n.Collate,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataCollationName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Collate,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{

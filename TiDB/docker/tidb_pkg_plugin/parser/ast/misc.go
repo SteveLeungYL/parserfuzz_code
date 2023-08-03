@@ -314,6 +314,12 @@ func (n *ExplainStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			midfix = " "
 			rNode := showStmt.Column.LogCurrentNode(depth + 1)
 
+			columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(rNode, sql_ir.DataColumnName)
+			for _, columnNameNode := range columnNameNodeList {
+				columnNameNode.DataType = sql_ir.DataColumnName
+				columnNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			rootNode.RNode = rNode
 			rootNode.Infix = midfix
 		}
@@ -597,6 +603,11 @@ func (n *CompactTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "ALTER TABLE "
 	lNode := n.Table.LogCurrentNode(depth + 1)
+	tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataTableName)
+	for _, tableNameNode := range tableNameNodeList {
+		tableNameNode.DataType = sql_ir.DataTableName
+		tableNameNode.ContextFlag = sql_ir.ContextUse
+	}
 
 	// Note: There is only TiFlash replica available now. TiKV will be added later.
 	midfix := " COMPACT " + string(n.ReplicaKind) + " REPLICA"
@@ -660,10 +671,11 @@ func (n *PrepareStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "PREPARE "
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataStatementPreparedName,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataStatementPreparedName,
+		ContextFlag: sql_ir.ContextDefine,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	midfix := " FROM "
 
@@ -762,10 +774,11 @@ func (n *DeallocateStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "DEALLOCATE PREPARE "
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataStatementPreparedName,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataStatementPreparedName,
+		ContextFlag: sql_ir.ContextUndefine,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -825,10 +838,11 @@ func (n *ExecuteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "EXECUTE "
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataStatementPreparedName,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataStatementPreparedName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -1193,10 +1207,11 @@ func (n *UseStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "USE "
 	dbNameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataDatabaseName,
-		Str:      n.DBName,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataDatabaseName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.DBName,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -1276,10 +1291,11 @@ func (n *VariableAssignment) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "CHARSET "
 	} else {
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataVariableName,
-			Str:      n.Name,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataVariableName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Name,
+			Depth:       depth,
 		}
 		midfix = " = "
 	}
@@ -1431,6 +1447,11 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 
 			vNode := v.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
 
 			if i == 0 {
 				tmpRootNode.LNode = vNode
@@ -1487,10 +1508,11 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			vNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataNone,
-				Str:      v,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataNone,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         v,
+				Depth:       depth,
 			}
 
 			if i == 0 {
@@ -1798,10 +1820,11 @@ func (n *SetConfigStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	prefix += " "
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataVariableName,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataVariableName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	midfix := " = "
 	rNode := n.Value.LogCurrentNode(depth + 1)
@@ -3490,10 +3513,11 @@ func (n *CreateStatisticsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "IF NOT EXISTS "
 	}
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataStatsName,
-		Str:      n.StatsName,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataStatsName,
+		ContextFlag: sql_ir.ContextDefine,
+		Str:         n.StatsName,
+		Depth:       depth,
 	}
 
 	midfix := ""
@@ -3508,6 +3532,11 @@ func (n *CreateStatisticsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	midfix += "ON "
 
 	rNode := n.Table.LogCurrentNode(depth + 1)
+	tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(rNode, sql_ir.DataTableName)
+	for _, tableNameNode := range tableNameNodeList {
+		tableNameNode.DataType = sql_ir.DataTableName
+		tableNameNode.ContextFlag = sql_ir.ContextUse
+	}
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -3530,6 +3559,13 @@ func (n *CreateStatisticsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			tmpMidfix = ", "
 		}
 		colNode := col.LogCurrentNode(depth + 1)
+
+		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(colNode, sql_ir.DataColumnName)
+		for _, columnNameNode := range columnNameNodeList {
+			columnNameNode.DataType = sql_ir.DataColumnName
+			columnNameNode.ContextFlag = sql_ir.ContextUse
+		}
+
 		if i == 0 {
 			tmpRootNode.LNode = colNode
 		} else { // i > 0
@@ -3629,10 +3665,11 @@ func (n *DropStatisticsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "DROP STATISTICS "
 	statNameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataStatsName,
-		Str:      n.StatsName,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataStatsName,
+		ContextFlag: sql_ir.ContextUndefine,
+		Str:         n.StatsName,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -3913,6 +3950,12 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				midfix = ", "
 			}
 			vNode := v.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			if i == 0 {
 				tmpRootNode.LNode = vNode
 			} else {
@@ -4026,10 +4069,11 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "CHECK INDEX "
 		lNode := restoreTables()
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataIndexName,
-			Str:      n.Index,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextDefine,
+			Str:         n.Index,
+			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -4039,10 +4083,11 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "RECOVER INDEX "
 		lNode := restoreTables()
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataIndexName,
-			Str:      n.Index,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Index,
+			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -4052,10 +4097,11 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "CLEANUP INDEX "
 		lNode := restoreTables()
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataIndexName,
-			Str:      n.Index,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Index,
+			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
@@ -4065,10 +4111,11 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix := "CHECK INDEX "
 		lNode := restoreTables()
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataIndexName,
-			Str:      n.Index,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataIndexName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Index,
+			Depth:       depth,
 		}
 
 		rootNode.Prefix = prefix
@@ -4475,10 +4522,11 @@ func (n *PrivElem) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 	} else if n.Priv == mysql.ExtendedPriv {
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataStatementPreparedName,
-			Str:      n.Name,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataStatementPreparedName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.Name,
+			Depth:       depth,
 		}
 		rootNode.LNode = lNode
 	} else {
@@ -4504,6 +4552,11 @@ func (n *PrivElem) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ","
 			}
 			vNode := v.LogCurrentNode(depth + 1)
+			columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(vNode, sql_ir.DataColumnName)
+			for _, columnNameNode := range columnNameNodeList {
+				columnNameNode.DataType = sql_ir.DataColumnName
+				columnNameNode.ContextFlag = sql_ir.ContextUse
+			}
 
 			if i == 0 {
 				tmpRootNode.LNode = vNode
@@ -4675,10 +4728,11 @@ func (n *GrantLevel) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			rootNode.Prefix = prefix
 		} else {
 			lNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataDatabaseName,
-				Str:      n.DBName,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataDatabaseName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         n.DBName,
+				Depth:       depth,
 			}
 			midfix := ".*"
 			rootNode.LNode = lNode
@@ -4691,20 +4745,22 @@ func (n *GrantLevel) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		midfix := ""
 		if n.DBName != "" {
 			lNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataDatabaseName,
-				Str:      n.DBName,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataDatabaseName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         n.DBName,
+				Depth:       depth,
 			}
 			midfix = "."
 			rootNode.LNode = lNode
 			rootNode.Infix = midfix
 		}
 		rNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataTableAliasName,
-			Str:      n.TableName,
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataTableName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.TableName,
+			Depth:       depth,
 		}
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -5991,6 +6047,12 @@ func (n *BRIEStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			tableNode := table.LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			if index == 0 {
 				tmpRootNode.LNode = tableNode
 			} else { // i > 0
@@ -6021,10 +6083,11 @@ func (n *BRIEStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			schemaName := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataSchemaName,
-				Str:      schema,
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataSchemaName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         schema,
+				Depth:       depth,
 			}
 			if index == 0 {
 				tmpRootNode.LNode = schemaName
@@ -6266,10 +6329,11 @@ func (n *CreateImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "IF NOT EXISTS "
 	}
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextDefine,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	midfix := " FROM " + n.Storage
 	if n.ErrorHandling != ErrorHandleError {
@@ -6386,10 +6450,11 @@ func (n *StopImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "IF RUNNING "
 	}
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -6433,10 +6498,11 @@ func (n *ResumeImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "IF NOT RUNNING "
 	}
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -6484,10 +6550,11 @@ func (n *AlterImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "ALTER IMPORT "
 	lNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 
 	midfix := ""
@@ -6561,6 +6628,12 @@ func (n *AlterImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			truncateNode := n.Truncate.TableNames[i].LogCurrentNode(depth + 1)
+			tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(truncateNode, sql_ir.DataTableName)
+			for _, tableNameNode := range tableNameNodeList {
+				tableNameNode.DataType = sql_ir.DataTableName
+				tableNameNode.ContextFlag = sql_ir.ContextUse
+			}
+
 			if i == 0 {
 				tmpRootNode.LNode = truncateNode
 			} else { // i > 0
@@ -6645,10 +6718,11 @@ func (n *DropImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "IF EXISTS "
 	}
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Suffix:   n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextUndefine,
+		Suffix:      n.Name,
+		Depth:       depth,
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -6690,10 +6764,11 @@ func (n *ShowImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "SHOW IMPORT "
 	nameNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataNone,
-		Str:      n.Name,
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataNone,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.Name,
+		Depth:       depth,
 	}
 	midfix := ""
 	if n.ErrorsOnly {
@@ -6716,6 +6791,11 @@ func (n *ShowImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			tmpMidfix = ", "
 		}
 		tableNameNode := n.TableNames[i].LogCurrentNode(depth + 1)
+		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNameNode, sql_ir.DataTableName)
+		for _, tmpTableNameNode := range tableNameNodeList {
+			tmpTableNameNode.DataType = sql_ir.DataTableName
+			tmpTableNameNode.ContextFlag = sql_ir.ContextUse
+		}
 
 		if i == 0 {
 			tmpRootNode.LNode = tableNameNode
@@ -6856,20 +6936,22 @@ func (n *HintTable) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	midfix := ""
 	if n.DBName.L != "" {
 		dbNameNode := &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataDatabaseName,
-			Str:      n.DBName.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataDatabaseName,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.DBName.String(),
+			Depth:       depth,
 		}
 		midfix = "."
 		rootNode.LNode = dbNameNode
 	}
 
 	rNode := &sql_ir.SqlRsgIR{
-		IRType:   sql_ir.TypeIdentifier,
-		DataType: sql_ir.DataTableName,
-		Str:      n.TableName.String(),
-		Depth:    depth,
+		IRType:      sql_ir.TypeIdentifier,
+		DataType:    sql_ir.DataTableName,
+		ContextFlag: sql_ir.ContextUse,
+		Str:         n.TableName.String(),
+		Depth:       depth,
 	}
 
 	rootNode = &sql_ir.SqlRsgIR{
@@ -6885,10 +6967,11 @@ func (n *HintTable) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.QBName.L != "" {
 		midfix = "@"
 		rNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataNone,
-			Str:      n.QBName.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataNone,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.QBName.String(),
+			Depth:       depth,
 		}
 
 		rootNode = &sql_ir.SqlRsgIR{
@@ -6914,10 +6997,11 @@ func (n *HintTable) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			nameNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataPartitionName,
-				Str:      p.String(),
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataPartitionName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         p.String(),
+				Depth:       depth,
 			}
 
 			if i == 0 {
@@ -6984,10 +7068,11 @@ func (n *TableOptimizerHint) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			prefix += "@"
 		}
 		lNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataNone,
-			Str:      n.QBName.String(),
-			Depth:    depth,
+			IRType:      sql_ir.TypeIdentifier,
+			DataType:    sql_ir.DataNone,
+			ContextFlag: sql_ir.ContextUse,
+			Str:         n.QBName.String(),
+			Depth:       depth,
 		}
 	}
 
@@ -7105,10 +7190,11 @@ func (n *TableOptimizerHint) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				tmpMidfix = ", "
 			}
 			indexNode := &sql_ir.SqlRsgIR{
-				IRType:   sql_ir.TypeIdentifier,
-				DataType: sql_ir.DataIndexName,
-				Str:      index.String(),
-				Depth:    depth,
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataIndexName,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         index.String(),
+				Depth:       depth,
 			}
 			if i == 0 {
 				tmpRootNode.LNode = indexNode

@@ -292,3 +292,73 @@ type SqlRsgInterface interface {
 	// Recursive function to construct the SQLRight IR tree.
 	LogCurrentNode(depth int) *SqlRsgIR
 }
+
+func GetSubNodeFromParentNodeWithType(curRootNode *SqlRsgIR,
+	irType SQLRightIRType) []*SqlRsgIR {
+	// Iterate IR binary tree, left depth prioritized.
+	isFinishedSearch := false
+	irVecIter := make([]*SqlRsgIR, 0)
+	irVecMatchingType := make([]*SqlRsgIR, 0)
+	curIr := curRootNode
+	// Begin iterating.
+	for !isFinishedSearch {
+		irVecIter = append(irVecIter, curIr)
+		if curIr.IRType == irType {
+			irVecMatchingType = append(irVecMatchingType, curIr)
+		}
+
+		if curIr.LNode != nil {
+			curIr = curIr.LNode
+			continue
+		} else { // Reaching the most depth. Consulting irVecIter for right_
+			// nodes.
+			curIr = nil
+			for curIr == nil {
+				if len(irVecIter) == 0 {
+					isFinishedSearch = true
+					break
+				}
+				curIr = irVecIter[len(irVecIter)-1].RNode
+				irVecIter = irVecIter[:len(irVecIter)-1]
+			}
+			continue
+		}
+	}
+
+	return irVecMatchingType
+}
+
+func GetSubNodeFromParentNodeWithDataType(curRootNode *SqlRsgIR,
+	dataType SQLRightDataType) []*SqlRsgIR {
+	// Iterate IR binary tree, left depth prioritized.
+	isFinishedSearch := false
+	irVecIter := make([]*SqlRsgIR, 0)
+	irVecMatchingType := make([]*SqlRsgIR, 0)
+	curIr := curRootNode
+	// Begin iterating.
+	for !isFinishedSearch {
+		irVecIter = append(irVecIter, curIr)
+		if curIr.DataType == dataType {
+			irVecMatchingType = append(irVecMatchingType, curIr)
+		}
+
+		if curIr.LNode != nil {
+			curIr = curIr.LNode
+			continue
+		} else { // Reaching the most depth. Consulting irVecIter for right_
+			// nodes.
+			curIr = nil
+			for curIr == nil {
+				if len(irVecIter) == 0 {
+					isFinishedSearch = true
+					break
+				}
+				curIr = irVecIter[len(irVecIter)-1].RNode
+				irVecIter = irVecIter[:len(irVecIter)-1]
+			}
+			continue
+		}
+	}
+
+	return irVecMatchingType
+}
