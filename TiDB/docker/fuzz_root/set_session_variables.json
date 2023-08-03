@@ -1,0 +1,462 @@
+[
+
+  {
+    "enabled": true,
+    "var_name": "bytea_output",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+          "hex",
+          "escape"
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "datastyle",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+          "ISO,MDY",
+          "ISO,DMY",
+          "ISO,YMD"
+        ]
+      }
+  },
+
+
+  {
+    "enabled": true,
+    "var_name": "client_min_messages",
+    "params":
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+          "debug5",
+          "debug4",
+          "debug3",
+          "debug2",
+          "debug1",
+          "log",
+          "notice",
+          "warning",
+          "error"
+        ]
+      }
+  },
+
+
+  {
+    "enabled": true,
+    "var_name": "default_int_size",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": true,
+        "is_range": false,
+        "enum_values": [
+            4,
+            8
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "default_transaction_priority",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "is_enum": true,
+        "is_range": false,
+        "enum_values": [
+            "low",
+            "normal",
+            "high"
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "default_transaction_quality_of_service",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "is_enum": true,
+        "is_range": false,
+        "enum_values": [
+            "regular",
+            "critical",
+            "background"
+        ]
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "default_transaction_read_only",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "disallow_full_table_scans",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "distsql",
+    "params": 
+      {
+        "type": "AFFIONOFFAUTO"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "enable_implicit_select_for_update",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "enable_insert_fast_path",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "enable_zigzag_join",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "extra_float_digits",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": true,
+        "range": {
+            "max": 3,
+            "min": -15
+        }
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "force_savepoint_restart",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "foreign_key_cascades_limit",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "idle_in_session_timeout",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "idle_in_transaction_session_timeout",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "index_recommendations_enabled",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "inject_retry_errors_enabled",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "intervalstyle",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+          "postgres",
+          "iso_8601",
+          "sql_standard"
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "lock_timeout",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "null_ordered_last",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "optimizer_use_histograms",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "reorder_joins_limit",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": true,
+        "range": {
+            "max": 8,
+            "min": 0
+        }
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "results_buffer_size",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "require_explicit_primary_keys",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "search_path",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+            "public"
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "serial_normalization",
+    "params": 
+      {
+        "type": "AFFIENUM",
+        "enum_values": [
+            "rowid",
+            "virtual_sequence",
+            "sql_sequence",
+            "sql_sequence_cached",
+            "unordered_rowid"
+        ]
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "sql.defaults.serial_sequences_cache_size",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "sql_safe_updates",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "statement_timeout",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "stub_catalog_tables",
+    "params": 
+      {
+        "type": "AFFIBOOL"
+      }
+  },
+
+  {
+    "enabled": false,
+    "var_name": "tracing",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "transaction_read_only",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "transaction_rows_read_err",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "transaction_rows_read_log",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "transaction_rows_written_err",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "transaction_rows_written_log",
+    "params": 
+      {
+        "type": "AFFIINT",
+        "is_enum": false,
+        "is_range": false
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "troubleshooting_mode_enabled",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "use_declarative_schema_changer",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  },
+
+  {
+    "enabled": true,
+    "var_name": "vectorize",
+    "params": 
+      {
+        "type": "AFFIONOFF"
+      }
+  }
+]
