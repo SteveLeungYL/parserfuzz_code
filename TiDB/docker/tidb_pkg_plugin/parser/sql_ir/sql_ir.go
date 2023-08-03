@@ -1,12 +1,12 @@
 package sql_ir
 
-type SQLRightIRType int
-type SQLRightDataType int
-type SQLRightContextFlag int
-type SQLRightDataAffinity int
+type RsgIRType int
+type RsgDataType int
+type RsgContextFlag int
+type RsgDataAffinity int
 
 const (
-	TypeUnknown SQLRightIRType = iota
+	TypeUnknown RsgIRType = iota
 	TypeRoot
 	TypeIntegerLiteral
 	TypeFloatLiteral
@@ -211,7 +211,7 @@ const (
 )
 
 const (
-	DataNone SQLRightDataType = iota
+	DataNone RsgDataType = iota
 	DataUnknownType
 	DataCharSet
 	DataEncryptionName
@@ -260,7 +260,7 @@ const (
 )
 
 const (
-	ContextUnknown SQLRightContextFlag = iota
+	ContextUnknown RsgContextFlag = iota
 	ContextDefine
 	ContextUse
 	ContextUndefine
@@ -277,10 +277,10 @@ type SqlRsgIR struct {
 	Suffix      string
 	LNode       *SqlRsgIR
 	RNode       *SqlRsgIR
-	IRType      SQLRightIRType
-	DataType    SQLRightDataType
-	ContextFlag SQLRightContextFlag
-	//DataAffinity SQLRightDataAffinity
+	IRType      RsgIRType
+	DataType    RsgDataType
+	ContextFlag RsgContextFlag
+	//DataAffinity RsgDataAffinity
 	Depth    int
 	Str      string
 	IValue   int64
@@ -294,7 +294,7 @@ type SqlRsgInterface interface {
 }
 
 func GetSubNodeFromParentNodeWithType(curRootNode *SqlRsgIR,
-	irType SQLRightIRType) []*SqlRsgIR {
+	irType RsgIRType) []*SqlRsgIR {
 	// Iterate IR binary tree, left depth prioritized.
 	isFinishedSearch := false
 	irVecIter := make([]*SqlRsgIR, 0)
@@ -329,7 +329,7 @@ func GetSubNodeFromParentNodeWithType(curRootNode *SqlRsgIR,
 }
 
 func GetSubNodeFromParentNodeWithDataType(curRootNode *SqlRsgIR,
-	dataType SQLRightDataType) []*SqlRsgIR {
+	dataType RsgDataType) []*SqlRsgIR {
 	// Iterate IR binary tree, left depth prioritized.
 	isFinishedSearch := false
 	irVecIter := make([]*SqlRsgIR, 0)
