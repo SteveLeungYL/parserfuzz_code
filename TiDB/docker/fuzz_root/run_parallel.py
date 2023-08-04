@@ -63,6 +63,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     shutil.copy2("./afl-fuzz", os.path.join(cur_workdir, "afl-fuzz"))
     shutil.copy2("./tidb-with-cov", os.path.join(cur_workdir, "tidb-with-cov"))
     shutil.copy2("./tidb_parser_modi.y", os.path.join(cur_workdir, "tidb_parser_modi.y"))
+    shutil.copy2("./tidb_keyword_mapping.json", os.path.join(cur_workdir, "tidb_keyword_mapping.json"))
     shutil.copyfile("./function_type_lib.json", os.path.join(cur_workdir, "./function_type_lib.json"))
     shutil.copyfile("./set_session_variables.json", os.path.join(cur_workdir, "./set_session_variables.json"))
     shutil.copyfile("./storage_parameter.json", os.path.join(cur_workdir, "./storage_parameter.json"))
@@ -71,6 +72,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     shutil.copytree("./inputs", os.path.join(cur_workdir, "./inputs"))
     shutil.copytree("./tidb_initlib", os.path.join(cur_workdir, "./tidb_initlib"))
     shutil.copytree("./db_data", os.path.join(cur_workdir, "./db_data"))
+
 
     cur_output_file = os.path.join(cur_workdir, "output.txt")
     cur_output_file = open(cur_output_file, "w")
@@ -94,7 +96,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     fuzzing_command +=  " aaa " + " & "  ### Anything following. Get dump aaa.
 
     modi_env = dict()
-    modi_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
+    # modi_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
     modi_env["AFL_SKIP_CPUFREQ"] = "1"
     modi_env["LD_LIBRARY_PATH"] = fuzz_root_dir
 
