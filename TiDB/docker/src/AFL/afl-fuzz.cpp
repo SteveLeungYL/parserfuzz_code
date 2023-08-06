@@ -5815,17 +5815,17 @@ string rsg_generate_query_sequence(int stmt_idx)
 {
   string rsg_query;
   if (stmt_idx < 3) {
-    if (get_rand_int(2)) {
-      rsg_query += rsg_generate("create_table_stmt") + "; \n";
-    } else {
-      rsg_query += rsg_generate("create_table_as_stmt") + "; \n";
-    }
+    rsg_query += rsg_generate("CreateTableStmt") + "; \n";
   } else if (stmt_idx < 7) {
-    rsg_query += rsg_generate("insert_stmt") + "; \n";
+    rsg_query += rsg_generate("InsertIntoStmt") + "; \n";
   } else if (stmt_idx < 13) {
-    rsg_query += rsg_generate("stmt_without_legacy_transaction") + "; \n";
+    rsg_query += rsg_generate("Statement") + "; \n";
   } else {
-    rsg_query += rsg_generate("select_stmt") + "; \n";
+    if (get_rand_int(2)) {
+      rsg_query += rsg_generate("SelectStmt") + "; \n";
+    } else {
+      rsg_query += rsg_generate("SelectStmtWithClause") + "; \n";
+    }
   }
 
   return rsg_query;
