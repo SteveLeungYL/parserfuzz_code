@@ -7843,6 +7843,8 @@ int main(int argc, char** argv)
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);
   g_mutator.set_disable_rsg_generator(disable_rsg_generator);
 
+  g_mutator.set_bind_to_core_id(bind_to_core_id); // Could be -1. Used for parser crash logging.
+
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
 

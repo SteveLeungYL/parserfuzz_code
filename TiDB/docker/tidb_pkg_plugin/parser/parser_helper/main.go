@@ -6,12 +6,19 @@ import (
 	"fmt"
 
 	"github.com/pingcap/tidb/parser"
+	"github.com/pingcap/tidb/parser/ast"
 	"github.com/pingcap/tidb/parser/sql_ir"
 	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
-//export ParseHelper
-func ParseHelper(inData string) (*C.char, int) {
+func ParseHelperAntiCrash(inData string) (stmtNodes []ast.StmtNode, errCode int) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			// 2 means parsing crashes.
+			errCode = 2
+		}
+	}()
 
 	p := parser.New()
 	// The return res from p.Parse is an array of stmtNode structure.
@@ -19,17 +26,42 @@ func ParseHelper(inData string) (*C.char, int) {
 	stmtNodes, _, err := p.Parse(inData, "", "") // Ignore the warnings.
 
 	if err != nil {
-		return nil, 0
+		// 1 means parsing error
+		return nil, 1
 	}
 
-	// Convert to SQLRight IR struct
+	return stmtNodes, 0
+
+}
+
+//export ParseHelper
+func ParseHelper(inData string) (*C.char, int) {
+
+	stmtNodes, errCode := ParseHelperAntiCrash(inData)
 	var irList []sql_ir.SqlRsgIR
-	for _, curStmtNode := range stmtNodes {
-		tmpIR := curStmtNode.LogCurrentNode(0)
-		if tmpIR != nil {
-			irList = append(irList, *tmpIR)
-		} else {
-			return nil, 0
+
+	if errCode == 1 {
+		// Parsing error.
+		return nil, 0
+	} else if errCode == 2 {
+		// Parsing panic.
+		panicNode := sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypePanic,
+			DataType: sql_ir.DataNone,
+			Depth:    0,
+		}
+		irList = make([]sql_ir.SqlRsgIR, 0)
+		irList = append(irList, panicNode)
+	} else {
+		// errCode == 0, normal
+		// Convert to SQLRight IR struct
+		for _, curStmtNode := range stmtNodes {
+			tmpIR := curStmtNode.LogCurrentNode(0)
+			if tmpIR != nil {
+				irList = append(irList, *tmpIR)
+			} else {
+				return nil, 0
+			}
 		}
 	}
 

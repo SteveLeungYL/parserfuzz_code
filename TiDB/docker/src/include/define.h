@@ -4,6 +4,7 @@
 #define ALLTYPE(V)                         \
   /* New one here!!! */                    \
   V(TypeUnknown)                           \
+  V(TypePanic)                             \
   V(TypeRoot)                              \
   V(TypeIntegerLiteral)                    \
   V(TypeFloatLiteral)                      \

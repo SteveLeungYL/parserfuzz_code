@@ -9,6 +9,7 @@
 #include <climits>
 #include <cstdio>
 #include <deque>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -4861,6 +4862,28 @@ bool Mutator::get_select_str_from_lib(string& select_str)
   abort();
 }
 
+void Mutator::log_parser_crashes_bugs(string query_in) const
+{
+  if (!filesystem::exists("../../../Bug_Analysis/")) {
+    filesystem::create_directory("../../../Bug_Analysis/");
+  }
+  if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../../Bug_Analysis/bug_samples");
+  }
+  if (!filesystem::exists("../../../Bug_Analysis/bug_samples/parser_crash")) {
+    filesystem::create_directory("../../../Bug_Analysis/bug_samples/parser_crash");
+  }
+
+  string bug_output_dir = "../../../Bug_Analysis/bug_samples/parser_crash/bug:" + to_string(unique_parser_crashes_num - 1) + ":core:" + std::to_string(this->bind_to_core_id) + ".txt";
+  // cerr << "Bug output dir is: " << bug_output_dir << endl;
+  ofstream outputfile;
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+  outputfile << query_in;
+  outputfile.close();
+
+  return;
+}
+
 vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
 {
   vector<IR*> ir_set;
@@ -4875,6 +4898,14 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
       return ir_set;
     }
   } catch (...) {
+    return ir_set;
+  }
+
+  if (root_ir->get_ir_type() == TypePanic) {
+    // This is a crashing problem from the parser side.
+    // If too much, consider disable this logging option.
+    this->log_parser_crashes_bugs(query_str);
+    ir_set.clear();
     return ir_set;
   }
 

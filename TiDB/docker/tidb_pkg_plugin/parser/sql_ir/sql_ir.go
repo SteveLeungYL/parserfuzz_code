@@ -7,6 +7,7 @@ type RsgDataAffinity int
 
 const (
 	TypeUnknown RsgIRType = iota
+	TypePanic
 	TypeRoot
 	TypeIntegerLiteral
 	TypeFloatLiteral
