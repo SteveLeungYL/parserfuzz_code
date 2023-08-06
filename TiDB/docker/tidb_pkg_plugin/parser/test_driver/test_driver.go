@@ -25,6 +25,7 @@ import (
 	"github.com/pingcap/tidb/parser/charset"
 	"github.com/pingcap/tidb/parser/format"
 	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/parser/sql_ir"
 )
 
 func init() {
@@ -55,6 +56,123 @@ type ValueExpr struct {
 	ast.TexprNode
 	Datum
 	projectionOffset int
+}
+
+func (n *ValueExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := ""
+	var lNode *sql_ir.SqlRsgIR
+	var rNode *sql_ir.SqlRsgIR
+
+	switch n.Kind() {
+	case KindNull:
+		prefix += "NULL"
+	case KindInt64:
+		if n.Type.GetFlag()&mysql.IsBooleanFlag != 0 {
+			if n.GetInt64() > 0 {
+				prefix += "TRUE"
+			} else {
+				prefix += "FALSE"
+			}
+		} else {
+			lNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeIntegerLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      strconv.FormatInt(n.GetInt64(), 10),
+				IValue:   int64(n.GetInt64()),
+				Depth:    depth,
+			}
+		}
+	case KindUint64:
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeIntegerLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatInt(int64(n.GetUint64()), 10),
+			IValue:   int64(n.GetUint64()),
+			Depth:    depth,
+		}
+	case KindFloat32:
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeFloatLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatFloat(n.GetFloat64(), 'e', -1, 32),
+			FValue:   n.GetFloat64(),
+			Depth:    depth,
+		}
+	case KindFloat64:
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeFloatLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      strconv.FormatFloat(n.GetFloat64(), 'e', -1, 64),
+			FValue:   n.GetFloat64(),
+			Depth:    depth,
+		}
+	case KindString:
+		if n.Type.GetCharset() != "" {
+			prefix += "_"
+			lNode = &sql_ir.SqlRsgIR{
+				IRType:      sql_ir.TypeIdentifier,
+				DataType:    sql_ir.DataCharSet,
+				ContextFlag: sql_ir.ContextUse,
+				Str:         n.Type.GetCharset(),
+				Depth:       depth,
+			}
+		}
+		rNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeStringLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      n.GetString(),
+			Depth:    depth,
+		}
+	case KindBytes:
+		prefix += (n.GetString())
+	case KindMysqlDecimal:
+		prefix += n.GetMysqlDecimal().String()
+	case KindBinaryLiteral:
+		if n.Type.GetCharset() != "" && n.Type.GetCharset() != mysql.DefaultCharset &&
+			n.Type.GetCharset() != charset.CharsetBin {
+			prefix += "_" + n.Type.GetCharset() + " "
+		}
+		if n.Type.GetFlag()&mysql.UnsignedFlag != 0 {
+			lNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeStringLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      string(n.GetBytes()),
+				Depth:    depth,
+			}
+		} else {
+			lNode = &sql_ir.SqlRsgIR{
+				IRType:   sql_ir.TypeStringLiteral,
+				DataType: sql_ir.DataNone,
+				Str:      n.GetBinaryLiteral().ToBitLiteralString(true),
+				Depth:    depth,
+			}
+		}
+	case KindMysqlDuration, KindMysqlEnum,
+		KindMysqlBit, KindMysqlSet, KindMysqlTime,
+		KindInterface, KindMinNotNull, KindMaxValue,
+		KindRaw, KindMysqlJSON:
+		// TODO implement Restore function
+		// DO NOTHING.
+		break
+	default:
+		// DO NOTHING.
+		break
+	}
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    lNode,
+		RNode:    rNode,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeValueExpr
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.
@@ -193,6 +311,23 @@ type ParamMarkerExpr struct {
 	Offset    int
 	Order     int
 	InExecute bool
+}
+
+func (n *ParamMarkerExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
+
+	prefix := "?"
+
+	rootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Prefix:   prefix,
+		Depth:    depth,
+	}
+
+	rootNode.IRType = sql_ir.TypeParamMarkerExpr
+
+	return rootNode
+
 }
 
 // Restore implements Node interface.

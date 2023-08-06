@@ -208,6 +208,8 @@ const (
 	TypeBetweenExpr
 	TypeIsTruthExpr
 	TypeWhereClause
+	TypeValueExpr
+	TypeParamMarkerExpr
 )
 
 const (
