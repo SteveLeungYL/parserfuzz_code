@@ -3331,7 +3331,11 @@ func (n *CreateIndexStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	midfix = ""
 
-	var tmpRootNode *sql_ir.SqlRsgIR
+	tmpRootNode := &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		Depth:    depth,
+	}
 	for i, indexColName := range n.IndexPartSpecifications {
 		midfix = ""
 		if i != 0 {
