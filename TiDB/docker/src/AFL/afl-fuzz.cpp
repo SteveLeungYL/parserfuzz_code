@@ -467,7 +467,7 @@ enum SQLSTATUS {
 
 static string socket_path = "";
 
-EXP_ST void init_forkserver(char** argv);
+static void restart_tidb(char** argv);
 
 class MysqlClient {
   public:
@@ -520,11 +520,12 @@ class MysqlClient {
       return false;
     }
 
-    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    sleep(2); // sleep 2 seconds.
+
     if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL) {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
-      init_forkserver(global_use_argv);
+      restart_tidb(global_use_argv);
       return false;
     }
     // database_id++;
@@ -3322,7 +3323,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
      count its spin-up time toward binary calibration. */
 
   if (dumb_mode != 1 && !no_forkserver && forksrv_pid == -1) {
-    init_forkserver(argv);
+    restart_tidb(argv);
   }
 
   if (q->exec_cksum)
