@@ -517,6 +517,10 @@ func (n *IndexPartSpecification) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.LNode = lNode
 		rootNode.Prefix = "("
 		rootNode.Infix = ")"
+
+		rootNode.IRType = sql_ir.TypeIndexPartSpecification
+
+		return rootNode
 	}
 	rootNode = &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -527,6 +531,7 @@ func (n *IndexPartSpecification) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Suffix:   "",
 		Depth:    depth,
 	}
+
 	rNode := n.Column.LogCurrentNode(depth + 1)
 	columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(rNode, sql_ir.DataColumnName)
 	for _, columnNameNode := range columnNameNodeList {

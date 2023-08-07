@@ -5486,7 +5486,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix := ""
 		if n.Pattern != nil && n.Pattern.Pattern != nil {
 			prefix += " LIKE "
-			patternNode := n.Pattern.LogCurrentNode(depth + 1)
+			patternNode := n.Pattern.Pattern.LogCurrentNode(depth + 1)
 			return prefix, patternNode
 		} else if n.Where != nil {
 			prefix += " WHERE "
