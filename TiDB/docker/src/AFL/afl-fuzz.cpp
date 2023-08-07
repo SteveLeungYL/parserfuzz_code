@@ -502,8 +502,10 @@ class MysqlClient {
 
   void disconnect()
   {
-    mysql_close(m_);
-    m_ = NULL;
+    if (m_ != NULL) {
+      mysql_close(m_);
+      m_ = NULL;
+    }
   }
 
   bool fix_database()
@@ -3025,6 +3027,7 @@ static void write_to_testcase(string& input)
 static void restart_tidb(char** argv)
 {
 
+  g_mysqlclient.disconnect();
   // Exit the current CockroachDB server.
   //    int status = 0;
   //    int set_int = 2;
@@ -3035,6 +3038,7 @@ static void restart_tidb(char** argv)
     int status = 0;
     wait(&status);
   }
+  forksrv_pid = -1;
 
   close(fsrv_st_fd);
   close(fsrv_ctl_fd);
@@ -6528,11 +6532,12 @@ static void handle_stop_sig(int sig)
 
   stop_soon = 1;
 
-  if (forksrv_pid > 0) {
+  if (forksrv_pid != -1) {
     kill(forksrv_pid, SIGKILL);
     int status;
     wait(&status);
   }
+  forksrv_pid = -1;
 }
 
 /* Handle skip request (SIGUSR1). */
@@ -8044,6 +8049,7 @@ int main(int argc, char** argv)
       int status;
       wait(&status);
     }
+    forksrv_pid = -1;
   }
   /* Now that we've killed the forkserver, we wait for it to be able to get
    * rusage stats. */

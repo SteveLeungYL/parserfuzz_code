@@ -4923,6 +4923,11 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
   int unique_id_for_node = 0;
   for (auto ir : ir_set) {
     ir->uniq_id_in_tree_ = unique_id_for_node++;
+    if (ir->get_ir_type() == TypeShutdownStmt) {
+      // Do not parse SHUTDOWN statement.
+      ir_set.clear();
+      return ir_set;
+    }
   }
 
   return ir_set;
