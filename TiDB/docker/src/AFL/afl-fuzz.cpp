@@ -7844,6 +7844,8 @@ int main(int argc, char** argv)
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   p_oracle->init_operator_supported_types();
+  // Default disabling the dynamic instantiation.
+  disable_dyn_instan = true;
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);
