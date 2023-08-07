@@ -1234,10 +1234,10 @@ vector<IR*> Mutator::split_to_substmt(IR* cur_stmt,
 
     /* See if current node type is matching split_set. If yes, disconnect
      * node->left and node->right. */
-    if (node->get_ir_type() == TypeWithClause) {
+    if (node->get_ir_type() == TypeCommonTableExpression) {
       // If the sub-statement is inside the WITH CTE clause,
       // fix them first before the main statement.
-      if (node->get_right() != NULL) {
+      if (node->get_right() != NULL && node->get_right()->get_ir_type() == TypeExpr) {
         res_list.push_front(node->get_right());
       }
       pair<bool, IR*> cur_m_save = make_pair<bool, IR*>(false, node->get_right());
@@ -1245,17 +1245,19 @@ vector<IR*> Mutator::split_to_substmt(IR* cur_stmt,
     } else if (node->get_ir_type() == TypeCreateViewStmt || node->get_ir_type() == TypeCreateTableAsStmt) {
       // If the statement is in the Create Table AS
       // or Create view as, fix the subquery first.
-      res_list.push_front(node->get_right());
-      pair<bool, IR*> cur_m_save = make_pair<bool, IR*>(false, node->get_right());
-      m_save[node] = cur_m_save;
-    } else if (node->left_ && find(split_set.begin(), split_set.end(), node->left_->type_) != split_set.end() && p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
-      res_list.push_back(node->get_left());
-      pair<bool, IR*> cur_m_save = make_pair<bool, IR*>(true, node->get_left());
-      m_save[node] = cur_m_save;
-    } else if (node->get_right() && find(split_set.begin(), split_set.end(), node->get_right()->get_ir_type()) != split_set.end() && p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->get_right())) {
-      res_list.push_back(node->get_right());
-      pair<bool, IR*> cur_m_save = make_pair<bool, IR*>(false, node->get_right());
-      m_save[node] = cur_m_save;
+      vector<IR*> v_subquery_expr = this->p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(node, TypeSelectStmt);
+      for (IR* subquery_expr: v_subquery_expr) {
+        IR* subquery_parent_node = subquery_expr->get_parent();
+        if (subquery_parent_node != nullptr) {
+          bool is_left_sub_node = true;
+          if (subquery_parent_node->get_left() != subquery_expr) {
+            is_left_sub_node = false;
+          }
+          res_list.push_front(subquery_expr);
+          pair<bool, IR*> cur_m_save = make_pair(is_left_sub_node, subquery_expr);
+          m_save[subquery_parent_node] = cur_m_save;
+        }
+      } // else: parent is nullptr. Error.
     }
   }
 

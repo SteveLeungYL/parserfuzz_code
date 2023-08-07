@@ -25,14 +25,13 @@ bool IRWrapper::is_in_subquery(IR *cur_stmt, IR *check_node,
                cur_iter->get_parent() != NULL &&
                cur_iter->get_parent()->get_ir_type() != TypeStmt) {
       return true; // In a subquery.
-    } else if (cur_iter->get_ir_type() == TypeSubqueryExpr &&
-               cur_iter->get_parent() != NULL) {
+    } else if (cur_iter->get_ir_type() == TypeSubqueryExpr) {
       return true; // In a subquery.
     }
-    cur_iter =
-        cur_iter
-            ->get_parent(); // Assuming cur_iter->get_parent() will always get
-                            // to TypeStmt. Otherwise, it would be error.
+    // Assuming cur_iter->get_parent() will always get
+    // to TypeStmt. Otherwise, it would be error.
+    cur_iter = cur_iter->get_parent();
+
     continue;
   }
   /* Unexpected, should not happen. */
