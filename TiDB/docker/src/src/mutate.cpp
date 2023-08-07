@@ -4866,17 +4866,17 @@ bool Mutator::get_select_str_from_lib(string& select_str)
 
 void Mutator::log_parser_crashes_bugs(string query_in) const
 {
-  if (!filesystem::exists("../../../Bug_Analysis/")) {
-    filesystem::create_directory("../../../Bug_Analysis/");
+  if (!filesystem::exists("../../Bug_Analysis/")) {
+    filesystem::create_directory("../../Bug_Analysis/");
   }
-  if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
-    filesystem::create_directory("../../../Bug_Analysis/bug_samples");
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples");
   }
-  if (!filesystem::exists("../../../Bug_Analysis/bug_samples/parser_crash")) {
-    filesystem::create_directory("../../../Bug_Analysis/bug_samples/parser_crash");
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples/parser_crash")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples/parser_crash");
   }
 
-  string bug_output_dir = "../../../Bug_Analysis/bug_samples/parser_crash/bug:" + to_string(unique_parser_crashes_num - 1) + ":core:" + std::to_string(this->bind_to_core_id) + ".txt";
+  string bug_output_dir = "../../Bug_Analysis/bug_samples/parser_crash/bug:" + to_string(unique_parser_crashes_num - 1) + ":core:" + std::to_string(this->bind_to_core_id) + ".txt";
   // cerr << "Bug output dir is: " << bug_output_dir << endl;
   ofstream outputfile;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
