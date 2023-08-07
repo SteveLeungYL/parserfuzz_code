@@ -6,17 +6,17 @@ import (
 	"fmt"
 
 	"github.com/pingcap/tidb/parser"
-	"github.com/pingcap/tidb/parser/ast"
 	"github.com/pingcap/tidb/parser/sql_ir"
 	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
-func ParseHelperAntiCrash(inData string) (stmtNodes []ast.StmtNode, errCode int) {
+func ParseHelperAntiCrash(inData string) (irList []sql_ir.SqlRsgIR, errCode int) {
 
 	defer func() {
 		if err := recover(); err != nil {
 			// 2 means parsing crashes.
 			errCode = 2
+			irList = make([]sql_ir.SqlRsgIR, 0)
 		}
 	}()
 
@@ -30,15 +30,25 @@ func ParseHelperAntiCrash(inData string) (stmtNodes []ast.StmtNode, errCode int)
 		return nil, 1
 	}
 
-	return stmtNodes, 0
+	// errCode == 0, normal
+	// Convert to SQLRight IR struct
+	for _, curStmtNode := range stmtNodes {
+		tmpIR := curStmtNode.LogCurrentNode(0)
+		if tmpIR != nil {
+			irList = append(irList, *tmpIR)
+		} else {
+			return nil, 0
+		}
+	}
+
+	return irList, 0
 
 }
 
 //export ParseHelper
 func ParseHelper(inData string) (*C.char, int) {
 
-	stmtNodes, errCode := ParseHelperAntiCrash(inData)
-	var irList []sql_ir.SqlRsgIR
+	irList, errCode := ParseHelperAntiCrash(inData)
 
 	if errCode == 1 {
 		// Parsing error.
@@ -52,18 +62,7 @@ func ParseHelper(inData string) (*C.char, int) {
 		}
 		irList = make([]sql_ir.SqlRsgIR, 0)
 		irList = append(irList, panicNode)
-	} else {
-		// errCode == 0, normal
-		// Convert to SQLRight IR struct
-		for _, curStmtNode := range stmtNodes {
-			tmpIR := curStmtNode.LogCurrentNode(0)
-			if tmpIR != nil {
-				irList = append(irList, *tmpIR)
-			} else {
-				return nil, 0
-			}
-		}
-	}
+	} // else: errCode == 0, normal.
 
 	// Should convert to json string before passing back to C++ code.
 	var jsonStrAllStatement string
