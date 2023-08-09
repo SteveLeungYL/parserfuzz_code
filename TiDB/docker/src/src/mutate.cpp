@@ -1540,7 +1540,7 @@ void Mutator::instan_database_schema_name(IR* ir_to_fix, bool is_debug_info)
   }
 
   if (ir_to_fix->data_type_ == DataSchemaName) {
-    ir_to_fix->set_str_val("public");
+    ir_to_fix->set_str_val("test_rsg1");
   }
   return;
 }
