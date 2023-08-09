@@ -36,7 +36,6 @@ for cur_line in main_fd.read().splitlines():
 res_str += """
 
 var FORKSRV_FD uintptr = 198
-var maxQueryExec int = 1000
 
 func TestCov() {
 
@@ -56,7 +55,7 @@ func TestCov() {
 	globalcov.ResetGlobalCov()
 	//defer globalcov.SaveGlobalCov()
 
-	for per_cycle := 0; per_cycle < maxQueryExec; per_cycle++ {
+	for {
 
 		// Control Read Pipe.
 		// Wait for the input signal.
