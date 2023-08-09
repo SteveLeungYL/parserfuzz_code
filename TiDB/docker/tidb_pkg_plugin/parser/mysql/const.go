@@ -593,11 +593,11 @@ func (n *PriorityEnum) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case NoPriority:
 		break
 	case LowPriority:
-		rootNode.Prefix = "LOW_PRIORITY"
+		rootNode.Prefix = " LOW_PRIORITY "
 	case HighPriority:
-		rootNode.Prefix = "HIGH_PRIORITY"
+		rootNode.Prefix = " HIGH_PRIORITY "
 	case DelayedPriority:
-		rootNode.Prefix = "DELAYED"
+		rootNode.Prefix = " DELAYED "
 	default:
 		break
 	}
