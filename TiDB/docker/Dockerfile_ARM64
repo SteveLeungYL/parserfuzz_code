@@ -63,8 +63,8 @@ USER tidb
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
 # Download the original Go library. Set it up.
-RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
-RUN tar -xf go1.21.0.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.21.0.linux-arm64.tar.gz
+RUN tar -xf go1.21.0.linux-arm64.tar.gz
 USER root
 RUN cp -r go /usr/local/
 USER tidb
