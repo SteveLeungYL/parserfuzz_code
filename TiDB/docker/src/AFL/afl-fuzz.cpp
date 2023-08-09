@@ -475,7 +475,6 @@ class MysqlClient {
       : host_(host)
       , user_name_(user_name)
       , passwd_(passwd)
-      , counter_(0)
   {
   }
 
@@ -493,7 +492,6 @@ class MysqlClient {
     if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL) {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
-      counter_++;
       return false;
     }
 
@@ -512,21 +510,17 @@ class MysqlClient {
   {
     MYSQL tmp_m;
 
-    is_reset_database = 1;
-
     database_id += 1;
     if (mysql_init(&tmp_m) == NULL) {
       mysql_close(&tmp_m);
       return false;
     }
 
-    sleep(2); // sleep 2 seconds.
-
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL) {
+    while (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL) {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       restart_tidb(global_use_argv);
-      return false;
+      sleep(3);
     }
     // database_id++;
     bool is_error = false;
@@ -536,7 +530,6 @@ class MysqlClient {
       if (mysql_real_query(&tmp_m, cmd.c_str(), cmd.size())) {
         is_error = true;
       }
-      // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       clean_up_connection(&tmp_m);
     }
 
@@ -727,10 +720,11 @@ class MysqlClient {
 
     int retry_time = 0;
     while (!conn) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(30));
       conn = connect();
-      if (!conn)
+      if (!conn) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
         fix_database();
+      }
     }
 
     res_str = "";
@@ -764,6 +758,7 @@ class MysqlClient {
 
     for (string cur_cmd_str : v_cmd_str) {
       trim_string(cur_cmd_str);
+      cur_cmd_str += ";";
       if (cur_cmd_str.empty()) {
         continue;
       }
@@ -782,36 +777,43 @@ class MysqlClient {
         break;
       }
     }
-
-    // cerr << "Getting results: \n" << res_str << "\n\n\n";
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR) {
-      disconnect();
-      return kServerCrash;
-    }
+//    cerr << "Getting results: \n" << res_str << "\n\n\n";
 
     auto res = kNormal;
-    // res = correctness;
 
-    auto check_res = check_server_alive();
-    if (!check_res) {
+    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR) {
+#ifdef DEBUG
+      cerr << "Server Lost or Server Crashes! \n\n\n";
+#endif
       disconnect();
-      sleep(2); // waiting for server to be up again
-      is_reset_database = 1;
+      // No need to kill. But leave the terminate_query thread running anyway.
       return kServerCrash;
     }
 
+    // Cancel the Timeout termination process.
     timeout_mutex.lock();
     timeout_id++;
     if (is_timeout) {
-      is_reset_database = 1;
       res = kTimeout;
+#ifdef DEBUG
+      cerr << "EXIT WITH TIMEOUT \n\n\n";
+#endif
     }
     is_timeout = false;
     timeout_mutex.unlock();
 
-    counter_++;
-    //    disconnect();
+    auto check_res = check_server_alive();
+    if (!check_res) {
+      restart_tidb(global_use_argv);
+#ifdef DEBUG
+      cerr << "Server Lost or Server Crashes! \n\n\n";
+#endif
+      return kServerCrash;
+    }
+
+#ifdef DEBUG
+    cerr << "EXIT WITH " << res << "\n\n\n";
+#endif
     return res;
   }
 
@@ -834,33 +836,7 @@ class MysqlClient {
 
   int reset_database()
   {
-    MYSQL tmp_m;
-
-    is_reset_database = 1;
-
-    database_id += 1;
-    if (mysql_init(&tmp_m) == NULL) {
-      mysql_close(&tmp_m);
-      return 0;
-    }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_rsg1", bind_to_port, socket_path.c_str(), 0) == NULL) {
-      fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
-      mysql_close(&tmp_m);
-      return 0;
-    }
-
-    bool is_error = false;
-    vector<string> v_cmd = { " DROP DATABASE IF EXISTS test_rsg1 ", " CREATE DATABASE IF NOT EXISTS test_rsg1 ", " USE test_rsg1 ", " SELECT 'Successful' " };
-    for (string cmd : v_cmd) {
-      if (mysql_real_query(&tmp_m, cmd.c_str(), cmd.size())) {
-        is_error = true;
-      }
-      retrieve_query_results(&tmp_m, "");
-      clean_up_connection(&tmp_m);
-    }
-
-    mysql_close(&tmp_m);
-    return !is_error;
+    return fix_database();
   }
 
   private:
@@ -871,7 +847,6 @@ class MysqlClient {
   char* user_name_;
   char* passwd_;
   bool is_first_time;
-  unsigned counter_; //odd for "test", even for "test2"
 };
 
 MysqlClient g_mysqlclient((char*)"127.0.0.1", (char*)"root", NULL);
@@ -2761,10 +2736,19 @@ EXP_ST void init_forkserver(char** argv)
 
     setsid();
 
+#ifdef DEBUG
+    // DEBUG: log TiDB output.
+    mode_t mode = S_IRWXU | S_IRWXG;
+    auto tidb_output = open("./tidb_output", O_WRONLY|O_APPEND|O_CREAT, mode);
+    dup2(dev_null_fd, 0);
+    dup2(tidb_output, 1);
+    dup2(tidb_output, 2);
+#else
     // Close the stdin, stdout and stderr.
     dup2(dev_null_fd, 0);
     dup2(dev_null_fd, 1);
     dup2(dev_null_fd, 2);
+#endif
 
     /* Set up control and status pipes, close the unneeded original fds. */
     // FORKSRV_FD == 198
@@ -2814,7 +2798,7 @@ EXP_ST void init_forkserver(char** argv)
     string db_str = cwd_str + "/db_data";
 
     char* argv_list[]
-        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
+        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-status", strdup(to_string(bind_to_port+2000).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
 
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
@@ -3029,11 +3013,6 @@ static void restart_tidb(char** argv)
 {
 
   g_mysqlclient.disconnect();
-  // Exit the current CockroachDB server.
-  //    int status = 0;
-  //    int set_int = 2;
-  //    write(fsrv_ctl_fd, &set_int, sizeof(set_int));
-  //    read(fsrv_st_fd, &status, 4);
   if (forksrv_pid != -1) {
     kill(forksrv_pid, SIGKILL);
     int status = 0;
@@ -3072,6 +3051,8 @@ static u8 run_target(char** argv, u32 timeout, string cmd_string,
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
+
+  is_reset_database = is_reset_server;
   auto result = g_mysqlclient.execute(cmd_string, res_str);
 
 #ifdef COUNT_ERROR
@@ -3084,7 +3065,6 @@ BEGIN:
     status = FAULT_TMOUT;
   } else if (result == kConnectFailed) {
     cout << "Connection Failed!" << endl;
-    is_reset_database = 1;
     sleep(1);
     goto BEGIN;
   }
@@ -3107,7 +3087,7 @@ BEGIN:
 }
 
 /* Tell the DBMS to output the code coverage information. */
-void record_code_coverage(char** argv)
+int record_code_coverage(char** argv, string whole_stmt)
 {
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
@@ -3118,8 +3098,13 @@ void record_code_coverage(char** argv)
   int log_cov_flag = 3;
   while ((write(fsrv_ctl_fd, &log_cov_flag, sizeof(log_cov_flag))) != 4) {
     if (stop_soon) {
-      return;
+      return FAULT_NONE;
     }
+#ifdef DEBUG
+    cerr << "Error: Record Code Coverage Failed. TiDB server not responding. Crashed? \n";
+#endif
+    restart_tidb(argv);
+    return FAULT_CRASH;
   }
 
   /* Inside the parent process.
@@ -3139,7 +3124,7 @@ void record_code_coverage(char** argv)
   }
   classify_counts((u64*)trace_bits);
 
-  return;
+  return FAULT_NONE;
 }
 
 inline void print_fuzzer_exec_debug_info()
@@ -3344,7 +3329,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     }
 
     fault = run_target(argv, exec_tmout, program_input_str, 1);
-    record_code_coverage(argv);
+    record_code_coverage(argv, program_input_str);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -4229,6 +4214,9 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault,
   // crash_output_file.open(crash_output_file_fn, std::ofstream::out);
   // stream_output_res(all_comp_res, crash_output_file);
   // crash_output_file.close();
+#ifdef DEBUG
+  cerr << "\n\n\n\n\nFOUND CRASHING BUG. \n\n\n\n\n";
+#endif
 
   ck_free(fn);
 
@@ -5813,6 +5801,10 @@ void log_logical_bug(string buggy_query_str)
   tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
   stream_output_res(tmp_all_comp_res, outputfile);
 
+#ifdef DEBUG
+  cerr << "\n\n\n\n\nFOUND logical BUG. \n\n\n\n\n";
+#endif
+
   outputfile.close();
 }
 
@@ -5902,7 +5894,7 @@ static u8 fuzz_one(char** argv)
   skip_count = 0;
 
   // Reset the database data.
-  restart_tidb(argv);
+  g_mysqlclient.reset_database();
 
   /* Run random `SET` statements to the query set first. */
   // TODO: Construct random SET statement for the TiDB.
@@ -5995,81 +5987,17 @@ static u8 fuzz_one(char** argv)
         // If the previous statement contains error, we need to reset the
         // server.
         ret_res = run_target(argv, exec_tmout,
-            whole_query_seq + "SAVEPOINT foo; \n" + cur_stmt_str + "; \n",
+            whole_query_seq_with_next,
             1);
       } else {
         // If the previous statement is OK, we can directly execute the
         // SELECT without resetting.
         ret_res = run_target(argv, exec_tmout,
-            "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
+            cur_stmt_str + "; \n", 0);
       }
 
       int dyn_fix_trial = 0;
       bool is_select_error = false;
-
-      while (likely(!disable_dyn_instan) && p_oracle->is_res_str_error(g_cockroach_output) && dyn_fix_trial < max_trial) {
-        // Check whether the statement execution contains SQL errors.
-        // If yes, use the dynamic fixing to try to fix the statement.
-        total_instan_num++;
-
-#ifdef DEBUG
-        cerr << "\n\n\nDEBUG: getting stmt: \n"
-             << cur_stmt_str << "\n, getting result: \n"
-             << g_cockroach_output << "\n";
-        cerr << "debug_error: " << debug_error
-             << ", debug_good: " << debug_good << "\n\n\n";
-#endif /* DEBUG */
-
-        // No need to set up the error flag here.
-        // We always rollback the transaction.
-
-        // Iterate the counter.
-        dyn_fix_trial++;
-
-        // Parse the query string and then apply dynamic fixing.
-        vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
-        if (v_new_parsed.size() == 0) {
-          // The instantiated query cannot pass the parser.
-          // Ignore current stmt.
-          g_mutator.rollback_instan_lib_changes();
-          cur_trans_stmt = NULL;
-          break;
-        }
-
-        IR* new_parsed_root = v_new_parsed.back();
-        IR* new_parsed_stmt = new_parsed_root->get_left()
-                                  ->get_left()
-                                  ->get_left()
-                                  ->deep_copy();
-        new_parsed_stmt->parent_ = NULL;
-        new_parsed_root->deep_drop();
-
-        // Avoid modifying the required nodes for the oracle.
-        p_oracle->mark_all_valid_node(new_parsed_stmt);
-
-        // Apply the dynamic fixing.
-        g_mutator.rollback_instan_lib_changes();
-        g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
-            dyn_fix_trial, false);
-
-        // The dynamic fixed stmt will be passed out from the cur_stmt_str
-        // string variable.
-        cur_stmt_str = new_parsed_stmt->to_string();
-        // Left nothing behind.
-        new_parsed_stmt->deep_drop();
-
-        whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-        // We have to reset the server, because the previous query execution is very frequently contains error.
-        string tmp_g_cockroach_output_backup = g_cockroach_output;
-        ret_res = run_target(argv, exec_tmout,
-            "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
-        g_cockroach_output = tmp_g_cockroach_output_backup;
-      }
-
-      //          if (dyn_fix_trial != 0) {
-      //              cerr << "After dynamic fixing: " << cur_stmt_str <<
-      //              "\nres: \n" << g_cockroach_output << "\n\n\n";
-      //          }
 
       if (p_oracle->is_res_str_error(g_cockroach_output)) {
         // Be careful, after the last dyn_fixing, the query could still be
@@ -6105,11 +6033,6 @@ static u8 fuzz_one(char** argv)
                << ", debug_good: " << debug_good << "\n\n\n";
         }
 #endif /* DEBUG */
-
-        string tmp_g_cockroach_output_backup = g_cockroach_output;
-        ret_res = run_target(argv, exec_tmout,
-            "ROLLBACK TO SAVEPOINT FOO; \n", 0);
-        g_cockroach_output = tmp_g_cockroach_output_backup;
       } else {
         debug_good++;
         total_instan_succeed_num++;
@@ -6122,22 +6045,19 @@ static u8 fuzz_one(char** argv)
                << ", debug_good: " << debug_good << "\n\n\n";
         }
 #endif /* DEBUG */
-      }
+      } // is_res_str_error
       total_instan_num++;
 
       if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
         // If the query execution triggers an Internal Error,
         // log the buggy query string.
         log_logical_bug(whole_query_seq_with_next);
-
         is_select_error = true;
+        ret_res = FAULT_ERROR;
+      }
 
-        // Rollback to the previous savepoint, so no need to worry about the is_prv_stmt_error.
-        string tmp_g_cockroach_output_backup = g_cockroach_output;
-        ret_res = run_target(argv, exec_tmout,
-            "ROLLBACK TO SAVEPOINT FOO; \n", 0);
-        g_cockroach_output = tmp_g_cockroach_output_backup;
-        is_prev_stmt_error = false;
+      if (record_code_coverage(argv, whole_query_seq_with_next) == FAULT_CRASH) {
+        ret_res = FAULT_CRASH;
       }
 
       // Setup the is_prev_stmt_error flag.
@@ -6150,8 +6070,6 @@ static u8 fuzz_one(char** argv)
         is_prev_stmt_error = true;
         g_mutator.rollback_instan_lib_changes();
       }
-
-      record_code_coverage(argv);
 
       // Check whether the statement contains new code coverage.
       // The save_if_interesting also handles the crashing.
@@ -6169,30 +6087,6 @@ static u8 fuzz_one(char** argv)
         save_if_interesting(argv, whole_query_seq_with_next, ret_res,
             tmp_all_comp_res, false);
       }
-
-      // Here, also test whether the non-OPT version of the query could
-      // contain errors. The non-opt code path of the Cockroach code already causes a lot of bugs in CockroachDB.
-      string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
-      ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
-
-      if (ret_res == FAULT_CRASH) {
-        tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-        tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-        tmp_all_comp_res.res_str = g_cockroach_output;
-        tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-        save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
-            tmp_all_comp_res);
-      }
-
-      if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-        // If the no opt query execution triggers an Internal Error,
-        // log the buggy query string.
-        log_logical_bug(whole_query_seq_no_opt);
-      }
-
-      // Because we change the setting of the execution, we should rerun the whole query statement in the next round of the fuzzing. Use
-      // is_prev_stmt_error to trigger query rerun for the next round.
-      is_prev_stmt_error = true;
 
       total_execs++;
       show_stats();
@@ -6221,55 +6115,6 @@ static u8 fuzz_one(char** argv)
 
       int dyn_fix_trial = 0;
 
-      while (likely(!disable_dyn_instan) && p_oracle->is_res_str_error(g_cockroach_output) && dyn_fix_trial < max_trial) {
-        // Check whether the statement execution contains SQL errors.
-        // If yes, use the dynamic fixing to try to fix the statement.
-        total_instan_num++;
-
-        // Setup the error flag first.
-        ret_res = FAULT_SQLERROR;
-
-        // Iterate the counter.
-        dyn_fix_trial++;
-
-        // Parse the query string and then apply dynamic fixing.
-        vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
-        if (v_new_parsed.size() == 0) {
-          // The instantiated query cannot pass the parser.
-          // Ignore current stmt.
-          g_mutator.rollback_instan_lib_changes();
-          cur_trans_stmt = NULL;
-          break;
-        }
-
-        IR* new_parsed_root = v_new_parsed.back();
-        IR* new_parsed_stmt = new_parsed_root->get_left()
-                                  ->get_left()
-                                  ->get_left()
-                                  ->deep_copy();
-        new_parsed_stmt->parent_ = NULL;
-        new_parsed_root->deep_drop();
-
-        // Avoid modifying the required nodes for the oracle.
-        p_oracle->mark_all_valid_node(new_parsed_stmt);
-
-        // Apply the dynamic fixing.
-        g_mutator.rollback_instan_lib_changes();
-        g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
-            dyn_fix_trial, false);
-
-        // The dynamic fixed stmt will be passed out from the cur_stmt_str
-        // string variable.
-        cur_stmt_str = new_parsed_stmt->to_string();
-        // Left nothing behind.
-        new_parsed_stmt->deep_drop();
-
-        whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-        // We have to reset the server, because the previous query execution contains error.
-        auto single_exec_begin_time = std::chrono::system_clock::now();
-        ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-      }
-
       if (p_oracle->is_res_str_error(g_cockroach_output)) {
         // Be careful, after the last dyn_fixing, the query could still be
         // semantic error.
@@ -6290,7 +6135,10 @@ static u8 fuzz_one(char** argv)
         // log the buggy query string.
         log_logical_bug(whole_query_seq_with_next);
         ret_res = FAULT_ERROR;
-        is_prev_stmt_error = true;
+      }
+
+      if (record_code_coverage(argv, whole_query_seq_with_next) == FAULT_CRASH) {
+        ret_res = FAULT_CRASH;
       }
 
       // Setup the is_prev_stmt_error flag.
@@ -6303,16 +6151,14 @@ static u8 fuzz_one(char** argv)
         g_mutator.rollback_instan_lib_changes();
       }
 
-      if (ret_res == FAULT_CRASH) {
-        // Check whether the statement contains new code coverage.
-        ALL_COMP_RES tmp_all_comp_res;
-        tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
-        tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
-        tmp_all_comp_res.res_str = g_cockroach_output;
-        tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-        save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-            tmp_all_comp_res);
-      }
+      // Check whether the statement contains new code coverage.
+      ALL_COMP_RES tmp_all_comp_res;
+      tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+      tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+      tmp_all_comp_res.res_str = g_cockroach_output;
+      tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
+      save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+          tmp_all_comp_res);
 
       if (is_prev_stmt_error) {
         // On error, no need to save anything.

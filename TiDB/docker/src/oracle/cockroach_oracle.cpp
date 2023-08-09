@@ -348,52 +348,9 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
 }
 
 SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
-    if (
-            (
-                    findStringIn(in_str, "unsupported comparison") &&
-                    findStringIn(in_str, "operator:")
-            ) ||
-            findStringIn(in_str, "pq: unknown signature") ||
-            findStringIn(in_str, "parsing as type") ||
-            findStringIn(in_str, "pq: type") ||
-            findStringIn(in_str, "cannot subscript type string") ||
-            findStringIn(in_str, "function undefined") ||
-            findStringIn(in_str, "to be of type") ||
-            findStringIn(in_str, "pq: ambiguous call") ||
-            findStringIn(in_str, "pq: unsupported binary operator") ||
-            findStringIn(in_str, "invalid cast") ||
-            (
-                    findStringIn(in_str, "could not parse") &&
-                    findStringIn(in_str, "as ")
-            ) ||
-          (
-          findStringIn(in_str, "argument of WHERE must be type ") &&
-          findStringIn(in_str, "not type ")
-          )
-            ) {
-        return SemanticErrorType::ColumnTypeRelatedError;
-    } else if (
-            findStringIn(in_str, "ERROR: source") ||
-            findStringIn(in_str, "pq: source") ||
-            findStringIn(in_str, "pq: column")
-    ) {
-        return SemanticErrorType::AliasRelatedError;
-    } else if (
-            findStringIn(in_str, "invalid syntax") ||
-            findStringIn(in_str, "syntax error") ||
-            findStringIn(in_str, "invalid syntax")
-            ) {
-        return SemanticErrorType::SyntaxRelatedError;
-    } else if (
-            findStringIn(in_str, "Error") ||
-            findStringIn(in_str, "ERROR") ||
-            findStringIn(in_str, "pq: ")
-            ) {
-        return SemanticErrorType::OtherUndefinedError;
-    } else {
-        return SemanticErrorType::NoSemanticError;
-    }
+  return OtherUndefinedError;
 }
+
 
 bool SQL_ORACLE::is_expr_types_in_where_clause(IRTYPE in) {
 

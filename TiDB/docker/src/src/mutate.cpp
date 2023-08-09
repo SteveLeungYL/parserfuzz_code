@@ -1536,7 +1536,7 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR* ir_to_fix,
 void Mutator::instan_database_schema_name(IR* ir_to_fix, bool is_debug_info)
 {
   if ((ir_to_fix->data_type_ == DataDatabaseName)) {
-    ir_to_fix->set_str_val("sqlrighttestdb");
+    ir_to_fix->set_str_val("test_rsg1");
   }
 
   if (ir_to_fix->data_type_ == DataSchemaName) {
@@ -4883,6 +4883,10 @@ void Mutator::log_parser_crashes_bugs(string query_in) const
   outputfile << query_in;
   outputfile.close();
 
+#ifdef DEBUG
+  cerr << "\n\n\n\n\nFOUND PARSER CRASHING BUG. \n\n\n\n\n";
+#endif
+
   return;
 }
 
@@ -5162,13 +5166,13 @@ bool Mutator::add_to_library(IR* ir, string& uniformed_query,
   string* p_query_str = new string(ir->to_string());
   all_query_pstr_set.insert(p_query_str);
 
-  if (likely(!this->disable_dyn_instan) && run_target != NULL) {
-    auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
-        exec_tmout_for_run_target, 0,
-        run_target, true);
-    p_oracle->ir_wrapper.iter_cur_node_with_handler(
-        ir, [](IR* cur_node) -> void { cur_node->set_is_instantiated(false); });
-  }
+//  if (likely(!this->disable_dyn_instan) && run_target != NULL) {
+//    auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
+//        exec_tmout_for_run_target, 0,
+//        run_target, true);
+//    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+//        ir, [](IR* cur_node) -> void { cur_node->set_is_instantiated(false); });
+//  }
 
   // Do not use extract_struct before add_to_library_core.
   // For safety purpose, any mismatch between the ir and the

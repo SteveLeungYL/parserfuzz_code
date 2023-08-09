@@ -159,10 +159,7 @@ class SQL_ORACLE {
   virtual int is_res_str_error(string in_ret)
   {
 #define ff(x) findStringIn(in_ret, x)
-    if (
-        !ff("internal error") && // Internal Error, not SQL error.
-            ff("pq:")
-        || ff("ERROR: ") || ff("SQLSTATE: ")) {
+    if (ff("Error: ")) {
       return 1;
     } else {
       return 0;
@@ -174,7 +171,7 @@ class SQL_ORACLE {
   {
 #define ff(x) findStringIn(in_ret, x)
     if (
-        ff("internal error")) {
+        ff("Internal Error")) {
       return 1;
     } else {
       return 0;
