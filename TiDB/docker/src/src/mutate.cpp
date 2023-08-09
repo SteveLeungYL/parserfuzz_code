@@ -4929,7 +4929,8 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
     ir->uniq_id_in_tree_ = unique_id_for_node++;
     if (ir->get_ir_type() == TypeShutdownStmt || ir->get_ir_type() == TypeAlterUserStmt ||
         ir->get_ir_type() == TypeAlterDatabaseStmt || ir->get_ir_type() == TypeGrantLevel ||
-        ir->get_ir_type() == TypeGrantRoleStmt || ir->get_ir_type() == TypeGrantStmt
+        ir->get_ir_type() == TypeGrantRoleStmt || ir->get_ir_type() == TypeGrantStmt ||
+        ir->get_ir_type() == TypeDropUserStmt
         ) {
       // Do not parse SHUTDOWN statement.
       ir_set.clear();
