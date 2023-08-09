@@ -3067,9 +3067,7 @@ BEGIN:
     cout << "Connection Failed!" << endl;
     sleep(1);
     goto BEGIN;
-  }
-
-  else {
+  } else {
     status = FAULT_NONE;
   }
 
@@ -6116,9 +6114,7 @@ static u8 fuzz_one(char** argv)
       int dyn_fix_trial = 0;
 
       if (p_oracle->is_res_str_error(g_cockroach_output)) {
-        // Be careful, after the last dyn_fixing, the query could still be
-        // semantic error.
-        ret_res = FAULT_SQLERROR;
+        // DO NOTHING.
       } else {
         total_instan_succeed_num++;
       }
