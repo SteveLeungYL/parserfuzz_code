@@ -241,9 +241,6 @@ func restoreBinaryOpWithSpacesAround(ctx *format.RestoreCtx, op opcode.Op) error
 
 func (n *BinaryOperationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := ""
-	prefix += "("
-
 	lNode := n.L.LogCurrentNode(depth + 1)
 	rNode := LogCurrentNodeBinaryOpWithSpacesAround(depth+1, n.Op)
 
@@ -252,21 +249,19 @@ func (n *BinaryOperationExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		DataType: sql_ir.DataNone,
 		LNode:    lNode,
 		RNode:    rNode,
-		Prefix:   prefix,
 		Depth:    depth,
 	}
-	prefix = ""
 
 	rNode = n.R.LogCurrentNode(depth + 1)
-
 	rootNode = &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
-		LNode:    lNode,
+		LNode:    rootNode,
 		RNode:    rNode,
 		Depth:    depth,
 	}
 
+	rootNode.Prefix = "("
 	rootNode.Suffix = ")"
 
 	rootNode.IRType = sql_ir.TypeBinaryOperationExpr

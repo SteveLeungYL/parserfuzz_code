@@ -457,7 +457,6 @@ func (n *TableName) LogCurrentNodeName(depth int) *sql_ir.SqlRsgIR {
 		DataType: sql_ir.DataNone,
 		LNode:    lNode,
 		Prefix:   prefix,
-		Infix:    midfix,
 		Depth:    depth,
 	}
 
