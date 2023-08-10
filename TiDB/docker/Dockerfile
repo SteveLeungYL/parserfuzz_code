@@ -137,7 +137,8 @@ USER tidb
 RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/tidb_pkg_plugin/rsg/tidb_parser_modi.y /home/tidb/fuzz_root/tidb_parser_modi.y \
     && cp -r /home/tidb/src/rsg /home/tidb/fuzz_root/rsg && cp -r /home/tidb/src/parser /home/tidb/fuzz_root/parser \
     && cp -r /home/tidb/tidb-with-cov /home/tidb/fuzz_root/tidb-with-cov && cp -r /home/tidb/tidb-server-ori /home/tidb/fuzz_root/tidb-server-ori \
-    && cp -r /home/tidb/tidb_pkg_plugin/rsg/tidb_keyword_mapping.json /home/tidb/fuzz_root/tidb_keyword_mapping.json
+    && cp -r /home/tidb/tidb_pkg_plugin/rsg/tidb_keyword_mapping.json /home/tidb/fuzz_root/tidb_keyword_mapping.json \
+    && cp -r /home/tidb/fuzz_root/tidb_parser_modi.y /home/tidb/src/tidb_parser_modi.y
 
 # Setup the database structure.
 # This has been proven to be not working.
