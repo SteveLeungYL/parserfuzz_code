@@ -12,7 +12,9 @@ using std::string;
 IR* raw_parser(const string input_str)
 {
 
+#ifdef DEBUG
   cerr << "Debug: Parsing file: " << input_str << "\n\n\n";
+#endif
 
   // Convert the test string to GoString format.
   GoString query_input = { input_str.c_str(), long(input_str.size()) };
