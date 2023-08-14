@@ -5936,6 +5936,8 @@ static u8 fuzz_one(char** argv)
       vector<IR*> tmp_ir_tree = g_mutator.parse_query_str_get_ir_set(tmp_str);
       if (tmp_ir_tree.empty()) {
         cerr << "\nError!: For original input: " << input << "\nreparsing input: " << tmp_str << ", query parsing failed. \n\n\n";
+        ori_ir_tree.back()->deep_drop();
+        continue;
       } else {
         tmp_ir_tree.back()->deep_drop();
       }

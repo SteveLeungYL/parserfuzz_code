@@ -3318,9 +3318,6 @@ sql_ir.LogGrammarCoverage("AssignmentList,Assignment")
 AssignmentListOpt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("AssignmentListOpt,/*")
-sql_ir.LogGrammarCoverage("AssignmentListOpt,EMPTY")
-sql_ir.LogGrammarCoverage("AssignmentListOpt,*/")
 
 
 		$$ = []*ast.Assignment{}
@@ -3505,9 +3502,6 @@ sql_ir.LogGrammarCoverage("ColumnNameList,ColumnName")
 ColumnNameListOpt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ColumnNameListOpt,/*")
-sql_ir.LogGrammarCoverage("ColumnNameListOpt,EMPTY")
-sql_ir.LogGrammarCoverage("ColumnNameListOpt,*/")
 
 
 		$$ = []*ast.ColumnName{}
@@ -3521,9 +3515,6 @@ sql_ir.LogGrammarCoverage("ColumnNameListOpt,ColumnNameList")
 IdentListWithParenOpt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("IdentListWithParenOpt,/*")
-sql_ir.LogGrammarCoverage("IdentListWithParenOpt,EMPTY")
-sql_ir.LogGrammarCoverage("IdentListWithParenOpt,*/")
 
 
 		$$ = []model.CIStr{}
@@ -3556,9 +3547,6 @@ sql_ir.LogGrammarCoverage("IdentList,Identifier")
 ColumnNameOrUserVarListOpt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,/*")
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,EMPTY")
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,*/")
 
 
 		$$ = []*ast.ColumnNameOrUserVar{}
@@ -3605,9 +3593,6 @@ sql_ir.LogGrammarCoverage("ColumnNameOrUserVariable,UserVariable")
 ColumnNameOrUserVarListOptWithBrackets:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,/*")
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,EMPTY")
-sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,*/")
 
 
 		$$ = []*ast.ColumnNameOrUserVar{}
@@ -5572,9 +5557,6 @@ sql_ir.LogGrammarCoverage("CreateViewStmt,ViewCheckOption")
 OrReplace:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("OrReplace,/*")
-sql_ir.LogGrammarCoverage("OrReplace,EMPTY")
-sql_ir.LogGrammarCoverage("OrReplace,*/")
 
 
 		$$ = false
@@ -5589,9 +5571,6 @@ sql_ir.LogGrammarCoverage("OrReplace,*/")
 ViewAlgorithm:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ViewAlgorithm,/*")
-sql_ir.LogGrammarCoverage("ViewAlgorithm,EMPTY")
-sql_ir.LogGrammarCoverage("ViewAlgorithm,*/")
 
 
 		$$ = model.AlgorithmUndefined
@@ -5618,9 +5597,6 @@ sql_ir.LogGrammarCoverage("ViewAlgorithm,*/")
 ViewDefiner:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ViewDefiner,/*")
-sql_ir.LogGrammarCoverage("ViewDefiner,EMPTY")
-sql_ir.LogGrammarCoverage("ViewDefiner,*/")
 
 
 		$$ = &auth.UserIdentity{CurrentUser: true}
@@ -5636,9 +5612,6 @@ sql_ir.LogGrammarCoverage("ViewDefiner,Username")
 ViewSQLSecurity:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ViewSQLSecurity,/*")
-sql_ir.LogGrammarCoverage("ViewSQLSecurity,EMPTY")
-sql_ir.LogGrammarCoverage("ViewSQLSecurity,*/")
 
 
 		$$ = model.SecurityDefiner
@@ -5666,9 +5639,7 @@ sql_ir.LogGrammarCoverage("ViewName,TableName")
 ViewFieldList:
 	/* Empty */
 	{
-sql_ir.LogGrammarCoverage("ViewFieldList,/*")
 sql_ir.LogGrammarCoverage("ViewFieldList,Empty")
-sql_ir.LogGrammarCoverage("ViewFieldList,*/")
 
 
 		$$ = nil
@@ -5701,9 +5672,6 @@ sql_ir.LogGrammarCoverage("ColumnList,Identifier")
 ViewCheckOption:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("ViewCheckOption,/*")
-sql_ir.LogGrammarCoverage("ViewCheckOption,EMPTY")
-sql_ir.LogGrammarCoverage("ViewCheckOption,*/")
 
 
 		$$ = nil
@@ -6063,9 +6031,6 @@ EqOpt:
 EmptyStmt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("EmptyStmt,/*")
-sql_ir.LogGrammarCoverage("EmptyStmt,EMPTY")
-sql_ir.LogGrammarCoverage("EmptyStmt,*/")
 
 
 		$$ = nil
@@ -7551,9 +7516,6 @@ sql_ir.LogGrammarCoverage("Field,FieldAsNameOpt")
 FieldAsNameOpt:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("FieldAsNameOpt,/*")
-sql_ir.LogGrammarCoverage("FieldAsNameOpt,EMPTY")
-sql_ir.LogGrammarCoverage("FieldAsNameOpt,*/")
 
 
 		$$ = ""
@@ -10383,9 +10345,6 @@ Order:
 OptOrder:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("OptOrder,/*")
-sql_ir.LogGrammarCoverage("OptOrder,EMPTY")
-sql_ir.LogGrammarCoverage("OptOrder,*/")
 
 
 		$$ = false // ASC by default
@@ -14367,9 +14326,6 @@ sql_ir.LogGrammarCoverage("SelectStmtFieldList,FieldList")
 SelectStmtGroup:
 	/* EMPTY */
 	{
-sql_ir.LogGrammarCoverage("SelectStmtGroup,/*")
-sql_ir.LogGrammarCoverage("SelectStmtGroup,EMPTY")
-sql_ir.LogGrammarCoverage("SelectStmtGroup,*/")
 
 
 		$$ = nil

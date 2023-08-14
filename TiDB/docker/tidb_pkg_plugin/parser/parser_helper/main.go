@@ -81,7 +81,7 @@ func ParseHelper(inData string) (*C.char, int) {
 			return nil, 0
 		}
 
-		fmt.Printf("\n\n\nGetting gramCov: %s\n\n\n", gramCov)
+		//fmt.Printf("\n\n\nGetting gramCov: %s\n\n\n", gramCov)
 		m["gramCov"] = gramCov
 		jsonBytes, jErr = json.Marshal(m)
 
