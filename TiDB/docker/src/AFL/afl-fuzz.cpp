@@ -5937,6 +5937,7 @@ static u8 fuzz_one(char** argv)
       if (tmp_ir_tree.empty()) {
         cerr << "\nError!: For original input: " << input << "\nreparsing input: " << tmp_str << ", query parsing failed. \n\n\n";
         ori_ir_tree.back()->deep_drop();
+        ori_ir_tree.clear();
         continue;
       } else {
         tmp_ir_tree.back()->deep_drop();
