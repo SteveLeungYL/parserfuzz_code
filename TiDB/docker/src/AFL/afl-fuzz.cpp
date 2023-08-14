@@ -766,6 +766,13 @@ class MysqlClient {
       res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
+//#define DEBUG
+#ifdef DEBUG
+      cerr << "\n\nDEBUG: from query input: \n"
+           << cur_cmd_str << "\nGetting res: " << res_str << "\n\n\n";
+#endif
+      //#undef DEBUG
+
       if (server_response == 0) {
         debug_good++;
       } else {
@@ -777,7 +784,7 @@ class MysqlClient {
         break;
       }
     }
-//    cerr << "Getting results: \n" << res_str << "\n\n\n";
+    //    cerr << "Getting results: \n" << res_str << "\n\n\n";
 
     auto res = kNormal;
 
@@ -2739,7 +2746,7 @@ EXP_ST void init_forkserver(char** argv)
 #ifdef DEBUG
     // DEBUG: log TiDB output.
     mode_t mode = S_IRWXU | S_IRWXG;
-    auto tidb_output = open("./tidb_output", O_WRONLY|O_APPEND|O_CREAT, mode);
+    auto tidb_output = open("./tidb_output", O_WRONLY | O_APPEND | O_CREAT, mode);
     dup2(dev_null_fd, 0);
     dup2(tidb_output, 1);
     dup2(tidb_output, 2);
@@ -2798,7 +2805,7 @@ EXP_ST void init_forkserver(char** argv)
     string db_str = cwd_str + "/db_data";
 
     char* argv_list[]
-        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-status", strdup(to_string(bind_to_port+2000).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
+        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-status", strdup(to_string(bind_to_port + 2000).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
 
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
@@ -5928,7 +5935,7 @@ static u8 fuzz_one(char** argv)
       string tmp_str = ori_ir_tree.back()->to_string();
       vector<IR*> tmp_ir_tree = g_mutator.parse_query_str_get_ir_set(tmp_str);
       if (tmp_ir_tree.empty()) {
-        cerr << "\nError!: For original input: " << input <<  "\nreparsing input: " << tmp_str << ", query parsing failed. \n\n\n";
+        cerr << "\nError!: For original input: " << input << "\nreparsing input: " << tmp_str << ", query parsing failed. \n\n\n";
       } else {
         tmp_ir_tree.back()->deep_drop();
       }
@@ -6055,7 +6062,7 @@ static u8 fuzz_one(char** argv)
           cerr << "debug_error: " << debug_error
                << ", debug_good: " << debug_good << "\n\n\n";
         }
-#endif /* DEBUG */
+#endif  /* DEBUG */
       } // is_res_str_error
       total_instan_num++;
 
