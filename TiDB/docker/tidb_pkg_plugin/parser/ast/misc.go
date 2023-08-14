@@ -683,7 +683,7 @@ func (n *PrepareStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeStringLiteral,
 			DataType: sql_ir.DataNone,
-			Str:      n.SQLText,
+			Str:      "'" + n.SQLText + "'",
 			Depth:    depth,
 		}
 
@@ -1922,7 +1922,7 @@ func (n *SetPwdStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	rNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeStringLiteral,
 		DataType: sql_ir.DataNone,
-		Str:      n.Password,
+		Str:      "'" + n.Password + "'",
 		Depth:    depth,
 	}
 

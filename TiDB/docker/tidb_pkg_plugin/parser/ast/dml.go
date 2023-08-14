@@ -6704,7 +6704,7 @@ func (n *SelectIntoOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		return rootNode
 	}
 
-	prefix := "INTO OUTFILE " + n.FileName
+	prefix := "INTO OUTFILE './tmpFile'"
 	var lNode *sql_ir.SqlRsgIR = nil
 
 	if n.FieldsInfo != nil {

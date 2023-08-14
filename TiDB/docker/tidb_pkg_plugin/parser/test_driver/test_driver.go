@@ -108,20 +108,11 @@ func (n *ValueExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:    depth,
 		}
 	case KindString:
-		if n.Type.GetCharset() != "" {
-			prefix += "_"
-			lNode = &sql_ir.SqlRsgIR{
-				IRType:      sql_ir.TypeIdentifier,
-				DataType:    sql_ir.DataCharSet,
-				ContextFlag: sql_ir.ContextUse,
-				Str:         n.Type.GetCharset(),
-				Depth:       depth,
-			}
-		}
-		rNode = &sql_ir.SqlRsgIR{
+		// Ignore the charset setting string.
+		lNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeStringLiteral,
 			DataType: sql_ir.DataNone,
-			Str:      n.GetString(),
+			Str:      "'" + n.GetString() + "'",
 			Depth:    depth,
 		}
 	case KindBytes:
@@ -129,22 +120,19 @@ func (n *ValueExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case KindMysqlDecimal:
 		prefix += n.GetMysqlDecimal().String()
 	case KindBinaryLiteral:
-		if n.Type.GetCharset() != "" && n.Type.GetCharset() != mysql.DefaultCharset &&
-			n.Type.GetCharset() != charset.CharsetBin {
-			prefix += "_" + n.Type.GetCharset() + " "
-		}
+		// Ignore the charset declaration
 		if n.Type.GetFlag()&mysql.UnsignedFlag != 0 {
 			lNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeStringLiteral,
 				DataType: sql_ir.DataNone,
-				Str:      string(n.GetBytes()),
+				Str:      "'" + string(n.GetBytes()) + "'",
 				Depth:    depth,
 			}
 		} else {
 			lNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeStringLiteral,
 				DataType: sql_ir.DataNone,
-				Str:      n.GetBinaryLiteral().ToBitLiteralString(true),
+				Str:      "'" + n.GetBinaryLiteral().ToBitLiteralString(true) + "'",
 				Depth:    depth,
 			}
 		}

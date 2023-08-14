@@ -1537,7 +1537,7 @@ func (n *PatternLikeExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeStringLiteral,
 			DataType: sql_ir.DataNone,
-			Str:      escape,
+			Str:      "'" + escape + "'",
 			Depth:    depth,
 		}
 

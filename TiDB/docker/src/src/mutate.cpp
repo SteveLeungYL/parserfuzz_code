@@ -4231,10 +4231,10 @@ bool Mutator::instan_dependency(
 
   //  this->remove_type_annotation(cur_stmt_root, ir_to_deep_drop);
 
-  if (is_debug_info) {
-    cerr << "\n\n\nAfter removing the type annotations, getting "
-         << cur_stmt_root->to_string() << "\n\n\n";
-  }
+//  if (is_debug_info) {
+//    cerr << "\n\n\nAfter removing the type annotations, getting "
+//         << cur_stmt_root->to_string() << "\n\n\n";
+//  }
 
   // If set true, meaning we are in an ALTER TABLE RENAME statement.
   bool is_replace_table = false, is_replace_column = false;
