@@ -661,7 +661,7 @@ DatabaseOptionList:
 
 ;
 CreateTableStmt:
-	'CREATE' OptTemporary 'TABLE' IfNotExists TableName TableElementListOpt CreateTableOptionListOpt PartitionOpt DuplicateOpt AsOpt CreateTableSelectOpt OnCommitOpt
+	'CREATE' OptTemporary 'TABLE' IfNotExists TableName TableElementList CreateTableOptionListOpt PartitionOpt DuplicateOpt AsOpt CreateTableSelectOpt OnCommitOpt
 |	'CREATE' OptTemporary 'TABLE' IfNotExists TableName LikeTableWithOrWithoutParen OnCommitOpt
 
 ;
