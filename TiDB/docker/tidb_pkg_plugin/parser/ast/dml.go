@@ -2177,6 +2177,7 @@ func (n *WithClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 		}
 	}
+	rootNode.Prefix = prefix
 	rootNode.Suffix = " "
 	rootNode.IRType = sql_ir.TypeWithClause
 
