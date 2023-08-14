@@ -203,7 +203,7 @@ IR* convert_json_to_IR(string all_json_str)
             cerr << "Debug: trigger curGramStr: " << cur_gram_str << "\n";
 #endif
             //#undef DEBUG
-            cov_out << cur_gram_str << "\n";
+            cov_out << cur_gram_str << "," << time(nullptr) << "\n";
             cov_out.flush();
             gram_cov_set.insert(cur_gram_str);
           }
