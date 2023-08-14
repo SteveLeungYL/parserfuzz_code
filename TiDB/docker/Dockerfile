@@ -114,7 +114,8 @@ USER tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 RUN rm -rf tidb && cp -r tidb_ori tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb
-RUN rm -rf ./parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./parser && cd ./parser && make && cd ./parser_helper && bash build.sh && cp ./parser_helper.* /home/tidb/tidb_pkg_plugin/
+RUN rm -rf ./parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./parser && cd ./parser && make; make; make; make; exit 0;
+RUN cd ./parser/parser_helper && bash build.sh && cp ./parser_helper.* /home/tidb/tidb_pkg_plugin/
 
 
 # Next, build the fuzzer source code.
