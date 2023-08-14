@@ -10,24 +10,25 @@ import (
 	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
-func ParseHelperAntiCrash(inData string) (irList []sql_ir.SqlRsgIR, errCode int) {
+func ParseHelperAntiCrash(inData string) (irList []sql_ir.SqlRsgIR, gramCov []string, errCode int) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			// 2 means parsing crashes.
-			errCode = 2
+			// errCode == 2 means parsing crashes.
 			irList = make([]sql_ir.SqlRsgIR, 0)
+			gramCov = make([]string, 0)
+			errCode = 2
 		}
 	}()
 
 	p := parser.New()
 	// The return res from p.Parse is an array of stmtNode structure.
 	// Each element is one statement from the query.
-	stmtNodes, _, err := p.Parse(inData, "", "") // Ignore the warnings.
+	stmtNodes, _, err, gramCov := p.ParseWithCov(inData, "", "") // Ignore the warnings.
 
 	if err != nil {
 		// 1 means parsing error
-		return nil, 1
+		return nil, gramCov, 1
 	}
 
 	// errCode == 0, normal
@@ -37,18 +38,18 @@ func ParseHelperAntiCrash(inData string) (irList []sql_ir.SqlRsgIR, errCode int)
 		if tmpIR != nil {
 			irList = append(irList, *tmpIR)
 		} else {
-			return nil, 0
+			return nil, gramCov, 0
 		}
 	}
 
-	return irList, 0
+	return irList, gramCov, 0
 
 }
 
 //export ParseHelper
 func ParseHelper(inData string) (*C.char, int) {
 
-	irList, errCode := ParseHelperAntiCrash(inData)
+	irList, gramCov, errCode := ParseHelperAntiCrash(inData)
 
 	if errCode == 1 {
 		// Parsing error.
@@ -79,8 +80,9 @@ func ParseHelper(inData string) (*C.char, int) {
 		if jErr != nil {
 			return nil, 0
 		}
-		//TODO:: GRAM COV.
-		//m["gramCov"] = gramCov
+
+		fmt.Printf("\n\n\nGetting gramCov: %s\n\n\n", gramCov)
+		m["gramCov"] = gramCov
 		jsonBytes, jErr = json.Marshal(m)
 
 		jsonStr := string(jsonBytes)

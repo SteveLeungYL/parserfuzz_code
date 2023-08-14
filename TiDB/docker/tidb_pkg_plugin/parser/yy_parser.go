@@ -25,6 +25,7 @@ import (
 	"github.com/pingcap/tidb/parser/auth"
 	"github.com/pingcap/tidb/parser/charset"
 	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/parser/sql_ir"
 	"github.com/pingcap/tidb/parser/terror"
 	"github.com/pingcap/tidb/parser/types"
 )
@@ -169,6 +170,18 @@ func (parser *Parser) ParseSQL(sql string, params ...ParseParam) (stmt []ast.Stm
 
 // Parse parses a query string to raw ast.StmtNode.
 // If charset or collation is "", default charset and collation will be used.
+// Parse with grammar coverage.
+func (parser *Parser) ParseWithCov(sql, charset, collation string) (stmt []ast.StmtNode, warns []error, err error, newCov []string) {
+
+	stmt, warns, err = parser.Parse(sql, charset, collation)
+
+	newCov = sql_ir.GetGrammarCoverage()
+	sql_ir.ResetGrammarCoverage()
+
+	return stmt, warns, err, newCov
+}
+
+// Original parsing function.
 func (parser *Parser) Parse(sql, charset, collation string) (stmt []ast.StmtNode, warns []error, err error) {
 	return parser.ParseSQL(sql, CharsetConnection(charset), CollationConnection(collation))
 }

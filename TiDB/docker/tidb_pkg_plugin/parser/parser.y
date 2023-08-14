@@ -33,6 +33,7 @@ import (
 	"github.com/pingcap/tidb/parser/model"
 	"github.com/pingcap/tidb/parser/opcode"
 	"github.com/pingcap/tidb/parser/auth"
+	"github.com/pingcap/tidb/parser/sql_ir"
 	"github.com/pingcap/tidb/parser/charset"
 	"github.com/pingcap/tidb/parser/types"
 )
@@ -49,14 +50,14 @@ import (
 
 %token	<ident>
 
-	/*yy:token "%c"     */
+	
 	identifier "identifier"
 	asof       "AS OF"
 
-	/*yy:token "_%c"    */
+	
 	underscoreCS "UNDERSCORE_CHARSET"
 
-	/*yy:token "\"%c\"" */
+	
 	stringLit          "string literal"
 	singleAtIdentifier "identifier with single leading at"
 	doubleAtIdentifier "identifier with double leading at"
@@ -65,12 +66,12 @@ import (
 	andand             "&&"
 	pipes              "||"
 
-	/* The following tokens belong to ODBCDateTimeType. */
+	
 	odbcDateType      "d"
 	odbcTimeType      "t"
 	odbcTimestampType "ts"
 
-	/* The following tokens belong to ReservedKeyword. Notice: make sure these tokens are contained in ReservedKeyword. */
+	
 	add               "ADD"
 	all               "ALL"
 	alter             "ALTER"
@@ -286,7 +287,7 @@ import (
 	zerofill          "ZEROFILL"
 	natural           "NATURAL"
 
-	/* The following tokens belong to UnReservedKeyword. Notice: make sure these tokens are contained in UnReservedKeyword. */
+	
 	account               "ACCOUNT"
 	action                "ACTION"
 	advise                "ADVISE"
@@ -626,7 +627,7 @@ import (
 	yearType              "YEAR"
 	wait                  "WAIT"
 
-	/* The following tokens belong to NotKeywordToken. Notice: make sure these tokens are contained in NotKeywordToken. */
+	
 	addDate               "ADDDATE"
 	approxCountDistinct   "APPROX_COUNT_DISTINCT"
 	approxPercentile      "APPROX_PERCENTILE"
@@ -712,7 +713,7 @@ import (
 	voterConstraints      "VOTER_CONSTRAINTS"
 	voters                "VOTERS"
 
-	/* The following tokens belong to TiDBKeyword. Notice: make sure these tokens are contained in TiDBKeyword. */
+	
 	admin                      "ADMIN"
 	batch                      "BATCH"
 	buckets                    "BUCKETS"
@@ -785,19 +786,19 @@ import (
 
 %token	<item>
 
-	/*yy:token "1.%d"   */
+	
 	floatLit "floating-point literal"
 
-	/*yy:token "1.%d"   */
+	
 	decLit "decimal literal"
 
-	/*yy:token "%d"     */
+	
 	intLit "integer literal"
 
-	/*yy:token "%x"     */
+	
 	hexLit "hexadecimal literal"
 
-	/*yy:token "%b"     */
+	
 	bitLit       "bit literal"
 	andnot       "&^"
 	assignmentEq ":="
@@ -1440,7 +1441,7 @@ import (
 %precedence lowerThanFunction
 %precedence function
 
-/* A dummy token to force the priority of TableRef production in a join. */
+
 %left tableRefPriority
 %precedence lowerThanParenthese
 %right '('
@@ -1477,17 +1478,27 @@ import (
 
 %start	Start
 
+
 %%
+
 
 Start:
 	StatementList
 
-/**************************************AlterTableStmt***************************************
- * See https://dev.mysql.com/doc/refman/5.7/en/alter-table.html
- *******************************************************************************************/
+
+{
+sql_ir.LogGrammarCoverage("Start,StatementList")
+
+}
 AlterTableStmt:
 	"ALTER" IgnoreOptional "TABLE" TableName AlterTableSpecListOpt AlterTablePartitionOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("AlterTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AlterTableStmt,AlterTableSpecListOpt")
+sql_ir.LogGrammarCoverage("AlterTableStmt,AlterTablePartitionOpt")
+
+
 		specs := $5.([]*ast.AlterTableSpec)
 		if $6 != nil {
 			specs = append(specs, $6.(*ast.AlterTableSpec))
@@ -1499,10 +1510,23 @@ AlterTableStmt:
 	}
 |	"ALTER" IgnoreOptional "TABLE" TableName "ANALYZE" "PARTITION" PartitionNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("AlterTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AlterTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AlterTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{TableNames: []*ast.TableName{$4.(*ast.TableName)}, PartitionNames: $7.([]model.CIStr), AnalyzeOpts: $8.([]ast.AnalyzeOpt)}
 	}
 |	"ALTER" IgnoreOptional "TABLE" TableName "ANALYZE" "PARTITION" PartitionNameList "INDEX" IndexNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("AlterTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AlterTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AlterTableStmt,IndexNameList")
+sql_ir.LogGrammarCoverage("AlterTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:     []*ast.TableName{$4.(*ast.TableName)},
 			PartitionNames: $7.([]model.CIStr),
@@ -1513,6 +1537,10 @@ AlterTableStmt:
 	}
 |	"ALTER" IgnoreOptional "TABLE" TableName "COMPACT" "TIFLASH" "REPLICA"
 	{
+sql_ir.LogGrammarCoverage("AlterTableStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("AlterTableStmt,TableName")
+
+
 		$$ = &ast.CompactTableStmt{
 			Table:       $4.(*ast.TableName),
 			ReplicaKind: ast.CompactReplicaKindTiFlash,
@@ -1522,28 +1550,51 @@ AlterTableStmt:
 PlacementOptionList:
 	DirectPlacementOption
 	{
+sql_ir.LogGrammarCoverage("PlacementOptionList,DirectPlacementOption")
+
+
 		$$ = []*ast.PlacementOption{$1.(*ast.PlacementOption)}
 	}
 |	PlacementOptionList DirectPlacementOption
 	{
+sql_ir.LogGrammarCoverage("PlacementOptionList,PlacementOptionList")
+sql_ir.LogGrammarCoverage("PlacementOptionList,DirectPlacementOption")
+
+
 		$$ = append($1.([]*ast.PlacementOption), $2.(*ast.PlacementOption))
 	}
 |	PlacementOptionList ',' DirectPlacementOption
 	{
+sql_ir.LogGrammarCoverage("PlacementOptionList,PlacementOptionList")
+sql_ir.LogGrammarCoverage("PlacementOptionList,DirectPlacementOption")
+
+
 		$$ = append($1.([]*ast.PlacementOption), $3.(*ast.PlacementOption))
 	}
 
 DirectPlacementOption:
 	"PRIMARY_REGION" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionPrimaryRegion, StrValue: $3}
 	}
 |	"REGIONS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionRegions, StrValue: $3}
 	}
 |	"FOLLOWERS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,LengthNum")
+
+
 		cnt := $3.(uint64)
 		if cnt == 0 {
 			yylex.AppendError(yylex.Errorf("FOLLOWERS must be positive"))
@@ -1553,78 +1604,140 @@ DirectPlacementOption:
 	}
 |	"VOTERS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,LengthNum")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionVoterCount, UintValue: $3.(uint64)}
 	}
 |	"LEARNERS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,LengthNum")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionLearnerCount, UintValue: $3.(uint64)}
 	}
 |	"SCHEDULE" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionSchedule, StrValue: $3}
 	}
 |	"CONSTRAINTS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionConstraints, StrValue: $3}
 	}
 |	"LEADER_CONSTRAINTS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionLeaderConstraints, StrValue: $3}
 	}
 |	"FOLLOWER_CONSTRAINTS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionFollowerConstraints, StrValue: $3}
 	}
 |	"VOTER_CONSTRAINTS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionVoterConstraints, StrValue: $3}
 	}
 |	"LEARNER_CONSTRAINTS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("DirectPlacementOption,EqOpt")
+sql_ir.LogGrammarCoverage("DirectPlacementOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionLearnerConstraints, StrValue: $3}
 	}
 
 PlacementPolicyOption:
 	"PLACEMENT" "POLICY" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("PlacementPolicyOption,EqOpt")
+sql_ir.LogGrammarCoverage("PlacementPolicyOption,stringLit")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionPolicy, StrValue: $4}
 	}
 |	"PLACEMENT" "POLICY" EqOpt PolicyName
 	{
+sql_ir.LogGrammarCoverage("PlacementPolicyOption,EqOpt")
+sql_ir.LogGrammarCoverage("PlacementPolicyOption,PolicyName")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionPolicy, StrValue: $4}
 	}
 |	"PLACEMENT" "POLICY" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("PlacementPolicyOption,EqOpt")
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionPolicy, StrValue: $4}
 	}
 |	"PLACEMENT" "POLICY" "SET" "DEFAULT"
 	{
+
+
 		$$ = &ast.PlacementOption{Tp: ast.PlacementOptionPolicy, StrValue: $4}
 	}
 
 AttributesOpt:
 	"ATTRIBUTES" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("AttributesOpt,EqOpt")
+
+
 		$$ = &ast.AttributesSpec{Default: true}
 	}
 |	"ATTRIBUTES" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("AttributesOpt,EqOpt")
+sql_ir.LogGrammarCoverage("AttributesOpt,stringLit")
+
+
 		$$ = &ast.AttributesSpec{Default: false, Attributes: $3}
 	}
 
 StatsOptionsOpt:
 	"STATS_OPTIONS" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("StatsOptionsOpt,EqOpt")
+
+
 		$$ = &ast.StatsOptionsSpec{Default: true}
 	}
 |	"STATS_OPTIONS" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("StatsOptionsOpt,EqOpt")
+sql_ir.LogGrammarCoverage("StatsOptionsOpt,stringLit")
+
+
 		$$ = &ast.StatsOptionsSpec{Default: false, StatsOptions: $3}
 	}
 
 AlterTablePartitionOpt:
 	PartitionOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,PartitionOpt")
+
+
 		if $1 != nil {
 			$$ = &ast.AlterTableSpec{
 				Tp:        ast.AlterTablePartition,
@@ -1636,18 +1749,28 @@ AlterTablePartitionOpt:
 	}
 |	"REMOVE" "PARTITIONING"
 	{
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableRemovePartitioning,
 		}
 	}
 |	"REORGANIZE" "PARTITION" NoWriteToBinLogAliasOpt ReorganizePartitionRuleOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,ReorganizePartitionRuleOpt")
+
+
 		ret := $4.(*ast.AlterTableSpec)
 		ret.NoWriteToBinlog = $3.(bool)
 		$$ = ret
 	}
 |	"PARTITION" Identifier AttributesOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,Identifier")
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,AttributesOpt")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:             ast.AlterTablePartitionAttributes,
 			PartitionNames: []model.CIStr{model.NewCIStr($2)},
@@ -1656,6 +1779,10 @@ AlterTablePartitionOpt:
 	}
 |	"PARTITION" Identifier PartDefOptionList
 	{
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,Identifier")
+sql_ir.LogGrammarCoverage("AlterTablePartitionOpt,PartDefOptionList")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:             ast.AlterTablePartitionOptions,
 			PartitionNames: []model.CIStr{model.NewCIStr($2)},
@@ -1665,16 +1792,24 @@ AlterTablePartitionOpt:
 
 LocationLabelList:
 	{
+
+
 		$$ = []string{}
 	}
 |	"LOCATION" "LABELS" StringList
 	{
+sql_ir.LogGrammarCoverage("LocationLabelList,StringList")
+
+
 		$$ = $3
 	}
 
 AlterTableSpec:
 	TableOptionList %prec higherThanComma
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableOptionList")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:      ast.AlterTableOption,
 			Options: $1.([]*ast.TableOption),
@@ -1682,6 +1817,10 @@ AlterTableSpec:
 	}
 |	"SET" "TIFLASH" "REPLICA" LengthNum LocationLabelList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,LengthNum")
+sql_ir.LogGrammarCoverage("AlterTableSpec,LocationLabelList")
+
+
 		tiflashReplicaSpec := &ast.TiFlashReplicaSpec{
 			Count:  $4.(uint64),
 			Labels: $5.([]string),
@@ -1693,6 +1832,11 @@ AlterTableSpec:
 	}
 |	"CONVERT" "TO" CharsetKw CharsetName OptCollate
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,CharsetKw")
+sql_ir.LogGrammarCoverage("AlterTableSpec,CharsetName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,OptCollate")
+
+
 		op := &ast.AlterTableSpec{
 			Tp: ast.AlterTableOption,
 			Options: []*ast.TableOption{{Tp: ast.TableOptionCharset, StrValue: $4,
@@ -1705,6 +1849,10 @@ AlterTableSpec:
 	}
 |	"CONVERT" "TO" CharsetKw "DEFAULT" OptCollate
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,CharsetKw")
+sql_ir.LogGrammarCoverage("AlterTableSpec,OptCollate")
+
+
 		op := &ast.AlterTableSpec{
 			Tp: ast.AlterTableOption,
 			Options: []*ast.TableOption{{Tp: ast.TableOptionCharset, Default: true,
@@ -1717,6 +1865,12 @@ AlterTableSpec:
 	}
 |	"ADD" ColumnKeywordOpt IfNotExists ColumnDef ColumnPosition
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfNotExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnDef")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnPosition")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfNotExists: $3.(bool),
 			Tp:          ast.AlterTableAddColumns,
@@ -1726,6 +1880,11 @@ AlterTableSpec:
 	}
 |	"ADD" ColumnKeywordOpt IfNotExists '(' TableElementList ')'
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfNotExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableElementList")
+
+
 		tes := $5.([]interface{})
 		var columnDefs []*ast.ColumnDef
 		var constraints []*ast.Constraint
@@ -1746,6 +1905,9 @@ AlterTableSpec:
 	}
 |	"ADD" Constraint
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,Constraint")
+
+
 		constraint := $2.(*ast.Constraint)
 		$$ = &ast.AlterTableSpec{
 			Tp:         ast.AlterTableAddConstraint,
@@ -1754,6 +1916,11 @@ AlterTableSpec:
 	}
 |	"ADD" "PARTITION" IfNotExists NoWriteToBinLogAliasOpt PartitionDefinitionListOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfNotExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,PartitionDefinitionListOpt")
+
+
 		var defs []*ast.PartitionDefinition
 		if $5 != nil {
 			defs = $5.([]*ast.PartitionDefinition)
@@ -1772,6 +1939,11 @@ AlterTableSpec:
 	}
 |	"ADD" "PARTITION" IfNotExists NoWriteToBinLogAliasOpt "PARTITIONS" NUM
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfNotExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,NUM")
+
+
 		noWriteToBinlog := $4.(bool)
 		if noWriteToBinlog {
 			yylex.AppendError(yylex.Errorf("The NO_WRITE_TO_BINLOG option is parsed but ignored for now."))
@@ -1786,6 +1958,12 @@ AlterTableSpec:
 	}
 |	"ADD" "STATS_EXTENDED" IfNotExists Identifier StatsType '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfNotExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,StatsType")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnNameList")
+
+
 		statsSpec := &ast.StatisticsSpec{
 			StatsName: $4,
 			StatsType: $5.(uint8),
@@ -1799,6 +1977,9 @@ AlterTableSpec:
 	}
 |	AttributesOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AttributesOpt")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:             ast.AlterTableAttributes,
 			AttributesSpec: $1.(*ast.AttributesSpec),
@@ -1806,6 +1987,9 @@ AlterTableSpec:
 	}
 |	StatsOptionsOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,StatsOptionsOpt")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:               ast.AlterTableStatsOptions,
 			StatsOptionsSpec: $1.(*ast.StatsOptionsSpec),
@@ -1813,6 +1997,9 @@ AlterTableSpec:
 	}
 |	"CHECK" "PARTITION" AllOrPartitionNameList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		yylex.AppendError(yylex.Errorf("The CHECK PARTITIONING clause is parsed but not implement yet."))
 		parser.lastErrorAsWarn()
 		ret := &ast.AlterTableSpec{
@@ -1827,6 +2014,10 @@ AlterTableSpec:
 	}
 |	"COALESCE" "PARTITION" NoWriteToBinLogAliasOpt NUM
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,NUM")
+
+
 		noWriteToBinlog := $3.(bool)
 		if noWriteToBinlog {
 			yylex.AppendError(yylex.Errorf("The NO_WRITE_TO_BINLOG option is parsed but ignored for now."))
@@ -1840,6 +2031,12 @@ AlterTableSpec:
 	}
 |	"DROP" ColumnKeywordOpt IfExists ColumnName RestrictOrCascadeOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,RestrictOrCascadeOpt")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists:      $3.(bool),
 			Tp:            ast.AlterTableDropColumn,
@@ -1848,10 +2045,16 @@ AlterTableSpec:
 	}
 |	"DROP" "PRIMARY" "KEY"
 	{
+
+
 		$$ = &ast.AlterTableSpec{Tp: ast.AlterTableDropPrimaryKey}
 	}
 |	"DROP" "PARTITION" IfExists PartitionNameList %prec lowerThanComma
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,PartitionNameList")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists:       $3.(bool),
 			Tp:             ast.AlterTableDropPartition,
@@ -1860,6 +2063,10 @@ AlterTableSpec:
 	}
 |	"DROP" "STATS_EXTENDED" IfExists Identifier
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+
+
 		statsSpec := &ast.StatisticsSpec{
 			StatsName: $4,
 		}
@@ -1871,6 +2078,11 @@ AlterTableSpec:
 	}
 |	"EXCHANGE" "PARTITION" Identifier "WITH" "TABLE" TableName WithValidationOpt
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,WithValidationOpt")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:             ast.AlterTableExchangePartition,
 			PartitionNames: []model.CIStr{model.NewCIStr($3)},
@@ -1880,6 +2092,9 @@ AlterTableSpec:
 	}
 |	"TRUNCATE" "PARTITION" AllOrPartitionNameList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			Tp: ast.AlterTableTruncatePartition,
 		}
@@ -1892,6 +2107,10 @@ AlterTableSpec:
 	}
 |	"OPTIMIZE" "PARTITION" NoWriteToBinLogAliasOpt AllOrPartitionNameList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			NoWriteToBinlog: $3.(bool),
 			Tp:              ast.AlterTableOptimizePartition,
@@ -1905,6 +2124,10 @@ AlterTableSpec:
 	}
 |	"REPAIR" "PARTITION" NoWriteToBinLogAliasOpt AllOrPartitionNameList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			NoWriteToBinlog: $3.(bool),
 			Tp:              ast.AlterTableRepairPartition,
@@ -1918,6 +2141,9 @@ AlterTableSpec:
 	}
 |	"IMPORT" "PARTITION" AllOrPartitionNameList "TABLESPACE"
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			Tp: ast.AlterTableImportPartitionTablespace,
 		}
@@ -1932,6 +2158,9 @@ AlterTableSpec:
 	}
 |	"DISCARD" "PARTITION" AllOrPartitionNameList "TABLESPACE"
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			Tp: ast.AlterTableDiscardPartitionTablespace,
 		}
@@ -1946,6 +2175,8 @@ AlterTableSpec:
 	}
 |	"IMPORT" "TABLESPACE"
 	{
+
+
 		ret := &ast.AlterTableSpec{
 			Tp: ast.AlterTableImportTablespace,
 		}
@@ -1955,6 +2186,8 @@ AlterTableSpec:
 	}
 |	"DISCARD" "TABLESPACE"
 	{
+
+
 		ret := &ast.AlterTableSpec{
 			Tp: ast.AlterTableDiscardTablespace,
 		}
@@ -1964,6 +2197,10 @@ AlterTableSpec:
 	}
 |	"REBUILD" "PARTITION" NoWriteToBinLogAliasOpt AllOrPartitionNameList
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,AllOrPartitionNameList")
+
+
 		ret := &ast.AlterTableSpec{
 			Tp:              ast.AlterTableRebuildPartition,
 			NoWriteToBinlog: $3.(bool),
@@ -1977,6 +2214,11 @@ AlterTableSpec:
 	}
 |	"DROP" KeyOrIndex IfExists Identifier
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,KeyOrIndex")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists: $3.(bool),
 			Tp:       ast.AlterTableDropIndex,
@@ -1985,6 +2227,10 @@ AlterTableSpec:
 	}
 |	"DROP" "FOREIGN" "KEY" IfExists Symbol
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Symbol")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists: $4.(bool),
 			Tp:       ast.AlterTableDropForeignKey,
@@ -1993,6 +2239,9 @@ AlterTableSpec:
 	}
 |	"ORDER" "BY" AlterOrderList %prec lowerThenOrder
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AlterOrderList")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:          ast.AlterTableOrderByColumns,
 			OrderByList: $3.([]*ast.AlterOrderItem),
@@ -2000,18 +2249,28 @@ AlterTableSpec:
 	}
 |	"DISABLE" "KEYS"
 	{
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableDisableKeys,
 		}
 	}
 |	"ENABLE" "KEYS"
 	{
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableEnableKeys,
 		}
 	}
 |	"MODIFY" ColumnKeywordOpt IfExists ColumnDef ColumnPosition
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnDef")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnPosition")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists:   $3.(bool),
 			Tp:         ast.AlterTableModifyColumn,
@@ -2021,6 +2280,13 @@ AlterTableSpec:
 	}
 |	"CHANGE" ColumnKeywordOpt IfExists ColumnName ColumnDef ColumnPosition
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IfExists")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnDef")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnPosition")
+
+
 		$$ = &ast.AlterTableSpec{
 			IfExists:      $3.(bool),
 			Tp:            ast.AlterTableChangeColumn,
@@ -2031,6 +2297,11 @@ AlterTableSpec:
 	}
 |	"ALTER" ColumnKeywordOpt ColumnName "SET" "DEFAULT" SignedLiteral
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,SignedLiteral")
+
+
 		option := &ast.ColumnOption{Expr: $6}
 		colDef := &ast.ColumnDef{
 			Name:    $3.(*ast.ColumnName),
@@ -2043,6 +2314,11 @@ AlterTableSpec:
 	}
 |	"ALTER" ColumnKeywordOpt ColumnName "SET" "DEFAULT" '(' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnName")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Expression")
+
+
 		option := &ast.ColumnOption{Expr: $7}
 		colDef := &ast.ColumnDef{
 			Name:    $3.(*ast.ColumnName),
@@ -2055,6 +2331,10 @@ AlterTableSpec:
 	}
 |	"ALTER" ColumnKeywordOpt ColumnName "DROP" "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnKeywordOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,ColumnName")
+
+
 		colDef := &ast.ColumnDef{
 			Name: $3.(*ast.ColumnName),
 		}
@@ -2065,6 +2345,10 @@ AlterTableSpec:
 	}
 |	"RENAME" "COLUMN" Identifier "TO" Identifier
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+
+
 		oldColName := &ast.ColumnName{Name: model.NewCIStr($3)}
 		newColName := &ast.ColumnName{Name: model.NewCIStr($5)}
 		$$ = &ast.AlterTableSpec{
@@ -2075,6 +2359,9 @@ AlterTableSpec:
 	}
 |	"RENAME" "TO" TableName
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableName")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:       ast.AlterTableRenameTable,
 			NewTable: $3.(*ast.TableName),
@@ -2082,6 +2369,10 @@ AlterTableSpec:
 	}
 |	"RENAME" EqOpt TableName
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,EqOpt")
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableName")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:       ast.AlterTableRenameTable,
 			NewTable: $3.(*ast.TableName),
@@ -2089,6 +2380,9 @@ AlterTableSpec:
 	}
 |	"RENAME" "AS" TableName
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,TableName")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:       ast.AlterTableRenameTable,
 			NewTable: $3.(*ast.TableName),
@@ -2096,6 +2390,11 @@ AlterTableSpec:
 	}
 |	"RENAME" KeyOrIndex Identifier "TO" Identifier
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,KeyOrIndex")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:      ast.AlterTableRenameIndex,
 			FromKey: model.NewCIStr($3),
@@ -2104,6 +2403,9 @@ AlterTableSpec:
 	}
 |	LockClause
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,LockClause")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:       ast.AlterTableLock,
 			LockType: $1.(ast.LockType),
@@ -2111,6 +2413,9 @@ AlterTableSpec:
 	}
 |	Writeable
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,Writeable")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:        ast.AlterTableWriteable,
 			Writeable: $1.(bool),
@@ -2118,6 +2423,9 @@ AlterTableSpec:
 	}
 |	AlgorithmClause
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,AlgorithmClause")
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp:        ast.AlterTableAlgorithm,
@@ -2126,6 +2434,8 @@ AlterTableSpec:
 	}
 |	"FORCE"
 	{
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableForce,
@@ -2133,6 +2443,8 @@ AlterTableSpec:
 	}
 |	"WITH" "VALIDATION"
 	{
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableWithValidation,
@@ -2140,6 +2452,8 @@ AlterTableSpec:
 	}
 |	"WITHOUT" "VALIDATION"
 	{
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableWithoutValidation,
@@ -2148,6 +2462,8 @@ AlterTableSpec:
 // Added in MySQL 8.0.13, see: https://dev.mysql.com/doc/refman/8.0/en/keywords.html for details
 |	"SECONDARY_LOAD"
 	{
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableSecondaryLoad,
@@ -2158,6 +2474,8 @@ AlterTableSpec:
 // Added in MySQL 8.0.13, see: https://dev.mysql.com/doc/refman/8.0/en/keywords.html for details
 |	"SECONDARY_UNLOAD"
 	{
+
+
 		// Parse it and ignore it. Just for compatibility.
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableSecondaryUnload,
@@ -2167,6 +2485,11 @@ AlterTableSpec:
 	}
 |	"ALTER" CheckConstraintKeyword Identifier EnforcedOrNot
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,CheckConstraintKeyword")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,EnforcedOrNot")
+
+
 		c := &ast.Constraint{
 			Name:     $3,
 			Enforced: $4.(bool),
@@ -2178,6 +2501,10 @@ AlterTableSpec:
 	}
 |	"DROP" CheckConstraintKeyword Identifier
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,CheckConstraintKeyword")
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+
+
 		// Parse it and ignore it. Just for compatibility.
 		c := &ast.Constraint{
 			Name: $3,
@@ -2189,6 +2516,10 @@ AlterTableSpec:
 	}
 |	"ALTER" "INDEX" Identifier IndexInvisible
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpec,Identifier")
+sql_ir.LogGrammarCoverage("AlterTableSpec,IndexInvisible")
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp:         ast.AlterTableIndexInvisible,
 			IndexName:  model.NewCIStr($3),
@@ -2198,20 +2529,26 @@ AlterTableSpec:
 // 	Support caching or non-caching a table in memory for tidb, It can be found in the official Oracle document, see: https://docs.oracle.com/database/121/SQLRF/statements_3001.htm
 |	"CACHE"
 	{
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableCache,
 		}
 	}
 |	"NOCACHE"
 	{
+
+
 		$$ = &ast.AlterTableSpec{
 			Tp: ast.AlterTableNoCache,
 		}
 	}
 
 ReorganizePartitionRuleOpt:
-	/* empty */ %prec lowerThanRemove
+	 %prec lowerThanRemove
 	{
+
+
 		ret := &ast.AlterTableSpec{
 			Tp:              ast.AlterTableReorganizePartition,
 			OnAllPartitions: true,
@@ -2220,6 +2557,10 @@ ReorganizePartitionRuleOpt:
 	}
 |	PartitionNameList "INTO" '(' PartitionDefinitionList ')'
 	{
+sql_ir.LogGrammarCoverage("ReorganizePartitionRuleOpt,PartitionNameList")
+sql_ir.LogGrammarCoverage("ReorganizePartitionRuleOpt,PartitionDefinitionList")
+
+
 		ret := &ast.AlterTableSpec{
 			Tp:              ast.AlterTableReorganizePartition,
 			PartitionNames:  $1.([]model.CIStr),
@@ -2231,55 +2572,90 @@ ReorganizePartitionRuleOpt:
 AllOrPartitionNameList:
 	"ALL"
 	{
+
+
 		$$ = nil
 	}
 |	PartitionNameList %prec lowerThanComma
 
+{
+sql_ir.LogGrammarCoverage("AllOrPartitionNameList,PartitionNameList")
+
+}
 WithValidationOpt:
 	{
+
+
 		$$ = true
 	}
 |	WithValidation
 
+{
+sql_ir.LogGrammarCoverage("WithValidationOpt,WithValidation")
+
+}
 WithValidation:
 	"WITH" "VALIDATION"
 	{
+
+
 		$$ = true
 	}
 |	"WITHOUT" "VALIDATION"
 	{
+
+
 		$$ = false
 	}
 
 WithClustered:
 	"CLUSTERED"
 	{
+
+
 		$$ = model.PrimaryKeyTypeClustered
 	}
 |	"NONCLUSTERED"
 	{
+
+
 		$$ = model.PrimaryKeyTypeNonClustered
 	}
 
 AlgorithmClause:
 	"ALGORITHM" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("AlgorithmClause,EqOpt")
+
+
 		$$ = ast.AlgorithmTypeDefault
 	}
 |	"ALGORITHM" EqOpt "COPY"
 	{
+sql_ir.LogGrammarCoverage("AlgorithmClause,EqOpt")
+
+
 		$$ = ast.AlgorithmTypeCopy
 	}
 |	"ALGORITHM" EqOpt "INPLACE"
 	{
+sql_ir.LogGrammarCoverage("AlgorithmClause,EqOpt")
+
+
 		$$ = ast.AlgorithmTypeInplace
 	}
 |	"ALGORITHM" EqOpt "INSTANT"
 	{
+sql_ir.LogGrammarCoverage("AlgorithmClause,EqOpt")
+
+
 		$$ = ast.AlgorithmTypeInstant
 	}
 |	"ALGORITHM" EqOpt identifier
 	{
+sql_ir.LogGrammarCoverage("AlgorithmClause,EqOpt")
+
+
 		yylex.AppendError(ErrUnknownAlterAlgorithm.GenWithStackByArgs($1))
 		return 1
 	}
@@ -2287,10 +2663,17 @@ AlgorithmClause:
 LockClause:
 	"LOCK" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("LockClause,EqOpt")
+
+
 		$$ = ast.LockTypeDefault
 	}
 |	"LOCK" EqOpt Identifier
 	{
+sql_ir.LogGrammarCoverage("LockClause,EqOpt")
+sql_ir.LogGrammarCoverage("LockClause,Identifier")
+
+
 		id := strings.ToUpper($3)
 
 		if id == "NONE" {
@@ -2308,36 +2691,64 @@ LockClause:
 Writeable:
 	"READ" "WRITE"
 	{
+
+
 		$$ = true
 	}
 |	"READ" "ONLY"
 	{
+
+
 		$$ = false
 	}
 
 KeyOrIndex:
 	"KEY"
+{
+
+}
 |	"INDEX"
 
+{
+
+}
 KeyOrIndexOpt:
-	{}
+	{
+
+}
 |	KeyOrIndex
 
+{
+sql_ir.LogGrammarCoverage("KeyOrIndexOpt,KeyOrIndex")
+
+}
 ColumnKeywordOpt:
-	/* empty */ %prec empty
-	{}
+	 %prec empty
+	{
+
+}
 |	"COLUMN"
 
+{
+
+}
 ColumnPosition:
 	{
+
+
 		$$ = &ast.ColumnPosition{Tp: ast.ColumnPositionNone}
 	}
 |	"FIRST"
 	{
+
+
 		$$ = &ast.ColumnPosition{Tp: ast.ColumnPositionFirst}
 	}
 |	"AFTER" ColumnName
 	{
+sql_ir.LogGrammarCoverage("ColumnPosition,ColumnName")
+
+
 		$$ = &ast.ColumnPosition{
 			Tp:             ast.ColumnPositionAfter,
 			RelativeColumn: $2.(*ast.ColumnName),
@@ -2345,59 +2756,87 @@ ColumnPosition:
 	}
 
 AlterTableSpecListOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = make([]*ast.AlterTableSpec, 0, 1)
 	}
 |	AlterTableSpecList
 
+{
+sql_ir.LogGrammarCoverage("AlterTableSpecListOpt,AlterTableSpecList")
+
+}
 AlterTableSpecList:
 	AlterTableSpec
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpecList,AlterTableSpec")
+
+
 		$$ = []*ast.AlterTableSpec{$1.(*ast.AlterTableSpec)}
 	}
 |	AlterTableSpecList ',' AlterTableSpec
 	{
+sql_ir.LogGrammarCoverage("AlterTableSpecList,AlterTableSpecList")
+sql_ir.LogGrammarCoverage("AlterTableSpecList,AlterTableSpec")
+
+
 		$$ = append($1.([]*ast.AlterTableSpec), $3.(*ast.AlterTableSpec))
 	}
 
 PartitionNameList:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("PartitionNameList,Identifier")
+
+
 		$$ = []model.CIStr{model.NewCIStr($1)}
 	}
 |	PartitionNameList ',' Identifier
 	{
+sql_ir.LogGrammarCoverage("PartitionNameList,PartitionNameList")
+sql_ir.LogGrammarCoverage("PartitionNameList,Identifier")
+
+
 		$$ = append($1.([]model.CIStr), model.NewCIStr($3))
 	}
 
 ConstraintKeywordOpt:
-	/* empty */ %prec empty
+	 %prec empty
 	{
+
+
 		$$ = nil
 	}
 |	"CONSTRAINT"
 	{
+
+
 		$$ = nil
 	}
 |	"CONSTRAINT" Symbol
 	{
+sql_ir.LogGrammarCoverage("ConstraintKeywordOpt,Symbol")
+
+
 		$$ = $2
 	}
 
 Symbol:
 	Identifier
 
-/**************************************RenameTableStmt***************************************
- * See http://dev.mysql.com/doc/refman/5.7/en/rename-table.html
- *
- * RENAME TABLE
- *     tbl_name TO new_tbl_name
- *     [, tbl_name2 TO new_tbl_name2] ...
- *******************************************************************************************/
+
+{
+sql_ir.LogGrammarCoverage("Symbol,Identifier")
+
+}
 RenameTableStmt:
 	"RENAME" "TABLE" TableToTableList
 	{
+sql_ir.LogGrammarCoverage("RenameTableStmt,TableToTableList")
+
+
 		$$ = &ast.RenameTableStmt{
 			TableToTables: $3.([]*ast.TableToTable),
 		}
@@ -2406,32 +2845,40 @@ RenameTableStmt:
 TableToTableList:
 	TableToTable
 	{
+sql_ir.LogGrammarCoverage("TableToTableList,TableToTable")
+
+
 		$$ = []*ast.TableToTable{$1.(*ast.TableToTable)}
 	}
 |	TableToTableList ',' TableToTable
 	{
+sql_ir.LogGrammarCoverage("TableToTableList,TableToTableList")
+sql_ir.LogGrammarCoverage("TableToTableList,TableToTable")
+
+
 		$$ = append($1.([]*ast.TableToTable), $3.(*ast.TableToTable))
 	}
 
 TableToTable:
 	TableName "TO" TableName
 	{
+sql_ir.LogGrammarCoverage("TableToTable,TableName")
+sql_ir.LogGrammarCoverage("TableToTable,TableName")
+
+
 		$$ = &ast.TableToTable{
 			OldTable: $1.(*ast.TableName),
 			NewTable: $3.(*ast.TableName),
 		}
 	}
 
-/**************************************RenameUserStmt***************************************
- * See https://dev.mysql.com/doc/refman/5.7/en/rename-user.html
- *
- * RENAME USER
- *     old_user TO new_user
- *     [, old_user2 TO new_user2] ...
- *******************************************************************************************/
+
 RenameUserStmt:
 	"RENAME" "USER" UserToUserList
 	{
+sql_ir.LogGrammarCoverage("RenameUserStmt,UserToUserList")
+
+
 		$$ = &ast.RenameUserStmt{
 			UserToUsers: $3.([]*ast.UserToUser),
 		}
@@ -2440,62 +2887,73 @@ RenameUserStmt:
 UserToUserList:
 	UserToUser
 	{
+sql_ir.LogGrammarCoverage("UserToUserList,UserToUser")
+
+
 		$$ = []*ast.UserToUser{$1.(*ast.UserToUser)}
 	}
 |	UserToUserList ',' UserToUser
 	{
+sql_ir.LogGrammarCoverage("UserToUserList,UserToUserList")
+sql_ir.LogGrammarCoverage("UserToUserList,UserToUser")
+
+
 		$$ = append($1.([]*ast.UserToUser), $3.(*ast.UserToUser))
 	}
 
 UserToUser:
 	Username "TO" Username
 	{
+sql_ir.LogGrammarCoverage("UserToUser,Username")
+sql_ir.LogGrammarCoverage("UserToUser,Username")
+
+
 		$$ = &ast.UserToUser{
 			OldUser: $1.(*auth.UserIdentity),
 			NewUser: $3.(*auth.UserIdentity),
 		}
 	}
 
-/*******************************************************************
- *
- *  Recover Table Statement
- *
- *  Example:
- *      RECOVER TABLE t1;
- *      RECOVER TABLE BY JOB 100;
- *
- *******************************************************************/
+
 RecoverTableStmt:
 	"RECOVER" "TABLE" "BY" "JOB" Int64Num
 	{
+sql_ir.LogGrammarCoverage("RecoverTableStmt,Int64Num")
+
+
 		$$ = &ast.RecoverTableStmt{
 			JobID: $5.(int64),
 		}
 	}
 |	"RECOVER" "TABLE" TableName
 	{
+sql_ir.LogGrammarCoverage("RecoverTableStmt,TableName")
+
+
 		$$ = &ast.RecoverTableStmt{
 			Table: $3.(*ast.TableName),
 		}
 	}
 |	"RECOVER" "TABLE" TableName Int64Num
 	{
+sql_ir.LogGrammarCoverage("RecoverTableStmt,TableName")
+sql_ir.LogGrammarCoverage("RecoverTableStmt,Int64Num")
+
+
 		$$ = &ast.RecoverTableStmt{
 			Table:  $3.(*ast.TableName),
 			JobNum: $4.(int64),
 		}
 	}
 
-/*******************************************************************
- *
- *  Flush Back Table Statement
- *
- *  Example:
- *
- *******************************************************************/
+
 FlashbackTableStmt:
 	"FLASHBACK" "TABLE" TableName FlashbackToNewName
 	{
+sql_ir.LogGrammarCoverage("FlashbackTableStmt,TableName")
+sql_ir.LogGrammarCoverage("FlashbackTableStmt,FlashbackToNewName")
+
+
 		$$ = &ast.FlashBackTableStmt{
 			Table:   $3.(*ast.TableName),
 			NewName: $4,
@@ -2504,24 +2962,28 @@ FlashbackTableStmt:
 
 FlashbackToNewName:
 	{
+
+
 		$$ = ""
 	}
 |	"TO" Identifier
 	{
+sql_ir.LogGrammarCoverage("FlashbackToNewName,Identifier")
+
+
 		$$ = $2
 	}
 
-/*******************************************************************
- *
- *  Split index region statement
- *
- *  Example:
- *      SPLIT TABLE table_name INDEX index_name BY (val1...),(val2...)...
- *
- *******************************************************************/
+
 SplitRegionStmt:
 	"SPLIT" SplitSyntaxOption "TABLE" TableName PartitionNameListOpt SplitOption
 	{
+sql_ir.LogGrammarCoverage("SplitRegionStmt,SplitSyntaxOption")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,TableName")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,SplitOption")
+
+
 		$$ = &ast.SplitRegionStmt{
 			SplitSyntaxOpt: $2.(*ast.SplitSyntaxOption),
 			Table:          $4.(*ast.TableName),
@@ -2531,6 +2993,13 @@ SplitRegionStmt:
 	}
 |	"SPLIT" SplitSyntaxOption "TABLE" TableName PartitionNameListOpt "INDEX" Identifier SplitOption
 	{
+sql_ir.LogGrammarCoverage("SplitRegionStmt,SplitSyntaxOption")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,TableName")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,Identifier")
+sql_ir.LogGrammarCoverage("SplitRegionStmt,SplitOption")
+
+
 		$$ = &ast.SplitRegionStmt{
 			SplitSyntaxOpt: $2.(*ast.SplitSyntaxOption),
 			Table:          $4.(*ast.TableName),
@@ -2543,6 +3012,11 @@ SplitRegionStmt:
 SplitOption:
 	"BETWEEN" RowValue "AND" RowValue "REGIONS" Int64Num
 	{
+sql_ir.LogGrammarCoverage("SplitOption,RowValue")
+sql_ir.LogGrammarCoverage("SplitOption,RowValue")
+sql_ir.LogGrammarCoverage("SplitOption,Int64Num")
+
+
 		$$ = &ast.SplitOption{
 			Lower: $2.([]ast.ExprNode),
 			Upper: $4.([]ast.ExprNode),
@@ -2551,30 +3025,41 @@ SplitOption:
 	}
 |	"BY" ValuesList
 	{
+sql_ir.LogGrammarCoverage("SplitOption,ValuesList")
+
+
 		$$ = &ast.SplitOption{
 			ValueLists: $2.([][]ast.ExprNode),
 		}
 	}
 
 SplitSyntaxOption:
-	/* empty */
+	
 	{
+
+
 		$$ = &ast.SplitSyntaxOption{}
 	}
 |	"REGION" "FOR"
 	{
+
+
 		$$ = &ast.SplitSyntaxOption{
 			HasRegionFor: true,
 		}
 	}
 |	"PARTITION"
 	{
+
+
 		$$ = &ast.SplitSyntaxOption{
 			HasPartition: true,
 		}
 	}
 |	"REGION" "FOR" "PARTITION"
 	{
+
+
 		$$ = &ast.SplitSyntaxOption{
 			HasRegionFor: true,
 			HasPartition: true,
@@ -2584,22 +3069,49 @@ SplitSyntaxOption:
 AnalyzeTableStmt:
 	"ANALYZE" "TABLE" TableNameList AllColumnsOrPredicateColumnsOpt AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AllColumnsOrPredicateColumnsOpt")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{TableNames: $3.([]*ast.TableName), ColumnChoice: $4.(model.ColumnChoice), AnalyzeOpts: $5.([]ast.AnalyzeOpt)}
 	}
 |	"ANALYZE" "TABLE" TableName "INDEX" IndexNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IndexNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{TableNames: []*ast.TableName{$3.(*ast.TableName)}, IndexNames: $5.([]model.CIStr), IndexFlag: true, AnalyzeOpts: $6.([]ast.AnalyzeOpt)}
 	}
 |	"ANALYZE" "INCREMENTAL" "TABLE" TableName "INDEX" IndexNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IndexNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{TableNames: []*ast.TableName{$4.(*ast.TableName)}, IndexNames: $6.([]model.CIStr), IndexFlag: true, Incremental: true, AnalyzeOpts: $7.([]ast.AnalyzeOpt)}
 	}
 |	"ANALYZE" "TABLE" TableName "PARTITION" PartitionNameList AllColumnsOrPredicateColumnsOpt AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AllColumnsOrPredicateColumnsOpt")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{TableNames: []*ast.TableName{$3.(*ast.TableName)}, PartitionNames: $5.([]model.CIStr), ColumnChoice: $6.(model.ColumnChoice), AnalyzeOpts: $7.([]ast.AnalyzeOpt)}
 	}
 |	"ANALYZE" "TABLE" TableName "PARTITION" PartitionNameList "INDEX" IndexNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IndexNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:     []*ast.TableName{$3.(*ast.TableName)},
 			PartitionNames: $5.([]model.CIStr),
@@ -2610,6 +3122,12 @@ AnalyzeTableStmt:
 	}
 |	"ANALYZE" "INCREMENTAL" "TABLE" TableName "PARTITION" PartitionNameList "INDEX" IndexNameList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IndexNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:     []*ast.TableName{$4.(*ast.TableName)},
 			PartitionNames: $6.([]model.CIStr),
@@ -2621,6 +3139,11 @@ AnalyzeTableStmt:
 	}
 |	"ANALYZE" "TABLE" TableName "UPDATE" "HISTOGRAM" "ON" IdentList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IdentList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:         []*ast.TableName{$3.(*ast.TableName)},
 			ColumnNames:        $7.([]model.CIStr),
@@ -2630,6 +3153,10 @@ AnalyzeTableStmt:
 	}
 |	"ANALYZE" "TABLE" TableName "DROP" "HISTOGRAM" "ON" IdentList
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IdentList")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:         []*ast.TableName{$3.(*ast.TableName)},
 			ColumnNames:        $7.([]model.CIStr),
@@ -2638,6 +3165,11 @@ AnalyzeTableStmt:
 	}
 |	"ANALYZE" "TABLE" TableName "COLUMNS" IdentList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IdentList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:   []*ast.TableName{$3.(*ast.TableName)},
 			ColumnNames:  $5.([]model.CIStr),
@@ -2646,6 +3178,12 @@ AnalyzeTableStmt:
 	}
 |	"ANALYZE" "TABLE" TableName "PARTITION" PartitionNameList "COLUMNS" IdentList AnalyzeOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,TableName")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,PartitionNameList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,IdentList")
+sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
+
+
 		$$ = &ast.AnalyzeTableStmt{
 			TableNames:     []*ast.TableName{$3.(*ast.TableName)},
 			PartitionNames: $5.([]model.CIStr),
@@ -2655,131 +3193,206 @@ AnalyzeTableStmt:
 	}
 
 AllColumnsOrPredicateColumnsOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = model.DefaultChoice
 	}
 |	"ALL" "COLUMNS"
 	{
+
+
 		$$ = model.AllColumns
 	}
 |	"PREDICATE" "COLUMNS"
 	{
+
+
 		$$ = model.PredicateColumns
 	}
 
 AnalyzeOptionListOpt:
 	{
+
+
 		$$ = []ast.AnalyzeOpt{}
 	}
 |	"WITH" AnalyzeOptionList
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOptionListOpt,AnalyzeOptionList")
+
+
 		$$ = $2.([]ast.AnalyzeOpt)
 	}
 
 AnalyzeOptionList:
 	AnalyzeOption
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOptionList,AnalyzeOption")
+
+
 		$$ = []ast.AnalyzeOpt{$1.(ast.AnalyzeOpt)}
 	}
 |	AnalyzeOptionList ',' AnalyzeOption
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOptionList,AnalyzeOptionList")
+sql_ir.LogGrammarCoverage("AnalyzeOptionList,AnalyzeOption")
+
+
 		$$ = append($1.([]ast.AnalyzeOpt), $3.(ast.AnalyzeOpt))
 	}
 
 AnalyzeOption:
 	NUM "BUCKETS"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NUM")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptNumBuckets, Value: ast.NewValueExpr($1, "", "")}
 	}
 |	NUM "TOPN"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NUM")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptNumTopN, Value: ast.NewValueExpr($1, "", "")}
 	}
 |	NUM "CMSKETCH" "DEPTH"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NUM")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptCMSketchDepth, Value: ast.NewValueExpr($1, "", "")}
 	}
 |	NUM "CMSKETCH" "WIDTH"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NUM")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptCMSketchWidth, Value: ast.NewValueExpr($1, "", "")}
 	}
 |	NUM "SAMPLES"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NUM")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptNumSamples, Value: ast.NewValueExpr($1, "", "")}
 	}
 |	NumLiteral "SAMPLERATE"
 	{
+sql_ir.LogGrammarCoverage("AnalyzeOption,NumLiteral")
+
+
 		$$ = ast.AnalyzeOpt{Type: ast.AnalyzeOptSampleRate, Value: ast.NewValueExpr($1, "", "")}
 	}
 
-/*******************************************************************************************/
+
 Assignment:
 	ColumnName eq ExprOrDefault
 	{
+sql_ir.LogGrammarCoverage("Assignment,ColumnName")
+sql_ir.LogGrammarCoverage("Assignment,ExprOrDefault")
+
+
 		$$ = &ast.Assignment{Column: $1.(*ast.ColumnName), Expr: $3}
 	}
 
 AssignmentList:
 	Assignment
 	{
+sql_ir.LogGrammarCoverage("AssignmentList,Assignment")
+
+
 		$$ = []*ast.Assignment{$1.(*ast.Assignment)}
 	}
 |	AssignmentList ',' Assignment
 	{
+sql_ir.LogGrammarCoverage("AssignmentList,AssignmentList")
+sql_ir.LogGrammarCoverage("AssignmentList,Assignment")
+
+
 		$$ = append($1.([]*ast.Assignment), $3.(*ast.Assignment))
 	}
 
 AssignmentListOpt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("AssignmentListOpt,/*")
+sql_ir.LogGrammarCoverage("AssignmentListOpt,EMPTY")
+sql_ir.LogGrammarCoverage("AssignmentListOpt,*/")
+
+
 		$$ = []*ast.Assignment{}
 	}
 |	AssignmentList
 
+{
+sql_ir.LogGrammarCoverage("AssignmentListOpt,AssignmentList")
+
+}
 BeginTransactionStmt:
 	"BEGIN"
 	{
+
+
 		$$ = &ast.BeginStmt{}
 	}
 |	"BEGIN" "PESSIMISTIC"
 	{
+
+
 		$$ = &ast.BeginStmt{
 			Mode: ast.Pessimistic,
 		}
 	}
 |	"BEGIN" "OPTIMISTIC"
 	{
+
+
 		$$ = &ast.BeginStmt{
 			Mode: ast.Optimistic,
 		}
 	}
 |	"START" "TRANSACTION"
 	{
+
+
 		$$ = &ast.BeginStmt{}
 	}
 |	"START" "TRANSACTION" "READ" "WRITE"
 	{
+
+
 		$$ = &ast.BeginStmt{}
 	}
 |	"START" "TRANSACTION" "WITH" "CONSISTENT" "SNAPSHOT"
 	{
+
+
 		$$ = &ast.BeginStmt{}
 	}
 |	"START" "TRANSACTION" "WITH" "CAUSAL" "CONSISTENCY" "ONLY"
 	{
+
+
 		$$ = &ast.BeginStmt{
 			CausalConsistencyOnly: true,
 		}
 	}
 |	"START" "TRANSACTION" "READ" "ONLY"
 	{
+
+
 		$$ = &ast.BeginStmt{
 			ReadOnly: true,
 		}
 	}
 |	"START" "TRANSACTION" "READ" "ONLY" AsOfClause
 	{
+sql_ir.LogGrammarCoverage("BeginTransactionStmt,AsOfClause")
+
+
 		$$ = &ast.BeginStmt{
 			ReadOnly: true,
 			AsOf:     $5.(*ast.AsOfClause),
@@ -2789,22 +3402,37 @@ BeginTransactionStmt:
 BinlogStmt:
 	"BINLOG" stringLit
 	{
+sql_ir.LogGrammarCoverage("BinlogStmt,stringLit")
+
+
 		$$ = &ast.BinlogStmt{Str: $2}
 	}
 
 ColumnDefList:
 	ColumnDef
 	{
+sql_ir.LogGrammarCoverage("ColumnDefList,ColumnDef")
+
+
 		$$ = []*ast.ColumnDef{$1.(*ast.ColumnDef)}
 	}
 |	ColumnDefList ',' ColumnDef
 	{
+sql_ir.LogGrammarCoverage("ColumnDefList,ColumnDefList")
+sql_ir.LogGrammarCoverage("ColumnDefList,ColumnDef")
+
+
 		$$ = append($1.([]*ast.ColumnDef), $3.(*ast.ColumnDef))
 	}
 
 ColumnDef:
 	ColumnName Type ColumnOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("ColumnDef,ColumnName")
+sql_ir.LogGrammarCoverage("ColumnDef,Type")
+sql_ir.LogGrammarCoverage("ColumnDef,ColumnOptionListOpt")
+
+
 		colDef := &ast.ColumnDef{Name: $1.(*ast.ColumnName), Tp: $2.(*types.FieldType), Options: $3.([]*ast.ColumnOption)}
 		if !colDef.Validate() {
 			yylex.AppendError(yylex.Errorf("Invalid column definition"))
@@ -2814,6 +3442,10 @@ ColumnDef:
 	}
 |	ColumnName "SERIAL" ColumnOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("ColumnDef,ColumnName")
+sql_ir.LogGrammarCoverage("ColumnDef,ColumnOptionListOpt")
+
+
 		// TODO: check flen 0
 		tp := types.NewFieldType(mysql.TypeLonglong)
 		options := []*ast.ColumnOption{{Tp: ast.ColumnOptionNotNull}, {Tp: ast.ColumnOptionAutoIncrement}, {Tp: ast.ColumnOptionUniqKey}}
@@ -2830,139 +3462,244 @@ ColumnDef:
 ColumnName:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+
+
 		$$ = &ast.ColumnName{Name: model.NewCIStr($1)}
 	}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+
+
 		$$ = &ast.ColumnName{Table: model.NewCIStr($1), Name: model.NewCIStr($3)}
 	}
 |	Identifier '.' Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+sql_ir.LogGrammarCoverage("ColumnName,Identifier")
+
+
 		$$ = &ast.ColumnName{Schema: model.NewCIStr($1), Table: model.NewCIStr($3), Name: model.NewCIStr($5)}
 	}
 
 ColumnNameList:
 	ColumnName
 	{
+sql_ir.LogGrammarCoverage("ColumnNameList,ColumnName")
+
+
 		$$ = []*ast.ColumnName{$1.(*ast.ColumnName)}
 	}
 |	ColumnNameList ',' ColumnName
 	{
+sql_ir.LogGrammarCoverage("ColumnNameList,ColumnNameList")
+sql_ir.LogGrammarCoverage("ColumnNameList,ColumnName")
+
+
 		$$ = append($1.([]*ast.ColumnName), $3.(*ast.ColumnName))
 	}
 
 ColumnNameListOpt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ColumnNameListOpt,/*")
+sql_ir.LogGrammarCoverage("ColumnNameListOpt,EMPTY")
+sql_ir.LogGrammarCoverage("ColumnNameListOpt,*/")
+
+
 		$$ = []*ast.ColumnName{}
 	}
 |	ColumnNameList
 
+{
+sql_ir.LogGrammarCoverage("ColumnNameListOpt,ColumnNameList")
+
+}
 IdentListWithParenOpt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("IdentListWithParenOpt,/*")
+sql_ir.LogGrammarCoverage("IdentListWithParenOpt,EMPTY")
+sql_ir.LogGrammarCoverage("IdentListWithParenOpt,*/")
+
+
 		$$ = []model.CIStr{}
 	}
 |	'(' IdentList ')'
 	{
+sql_ir.LogGrammarCoverage("IdentListWithParenOpt,IdentList")
+
+
 		$$ = $2
 	}
 
 IdentList:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("IdentList,Identifier")
+
+
 		$$ = []model.CIStr{model.NewCIStr($1)}
 	}
 |	IdentList ',' Identifier
 	{
+sql_ir.LogGrammarCoverage("IdentList,IdentList")
+sql_ir.LogGrammarCoverage("IdentList,Identifier")
+
+
 		$$ = append($1.([]model.CIStr), model.NewCIStr($3))
 	}
 
 ColumnNameOrUserVarListOpt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,/*")
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,EMPTY")
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,*/")
+
+
 		$$ = []*ast.ColumnNameOrUserVar{}
 	}
 |	ColumnNameOrUserVariableList
 
+{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOpt,ColumnNameOrUserVariableList")
+
+}
 ColumnNameOrUserVariableList:
 	ColumnNameOrUserVariable
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVariableList,ColumnNameOrUserVariable")
+
+
 		$$ = []*ast.ColumnNameOrUserVar{$1.(*ast.ColumnNameOrUserVar)}
 	}
 |	ColumnNameOrUserVariableList ',' ColumnNameOrUserVariable
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVariableList,ColumnNameOrUserVariableList")
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVariableList,ColumnNameOrUserVariable")
+
+
 		$$ = append($1.([]*ast.ColumnNameOrUserVar), $3.(*ast.ColumnNameOrUserVar))
 	}
 
 ColumnNameOrUserVariable:
 	ColumnName
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVariable,ColumnName")
+
+
 		$$ = &ast.ColumnNameOrUserVar{ColumnName: $1.(*ast.ColumnName)}
 	}
 |	UserVariable
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVariable,UserVariable")
+
+
 		$$ = &ast.ColumnNameOrUserVar{UserVar: $1.(*ast.VariableExpr)}
 	}
 
 ColumnNameOrUserVarListOptWithBrackets:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,/*")
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,EMPTY")
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,*/")
+
+
 		$$ = []*ast.ColumnNameOrUserVar{}
 	}
 |	'(' ColumnNameOrUserVarListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("ColumnNameOrUserVarListOptWithBrackets,ColumnNameOrUserVarListOpt")
+
+
 		$$ = $2.([]*ast.ColumnNameOrUserVar)
 	}
 
 CommitStmt:
 	"COMMIT"
 	{
+
+
 		$$ = &ast.CommitStmt{}
 	}
 |	"COMMIT" CompletionTypeWithinTransaction
 	{
+sql_ir.LogGrammarCoverage("CommitStmt,CompletionTypeWithinTransaction")
+
+
 		$$ = &ast.CommitStmt{CompletionType: $2.(ast.CompletionType)}
 	}
 
 PrimaryOpt:
-	{}
+	{
+
+}
 |	"PRIMARY"
 
+{
+
+}
 NotSym:
 	not
+{
+
+}
 |	not2
 	{
+
+
 		$$ = "NOT"
 	}
 
 EnforcedOrNot:
 	"ENFORCED"
 	{
+
+
 		$$ = true
 	}
 |	NotSym "ENFORCED"
 	{
+sql_ir.LogGrammarCoverage("EnforcedOrNot,NotSym")
+
+
 		$$ = false
 	}
 
 EnforcedOrNotOpt:
 	%prec lowerThanNot
 	{
+
+
 		$$ = true
 	}
 |	EnforcedOrNot
 
+{
+sql_ir.LogGrammarCoverage("EnforcedOrNotOpt,EnforcedOrNot")
+
+}
 EnforcedOrNotOrNotNullOpt:
 	//	 This branch is needed to workaround the need of a lookahead of 2 for the grammar:
 	//
 	//	  { [NOT] NULL | CHECK(...) [NOT] ENFORCED } ...
 	NotSym "NULL"
 	{
+sql_ir.LogGrammarCoverage("EnforcedOrNotOrNotNullOpt,NotSym")
+
+
 		$$ = 0
 	}
 |	EnforcedOrNotOpt
 	{
+sql_ir.LogGrammarCoverage("EnforcedOrNotOrNotNullOpt,EnforcedOrNotOpt")
+
+
 		if $1.(bool) {
 			$$ = 1
 		} else {
@@ -2973,18 +3710,28 @@ EnforcedOrNotOrNotNullOpt:
 ColumnOption:
 	NotSym "NULL"
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,NotSym")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionNotNull}
 	}
 |	"NULL"
 	{
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionNull}
 	}
 |	"AUTO_INCREMENT"
 	{
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionAutoIncrement}
 	}
 |	PrimaryOpt "KEY"
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,PrimaryOpt")
+
+
 		// KEY is normally a synonym for INDEX. The key attribute PRIMARY KEY
 		// can also be specified as just KEY when given in a column definition.
 		// See http://dev.mysql.com/doc/refman/5.7/en/create-table.html
@@ -2992,6 +3739,10 @@ ColumnOption:
 	}
 |	PrimaryOpt "KEY" WithClustered
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,PrimaryOpt")
+sql_ir.LogGrammarCoverage("ColumnOption,WithClustered")
+
+
 		// KEY is normally a synonym for INDEX. The key attribute PRIMARY KEY
 		// can also be specified as just KEY when given in a column definition.
 		// See http://dev.mysql.com/doc/refman/5.7/en/create-table.html
@@ -2999,30 +3750,50 @@ ColumnOption:
 	}
 |	"UNIQUE" %prec lowerThanKey
 	{
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionUniqKey}
 	}
 |	"UNIQUE" "KEY"
 	{
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionUniqKey}
 	}
 |	"DEFAULT" DefaultValueExpr
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,DefaultValueExpr")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionDefaultValue, Expr: $2}
 	}
 |	"SERIAL" "DEFAULT" "VALUE"
 	{
+
+
 		$$ = []*ast.ColumnOption{{Tp: ast.ColumnOptionNotNull}, {Tp: ast.ColumnOptionAutoIncrement}, {Tp: ast.ColumnOptionUniqKey}}
 	}
 |	"ON" "UPDATE" NowSymOptionFraction
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,NowSymOptionFraction")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionOnUpdate, Expr: $3}
 	}
 |	"COMMENT" stringLit
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,stringLit")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionComment, Expr: ast.NewValueExpr($2, "", "")}
 	}
 |	ConstraintKeywordOpt "CHECK" '(' Expression ')' EnforcedOrNotOrNotNullOpt
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,ConstraintKeywordOpt")
+sql_ir.LogGrammarCoverage("ColumnOption,Expression")
+sql_ir.LogGrammarCoverage("ColumnOption,EnforcedOrNotOrNotNullOpt")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/create-table.html
 		// The CHECK clause is parsed but ignored by all storage engines.
 		// See the branch named `EnforcedOrNotOrNotNullOpt`.
@@ -3050,6 +3821,11 @@ ColumnOption:
 	}
 |	GeneratedAlways "AS" '(' Expression ')' VirtualOrStored
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,GeneratedAlways")
+sql_ir.LogGrammarCoverage("ColumnOption,Expression")
+sql_ir.LogGrammarCoverage("ColumnOption,VirtualOrStored")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-2])
 		endOffset := parser.endOffset(&yyS[yypt-1])
 		expr := $4
@@ -3063,6 +3839,9 @@ ColumnOption:
 	}
 |	ReferDef
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,ReferDef")
+
+
 		$$ = &ast.ColumnOption{
 			Tp:    ast.ColumnOptionReference,
 			Refer: $1.(*ast.ReferenceDef),
@@ -3070,62 +3849,104 @@ ColumnOption:
 	}
 |	"COLLATE" CollationName
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,CollationName")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionCollate, StrValue: $2}
 	}
 |	"COLUMN_FORMAT" ColumnFormat
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,ColumnFormat")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionColumnFormat, StrValue: $2}
 	}
 |	"STORAGE" StorageMedia
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,StorageMedia")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionStorage, StrValue: $2}
 		yylex.AppendError(yylex.Errorf("The STORAGE clause is parsed but ignored by all storage engines."))
 		parser.lastErrorAsWarn()
 	}
 |	"AUTO_RANDOM" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("ColumnOption,OptFieldLen")
+
+
 		$$ = &ast.ColumnOption{Tp: ast.ColumnOptionAutoRandom, AutoRandomBitLength: $2.(int)}
 	}
 
 StorageMedia:
 	"DEFAULT"
+{
+
+}
 |	"DISK"
+{
+
+}
 |	"MEMORY"
 
+{
+
+}
 ColumnFormat:
 	"DEFAULT"
 	{
+
+
 		$$ = "DEFAULT"
 	}
 |	"FIXED"
 	{
+
+
 		$$ = "FIXED"
 	}
 |	"DYNAMIC"
 	{
+
+
 		$$ = "DYNAMIC"
 	}
 
 GeneratedAlways:
 
+{
+
+}
 |	"GENERATED" "ALWAYS"
 
+{
+
+}
 VirtualOrStored:
 	{
+
+
 		$$ = false
 	}
 |	"VIRTUAL"
 	{
+
+
 		$$ = false
 	}
 |	"STORED"
 	{
+
+
 		$$ = true
 	}
 
 ColumnOptionList:
 	ColumnOption
 	{
+sql_ir.LogGrammarCoverage("ColumnOptionList,ColumnOption")
+
+
 		if columnOption, ok := $1.(*ast.ColumnOption); ok {
 			$$ = []*ast.ColumnOption{columnOption}
 		} else {
@@ -3134,6 +3955,10 @@ ColumnOptionList:
 	}
 |	ColumnOptionList ColumnOption
 	{
+sql_ir.LogGrammarCoverage("ColumnOptionList,ColumnOptionList")
+sql_ir.LogGrammarCoverage("ColumnOptionList,ColumnOption")
+
+
 		if columnOption, ok := $2.(*ast.ColumnOption); ok {
 			$$ = append($1.([]*ast.ColumnOption), columnOption)
 		} else {
@@ -3143,13 +3968,24 @@ ColumnOptionList:
 
 ColumnOptionListOpt:
 	{
+
+
 		$$ = []*ast.ColumnOption{}
 	}
 |	ColumnOptionList
 
+{
+sql_ir.LogGrammarCoverage("ColumnOptionListOpt,ColumnOptionList")
+
+}
 ConstraintElem:
 	"PRIMARY" "KEY" IndexNameAndTypeOpt '(' IndexPartSpecificationList ')' IndexOptionList
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexNameAndTypeOpt")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexOptionList")
+
+
 		c := &ast.Constraint{
 			Tp:           ast.ConstraintPrimaryKey,
 			Keys:         $5.([]*ast.IndexPartSpecification),
@@ -3169,6 +4005,12 @@ ConstraintElem:
 	}
 |	"FULLTEXT" KeyOrIndexOpt IndexName '(' IndexPartSpecificationList ')' IndexOptionList
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,KeyOrIndexOpt")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexName")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexOptionList")
+
+
 		c := &ast.Constraint{
 			Tp:           ast.ConstraintFulltext,
 			Keys:         $5.([]*ast.IndexPartSpecification),
@@ -3182,6 +4024,13 @@ ConstraintElem:
 	}
 |	KeyOrIndex IfNotExists IndexNameAndTypeOpt '(' IndexPartSpecificationList ')' IndexOptionList
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,KeyOrIndex")
+sql_ir.LogGrammarCoverage("ConstraintElem,IfNotExists")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexNameAndTypeOpt")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexOptionList")
+
+
 		c := &ast.Constraint{
 			IfNotExists:  $2.(bool),
 			Tp:           ast.ConstraintIndex,
@@ -3202,6 +4051,12 @@ ConstraintElem:
 	}
 |	"UNIQUE" KeyOrIndexOpt IndexNameAndTypeOpt '(' IndexPartSpecificationList ')' IndexOptionList
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,KeyOrIndexOpt")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexNameAndTypeOpt")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexOptionList")
+
+
 		c := &ast.Constraint{
 			Tp:           ast.ConstraintUniq,
 			Keys:         $5.([]*ast.IndexPartSpecification),
@@ -3222,6 +4077,12 @@ ConstraintElem:
 	}
 |	"FOREIGN" "KEY" IfNotExists IndexName '(' IndexPartSpecificationList ')' ReferDef
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,IfNotExists")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexName")
+sql_ir.LogGrammarCoverage("ConstraintElem,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("ConstraintElem,ReferDef")
+
+
 		$$ = &ast.Constraint{
 			IfNotExists:  $3.(bool),
 			Tp:           ast.ConstraintForeignKey,
@@ -3233,6 +4094,10 @@ ConstraintElem:
 	}
 |	"CHECK" '(' Expression ')' EnforcedOrNotOpt
 	{
+sql_ir.LogGrammarCoverage("ConstraintElem,Expression")
+sql_ir.LogGrammarCoverage("ConstraintElem,EnforcedOrNotOpt")
+
+
 		$$ = &ast.Constraint{
 			Tp:       ast.ConstraintCheck,
 			Expr:     $3.(ast.ExprNode),
@@ -3243,23 +4108,34 @@ ConstraintElem:
 Match:
 	"MATCH" "FULL"
 	{
+
+
 		$$ = ast.MatchFull
 	}
 |	"MATCH" "PARTIAL"
 	{
+
+
 		$$ = ast.MatchPartial
 	}
 |	"MATCH" "SIMPLE"
 	{
+
+
 		$$ = ast.MatchSimple
 	}
 
 MatchOpt:
 	{
+
+
 		$$ = ast.MatchNone
 	}
 |	Match
 	{
+sql_ir.LogGrammarCoverage("MatchOpt,Match")
+
+
 		$$ = $1
 		yylex.AppendError(yylex.Errorf("The MATCH clause is parsed but ignored by all storage engines."))
 		parser.lastErrorAsWarn()
@@ -3268,6 +4144,12 @@ MatchOpt:
 ReferDef:
 	"REFERENCES" TableName IndexPartSpecificationListOpt MatchOpt OnDeleteUpdateOpt
 	{
+sql_ir.LogGrammarCoverage("ReferDef,TableName")
+sql_ir.LogGrammarCoverage("ReferDef,IndexPartSpecificationListOpt")
+sql_ir.LogGrammarCoverage("ReferDef,MatchOpt")
+sql_ir.LogGrammarCoverage("ReferDef,OnDeleteUpdateOpt")
+
+
 		onDeleteUpdate := $5.([2]interface{})
 		$$ = &ast.ReferenceDef{
 			Table:                   $2.(*ast.TableName),
@@ -3281,91 +4163,137 @@ ReferDef:
 OnDelete:
 	"ON" "DELETE" ReferOpt
 	{
+sql_ir.LogGrammarCoverage("OnDelete,ReferOpt")
+
+
 		$$ = &ast.OnDeleteOpt{ReferOpt: $3.(ast.ReferOptionType)}
 	}
 
 OnUpdate:
 	"ON" "UPDATE" ReferOpt
 	{
+sql_ir.LogGrammarCoverage("OnUpdate,ReferOpt")
+
+
 		$$ = &ast.OnUpdateOpt{ReferOpt: $3.(ast.ReferOptionType)}
 	}
 
 OnDeleteUpdateOpt:
 	%prec lowerThanOn
 	{
+
+
 		$$ = [2]interface{}{&ast.OnDeleteOpt{}, &ast.OnUpdateOpt{}}
 	}
 |	OnDelete %prec lowerThanOn
 	{
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnDelete")
+
+
 		$$ = [2]interface{}{$1, &ast.OnUpdateOpt{}}
 	}
 |	OnUpdate %prec lowerThanOn
 	{
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnUpdate")
+
+
 		$$ = [2]interface{}{&ast.OnDeleteOpt{}, $1}
 	}
 |	OnDelete OnUpdate
 	{
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnDelete")
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnUpdate")
+
+
 		$$ = [2]interface{}{$1, $2}
 	}
 |	OnUpdate OnDelete
 	{
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnUpdate")
+sql_ir.LogGrammarCoverage("OnDeleteUpdateOpt,OnDelete")
+
+
 		$$ = [2]interface{}{$2, $1}
 	}
 
 ReferOpt:
 	"RESTRICT"
 	{
+
+
 		$$ = ast.ReferOptionRestrict
 	}
 |	"CASCADE"
 	{
+
+
 		$$ = ast.ReferOptionCascade
 	}
 |	"SET" "NULL"
 	{
+
+
 		$$ = ast.ReferOptionSetNull
 	}
 |	"NO" "ACTION"
 	{
+
+
 		$$ = ast.ReferOptionNoAction
 	}
 |	"SET" "DEFAULT"
 	{
+
+
 		$$ = ast.ReferOptionSetDefault
 		yylex.AppendError(yylex.Errorf("The SET DEFAULT clause is parsed but ignored by all storage engines."))
 		parser.lastErrorAsWarn()
 	}
 
-/*
- * The DEFAULT clause specifies a default value for a column.
- * It can be a function or an expression. This means, for example,
- * that you can set the default for a date column to be the value of
- * a function such as NOW() or CURRENT_DATE. While in MySQL 8.0
- * expression default values are required to be enclosed in parentheses,
- * they are NOT required so in TiDB.
- *
- * See https://dev.mysql.com/doc/refman/8.0/en/create-table.html
- *     https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html
- */
+
 DefaultValueExpr:
 	NowSymOptionFractionParentheses
+{
+sql_ir.LogGrammarCoverage("DefaultValueExpr,NowSymOptionFractionParentheses")
+
+}
 |	SignedLiteral
+{
+sql_ir.LogGrammarCoverage("DefaultValueExpr,SignedLiteral")
+
+}
 |	NextValueForSequence
+{
+sql_ir.LogGrammarCoverage("DefaultValueExpr,NextValueForSequence")
+
+}
 |	BuiltinFunction
 
+{
+sql_ir.LogGrammarCoverage("DefaultValueExpr,BuiltinFunction")
+
+}
 BuiltinFunction:
 	'(' BuiltinFunction ')'
 	{
+sql_ir.LogGrammarCoverage("BuiltinFunction,BuiltinFunction")
+
+
 		$$ = $2.(*ast.FuncCallExpr)
 	}
 |	identifier '(' ')'
 	{
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 		}
 	}
 |	identifier '(' ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("BuiltinFunction,ExpressionList")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   $3.([]ast.ExprNode),
@@ -3375,27 +4303,47 @@ BuiltinFunction:
 NowSymOptionFractionParentheses:
 	'(' NowSymOptionFractionParentheses ')'
 	{
+sql_ir.LogGrammarCoverage("NowSymOptionFractionParentheses,NowSymOptionFractionParentheses")
+
+
 		$$ = $2.(*ast.FuncCallExpr)
 	}
 |	NowSymOptionFraction
 
+{
+sql_ir.LogGrammarCoverage("NowSymOptionFractionParentheses,NowSymOptionFraction")
+
+}
 NowSymOptionFraction:
 	NowSym
 	{
+sql_ir.LogGrammarCoverage("NowSymOptionFraction,NowSym")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP")}
 	}
 |	NowSymFunc '(' ')'
 	{
+sql_ir.LogGrammarCoverage("NowSymOptionFraction,NowSymFunc")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP")}
 	}
 |	NowSymFunc '(' NUM ')'
 	{
+sql_ir.LogGrammarCoverage("NowSymOptionFraction,NowSymFunc")
+sql_ir.LogGrammarCoverage("NowSymOptionFraction,NUM")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP"), Args: []ast.ExprNode{ast.NewValueExpr($3, parser.charset, parser.collation)}}
 	}
 
 NextValueForSequence:
 	"NEXT" "VALUE" forKwd TableName
 	{
+sql_ir.LogGrammarCoverage("NextValueForSequence,TableName")
+
+
 		objNameExpr := &ast.TableNameExpr{
 			Name: $4.(*ast.TableName),
 		}
@@ -3406,6 +4354,9 @@ NextValueForSequence:
 	}
 |	"NEXTVAL" '(' TableName ')'
 	{
+sql_ir.LogGrammarCoverage("NextValueForSequence,TableName")
+
+
 		objNameExpr := &ast.TableNameExpr{
 			Name: $3.(*ast.TableName),
 		}
@@ -3415,67 +4366,120 @@ NextValueForSequence:
 		}
 	}
 
-/*
-* See https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_localtime
-* TODO: Process other three keywords
-*/
+
 NowSymFunc:
 	"CURRENT_TIMESTAMP"
+{
+
+}
 |	"LOCALTIME"
+{
+
+}
 |	"LOCALTIMESTAMP"
+{
+
+}
 |	builtinNow
 
+{
+
+}
 NowSym:
 	"CURRENT_TIMESTAMP"
+{
+
+}
 |	"LOCALTIME"
+{
+
+}
 |	"LOCALTIMESTAMP"
 
+{
+
+}
 SignedLiteral:
 	Literal
 	{
+sql_ir.LogGrammarCoverage("SignedLiteral,Literal")
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	'+' NumLiteral
 	{
+sql_ir.LogGrammarCoverage("SignedLiteral,NumLiteral")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Plus, V: ast.NewValueExpr($2, parser.charset, parser.collation)}
 	}
 |	'-' NumLiteral
 	{
+sql_ir.LogGrammarCoverage("SignedLiteral,NumLiteral")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Minus, V: ast.NewValueExpr($2, parser.charset, parser.collation)}
 	}
 
 NumLiteral:
 	intLit
+{
+
+}
 |	floatLit
+{
+
+}
 |	decLit
 
+{
+
+}
 StatsType:
 	"CARDINALITY"
 	{
+
+
 		$$ = ast.StatsTypeCardinality
 	}
 |	"DEPENDENCY"
 	{
+
+
 		$$ = ast.StatsTypeDependency
 	}
 |	"CORRELATION"
 	{
+
+
 		$$ = ast.StatsTypeCorrelation
 	}
 
 BindingStatusType:
 	"ENABLED"
 	{
+
+
 		$$ = ast.BindingStatusTypeEnabled
 	}
 |	"DISABLED"
 	{
+
+
 		$$ = ast.BindingStatusTypeDisabled
 	}
 
 CreateStatisticsStmt:
 	"CREATE" "STATISTICS" IfNotExists Identifier '(' StatsType ')' "ON" TableName '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("CreateStatisticsStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateStatisticsStmt,Identifier")
+sql_ir.LogGrammarCoverage("CreateStatisticsStmt,StatsType")
+sql_ir.LogGrammarCoverage("CreateStatisticsStmt,TableName")
+sql_ir.LogGrammarCoverage("CreateStatisticsStmt,ColumnNameList")
+
+
 		$$ = &ast.CreateStatisticsStmt{
 			IfNotExists: $3.(bool),
 			StatsName:   $4,
@@ -3488,41 +4492,26 @@ CreateStatisticsStmt:
 DropStatisticsStmt:
 	"DROP" "STATISTICS" Identifier
 	{
+sql_ir.LogGrammarCoverage("DropStatisticsStmt,Identifier")
+
+
 		$$ = &ast.DropStatisticsStmt{StatsName: $3}
 	}
 
-/**************************************CreateIndexStmt***************************************
- * See https://dev.mysql.com/doc/refman/8.0/en/create-index.html
- *
- * TYPE type_name is recognized as a synonym for USING type_name. However, USING is the preferred form.
- *
- * CREATE [UNIQUE | FULLTEXT | SPATIAL] INDEX index_name
- *     [index_type]
- *     ON tbl_name (key_part,...)
- *     [index_option]
- *     [algorithm_option | lock_option] ...
- *
- * key_part: {col_name [(length)] | (expr)} [ASC | DESC]
- *
- * index_option:
- *     KEY_BLOCK_SIZE [=] value
- *   | index_type
- *   | WITH PARSER parser_name
- *   | COMMENT 'string'
- *   | {VISIBLE | INVISIBLE}
- *
- * index_type:
- *     USING {BTREE | HASH}
- *
- * algorithm_option:
- *     ALGORITHM [=] {DEFAULT | INPLACE | COPY}
- *
- * lock_option:
- *     LOCK [=] {DEFAULT | NONE | SHARED | EXCLUSIVE}
- *******************************************************************************************/
+
 CreateIndexStmt:
 	"CREATE" IndexKeyTypeOpt "INDEX" IfNotExists Identifier IndexTypeOpt "ON" TableName '(' IndexPartSpecificationList ')' IndexOptionList IndexLockAndAlgorithmOpt
 	{
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IndexKeyTypeOpt")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,Identifier")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IndexTypeOpt")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,TableName")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IndexOptionList")
+sql_ir.LogGrammarCoverage("CreateIndexStmt,IndexLockAndAlgorithmOpt")
+
+
 		var indexOption *ast.IndexOption
 		if $12 != nil {
 			indexOption = $12.(*ast.IndexOption)
@@ -3557,40 +4546,66 @@ CreateIndexStmt:
 
 IndexPartSpecificationListOpt:
 	{
+
+
 		$$ = ([]*ast.IndexPartSpecification)(nil)
 	}
 |	'(' IndexPartSpecificationList ')'
 	{
+sql_ir.LogGrammarCoverage("IndexPartSpecificationListOpt,IndexPartSpecificationList")
+
+
 		$$ = $2
 	}
 
 IndexPartSpecificationList:
 	IndexPartSpecification
 	{
+sql_ir.LogGrammarCoverage("IndexPartSpecificationList,IndexPartSpecification")
+
+
 		$$ = []*ast.IndexPartSpecification{$1.(*ast.IndexPartSpecification)}
 	}
 |	IndexPartSpecificationList ',' IndexPartSpecification
 	{
+sql_ir.LogGrammarCoverage("IndexPartSpecificationList,IndexPartSpecificationList")
+sql_ir.LogGrammarCoverage("IndexPartSpecificationList,IndexPartSpecification")
+
+
 		$$ = append($1.([]*ast.IndexPartSpecification), $3.(*ast.IndexPartSpecification))
 	}
 
 IndexPartSpecification:
 	ColumnName OptFieldLen OptOrder
 	{
+sql_ir.LogGrammarCoverage("IndexPartSpecification,ColumnName")
+sql_ir.LogGrammarCoverage("IndexPartSpecification,OptFieldLen")
+sql_ir.LogGrammarCoverage("IndexPartSpecification,OptOrder")
+
+
 		// Order is parsed but just ignored as MySQL did.
 		$$ = &ast.IndexPartSpecification{Column: $1.(*ast.ColumnName), Length: $2.(int)}
 	}
 |	'(' Expression ')' OptOrder
 	{
+sql_ir.LogGrammarCoverage("IndexPartSpecification,Expression")
+sql_ir.LogGrammarCoverage("IndexPartSpecification,OptOrder")
+
+
 		$$ = &ast.IndexPartSpecification{Expr: $2}
 	}
 
 IndexLockAndAlgorithmOpt:
 	{
+
+
 		$$ = nil
 	}
 |	LockClause
 	{
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,LockClause")
+
+
 		$$ = &ast.IndexLockAndAlgorithm{
 			LockTp:      $1.(ast.LockType),
 			AlgorithmTp: ast.AlgorithmTypeDefault,
@@ -3598,6 +4613,9 @@ IndexLockAndAlgorithmOpt:
 	}
 |	AlgorithmClause
 	{
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,AlgorithmClause")
+
+
 		$$ = &ast.IndexLockAndAlgorithm{
 			LockTp:      ast.LockTypeDefault,
 			AlgorithmTp: $1.(ast.AlgorithmType),
@@ -3605,6 +4623,10 @@ IndexLockAndAlgorithmOpt:
 	}
 |	LockClause AlgorithmClause
 	{
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,LockClause")
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,AlgorithmClause")
+
+
 		$$ = &ast.IndexLockAndAlgorithm{
 			LockTp:      $1.(ast.LockType),
 			AlgorithmTp: $2.(ast.AlgorithmType),
@@ -3612,6 +4634,10 @@ IndexLockAndAlgorithmOpt:
 	}
 |	AlgorithmClause LockClause
 	{
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,AlgorithmClause")
+sql_ir.LogGrammarCoverage("IndexLockAndAlgorithmOpt,LockClause")
+
+
 		$$ = &ast.IndexLockAndAlgorithm{
 			LockTp:      $2.(ast.LockType),
 			AlgorithmTp: $1.(ast.AlgorithmType),
@@ -3620,36 +4646,38 @@ IndexLockAndAlgorithmOpt:
 
 IndexKeyTypeOpt:
 	{
+
+
 		$$ = ast.IndexKeyTypeNone
 	}
 |	"UNIQUE"
 	{
+
+
 		$$ = ast.IndexKeyTypeUnique
 	}
 |	"SPATIAL"
 	{
+
+
 		$$ = ast.IndexKeyTypeSpatial
 	}
 |	"FULLTEXT"
 	{
+
+
 		$$ = ast.IndexKeyTypeFullText
 	}
 
-/**************************************AlterDatabaseStmt***************************************
- * See https://dev.mysql.com/doc/refman/5.7/en/alter-database.html
- * 'ALTER DATABASE ... UPGRADE DATA DIRECTORY NAME' is not supported yet.
- *
- *  ALTER {DATABASE | SCHEMA} [db_name]
- *   alter_specification ...
- *
- *  alter_specification:
- *   [DEFAULT] CHARACTER SET [=] charset_name
- * | [DEFAULT] COLLATE [=] collation_name
- * | [DEFAULT] ENCRYPTION [=] {'Y' | 'N'}
- *******************************************************************************************/
+
 AlterDatabaseStmt:
 	"ALTER" DatabaseSym DBName DatabaseOptionList
 	{
+sql_ir.LogGrammarCoverage("AlterDatabaseStmt,DatabaseSym")
+sql_ir.LogGrammarCoverage("AlterDatabaseStmt,DBName")
+sql_ir.LogGrammarCoverage("AlterDatabaseStmt,DatabaseOptionList")
+
+
 		$$ = &ast.AlterDatabaseStmt{
 			Name:                 $3,
 			AlterDefaultDatabase: false,
@@ -3658,6 +4686,10 @@ AlterDatabaseStmt:
 	}
 |	"ALTER" DatabaseSym DatabaseOptionList
 	{
+sql_ir.LogGrammarCoverage("AlterDatabaseStmt,DatabaseSym")
+sql_ir.LogGrammarCoverage("AlterDatabaseStmt,DatabaseOptionList")
+
+
 		$$ = &ast.AlterDatabaseStmt{
 			Name:                 "",
 			AlterDefaultDatabase: true,
@@ -3665,20 +4697,16 @@ AlterDatabaseStmt:
 		}
 	}
 
-/*******************************************************************
- *
- *  Create Database Statement
- *  CREATE {DATABASE | SCHEMA} [IF NOT EXISTS] db_name
- *      [create_specification] ...
- *
- *  create_specification:
- *      [DEFAULT] CHARACTER SET [=] charset_name
- *    | [DEFAULT] COLLATE [=] collation_name
- *    | [DEFAULT] ENCRYPTION [=] {'Y' | 'N'}
- *******************************************************************/
+
 CreateDatabaseStmt:
 	"CREATE" DatabaseSym IfNotExists DBName DatabaseOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("CreateDatabaseStmt,DatabaseSym")
+sql_ir.LogGrammarCoverage("CreateDatabaseStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateDatabaseStmt,DBName")
+sql_ir.LogGrammarCoverage("CreateDatabaseStmt,DatabaseOptionListOpt")
+
+
 		$$ = &ast.CreateDatabaseStmt{
 			IfNotExists: $3.(bool),
 			Name:        $4,
@@ -3689,24 +4717,52 @@ CreateDatabaseStmt:
 DBName:
 	Identifier
 
+{
+sql_ir.LogGrammarCoverage("DBName,Identifier")
+
+}
 PolicyName:
 	Identifier
 
+{
+sql_ir.LogGrammarCoverage("PolicyName,Identifier")
+
+}
 DatabaseOption:
 	DefaultKwdOpt CharsetKw EqOpt CharsetName
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,CharsetKw")
+sql_ir.LogGrammarCoverage("DatabaseOption,EqOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,CharsetName")
+
+
 		$$ = &ast.DatabaseOption{Tp: ast.DatabaseOptionCharset, Value: $4}
 	}
 |	DefaultKwdOpt "COLLATE" EqOpt CollationName
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,EqOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,CollationName")
+
+
 		$$ = &ast.DatabaseOption{Tp: ast.DatabaseOptionCollate, Value: $4}
 	}
 |	DefaultKwdOpt "ENCRYPTION" EqOpt EncryptionOpt
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,EqOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,EncryptionOpt")
+
+
 		$$ = &ast.DatabaseOption{Tp: ast.DatabaseOptionEncryption, Value: $4}
 	}
 |	DefaultKwdOpt PlacementPolicyOption
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("DatabaseOption,PlacementPolicyOption")
+
+
 		placementOptions := $2.(*ast.PlacementOption)
 		$$ = &ast.DatabaseOption{
 			// offset trick, enums are identical but of different type
@@ -3717,6 +4773,9 @@ DatabaseOption:
 	}
 |	PlacementPolicyOption
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,PlacementPolicyOption")
+
+
 		placementOptions := $1.(*ast.PlacementOption)
 		$$ = &ast.DatabaseOption{
 			// offset trick, enums are identical but of different type
@@ -3727,6 +4786,10 @@ DatabaseOption:
 	}
 |	"SET" "TIFLASH" "REPLICA" LengthNum LocationLabelList
 	{
+sql_ir.LogGrammarCoverage("DatabaseOption,LengthNum")
+sql_ir.LogGrammarCoverage("DatabaseOption,LocationLabelList")
+
+
 		tiflashReplicaSpec := &ast.TiFlashReplicaSpec{
 			Count:  $4.(uint64),
 			Labels: $5.([]string),
@@ -3739,38 +4802,49 @@ DatabaseOption:
 
 DatabaseOptionListOpt:
 	{
+
+
 		$$ = []*ast.DatabaseOption{}
 	}
 |	DatabaseOptionList
 
+{
+sql_ir.LogGrammarCoverage("DatabaseOptionListOpt,DatabaseOptionList")
+
+}
 DatabaseOptionList:
 	DatabaseOption
 	{
+sql_ir.LogGrammarCoverage("DatabaseOptionList,DatabaseOption")
+
+
 		$$ = []*ast.DatabaseOption{$1.(*ast.DatabaseOption)}
 	}
 |	DatabaseOptionList DatabaseOption
 	{
+sql_ir.LogGrammarCoverage("DatabaseOptionList,DatabaseOptionList")
+sql_ir.LogGrammarCoverage("DatabaseOptionList,DatabaseOption")
+
+
 		$$ = append($1.([]*ast.DatabaseOption), $2.(*ast.DatabaseOption))
 	}
 
-/*******************************************************************
- *
- *  Create Table Statement
- *
- *  Example:
- *      CREATE TABLE Persons
- *      (
- *          P_Id int NOT NULL,
- *          LastName varchar(255) NOT NULL,
- *          FirstName varchar(255),
- *          Address varchar(255),
- *          City varchar(255),
- *          PRIMARY KEY (P_Id)
- *      )
- *******************************************************************/
+
 CreateTableStmt:
 	"CREATE" OptTemporary "TABLE" IfNotExists TableName TableElementListOpt CreateTableOptionListOpt PartitionOpt DuplicateOpt AsOpt CreateTableSelectOpt OnCommitOpt
 	{
+sql_ir.LogGrammarCoverage("CreateTableStmt,OptTemporary")
+sql_ir.LogGrammarCoverage("CreateTableStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateTableStmt,TableName")
+sql_ir.LogGrammarCoverage("CreateTableStmt,TableElementListOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,CreateTableOptionListOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,PartitionOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,DuplicateOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,AsOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,CreateTableSelectOpt")
+sql_ir.LogGrammarCoverage("CreateTableStmt,OnCommitOpt")
+
+
 		stmt := $6.(*ast.CreateTableStmt)
 		stmt.Table = $5.(*ast.TableName)
 		stmt.IfNotExists = $4.(bool)
@@ -3792,6 +4866,13 @@ CreateTableStmt:
 	}
 |	"CREATE" OptTemporary "TABLE" IfNotExists TableName LikeTableWithOrWithoutParen OnCommitOpt
 	{
+sql_ir.LogGrammarCoverage("CreateTableStmt,OptTemporary")
+sql_ir.LogGrammarCoverage("CreateTableStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateTableStmt,TableName")
+sql_ir.LogGrammarCoverage("CreateTableStmt,LikeTableWithOrWithoutParen")
+sql_ir.LogGrammarCoverage("CreateTableStmt,OnCommitOpt")
+
+
 		tmp := &ast.CreateTableStmt{
 			Table:            $5.(*ast.TableName),
 			ReferTable:       $6.(*ast.TableName),
@@ -3810,28 +4891,47 @@ CreateTableStmt:
 
 OnCommitOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"ON" "COMMIT" "DELETE" "ROWS"
 	{
+
+
 		$$ = true
 	}
 |	"ON" "COMMIT" "PRESERVE" "ROWS"
 	{
+
+
 		$$ = false
 	}
 
 DefaultKwdOpt:
 	%prec lowerThanCharsetKwd
-	{}
+	{
+
+}
 |	"DEFAULT"
 
+{
+
+}
 PartitionOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"PARTITION" "BY" PartitionMethod PartitionNumOpt SubPartitionOpt PartitionDefinitionListOpt
 	{
+sql_ir.LogGrammarCoverage("PartitionOpt,PartitionMethod")
+sql_ir.LogGrammarCoverage("PartitionOpt,PartitionNumOpt")
+sql_ir.LogGrammarCoverage("PartitionOpt,SubPartitionOpt")
+sql_ir.LogGrammarCoverage("PartitionOpt,PartitionDefinitionListOpt")
+
+
 		method := $3.(*ast.PartitionMethod)
 		method.Num = $4.(uint64)
 		sub, _ := $5.(*ast.PartitionMethod)
@@ -3851,6 +4951,11 @@ PartitionOpt:
 SubPartitionMethod:
 	LinearOpt "KEY" PartitionKeyAlgorithmOpt '(' ColumnNameListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("SubPartitionMethod,LinearOpt")
+sql_ir.LogGrammarCoverage("SubPartitionMethod,PartitionKeyAlgorithmOpt")
+sql_ir.LogGrammarCoverage("SubPartitionMethod,ColumnNameListOpt")
+
+
 		keyAlgorithm, _ := $3.(*ast.PartitionKeyAlgorithm)
 		$$ = &ast.PartitionMethod{
 			Tp:           model.PartitionTypeKey,
@@ -3861,6 +4966,10 @@ SubPartitionMethod:
 	}
 |	LinearOpt "HASH" '(' BitExpr ')'
 	{
+sql_ir.LogGrammarCoverage("SubPartitionMethod,LinearOpt")
+sql_ir.LogGrammarCoverage("SubPartitionMethod,BitExpr")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:     model.PartitionTypeHash,
 			Linear: len($1) != 0,
@@ -3869,12 +4978,17 @@ SubPartitionMethod:
 	}
 
 PartitionKeyAlgorithmOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = nil
 	}
 |	"ALGORITHM" eq NUM
 	{
+sql_ir.LogGrammarCoverage("PartitionKeyAlgorithmOpt,NUM")
+
+
 		tp := getUint64FromNUM($3)
 		if tp != 1 && tp != 2 {
 			yylex.AppendError(ErrSyntax)
@@ -3887,8 +5001,15 @@ PartitionKeyAlgorithmOpt:
 
 PartitionMethod:
 	SubPartitionMethod
+{
+sql_ir.LogGrammarCoverage("PartitionMethod,SubPartitionMethod")
+
+}
 |	"RANGE" '(' BitExpr ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,BitExpr")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:   model.PartitionTypeRange,
 			Expr: $3.(ast.ExprNode),
@@ -3896,6 +5017,10 @@ PartitionMethod:
 	}
 |	"RANGE" FieldsOrColumns '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,FieldsOrColumns")
+sql_ir.LogGrammarCoverage("PartitionMethod,ColumnNameList")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:          model.PartitionTypeRange,
 			ColumnNames: $4.([]*ast.ColumnName),
@@ -3903,6 +5028,9 @@ PartitionMethod:
 	}
 |	"LIST" '(' BitExpr ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,BitExpr")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:   model.PartitionTypeList,
 			Expr: $3.(ast.ExprNode),
@@ -3910,6 +5038,10 @@ PartitionMethod:
 	}
 |	"LIST" FieldsOrColumns '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,FieldsOrColumns")
+sql_ir.LogGrammarCoverage("PartitionMethod,ColumnNameList")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:          model.PartitionTypeList,
 			ColumnNames: $4.([]*ast.ColumnName),
@@ -3917,6 +5049,10 @@ PartitionMethod:
 	}
 |	"SYSTEM_TIME" "INTERVAL" Expression TimeUnit
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,Expression")
+sql_ir.LogGrammarCoverage("PartitionMethod,TimeUnit")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:   model.PartitionTypeSystemTime,
 			Expr: $3.(ast.ExprNode),
@@ -3925,6 +5061,9 @@ PartitionMethod:
 	}
 |	"SYSTEM_TIME" "LIMIT" LengthNum
 	{
+sql_ir.LogGrammarCoverage("PartitionMethod,LengthNum")
+
+
 		$$ = &ast.PartitionMethod{
 			Tp:    model.PartitionTypeSystemTime,
 			Limit: $3.(uint64),
@@ -3932,6 +5071,8 @@ PartitionMethod:
 	}
 |	"SYSTEM_TIME"
 	{
+
+
 		$$ = &ast.PartitionMethod{
 			Tp: model.PartitionTypeSystemTime,
 		}
@@ -3939,16 +5080,27 @@ PartitionMethod:
 
 LinearOpt:
 	{
+
+
 		$$ = ""
 	}
 |	"LINEAR"
 
+{
+
+}
 SubPartitionOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"SUBPARTITION" "BY" SubPartitionMethod SubPartitionNumOpt
 	{
+sql_ir.LogGrammarCoverage("SubPartitionOpt,SubPartitionMethod")
+sql_ir.LogGrammarCoverage("SubPartitionOpt,SubPartitionNumOpt")
+
+
 		method := $3.(*ast.PartitionMethod)
 		method.Num = $4.(uint64)
 		$$ = method
@@ -3956,10 +5108,15 @@ SubPartitionOpt:
 
 SubPartitionNumOpt:
 	{
+
+
 		$$ = uint64(0)
 	}
 |	"SUBPARTITIONS" LengthNum
 	{
+sql_ir.LogGrammarCoverage("SubPartitionNumOpt,LengthNum")
+
+
 		res := $2.(uint64)
 		if res == 0 {
 			yylex.AppendError(ast.ErrNoParts.GenWithStackByArgs("subpartitions"))
@@ -3970,10 +5127,15 @@ SubPartitionNumOpt:
 
 PartitionNumOpt:
 	{
+
+
 		$$ = uint64(0)
 	}
 |	"PARTITIONS" LengthNum
 	{
+sql_ir.LogGrammarCoverage("PartitionNumOpt,LengthNum")
+
+
 		res := $2.(uint64)
 		if res == 0 {
 			yylex.AppendError(ast.ErrNoParts.GenWithStackByArgs("partitions"))
@@ -3983,28 +5145,46 @@ PartitionNumOpt:
 	}
 
 PartitionDefinitionListOpt:
-	/* empty */ %prec lowerThanCreateTableSelect
+	 %prec lowerThanCreateTableSelect
 	{
+
+
 		$$ = nil
 	}
 |	'(' PartitionDefinitionList ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionDefinitionListOpt,PartitionDefinitionList")
+
+
 		$$ = $2.([]*ast.PartitionDefinition)
 	}
 
 PartitionDefinitionList:
 	PartitionDefinition
 	{
+sql_ir.LogGrammarCoverage("PartitionDefinitionList,PartitionDefinition")
+
+
 		$$ = []*ast.PartitionDefinition{$1.(*ast.PartitionDefinition)}
 	}
 |	PartitionDefinitionList ',' PartitionDefinition
 	{
+sql_ir.LogGrammarCoverage("PartitionDefinitionList,PartitionDefinitionList")
+sql_ir.LogGrammarCoverage("PartitionDefinitionList,PartitionDefinition")
+
+
 		$$ = append($1.([]*ast.PartitionDefinition), $3.(*ast.PartitionDefinition))
 	}
 
 PartitionDefinition:
 	"PARTITION" Identifier PartDefValuesOpt PartDefOptionList SubPartDefinitionListOpt
 	{
+sql_ir.LogGrammarCoverage("PartitionDefinition,Identifier")
+sql_ir.LogGrammarCoverage("PartitionDefinition,PartDefValuesOpt")
+sql_ir.LogGrammarCoverage("PartitionDefinition,PartDefOptionList")
+sql_ir.LogGrammarCoverage("PartitionDefinition,SubPartDefinitionListOpt")
+
+
 		$$ = &ast.PartitionDefinition{
 			Name:    model.NewCIStr($2),
 			Clause:  $3.(ast.PartitionDefinitionClause),
@@ -4014,22 +5194,34 @@ PartitionDefinition:
 	}
 
 SubPartDefinitionListOpt:
-	/*empty*/
+	
 	{
+
+
 		$$ = make([]*ast.SubPartitionDefinition, 0)
 	}
 |	'(' SubPartDefinitionList ')'
 	{
+sql_ir.LogGrammarCoverage("SubPartDefinitionListOpt,SubPartDefinitionList")
+
+
 		$$ = $2
 	}
 
 SubPartDefinitionList:
 	SubPartDefinition
 	{
+sql_ir.LogGrammarCoverage("SubPartDefinitionList,SubPartDefinition")
+
+
 		$$ = []*ast.SubPartitionDefinition{$1.(*ast.SubPartitionDefinition)}
 	}
 |	SubPartDefinitionList ',' SubPartDefinition
 	{
+sql_ir.LogGrammarCoverage("SubPartDefinitionList,SubPartDefinitionList")
+sql_ir.LogGrammarCoverage("SubPartDefinitionList,SubPartDefinition")
+
+
 		list := $1.([]*ast.SubPartitionDefinition)
 		$$ = append(list, $3.(*ast.SubPartitionDefinition))
 	}
@@ -4037,6 +5229,10 @@ SubPartDefinitionList:
 SubPartDefinition:
 	"SUBPARTITION" Identifier PartDefOptionList
 	{
+sql_ir.LogGrammarCoverage("SubPartDefinition,Identifier")
+sql_ir.LogGrammarCoverage("SubPartDefinition,PartDefOptionList")
+
+
 		$$ = &ast.SubPartitionDefinition{
 			Name:    model.NewCIStr($2),
 			Options: $3.([]*ast.TableOption),
@@ -4044,12 +5240,18 @@ SubPartDefinition:
 	}
 
 PartDefOptionList:
-	/*empty*/
+	
 	{
+
+
 		$$ = make([]*ast.TableOption, 0)
 	}
 |	PartDefOptionList PartDefOption
 	{
+sql_ir.LogGrammarCoverage("PartDefOptionList,PartDefOptionList")
+sql_ir.LogGrammarCoverage("PartDefOptionList,PartDefOption")
+
+
 		list := $1.([]*ast.TableOption)
 		$$ = append(list, $2.(*ast.TableOption))
 	}
@@ -4057,46 +5259,89 @@ PartDefOptionList:
 PartDefOption:
 	"COMMENT" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionComment, StrValue: $3}
 	}
 |	"ENGINE" EqOpt StringName
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,StringName")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionEngine, StrValue: $3}
 	}
 |	"STORAGE" "ENGINE" EqOpt StringName
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,StringName")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionEngine, StrValue: $4}
 	}
 |	"INSERT_METHOD" EqOpt StringName
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,StringName")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionInsertMethod, StrValue: $3}
 	}
 |	"DATA" "DIRECTORY" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionDataDirectory, StrValue: $4}
 	}
 |	"INDEX" "DIRECTORY" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionIndexDirectory, StrValue: $4}
 	}
 |	"MAX_ROWS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionMaxRows, UintValue: $3.(uint64)}
 	}
 |	"MIN_ROWS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionMinRows, UintValue: $3.(uint64)}
 	}
 |	"TABLESPACE" EqOpt Identifier
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,Identifier")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionTablespace, StrValue: $3}
 	}
 |	"NODEGROUP" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,EqOpt")
+sql_ir.LogGrammarCoverage("PartDefOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionNodegroup, UintValue: $3.(uint64)}
 	}
 |	PlacementPolicyOption
 	{
+sql_ir.LogGrammarCoverage("PartDefOption,PlacementPolicyOption")
+
+
 		placementOptions := $1.(*ast.PlacementOption)
 		$$ = &ast.TableOption{
 			// offset trick, enums are identical but of different type
@@ -4108,26 +5353,38 @@ PartDefOption:
 
 PartDefValuesOpt:
 	{
+
+
 		$$ = &ast.PartitionDefinitionClauseNone{}
 	}
 |	"VALUES" "LESS" "THAN" "MAXVALUE"
 	{
+
+
 		$$ = &ast.PartitionDefinitionClauseLessThan{
 			Exprs: []ast.ExprNode{&ast.MaxValueExpr{}},
 		}
 	}
 |	"VALUES" "LESS" "THAN" '(' MaxValueOrExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("PartDefValuesOpt,MaxValueOrExpressionList")
+
+
 		$$ = &ast.PartitionDefinitionClauseLessThan{
 			Exprs: $5.([]ast.ExprNode),
 		}
 	}
 |	"DEFAULT"
 	{
+
+
 		$$ = &ast.PartitionDefinitionClauseIn{}
 	}
 |	"VALUES" "IN" '(' MaxValueOrExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("PartDefValuesOpt,MaxValueOrExpressionList")
+
+
 		exprs := $4.([]ast.ExprNode)
 		values := make([][]ast.ExprNode, 0, len(exprs))
 		for _, expr := range exprs {
@@ -4141,50 +5398,78 @@ PartDefValuesOpt:
 	}
 |	"HISTORY"
 	{
+
+
 		$$ = &ast.PartitionDefinitionClauseHistory{Current: false}
 	}
 |	"CURRENT"
 	{
+
+
 		$$ = &ast.PartitionDefinitionClauseHistory{Current: true}
 	}
 
 DuplicateOpt:
 	{
+
+
 		$$ = ast.OnDuplicateKeyHandlingError
 	}
 |	"IGNORE"
 	{
+
+
 		$$ = ast.OnDuplicateKeyHandlingIgnore
 	}
 |	"REPLACE"
 	{
+
+
 		$$ = ast.OnDuplicateKeyHandlingReplace
 	}
 
 AsOpt:
-	{}
+	{
+
+}
 |	"AS"
-	{}
+	{
+
+}
 
 CreateTableSelectOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = &ast.CreateTableStmt{}
 	}
 |	SetOprStmt
 	{
+sql_ir.LogGrammarCoverage("CreateTableSelectOpt,SetOprStmt")
+
+
 		$$ = &ast.CreateTableStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SelectStmt
 	{
+sql_ir.LogGrammarCoverage("CreateTableSelectOpt,SelectStmt")
+
+
 		$$ = &ast.CreateTableStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SelectStmtWithClause
 	{
+sql_ir.LogGrammarCoverage("CreateTableSelectOpt,SelectStmtWithClause")
+
+
 		$$ = &ast.CreateTableStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("CreateTableSelectOpt,SubSelect")
+
+
 		var sel ast.ResultSetNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -4199,10 +5484,25 @@ CreateTableSelectOpt:
 
 CreateViewSelectOpt:
 	SetOprStmt
+{
+sql_ir.LogGrammarCoverage("CreateViewSelectOpt,SetOprStmt")
+
+}
 |	SelectStmt
+{
+sql_ir.LogGrammarCoverage("CreateViewSelectOpt,SelectStmt")
+
+}
 |	SelectStmtWithClause
+{
+sql_ir.LogGrammarCoverage("CreateViewSelectOpt,SelectStmtWithClause")
+
+}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("CreateViewSelectOpt,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -4218,24 +5518,33 @@ CreateViewSelectOpt:
 LikeTableWithOrWithoutParen:
 	"LIKE" TableName
 	{
+sql_ir.LogGrammarCoverage("LikeTableWithOrWithoutParen,TableName")
+
+
 		$$ = $2
 	}
 |	'(' "LIKE" TableName ')'
 	{
+sql_ir.LogGrammarCoverage("LikeTableWithOrWithoutParen,TableName")
+
+
 		$$ = $3
 	}
 
-/*******************************************************************
- *
- *  Create View Statement
- *
- *  Example:
- *      CREATE VIEW OR REPLACE ALGORITHM = MERGE DEFINER="root@localhost" SQL SECURITY = definer view_name (col1,col2)
- *          as select Col1,Col2 from table WITH LOCAL CHECK OPTION
- *******************************************************************/
+
 CreateViewStmt:
 	"CREATE" OrReplace ViewAlgorithm ViewDefiner ViewSQLSecurity "VIEW" ViewName ViewFieldList "AS" CreateViewSelectOpt ViewCheckOption
 	{
+sql_ir.LogGrammarCoverage("CreateViewStmt,OrReplace")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewAlgorithm")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewDefiner")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewSQLSecurity")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewName")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewFieldList")
+sql_ir.LogGrammarCoverage("CreateViewStmt,CreateViewSelectOpt")
+sql_ir.LogGrammarCoverage("CreateViewStmt,ViewCheckOption")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-1])
 		selStmt := $10.(ast.StmtNode)
 		selStmt.SetText(parser.lexer.client, strings.TrimSpace(parser.src[startOffset:]))
@@ -4263,112 +5572,184 @@ CreateViewStmt:
 OrReplace:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("OrReplace,/*")
+sql_ir.LogGrammarCoverage("OrReplace,EMPTY")
+sql_ir.LogGrammarCoverage("OrReplace,*/")
+
+
 		$$ = false
 	}
 |	"OR" "REPLACE"
 	{
+
+
 		$$ = true
 	}
 
 ViewAlgorithm:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ViewAlgorithm,/*")
+sql_ir.LogGrammarCoverage("ViewAlgorithm,EMPTY")
+sql_ir.LogGrammarCoverage("ViewAlgorithm,*/")
+
+
 		$$ = model.AlgorithmUndefined
 	}
 |	"ALGORITHM" "=" "UNDEFINED"
 	{
+
+
 		$$ = model.AlgorithmUndefined
 	}
 |	"ALGORITHM" "=" "MERGE"
 	{
+
+
 		$$ = model.AlgorithmMerge
 	}
 |	"ALGORITHM" "=" "TEMPTABLE"
 	{
+
+
 		$$ = model.AlgorithmTemptable
 	}
 
 ViewDefiner:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ViewDefiner,/*")
+sql_ir.LogGrammarCoverage("ViewDefiner,EMPTY")
+sql_ir.LogGrammarCoverage("ViewDefiner,*/")
+
+
 		$$ = &auth.UserIdentity{CurrentUser: true}
 	}
 |	"DEFINER" "=" Username
 	{
+sql_ir.LogGrammarCoverage("ViewDefiner,Username")
+
+
 		$$ = $3
 	}
 
 ViewSQLSecurity:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ViewSQLSecurity,/*")
+sql_ir.LogGrammarCoverage("ViewSQLSecurity,EMPTY")
+sql_ir.LogGrammarCoverage("ViewSQLSecurity,*/")
+
+
 		$$ = model.SecurityDefiner
 	}
 |	"SQL" "SECURITY" "DEFINER"
 	{
+
+
 		$$ = model.SecurityDefiner
 	}
 |	"SQL" "SECURITY" "INVOKER"
 	{
+
+
 		$$ = model.SecurityInvoker
 	}
 
 ViewName:
 	TableName
 
+{
+sql_ir.LogGrammarCoverage("ViewName,TableName")
+
+}
 ViewFieldList:
 	/* Empty */
 	{
+sql_ir.LogGrammarCoverage("ViewFieldList,/*")
+sql_ir.LogGrammarCoverage("ViewFieldList,Empty")
+sql_ir.LogGrammarCoverage("ViewFieldList,*/")
+
+
 		$$ = nil
 	}
 |	'(' ColumnList ')'
 	{
+sql_ir.LogGrammarCoverage("ViewFieldList,ColumnList")
+
+
 		$$ = $2.([]model.CIStr)
 	}
 
 ColumnList:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("ColumnList,Identifier")
+
+
 		$$ = []model.CIStr{model.NewCIStr($1)}
 	}
 |	ColumnList ',' Identifier
 	{
+sql_ir.LogGrammarCoverage("ColumnList,ColumnList")
+sql_ir.LogGrammarCoverage("ColumnList,Identifier")
+
+
 		$$ = append($1.([]model.CIStr), model.NewCIStr($3))
 	}
 
 ViewCheckOption:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("ViewCheckOption,/*")
+sql_ir.LogGrammarCoverage("ViewCheckOption,EMPTY")
+sql_ir.LogGrammarCoverage("ViewCheckOption,*/")
+
+
 		$$ = nil
 	}
 |	"WITH" "CASCADED" "CHECK" "OPTION"
 	{
+
+
 		$$ = model.CheckOptionCascaded
 	}
 |	"WITH" "LOCAL" "CHECK" "OPTION"
 	{
+
+
 		$$ = model.CheckOptionLocal
 	}
 
-/******************************************************************
- * Do statement
- * See https://dev.mysql.com/doc/refman/5.7/en/do.html
- ******************************************************************/
+
 DoStmt:
 	"DO" ExpressionList
 	{
+sql_ir.LogGrammarCoverage("DoStmt,ExpressionList")
+
+
 		$$ = &ast.DoStmt{
 			Exprs: $2.([]ast.ExprNode),
 		}
 	}
 
-/*******************************************************************
- *
- *  Delete Statement
- *
- *******************************************************************/
+
 DeleteWithoutUsingStmt:
 	"DELETE" TableOptimizerHintsOpt PriorityOpt QuickOptional IgnoreOptional "FROM" TableName PartitionNameListOpt TableAsNameOpt IndexHintListOpt WhereClauseOptional OrderByOptional LimitClause
 	{
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,PriorityOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,QuickOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableName")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableAsNameOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,IndexHintListOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,LimitClause")
+
+
 		// Single Table
 		tn := $7.(*ast.TableName)
 		tn.IndexHints = $10.([]*ast.IndexHint)
@@ -4397,6 +5778,15 @@ DeleteWithoutUsingStmt:
 	}
 |	"DELETE" TableOptimizerHintsOpt PriorityOpt QuickOptional IgnoreOptional TableAliasRefList "FROM" TableRefs WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,PriorityOpt")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,QuickOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableAliasRefList")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,TableRefs")
+sql_ir.LogGrammarCoverage("DeleteWithoutUsingStmt,WhereClauseOptional")
+
+
 		// Multiple Table
 		x := &ast.DeleteStmt{
 			Priority:     $3.(mysql.PriorityEnum),
@@ -4419,6 +5809,15 @@ DeleteWithoutUsingStmt:
 DeleteWithUsingStmt:
 	"DELETE" TableOptimizerHintsOpt PriorityOpt QuickOptional IgnoreOptional "FROM" TableAliasRefList "USING" TableRefs WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,PriorityOpt")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,QuickOptional")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,TableAliasRefList")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,TableRefs")
+sql_ir.LogGrammarCoverage("DeleteWithUsingStmt,WhereClauseOptional")
+
+
 		// Multiple Table
 		x := &ast.DeleteStmt{
 			Priority:     $3.(mysql.PriorityEnum),
@@ -4439,15 +5838,31 @@ DeleteWithUsingStmt:
 
 DeleteFromStmt:
 	DeleteWithoutUsingStmt
+{
+sql_ir.LogGrammarCoverage("DeleteFromStmt,DeleteWithoutUsingStmt")
+
+}
 |	DeleteWithUsingStmt
+{
+sql_ir.LogGrammarCoverage("DeleteFromStmt,DeleteWithUsingStmt")
+
+}
 |	WithClause DeleteWithoutUsingStmt
 	{
+sql_ir.LogGrammarCoverage("DeleteFromStmt,WithClause")
+sql_ir.LogGrammarCoverage("DeleteFromStmt,DeleteWithoutUsingStmt")
+
+
 		d := $2.(*ast.DeleteStmt)
 		d.With = $1.(*ast.WithClause)
 		$$ = d
 	}
 |	WithClause DeleteWithUsingStmt
 	{
+sql_ir.LogGrammarCoverage("DeleteFromStmt,WithClause")
+sql_ir.LogGrammarCoverage("DeleteFromStmt,DeleteWithUsingStmt")
+
+
 		d := $2.(*ast.DeleteStmt)
 		d.With = $1.(*ast.WithClause)
 		$$ = d
@@ -4456,28 +5871,30 @@ DeleteFromStmt:
 DatabaseSym:
 	"DATABASE"
 
+{
+
+}
 DropDatabaseStmt:
 	"DROP" DatabaseSym IfExists DBName
 	{
+sql_ir.LogGrammarCoverage("DropDatabaseStmt,DatabaseSym")
+sql_ir.LogGrammarCoverage("DropDatabaseStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropDatabaseStmt,DBName")
+
+
 		$$ = &ast.DropDatabaseStmt{IfExists: $3.(bool), Name: $4}
 	}
 
-/******************************************************************
- * Drop Index Statement
- * See https://dev.mysql.com/doc/refman/8.0/en/drop-index.html
- *
- *  DROP INDEX index_name ON tbl_name
- *      [algorithm_option | lock_option] ...
- *
- *  algorithm_option:
- *      ALGORITHM [=] {DEFAULT|INPLACE|COPY}
- *
- *  lock_option:
- *      LOCK [=] {DEFAULT|NONE|SHARED|EXCLUSIVE}
- ******************************************************************/
+
 DropIndexStmt:
 	"DROP" "INDEX" IfExists Identifier "ON" TableName IndexLockAndAlgorithmOpt
 	{
+sql_ir.LogGrammarCoverage("DropIndexStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropIndexStmt,Identifier")
+sql_ir.LogGrammarCoverage("DropIndexStmt,TableName")
+sql_ir.LogGrammarCoverage("DropIndexStmt,IndexLockAndAlgorithmOpt")
+
+
 		var indexLockAndAlgorithm *ast.IndexLockAndAlgorithm
 		if $7 != nil {
 			indexLockAndAlgorithm = $7.(*ast.IndexLockAndAlgorithm)
@@ -4491,46 +5908,76 @@ DropIndexStmt:
 DropTableStmt:
 	"DROP" OptTemporary TableOrTables IfExists TableNameList RestrictOrCascadeOpt
 	{
+sql_ir.LogGrammarCoverage("DropTableStmt,OptTemporary")
+sql_ir.LogGrammarCoverage("DropTableStmt,TableOrTables")
+sql_ir.LogGrammarCoverage("DropTableStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropTableStmt,TableNameList")
+sql_ir.LogGrammarCoverage("DropTableStmt,RestrictOrCascadeOpt")
+
+
 		$$ = &ast.DropTableStmt{IfExists: $4.(bool), Tables: $5.([]*ast.TableName), IsView: false, TemporaryKeyword: $2.(ast.TemporaryKeyword)}
 	}
 
 OptTemporary:
-	/* empty */
+	
 	{
+
+
 		$$ = ast.TemporaryNone
 	}
 |	"TEMPORARY"
 	{
+
+
 		$$ = ast.TemporaryLocal
 	}
 |	"GLOBAL" "TEMPORARY"
 	{
+
+
 		$$ = ast.TemporaryGlobal
 	}
 
 DropViewStmt:
 	"DROP" "VIEW" TableNameList RestrictOrCascadeOpt
 	{
+sql_ir.LogGrammarCoverage("DropViewStmt,TableNameList")
+sql_ir.LogGrammarCoverage("DropViewStmt,RestrictOrCascadeOpt")
+
+
 		$$ = &ast.DropTableStmt{Tables: $3.([]*ast.TableName), IsView: true}
 	}
 |	"DROP" "VIEW" "IF" "EXISTS" TableNameList RestrictOrCascadeOpt
 	{
+sql_ir.LogGrammarCoverage("DropViewStmt,TableNameList")
+sql_ir.LogGrammarCoverage("DropViewStmt,RestrictOrCascadeOpt")
+
+
 		$$ = &ast.DropTableStmt{IfExists: true, Tables: $5.([]*ast.TableName), IsView: true}
 	}
 
 DropUserStmt:
 	"DROP" "USER" UsernameList
 	{
+sql_ir.LogGrammarCoverage("DropUserStmt,UsernameList")
+
+
 		$$ = &ast.DropUserStmt{IsDropRole: false, IfExists: false, UserList: $3.([]*auth.UserIdentity)}
 	}
 |	"DROP" "USER" "IF" "EXISTS" UsernameList
 	{
+sql_ir.LogGrammarCoverage("DropUserStmt,UsernameList")
+
+
 		$$ = &ast.DropUserStmt{IsDropRole: false, IfExists: true, UserList: $5.([]*auth.UserIdentity)}
 	}
 
 DropRoleStmt:
 	"DROP" "ROLE" RolenameList
 	{
+sql_ir.LogGrammarCoverage("DropRoleStmt,RolenameList")
+
+
 		tmp := make([]*auth.UserIdentity, 0, 10)
 		roleList := $3.([]*auth.RoleIdentity)
 		for _, r := range roleList {
@@ -4540,6 +5987,9 @@ DropRoleStmt:
 	}
 |	"DROP" "ROLE" "IF" "EXISTS" RolenameList
 	{
+sql_ir.LogGrammarCoverage("DropRoleStmt,RolenameList")
+
+
 		tmp := make([]*auth.UserIdentity, 0, 10)
 		roleList := $5.([]*auth.RoleIdentity)
 		for _, r := range roleList {
@@ -4551,10 +6001,17 @@ DropRoleStmt:
 DropStatsStmt:
 	"DROP" "STATS" TableName
 	{
+sql_ir.LogGrammarCoverage("DropStatsStmt,TableName")
+
+
 		$$ = &ast.DropStatsStmt{Table: $3.(*ast.TableName)}
 	}
 |	"DROP" "STATS" TableName "PARTITION" PartitionNameList
 	{
+sql_ir.LogGrammarCoverage("DropStatsStmt,TableName")
+sql_ir.LogGrammarCoverage("DropStatsStmt,PartitionNameList")
+
+
 		$$ = &ast.DropStatsStmt{
 			Table:          $3.(*ast.TableName),
 			PartitionNames: $5.([]model.CIStr),
@@ -4562,6 +6019,9 @@ DropStatsStmt:
 	}
 |	"DROP" "STATS" TableName "GLOBAL"
 	{
+sql_ir.LogGrammarCoverage("DropStatsStmt,TableName")
+
+
 		$$ = &ast.DropStatsStmt{
 			Table:         $3.(*ast.TableName),
 			IsGlobalStats: true,
@@ -4569,27 +6029,54 @@ DropStatsStmt:
 	}
 
 RestrictOrCascadeOpt:
-	{}
+	{
+
+}
 |	"RESTRICT"
+{
+
+}
 |	"CASCADE"
 
+{
+
+}
 TableOrTables:
 	"TABLE"
+{
+
+}
 |	"TABLES"
 
+{
+
+}
 EqOpt:
-	{}
+	{
+
+}
 |	eq
 
+{
+
+}
 EmptyStmt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("EmptyStmt,/*")
+sql_ir.LogGrammarCoverage("EmptyStmt,EMPTY")
+sql_ir.LogGrammarCoverage("EmptyStmt,*/")
+
+
 		$$ = nil
 	}
 
 TraceStmt:
 	"TRACE" TraceableStmt
 	{
+sql_ir.LogGrammarCoverage("TraceStmt,TraceableStmt")
+
+
 		$$ = &ast.TraceStmt{
 			Stmt:      $2,
 			Format:    "row",
@@ -4600,6 +6087,10 @@ TraceStmt:
 	}
 |	"TRACE" "FORMAT" "=" stringLit TraceableStmt
 	{
+sql_ir.LogGrammarCoverage("TraceStmt,stringLit")
+sql_ir.LogGrammarCoverage("TraceStmt,TraceableStmt")
+
+
 		$$ = &ast.TraceStmt{
 			Stmt:      $5,
 			Format:    $4,
@@ -4610,6 +6101,9 @@ TraceStmt:
 	}
 |	"TRACE" "PLAN" TraceableStmt
 	{
+sql_ir.LogGrammarCoverage("TraceStmt,TraceableStmt")
+
+
 		$$ = &ast.TraceStmt{
 			Stmt:      $3,
 			TracePlan: true,
@@ -4619,6 +6113,10 @@ TraceStmt:
 	}
 |	"TRACE" "PLAN" "TARGET" "=" stringLit TraceableStmt
 	{
+sql_ir.LogGrammarCoverage("TraceStmt,stringLit")
+sql_ir.LogGrammarCoverage("TraceStmt,TraceableStmt")
+
+
 		$$ = &ast.TraceStmt{
 			Stmt:            $6,
 			TracePlan:       true,
@@ -4630,12 +6128,25 @@ TraceStmt:
 
 ExplainSym:
 	"EXPLAIN"
+{
+
+}
 |	"DESCRIBE"
+{
+
+}
 |	"DESC"
 
+{
+
+}
 ExplainStmt:
 	ExplainSym TableName
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,TableName")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt: &ast.ShowStmt{
 				Tp:    ast.ShowColumns,
@@ -4645,6 +6156,11 @@ ExplainStmt:
 	}
 |	ExplainSym TableName ColumnName
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,TableName")
+sql_ir.LogGrammarCoverage("ExplainStmt,ColumnName")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt: &ast.ShowStmt{
 				Tp:     ast.ShowColumns,
@@ -4655,6 +6171,10 @@ ExplainStmt:
 	}
 |	ExplainSym ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:   $2,
 			Format: "row",
@@ -4662,6 +6182,10 @@ ExplainStmt:
 	}
 |	ExplainSym "FOR" "CONNECTION" NUM
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,NUM")
+
+
 		$$ = &ast.ExplainForStmt{
 			Format:       "row",
 			ConnectionID: getUint64FromNUM($4),
@@ -4669,6 +6193,11 @@ ExplainStmt:
 	}
 |	ExplainSym "FORMAT" "=" stringLit "FOR" "CONNECTION" NUM
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,stringLit")
+sql_ir.LogGrammarCoverage("ExplainStmt,NUM")
+
+
 		$$ = &ast.ExplainForStmt{
 			Format:       $4,
 			ConnectionID: getUint64FromNUM($7),
@@ -4676,6 +6205,11 @@ ExplainStmt:
 	}
 |	ExplainSym "FORMAT" "=" stringLit ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,stringLit")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:   $5,
 			Format: $4,
@@ -4683,6 +6217,11 @@ ExplainStmt:
 	}
 |	ExplainSym "FORMAT" "=" ExplainFormatType "FOR" "CONNECTION" NUM
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainFormatType")
+sql_ir.LogGrammarCoverage("ExplainStmt,NUM")
+
+
 		$$ = &ast.ExplainForStmt{
 			Format:       $4,
 			ConnectionID: getUint64FromNUM($7),
@@ -4690,6 +6229,11 @@ ExplainStmt:
 	}
 |	ExplainSym "FORMAT" "=" ExplainFormatType ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainFormatType")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:   $5,
 			Format: $4,
@@ -4697,6 +6241,10 @@ ExplainStmt:
 	}
 |	ExplainSym "ANALYZE" ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:    $3,
 			Format:  "row",
@@ -4705,6 +6253,11 @@ ExplainStmt:
 	}
 |	ExplainSym "ANALYZE" "FORMAT" "=" ExplainFormatType ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainFormatType")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:    $6,
 			Format:  $5,
@@ -4713,6 +6266,11 @@ ExplainStmt:
 	}
 |	ExplainSym "ANALYZE" "FORMAT" "=" stringLit ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainSym")
+sql_ir.LogGrammarCoverage("ExplainStmt,stringLit")
+sql_ir.LogGrammarCoverage("ExplainStmt,ExplainableStmt")
+
+
 		$$ = &ast.ExplainStmt{
 			Stmt:    $6,
 			Format:  $5,
@@ -4722,24 +6280,43 @@ ExplainStmt:
 
 ExplainFormatType:
 	"TRADITIONAL"
+{
+
+}
 |	"JSON"
+{
+
+}
 |	"ROW"
+{
+
+}
 |	"DOT"
+{
+
+}
 |	"BRIEF"
+{
+
+}
 |	"VERBOSE"
+{
+
+}
 |	"TRUE_CARD_COST"
 
-/*******************************************************************
- * Backup / restore / import statements
- *
- *	BACKUP DATABASE [ * | db1, db2, db3 ] TO 'scheme://location' [ options... ]
- *	BACKUP TABLE [ db1.tbl1, db2.tbl2 ] TO 'scheme://location' [ options... ]
- *	RESTORE DATABASE [ * | db1, db2, db3 ] FROM 'scheme://location' [ options... ]
- *	RESTORE TABLE [ db1.tbl1, db2.tbl2 ] FROM 'scheme://location' [ options... ]
- */
+
+{
+
+}
 BRIEStmt:
 	"BACKUP" BRIETables "TO" stringLit BRIEOptions
 	{
+sql_ir.LogGrammarCoverage("BRIEStmt,BRIETables")
+sql_ir.LogGrammarCoverage("BRIEStmt,stringLit")
+sql_ir.LogGrammarCoverage("BRIEStmt,BRIEOptions")
+
+
 		stmt := $2.(*ast.BRIEStmt)
 		stmt.Kind = ast.BRIEKindBackup
 		stmt.Storage = $4
@@ -4748,6 +6325,11 @@ BRIEStmt:
 	}
 |	"RESTORE" BRIETables "FROM" stringLit BRIEOptions
 	{
+sql_ir.LogGrammarCoverage("BRIEStmt,BRIETables")
+sql_ir.LogGrammarCoverage("BRIEStmt,stringLit")
+sql_ir.LogGrammarCoverage("BRIEStmt,BRIEOptions")
+
+
 		stmt := $2.(*ast.BRIEStmt)
 		stmt.Kind = ast.BRIEKindRestore
 		stmt.Storage = $4
@@ -4758,116 +6340,178 @@ BRIEStmt:
 BRIETables:
 	DatabaseSym '*'
 	{
+sql_ir.LogGrammarCoverage("BRIETables,DatabaseSym")
+
+
 		$$ = &ast.BRIEStmt{}
 	}
 |	DatabaseSym DBNameList
 	{
+sql_ir.LogGrammarCoverage("BRIETables,DatabaseSym")
+sql_ir.LogGrammarCoverage("BRIETables,DBNameList")
+
+
 		$$ = &ast.BRIEStmt{Schemas: $2.([]string)}
 	}
 |	"TABLE" TableNameList
 	{
+sql_ir.LogGrammarCoverage("BRIETables,TableNameList")
+
+
 		$$ = &ast.BRIEStmt{Tables: $2.([]*ast.TableName)}
 	}
 
 DBNameList:
 	DBName
 	{
+sql_ir.LogGrammarCoverage("DBNameList,DBName")
+
+
 		$$ = []string{$1}
 	}
 |	DBNameList ',' DBName
 	{
+sql_ir.LogGrammarCoverage("DBNameList,DBNameList")
+sql_ir.LogGrammarCoverage("DBNameList,DBName")
+
+
 		$$ = append($1.([]string), $3)
 	}
 
 BRIEOptions:
 	%prec empty
 	{
+
+
 		$$ = []*ast.BRIEOption{}
 	}
 |	BRIEOptions BRIEOption
 	{
+sql_ir.LogGrammarCoverage("BRIEOptions,BRIEOptions")
+sql_ir.LogGrammarCoverage("BRIEOptions,BRIEOption")
+
+
 		$$ = append($1.([]*ast.BRIEOption), $2.(*ast.BRIEOption))
 	}
 
 BRIEIntegerOptionName:
 	"CONCURRENCY"
 	{
+
+
 		$$ = ast.BRIEOptionConcurrency
 	}
 |	"RESUME"
 	{
+
+
 		$$ = ast.BRIEOptionResume
 	}
 
 BRIEBooleanOptionName:
 	"SEND_CREDENTIALS_TO_TIKV"
 	{
+
+
 		$$ = ast.BRIEOptionSendCreds
 	}
 |	"ONLINE"
 	{
+
+
 		$$ = ast.BRIEOptionOnline
 	}
 |	"CHECKPOINT"
 	{
+
+
 		$$ = ast.BRIEOptionCheckpoint
 	}
 |	"SKIP_SCHEMA_FILES"
 	{
+
+
 		$$ = ast.BRIEOptionSkipSchemaFiles
 	}
 |	"STRICT_FORMAT"
 	{
+
+
 		$$ = ast.BRIEOptionStrictFormat
 	}
 |	"CSV_NOT_NULL"
 	{
+
+
 		$$ = ast.BRIEOptionCSVNotNull
 	}
 |	"CSV_BACKSLASH_ESCAPE"
 	{
+
+
 		$$ = ast.BRIEOptionCSVBackslashEscape
 	}
 |	"CSV_TRIM_LAST_SEPARATORS"
 	{
+
+
 		$$ = ast.BRIEOptionCSVTrimLastSeparators
 	}
 
 BRIEStringOptionName:
 	"TIKV_IMPORTER"
 	{
+
+
 		$$ = ast.BRIEOptionTiKVImporter
 	}
 |	"CSV_SEPARATOR"
 	{
+
+
 		$$ = ast.BRIEOptionCSVSeparator
 	}
 |	"CSV_DELIMITER"
 	{
+
+
 		$$ = ast.BRIEOptionCSVDelimiter
 	}
 |	"CSV_NULL"
 	{
+
+
 		$$ = ast.BRIEOptionCSVNull
 	}
 
 BRIEKeywordOptionName:
 	"BACKEND"
 	{
+
+
 		$$ = ast.BRIEOptionBackend
 	}
 |	"ON_DUPLICATE"
 	{
+
+
 		$$ = ast.BRIEOptionOnDuplicate
 	}
 |	"ON" "DUPLICATE"
 	{
+
+
 		$$ = ast.BRIEOptionOnDuplicate
 	}
 
 BRIEOption:
 	BRIEIntegerOptionName EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,BRIEIntegerOptionName")
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        $1.(ast.BRIEOptionType),
 			UintValue: $3.(uint64),
@@ -4875,6 +6519,11 @@ BRIEOption:
 	}
 |	BRIEBooleanOptionName EqOpt Boolean
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,BRIEBooleanOptionName")
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,Boolean")
+
+
 		value := uint64(0)
 		if $3.(bool) {
 			value = 1
@@ -4886,6 +6535,11 @@ BRIEOption:
 	}
 |	BRIEStringOptionName EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,BRIEStringOptionName")
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,stringLit")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:       $1.(ast.BRIEOptionType),
 			StrValue: $3,
@@ -4893,6 +6547,11 @@ BRIEOption:
 	}
 |	BRIEKeywordOptionName EqOpt StringNameOrBRIEOptionKeyword
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,BRIEKeywordOptionName")
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,StringNameOrBRIEOptionKeyword")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:       $1.(ast.BRIEOptionType),
 			StrValue: strings.ToLower($3),
@@ -4900,6 +6559,11 @@ BRIEOption:
 	}
 |	"SNAPSHOT" EqOpt LengthNum TimestampUnit "AGO"
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+sql_ir.LogGrammarCoverage("BRIEOption,TimestampUnit")
+
+
 		unit, err := $4.(ast.TimeUnitType).Duration()
 		if err != nil {
 			yylex.AppendError(err)
@@ -4914,6 +6578,10 @@ BRIEOption:
 |	"SNAPSHOT" EqOpt stringLit
 	// not including this into BRIEStringOptionName to avoid shift/reduce conflict
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,stringLit")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:       ast.BRIEOptionBackupTS,
 			StrValue: $3,
@@ -4922,6 +6590,10 @@ BRIEOption:
 |	"SNAPSHOT" EqOpt LengthNum
 	// not including this into BRIEIntegerOptionName to avoid shift/reduce conflict
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionBackupTSO,
 			UintValue: $3.(uint64),
@@ -4929,6 +6601,10 @@ BRIEOption:
 	}
 |	"LAST_BACKUP" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,stringLit")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:       ast.BRIEOptionLastBackupTS,
 			StrValue: $3,
@@ -4936,6 +6612,10 @@ BRIEOption:
 	}
 |	"LAST_BACKUP" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionLastBackupTSO,
 			UintValue: $3.(uint64),
@@ -4943,6 +6623,10 @@ BRIEOption:
 	}
 |	"RATE_LIMIT" EqOpt LengthNum "MB" '/' "SECOND"
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+
+
 		// TODO: check overflow?
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionRateLimit,
@@ -4951,6 +6635,10 @@ BRIEOption:
 	}
 |	"CSV_HEADER" EqOpt FieldsOrColumns
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,FieldsOrColumns")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionCSVHeader,
 			UintValue: ast.BRIECSVHeaderIsColumns,
@@ -4958,6 +6646,10 @@ BRIEOption:
 	}
 |	"CSV_HEADER" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,LengthNum")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionCSVHeader,
 			UintValue: $3.(uint64),
@@ -4965,6 +6657,10 @@ BRIEOption:
 	}
 |	"CHECKSUM" EqOpt Boolean
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,Boolean")
+
+
 		value := uint64(0)
 		if $3.(bool) {
 			value = 1
@@ -4976,6 +6672,10 @@ BRIEOption:
 	}
 |	"CHECKSUM" EqOpt OptionLevel
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,OptionLevel")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionChecksum,
 			UintValue: uint64($3.(ast.BRIEOptionLevel)),
@@ -4983,6 +6683,10 @@ BRIEOption:
 	}
 |	"ANALYZE" EqOpt Boolean
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,Boolean")
+
+
 		value := uint64(0)
 		if $3.(bool) {
 			value = 1
@@ -4994,6 +6698,10 @@ BRIEOption:
 	}
 |	"ANALYZE" EqOpt OptionLevel
 	{
+sql_ir.LogGrammarCoverage("BRIEOption,EqOpt")
+sql_ir.LogGrammarCoverage("BRIEOption,OptionLevel")
+
+
 		$$ = &ast.BRIEOption{
 			Tp:        ast.BRIEOptionAnalyze,
 			UintValue: uint64($3.(ast.BRIEOptionLevel)),
@@ -5003,12 +6711,18 @@ BRIEOption:
 LengthNum:
 	NUM
 	{
+sql_ir.LogGrammarCoverage("LengthNum,NUM")
+
+
 		$$ = getUint64FromNUM($1)
 	}
 
 Int64Num:
 	NUM
 	{
+sql_ir.LogGrammarCoverage("Int64Num,NUM")
+
+
 		v, rangeErrMsg := getInt64FromNUM($1)
 		if len(rangeErrMsg) != 0 {
 			yylex.AppendError(yylex.Errorf(rangeErrMsg))
@@ -5020,60 +6734,70 @@ Int64Num:
 NUM:
 	intLit
 
+{
+
+}
 Boolean:
 	NUM
 	{
+sql_ir.LogGrammarCoverage("Boolean,NUM")
+
+
 		$$ = $1.(int64) != 0
 	}
 |	"FALSE"
 	{
+
+
 		$$ = false
 	}
 |	"TRUE"
 	{
+
+
 		$$ = true
 	}
 
 OptionLevel:
 	"OFF"
 	{
+
+
 		$$ = ast.BRIEOptionLevelOff
 	}
 |	"OPTIONAL"
 	{
+
+
 		$$ = ast.BRIEOptionLevelOptional
 	}
 |	"REQUIRED"
 	{
+
+
 		$$ = ast.BRIEOptionLevelRequired
 	}
 
 PurgeImportStmt:
 	"PURGE" "IMPORT" NUM
 	{
+sql_ir.LogGrammarCoverage("PurgeImportStmt,NUM")
+
+
 		$$ = &ast.PurgeImportStmt{TaskID: getUint64FromNUM($3)}
 	}
 
-/*******************************************************************
- * import statements
- *
- *	CREATE IMPORT [IF NOT EXISTS] import_name
- *		FROM data_location [REPLACE | SKIP {ALL | CONSTRAINT | DUPLICATE ｜ STRICT}]
- *		[options_list]
- *	STOP IMPORT [IF RUNNING] import_name
- *	RESUME IMPORT [IF NOT RUNNING] import_name
- *	ALTER IMPORT import_name
- *		[REPLACE | SKIP {ALL | CONSTRAINT | DUPLICATE | STRICT}]
- *		[options_list]
- *		[TRUNCATE
- *			{ALL | ERRORS} [TABLE table_name [, table_name] ...]
- *		]
- *	DROP IMPORT [IF EXISTS] import_name
- *	SHOW IMPORT import_name [ERRORS] [TABLE table_name [, table_name] ...]
- */
+
 CreateImportStmt:
 	"CREATE" "IMPORT" IfNotExists Identifier "FROM" stringLit ErrorHandling BRIEOptions
 	{
+sql_ir.LogGrammarCoverage("CreateImportStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateImportStmt,Identifier")
+sql_ir.LogGrammarCoverage("CreateImportStmt,stringLit")
+sql_ir.LogGrammarCoverage("CreateImportStmt,ErrorHandling")
+sql_ir.LogGrammarCoverage("CreateImportStmt,BRIEOptions")
+
+
 		$$ = &ast.CreateImportStmt{
 			IfNotExists:   $3.(bool),
 			Name:          $4,
@@ -5086,6 +6810,10 @@ CreateImportStmt:
 StopImportStmt:
 	"STOP" "IMPORT" IfRunning Identifier
 	{
+sql_ir.LogGrammarCoverage("StopImportStmt,IfRunning")
+sql_ir.LogGrammarCoverage("StopImportStmt,Identifier")
+
+
 		$$ = &ast.StopImportStmt{
 			IfRunning: $3.(bool),
 			Name:      $4,
@@ -5095,6 +6823,10 @@ StopImportStmt:
 ResumeImportStmt:
 	"RESUME" "IMPORT" IfNotRunning Identifier
 	{
+sql_ir.LogGrammarCoverage("ResumeImportStmt,IfNotRunning")
+sql_ir.LogGrammarCoverage("ResumeImportStmt,Identifier")
+
+
 		$$ = &ast.ResumeImportStmt{
 			IfNotRunning: $3.(bool),
 			Name:         $4,
@@ -5104,6 +6836,12 @@ ResumeImportStmt:
 AlterImportStmt:
 	"ALTER" "IMPORT" Identifier ErrorHandling BRIEOptions ImportTruncate
 	{
+sql_ir.LogGrammarCoverage("AlterImportStmt,Identifier")
+sql_ir.LogGrammarCoverage("AlterImportStmt,ErrorHandling")
+sql_ir.LogGrammarCoverage("AlterImportStmt,BRIEOptions")
+sql_ir.LogGrammarCoverage("AlterImportStmt,ImportTruncate")
+
+
 		s := &ast.AlterImportStmt{
 			Name:          $3,
 			ErrorHandling: $4.(ast.ErrorHandlingOption),
@@ -5118,6 +6856,10 @@ AlterImportStmt:
 DropImportStmt:
 	"DROP" "IMPORT" IfExists Identifier
 	{
+sql_ir.LogGrammarCoverage("DropImportStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropImportStmt,Identifier")
+
+
 		$$ = &ast.DropImportStmt{
 			IfExists: $3.(bool),
 			Name:     $4,
@@ -5127,6 +6869,11 @@ DropImportStmt:
 ShowImportStmt:
 	"SHOW" "IMPORT" Identifier OptErrors TableNameListOpt2
 	{
+sql_ir.LogGrammarCoverage("ShowImportStmt,Identifier")
+sql_ir.LogGrammarCoverage("ShowImportStmt,OptErrors")
+sql_ir.LogGrammarCoverage("ShowImportStmt,TableNameListOpt2")
+
+
 		$$ = &ast.ShowImportStmt{
 			Name:       $3,
 			ErrorsOnly: $4.(bool),
@@ -5136,62 +6883,92 @@ ShowImportStmt:
 
 IfRunning:
 	{
+
+
 		$$ = false
 	}
 |	"IF" "RUNNING"
 	{
+
+
 		$$ = true
 	}
 
 IfNotRunning:
 	{
+
+
 		$$ = false
 	}
 |	"IF" NotSym "RUNNING"
 	{
+sql_ir.LogGrammarCoverage("IfNotRunning,NotSym")
+
+
 		$$ = true
 	}
 
 OptErrors:
 	{
+
+
 		$$ = false
 	}
 |	"ERRORS"
 	{
+
+
 		$$ = true
 	}
 
 ErrorHandling:
 	{
+
+
 		$$ = ast.ErrorHandleError
 	}
 |	"REPLACE"
 	{
+
+
 		$$ = ast.ErrorHandleReplace
 	}
 |	"SKIP" "ALL"
 	{
+
+
 		$$ = ast.ErrorHandleSkipAll
 	}
 |	"SKIP" "CONSTRAINT"
 	{
+
+
 		$$ = ast.ErrorHandleSkipConstraint
 	}
 |	"SKIP" "DUPLICATE"
 	{
+
+
 		$$ = ast.ErrorHandleSkipDuplicate
 	}
 |	"SKIP" "STRICT"
 	{
+
+
 		$$ = ast.ErrorHandleSkipStrict
 	}
 
 ImportTruncate:
 	{
+
+
 		$$ = nil
 	}
 |	"TRUNCATE" "ALL" TableNameListOpt2
 	{
+sql_ir.LogGrammarCoverage("ImportTruncate,TableNameListOpt2")
+
+
 		$$ = &ast.ImportTruncate{
 			IsErrorsOnly: false,
 			TableNames:   $3.([]*ast.TableName),
@@ -5199,6 +6976,9 @@ ImportTruncate:
 	}
 |	"TRUNCATE" "ERRORS" TableNameListOpt2
 	{
+sql_ir.LogGrammarCoverage("ImportTruncate,TableNameListOpt2")
+
+
 		$$ = &ast.ImportTruncate{
 			IsErrorsOnly: true,
 			TableNames:   $3.([]*ast.TableName),
@@ -5208,6 +6988,9 @@ ImportTruncate:
 Expression:
 	singleAtIdentifier assignmentEq Expression %prec assignmentEq
 	{
+sql_ir.LogGrammarCoverage("Expression,Expression")
+
+
 		v := $1
 		v = strings.TrimPrefix(v, "@")
 		$$ = &ast.VariableExpr{
@@ -5219,18 +7002,35 @@ Expression:
 	}
 |	Expression logOr Expression %prec pipes
 	{
+sql_ir.LogGrammarCoverage("Expression,Expression")
+sql_ir.LogGrammarCoverage("Expression,logOr")
+sql_ir.LogGrammarCoverage("Expression,Expression")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.LogicOr, L: $1, R: $3}
 	}
 |	Expression "XOR" Expression %prec xor
 	{
+sql_ir.LogGrammarCoverage("Expression,Expression")
+sql_ir.LogGrammarCoverage("Expression,Expression")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.LogicXor, L: $1, R: $3}
 	}
 |	Expression logAnd Expression %prec andand
 	{
+sql_ir.LogGrammarCoverage("Expression,Expression")
+sql_ir.LogGrammarCoverage("Expression,logAnd")
+sql_ir.LogGrammarCoverage("Expression,Expression")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.LogicAnd, L: $1, R: $3}
 	}
 |	"NOT" Expression %prec not
 	{
+sql_ir.LogGrammarCoverage("Expression,Expression")
+
+
 		expr, ok := $2.(*ast.ExistsSubqueryExpr)
 		if ok {
 			expr.Not = !expr.Not
@@ -5241,6 +7041,11 @@ Expression:
 	}
 |	"MATCH" '(' ColumnNameList ')' "AGAINST" '(' BitExpr FulltextSearchModifierOpt ')'
 	{
+sql_ir.LogGrammarCoverage("Expression,ColumnNameList")
+sql_ir.LogGrammarCoverage("Expression,BitExpr")
+sql_ir.LogGrammarCoverage("Expression,FulltextSearchModifierOpt")
+
+
 		$$ = &ast.MatchAgainst{
 			ColumnNames: $3.([]*ast.ColumnName),
 			Against:     $7,
@@ -5249,91 +7054,163 @@ Expression:
 	}
 |	BoolPri IsOrNotOp trueKwd %prec is
 	{
+sql_ir.LogGrammarCoverage("Expression,BoolPri")
+sql_ir.LogGrammarCoverage("Expression,IsOrNotOp")
+
+
 		$$ = &ast.IsTruthExpr{Expr: $1, Not: !$2.(bool), True: int64(1)}
 	}
 |	BoolPri IsOrNotOp falseKwd %prec is
 	{
+sql_ir.LogGrammarCoverage("Expression,BoolPri")
+sql_ir.LogGrammarCoverage("Expression,IsOrNotOp")
+
+
 		$$ = &ast.IsTruthExpr{Expr: $1, Not: !$2.(bool), True: int64(0)}
 	}
 |	BoolPri IsOrNotOp "UNKNOWN" %prec is
 	{
-		/* https://dev.mysql.com/doc/refman/5.7/en/comparison-operators.html#operator_is */
+sql_ir.LogGrammarCoverage("Expression,BoolPri")
+sql_ir.LogGrammarCoverage("Expression,IsOrNotOp")
+
+
+		
 		$$ = &ast.IsNullExpr{Expr: $1, Not: !$2.(bool)}
 	}
 |	BoolPri
 
+{
+sql_ir.LogGrammarCoverage("Expression,BoolPri")
+
+}
 MaxValueOrExpression:
 	"MAXVALUE"
 	{
+
+
 		$$ = &ast.MaxValueExpr{}
 	}
 |	BitExpr
 
+{
+sql_ir.LogGrammarCoverage("MaxValueOrExpression,BitExpr")
+
+}
 FulltextSearchModifierOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = ast.FulltextSearchModifierNaturalLanguageMode
 	}
 |	"IN" "NATURAL" "LANGUAGE" "MODE"
 	{
+
+
 		$$ = ast.FulltextSearchModifierNaturalLanguageMode
 	}
 |	"IN" "NATURAL" "LANGUAGE" "MODE" "WITH" "QUERY" "EXPANSION"
 	{
+
+
 		$$ = ast.FulltextSearchModifierNaturalLanguageMode | ast.FulltextSearchModifierWithQueryExpansion
 	}
 |	"IN" "BOOLEAN" "MODE"
 	{
+
+
 		$$ = ast.FulltextSearchModifierBooleanMode
 	}
 |	"WITH" "QUERY" "EXPANSION"
 	{
+
+
 		$$ = ast.FulltextSearchModifierWithQueryExpansion
 	}
 
 logOr:
 	pipesAsOr
+{
+
+}
 |	"OR"
 
+{
+
+}
 logAnd:
 	"&&"
+{
+
+}
 |	"AND"
 
+{
+
+}
 ExpressionList:
 	Expression
 	{
+sql_ir.LogGrammarCoverage("ExpressionList,Expression")
+
+
 		$$ = []ast.ExprNode{$1}
 	}
 |	ExpressionList ',' Expression
 	{
+sql_ir.LogGrammarCoverage("ExpressionList,ExpressionList")
+sql_ir.LogGrammarCoverage("ExpressionList,Expression")
+
+
 		$$ = append($1.([]ast.ExprNode), $3)
 	}
 
 MaxValueOrExpressionList:
 	MaxValueOrExpression
 	{
+sql_ir.LogGrammarCoverage("MaxValueOrExpressionList,MaxValueOrExpression")
+
+
 		$$ = []ast.ExprNode{$1}
 	}
 |	MaxValueOrExpressionList ',' MaxValueOrExpression
 	{
+sql_ir.LogGrammarCoverage("MaxValueOrExpressionList,MaxValueOrExpressionList")
+sql_ir.LogGrammarCoverage("MaxValueOrExpressionList,MaxValueOrExpression")
+
+
 		$$ = append($1.([]ast.ExprNode), $3)
 	}
 
 ExpressionListOpt:
 	{
+
+
 		$$ = []ast.ExprNode{}
 	}
 |	ExpressionList
 
+{
+sql_ir.LogGrammarCoverage("ExpressionListOpt,ExpressionList")
+
+}
 FuncDatetimePrecListOpt:
 	{
+
+
 		$$ = []ast.ExprNode{}
 	}
 |	FuncDatetimePrecList
 
+{
+sql_ir.LogGrammarCoverage("FuncDatetimePrecListOpt,FuncDatetimePrecList")
+
+}
 FuncDatetimePrecList:
 	intLit
 	{
+
+
 		expr := ast.NewValueExpr($1, parser.charset, parser.collation)
 		$$ = []ast.ExprNode{expr}
 	}
@@ -5341,20 +7218,40 @@ FuncDatetimePrecList:
 BoolPri:
 	BoolPri IsOrNotOp "NULL" %prec is
 	{
+sql_ir.LogGrammarCoverage("BoolPri,BoolPri")
+sql_ir.LogGrammarCoverage("BoolPri,IsOrNotOp")
+
+
 		$$ = &ast.IsNullExpr{Expr: $1, Not: !$2.(bool)}
 	}
 |	BoolPri CompareOp PredicateExpr %prec eq
 	{
+sql_ir.LogGrammarCoverage("BoolPri,BoolPri")
+sql_ir.LogGrammarCoverage("BoolPri,CompareOp")
+sql_ir.LogGrammarCoverage("BoolPri,PredicateExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: $2.(opcode.Op), L: $1, R: $3}
 	}
 |	BoolPri CompareOp AnyOrAll SubSelect %prec eq
 	{
+sql_ir.LogGrammarCoverage("BoolPri,BoolPri")
+sql_ir.LogGrammarCoverage("BoolPri,CompareOp")
+sql_ir.LogGrammarCoverage("BoolPri,AnyOrAll")
+sql_ir.LogGrammarCoverage("BoolPri,SubSelect")
+
+
 		sq := $4.(*ast.SubqueryExpr)
 		sq.MultiRows = true
 		$$ = &ast.CompareSubqueryExpr{Op: $2.(opcode.Op), L: $1, R: sq, All: $3.(bool)}
 	}
 |	BoolPri CompareOp singleAtIdentifier assignmentEq PredicateExpr %prec assignmentEq
 	{
+sql_ir.LogGrammarCoverage("BoolPri,BoolPri")
+sql_ir.LogGrammarCoverage("BoolPri,CompareOp")
+sql_ir.LogGrammarCoverage("BoolPri,PredicateExpr")
+
+
 		v := $3
 		v = strings.TrimPrefix(v, "@")
 		variable := &ast.VariableExpr{
@@ -5367,117 +7264,186 @@ BoolPri:
 	}
 |	PredicateExpr
 
+{
+sql_ir.LogGrammarCoverage("BoolPri,PredicateExpr")
+
+}
 CompareOp:
 	">="
 	{
+
+
 		$$ = opcode.GE
 	}
 |	'>'
 	{
+
+
 		$$ = opcode.GT
 	}
 |	"<="
 	{
+
+
 		$$ = opcode.LE
 	}
 |	'<'
 	{
+
+
 		$$ = opcode.LT
 	}
 |	"!="
 	{
+
+
 		$$ = opcode.NE
 	}
 |	"<>"
 	{
+
+
 		$$ = opcode.NE
 	}
 |	"="
 	{
+
+
 		$$ = opcode.EQ
 	}
 |	"<=>"
 	{
+
+
 		$$ = opcode.NullEQ
 	}
 
 BetweenOrNotOp:
 	"BETWEEN"
 	{
+
+
 		$$ = true
 	}
 |	NotSym "BETWEEN"
 	{
+sql_ir.LogGrammarCoverage("BetweenOrNotOp,NotSym")
+
+
 		$$ = false
 	}
 
 IsOrNotOp:
 	"IS"
 	{
+
+
 		$$ = true
 	}
 |	"IS" NotSym
 	{
+sql_ir.LogGrammarCoverage("IsOrNotOp,NotSym")
+
+
 		$$ = false
 	}
 
 InOrNotOp:
 	"IN"
 	{
+
+
 		$$ = true
 	}
 |	NotSym "IN"
 	{
+sql_ir.LogGrammarCoverage("InOrNotOp,NotSym")
+
+
 		$$ = false
 	}
 
 LikeOrNotOp:
 	"LIKE"
 	{
+
+
 		$$ = true
 	}
 |	NotSym "LIKE"
 	{
+sql_ir.LogGrammarCoverage("LikeOrNotOp,NotSym")
+
+
 		$$ = false
 	}
 
 RegexpOrNotOp:
 	RegexpSym
 	{
+sql_ir.LogGrammarCoverage("RegexpOrNotOp,RegexpSym")
+
+
 		$$ = true
 	}
 |	NotSym RegexpSym
 	{
+sql_ir.LogGrammarCoverage("RegexpOrNotOp,NotSym")
+sql_ir.LogGrammarCoverage("RegexpOrNotOp,RegexpSym")
+
+
 		$$ = false
 	}
 
 AnyOrAll:
 	"ANY"
 	{
+
+
 		$$ = false
 	}
 |	"SOME"
 	{
+
+
 		$$ = false
 	}
 |	"ALL"
 	{
+
+
 		$$ = true
 	}
 
 PredicateExpr:
 	BitExpr InOrNotOp '(' ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,InOrNotOp")
+sql_ir.LogGrammarCoverage("PredicateExpr,ExpressionList")
+
+
 		$$ = &ast.PatternInExpr{Expr: $1, Not: !$2.(bool), List: $4.([]ast.ExprNode)}
 	}
 |	BitExpr InOrNotOp SubSelect
 	{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,InOrNotOp")
+sql_ir.LogGrammarCoverage("PredicateExpr,SubSelect")
+
+
 		sq := $3.(*ast.SubqueryExpr)
 		sq.MultiRows = true
 		$$ = &ast.PatternInExpr{Expr: $1, Not: !$2.(bool), Sel: sq}
 	}
 |	BitExpr BetweenOrNotOp BitExpr "AND" PredicateExpr
 	{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,BetweenOrNotOp")
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,PredicateExpr")
+
+
 		$$ = &ast.BetweenExpr{
 			Expr:  $1,
 			Left:  $3,
@@ -5487,6 +7453,12 @@ PredicateExpr:
 	}
 |	BitExpr LikeOrNotOp SimpleExpr LikeEscapeOpt
 	{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,LikeOrNotOp")
+sql_ir.LogGrammarCoverage("PredicateExpr,SimpleExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,LikeEscapeOpt")
+
+
 		escape := $4
 		if len(escape) > 1 {
 			yylex.AppendError(ErrWrongArguments.GenWithStackByArgs("ESCAPE"))
@@ -5503,41 +7475,74 @@ PredicateExpr:
 	}
 |	BitExpr RegexpOrNotOp SimpleExpr
 	{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+sql_ir.LogGrammarCoverage("PredicateExpr,RegexpOrNotOp")
+sql_ir.LogGrammarCoverage("PredicateExpr,SimpleExpr")
+
+
 		$$ = &ast.PatternRegexpExpr{Expr: $1, Pattern: $3, Not: !$2.(bool)}
 	}
 |	BitExpr
 
+{
+sql_ir.LogGrammarCoverage("PredicateExpr,BitExpr")
+
+}
 RegexpSym:
 	"REGEXP"
+{
+
+}
 |	"RLIKE"
 
+{
+
+}
 LikeEscapeOpt:
 	%prec empty
 	{
+
+
 		$$ = "\\"
 	}
 |	"ESCAPE" stringLit
 	{
+sql_ir.LogGrammarCoverage("LikeEscapeOpt,stringLit")
+
+
 		$$ = $2
 	}
 
 Field:
 	'*' %prec '*'
 	{
+
+
 		$$ = &ast.SelectField{WildCard: &ast.WildCardField{}}
 	}
 |	Identifier '.' '*' %prec '*'
 	{
+sql_ir.LogGrammarCoverage("Field,Identifier")
+
+
 		wildCard := &ast.WildCardField{Table: model.NewCIStr($1)}
 		$$ = &ast.SelectField{WildCard: wildCard}
 	}
 |	Identifier '.' Identifier '.' '*' %prec '*'
 	{
+sql_ir.LogGrammarCoverage("Field,Identifier")
+sql_ir.LogGrammarCoverage("Field,Identifier")
+
+
 		wildCard := &ast.WildCardField{Schema: model.NewCIStr($1), Table: model.NewCIStr($3)}
 		$$ = &ast.SelectField{WildCard: wildCard}
 	}
 |	Expression FieldAsNameOpt
 	{
+sql_ir.LogGrammarCoverage("Field,Expression")
+sql_ir.LogGrammarCoverage("Field,FieldAsNameOpt")
+
+
 		expr := $1
 		asName := $2
 		$$ = &ast.SelectField{Expr: expr, AsName: model.NewCIStr(asName)}
@@ -5546,31 +7551,61 @@ Field:
 FieldAsNameOpt:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("FieldAsNameOpt,/*")
+sql_ir.LogGrammarCoverage("FieldAsNameOpt,EMPTY")
+sql_ir.LogGrammarCoverage("FieldAsNameOpt,*/")
+
+
 		$$ = ""
 	}
 |	FieldAsName
 
+{
+sql_ir.LogGrammarCoverage("FieldAsNameOpt,FieldAsName")
+
+}
 FieldAsName:
 	Identifier
+{
+sql_ir.LogGrammarCoverage("FieldAsName,Identifier")
+
+}
 |	"AS" Identifier
 	{
+sql_ir.LogGrammarCoverage("FieldAsName,Identifier")
+
+
 		$$ = $2
 	}
 |	stringLit
+{
+sql_ir.LogGrammarCoverage("FieldAsName,stringLit")
+
+}
 |	"AS" stringLit
 	{
+sql_ir.LogGrammarCoverage("FieldAsName,stringLit")
+
+
 		$$ = $2
 	}
 
 FieldList:
 	Field
 	{
+sql_ir.LogGrammarCoverage("FieldList,Field")
+
+
 		field := $1.(*ast.SelectField)
 		field.Offset = parser.startOffset(&yyS[yypt])
 		$$ = []*ast.SelectField{field}
 	}
 |	FieldList ',' Field
 	{
+sql_ir.LogGrammarCoverage("FieldList,FieldList")
+sql_ir.LogGrammarCoverage("FieldList,Field")
+
+
 		fl := $1.([]*ast.SelectField)
 		last := fl[len(fl)-1]
 		if last.Expr != nil && last.AsName.O == "" {
@@ -5585,28 +7620,45 @@ FieldList:
 GroupByClause:
 	"GROUP" "BY" ByList
 	{
+sql_ir.LogGrammarCoverage("GroupByClause,ByList")
+
+
 		$$ = &ast.GroupByClause{Items: $3.([]*ast.ByItem)}
 	}
 
 HavingClause:
 	{
+
+
 		$$ = nil
 	}
 |	"HAVING" Expression
 	{
+sql_ir.LogGrammarCoverage("HavingClause,Expression")
+
+
 		$$ = &ast.HavingClause{Expr: $2}
 	}
 
 AsOfClauseOpt:
 	%prec empty
 	{
+
+
 		$$ = nil
 	}
 |	AsOfClause
 
+{
+sql_ir.LogGrammarCoverage("AsOfClauseOpt,AsOfClause")
+
+}
 AsOfClause:
 	asof "TIMESTAMP" Expression
 	{
+sql_ir.LogGrammarCoverage("AsOfClause,Expression")
+
+
 		$$ = &ast.AsOfClause{
 			TsExpr: $3.(ast.ExprNode),
 		}
@@ -5614,33 +7666,48 @@ AsOfClause:
 
 IfExists:
 	{
+
+
 		$$ = false
 	}
 |	"IF" "EXISTS"
 	{
+
+
 		$$ = true
 	}
 
 IfNotExists:
 	{
+
+
 		$$ = false
 	}
 |	"IF" NotSym "EXISTS"
 	{
+sql_ir.LogGrammarCoverage("IfNotExists,NotSym")
+
+
 		$$ = true
 	}
 
 IgnoreOptional:
 	{
+
+
 		$$ = false
 	}
 |	"IGNORE"
 	{
+
+
 		$$ = true
 	}
 
 IndexName:
 	{
+
+
 		$$ = &ast.NullString{
 			String: "",
 			Empty:  false,
@@ -5648,6 +7715,9 @@ IndexName:
 	}
 |	Identifier
 	{
+sql_ir.LogGrammarCoverage("IndexName,Identifier")
+
+
 		$$ = &ast.NullString{
 			String: $1,
 			Empty:  len($1) == 0,
@@ -5656,10 +7726,16 @@ IndexName:
 
 IndexOptionList:
 	{
+
+
 		$$ = nil
 	}
 |	IndexOptionList IndexOption
 	{
+sql_ir.LogGrammarCoverage("IndexOptionList,IndexOptionList")
+sql_ir.LogGrammarCoverage("IndexOptionList,IndexOption")
+
+
 		// Merge the options
 		if $1 == nil {
 			$$ = $2
@@ -5686,18 +7762,28 @@ IndexOptionList:
 IndexOption:
 	"KEY_BLOCK_SIZE" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("IndexOption,EqOpt")
+sql_ir.LogGrammarCoverage("IndexOption,LengthNum")
+
+
 		$$ = &ast.IndexOption{
 			KeyBlockSize: $3.(uint64),
 		}
 	}
 |	IndexType
 	{
+sql_ir.LogGrammarCoverage("IndexOption,IndexType")
+
+
 		$$ = &ast.IndexOption{
 			Tp: $1.(model.IndexType),
 		}
 	}
 |	"WITH" "PARSER" Identifier
 	{
+sql_ir.LogGrammarCoverage("IndexOption,Identifier")
+
+
 		$$ = &ast.IndexOption{
 			ParserName: model.NewCIStr($3),
 		}
@@ -5706,580 +7792,2007 @@ IndexOption:
 	}
 |	"COMMENT" stringLit
 	{
+sql_ir.LogGrammarCoverage("IndexOption,stringLit")
+
+
 		$$ = &ast.IndexOption{
 			Comment: $2,
 		}
 	}
 |	IndexInvisible
 	{
+sql_ir.LogGrammarCoverage("IndexOption,IndexInvisible")
+
+
 		$$ = &ast.IndexOption{
 			Visibility: $1.(ast.IndexVisibility),
 		}
 	}
 |	WithClustered
 	{
+sql_ir.LogGrammarCoverage("IndexOption,WithClustered")
+
+
 		$$ = &ast.IndexOption{
 			PrimaryKeyTp: $1.(model.PrimaryKeyType),
 		}
 	}
 
-/*
-  See: https://github.com/mysql/mysql-server/blob/8.0/sql/sql_yacc.yy#L7179
 
-  The syntax for defining an index is:
-
-    ... INDEX [index_name] [USING|TYPE] <index_type> ...
-
-  The problem is that whereas USING is a reserved word, TYPE is not. We can
-  still handle it if an index name is supplied, i.e.:
-
-    ... INDEX type TYPE <index_type> ...
-
-  here the index's name is unmbiguously 'type', but for this:
-
-    ... INDEX TYPE <index_type> ...
-
-  it's impossible to know what this actually mean - is 'type' the name or the
-  type? For this reason we accept the TYPE syntax only if a name is supplied.
-*/
 IndexNameAndTypeOpt:
 	IndexName
 	{
+sql_ir.LogGrammarCoverage("IndexNameAndTypeOpt,IndexName")
+
+
 		$$ = []interface{}{$1, nil}
 	}
 |	IndexName "USING" IndexTypeName
 	{
+sql_ir.LogGrammarCoverage("IndexNameAndTypeOpt,IndexName")
+sql_ir.LogGrammarCoverage("IndexNameAndTypeOpt,IndexTypeName")
+
+
 		$$ = []interface{}{$1, $3}
 	}
 |	Identifier "TYPE" IndexTypeName
 	{
+sql_ir.LogGrammarCoverage("IndexNameAndTypeOpt,Identifier")
+sql_ir.LogGrammarCoverage("IndexNameAndTypeOpt,IndexTypeName")
+
+
 		$$ = []interface{}{&ast.NullString{String: $1, Empty: len($1) == 0}, $3}
 	}
 
 IndexTypeOpt:
 	{
+
+
 		$$ = nil
 	}
 |	IndexType
 
+{
+sql_ir.LogGrammarCoverage("IndexTypeOpt,IndexType")
+
+}
 IndexType:
 	"USING" IndexTypeName
 	{
+sql_ir.LogGrammarCoverage("IndexType,IndexTypeName")
+
+
 		$$ = $2
 	}
 |	"TYPE" IndexTypeName
 	{
+sql_ir.LogGrammarCoverage("IndexType,IndexTypeName")
+
+
 		$$ = $2
 	}
 
 IndexTypeName:
 	"BTREE"
 	{
+
+
 		$$ = model.IndexTypeBtree
 	}
 |	"HASH"
 	{
+
+
 		$$ = model.IndexTypeHash
 	}
 |	"RTREE"
 	{
+
+
 		$$ = model.IndexTypeRtree
 	}
 
 IndexInvisible:
 	"VISIBLE"
 	{
+
+
 		$$ = ast.IndexVisibilityVisible
 	}
 |	"INVISIBLE"
 	{
+
+
 		$$ = ast.IndexVisibilityInvisible
 	}
 
-/**********************************Identifier********************************************/
+
 Identifier:
 	identifier
+{
+
+}
 |	UnReservedKeyword
+{
+sql_ir.LogGrammarCoverage("Identifier,UnReservedKeyword")
+
+}
 |	NotKeywordToken
+{
+sql_ir.LogGrammarCoverage("Identifier,NotKeywordToken")
+
+}
 |	TiDBKeyword
 
+{
+sql_ir.LogGrammarCoverage("Identifier,TiDBKeyword")
+
+}
 UnReservedKeyword:
 	"ACTION"
+{
+
+}
 |	"ADVISE"
+{
+
+}
 |	"ASCII"
+{
+
+}
 |	"ATTRIBUTES"
+{
+
+}
 |	"BINDING_CACHE"
+{
+
+}
 |	"STATS_OPTIONS"
+{
+
+}
 |	"STATS_SAMPLE_RATE"
+{
+
+}
 |	"STATS_COL_CHOICE"
+{
+
+}
 |	"STATS_COL_LIST"
+{
+
+}
 |	"AUTO_ID_CACHE"
+{
+
+}
 |	"AUTO_INCREMENT"
+{
+
+}
 |	"AFTER"
+{
+
+}
 |	"ALWAYS"
+{
+
+}
 |	"AVG"
+{
+
+}
 |	"BEGIN"
+{
+
+}
 |	"BIT"
+{
+
+}
 |	"BOOL"
+{
+
+}
 |	"BOOLEAN"
+{
+
+}
 |	"BTREE"
+{
+
+}
 |	"BYTE"
+{
+
+}
 |	"CAPTURE"
+{
+
+}
 |	"CAUSAL"
+{
+
+}
 |	"CLEANUP"
+{
+
+}
 |	"CHAIN"
+{
+
+}
 |	"CHARSET"
+{
+
+}
 |	"COLUMNS"
+{
+
+}
 |	"CONFIG"
+{
+
+}
 |	"SAN"
+{
+
+}
 |	"COMMIT"
+{
+
+}
 |	"COMPACT"
+{
+
+}
 |	"COMPRESSED"
+{
+
+}
 |	"CONSISTENCY"
+{
+
+}
 |	"CONSISTENT"
+{
+
+}
 |	"CURRENT"
+{
+
+}
 |	"DATA"
+{
+
+}
 |	"DATE" %prec lowerThanStringLitToken
+{
+
+}
 |	"DATETIME"
+{
+
+}
 |	"DAY"
+{
+
+}
 |	"DEALLOCATE"
+{
+
+}
 |	"DO"
+{
+
+}
 |	"DUPLICATE"
+{
+
+}
 |	"DYNAMIC"
+{
+
+}
 |	"ENCRYPTION"
+{
+
+}
 |	"END"
+{
+
+}
 |	"ENFORCED"
+{
+
+}
 |	"ENGINE"
+{
+
+}
 |	"ENGINES"
+{
+
+}
 |	"ENUM"
+{
+
+}
 |	"ERROR"
+{
+
+}
 |	"ERRORS"
+{
+
+}
 |	"ESCAPE"
+{
+
+}
 |	"EVOLVE"
+{
+
+}
 |	"EXECUTE"
+{
+
+}
 |	"EXTENDED"
+{
+
+}
 |	"FIELDS"
+{
+
+}
 |	"FILE"
+{
+
+}
 |	"FIRST"
+{
+
+}
 |	"FIXED"
+{
+
+}
 |	"FLUSH"
+{
+
+}
 |	"FOLLOWING"
+{
+
+}
 |	"FORMAT"
+{
+
+}
 |	"FULL"
+{
+
+}
 |	"GENERAL"
+{
+
+}
 |	"GLOBAL"
+{
+
+}
 |	"HASH"
+{
+
+}
 |	"HELP"
+{
+
+}
 |	"HOUR"
+{
+
+}
 |	"INSERT_METHOD"
+{
+
+}
 |	"LESS"
+{
+
+}
 |	"LOCAL"
+{
+
+}
 |	"LAST"
+{
+
+}
 |	"NAMES"
+{
+
+}
 |	"NVARCHAR"
+{
+
+}
 |	"OFFSET"
+{
+
+}
 |	"PACK_KEYS"
+{
+
+}
 |	"PARSER"
+{
+
+}
 |	"PASSWORD" %prec lowerThanEq
+{
+
+}
 |	"PREPARE"
+{
+
+}
 |	"PRE_SPLIT_REGIONS"
+{
+
+}
 |	"PROXY"
+{
+
+}
 |	"QUICK"
+{
+
+}
 |	"REBUILD"
+{
+
+}
 |	"REDUNDANT"
+{
+
+}
 |	"REORGANIZE"
+{
+
+}
 |	"RESTART"
+{
+
+}
 |	"ROLE"
+{
+
+}
 |	"ROLLBACK"
+{
+
+}
 |	"SESSION"
+{
+
+}
 |	"SIGNED"
+{
+
+}
 |	"SHARD_ROW_ID_BITS"
+{
+
+}
 |	"SHUTDOWN"
+{
+
+}
 |	"SNAPSHOT"
+{
+
+}
 |	"START"
+{
+
+}
 |	"STATUS"
+{
+
+}
 |	"OPEN"
+{
+
+}
 |	"SUBPARTITIONS"
+{
+
+}
 |	"SUBPARTITION"
+{
+
+}
 |	"TABLES"
+{
+
+}
 |	"TABLESPACE"
+{
+
+}
 |	"TEXT"
+{
+
+}
 |	"THAN"
+{
+
+}
 |	"TIME" %prec lowerThanStringLitToken
+{
+
+}
 |	"TIMESTAMP" %prec lowerThanStringLitToken
+{
+
+}
 |	"TRACE"
+{
+
+}
 |	"TRANSACTION"
+{
+
+}
 |	"TRUNCATE"
+{
+
+}
 |	"UNBOUNDED"
+{
+
+}
 |	"UNKNOWN"
+{
+
+}
 |	"VALUE" %prec lowerThanValueKeyword
+{
+
+}
 |	"WARNINGS"
+{
+
+}
 |	"YEAR"
+{
+
+}
 |	"MODE"
+{
+
+}
 |	"WEEK"
+{
+
+}
 |	"WEIGHT_STRING"
+{
+
+}
 |	"ANY"
+{
+
+}
 |	"SOME"
+{
+
+}
 |	"USER"
+{
+
+}
 |	"IDENTIFIED"
+{
+
+}
 |	"COLLATION"
+{
+
+}
 |	"COMMENT"
+{
+
+}
 |	"AVG_ROW_LENGTH"
+{
+
+}
 |	"CONNECTION"
+{
+
+}
 |	"CHECKSUM"
+{
+
+}
 |	"COMPRESSION"
+{
+
+}
 |	"KEY_BLOCK_SIZE"
+{
+
+}
 |	"MASTER"
+{
+
+}
 |	"MAX_ROWS"
+{
+
+}
 |	"MIN_ROWS"
+{
+
+}
 |	"NATIONAL"
+{
+
+}
 |	"NCHAR"
+{
+
+}
 |	"ROW_FORMAT"
+{
+
+}
 |	"QUARTER"
+{
+
+}
 |	"GRANTS"
+{
+
+}
 |	"TRIGGERS"
+{
+
+}
 |	"DELAY_KEY_WRITE"
+{
+
+}
 |	"ISOLATION"
+{
+
+}
 |	"JSON"
+{
+
+}
 |	"REPEATABLE"
+{
+
+}
 |	"RESPECT"
+{
+
+}
 |	"COMMITTED"
+{
+
+}
 |	"UNCOMMITTED"
+{
+
+}
 |	"ONLY"
+{
+
+}
 |	"SERIAL"
+{
+
+}
 |	"SERIALIZABLE"
+{
+
+}
 |	"LEVEL"
+{
+
+}
 |	"VARIABLES"
+{
+
+}
 |	"SQL_CACHE"
+{
+
+}
 |	"INDEXES"
+{
+
+}
 |	"PROCESSLIST"
+{
+
+}
 |	"SQL_NO_CACHE"
+{
+
+}
 |	"DISABLE"
+{
+
+}
 |	"DISABLED"
+{
+
+}
 |	"ENABLE"
+{
+
+}
 |	"ENABLED"
+{
+
+}
 |	"REVERSE"
+{
+
+}
 |	"PRIVILEGES"
+{
+
+}
 |	"NO"
+{
+
+}
 |	"BINLOG"
+{
+
+}
 |	"FUNCTION"
+{
+
+}
 |	"VIEW"
+{
+
+}
 |	"BINDING"
+{
+
+}
 |	"BINDINGS"
+{
+
+}
 |	"MODIFY"
+{
+
+}
 |	"EVENTS"
+{
+
+}
 |	"PARTITIONS"
+{
+
+}
 |	"NONE"
+{
+
+}
 |	"NULLS"
+{
+
+}
 |	"SUPER"
+{
+
+}
 |	"EXCLUSIVE"
+{
+
+}
 |	"STATS_PERSISTENT"
+{
+
+}
 |	"STATS_AUTO_RECALC"
+{
+
+}
 |	"ROW_COUNT"
+{
+
+}
 |	"COALESCE"
+{
+
+}
 |	"MONTH"
+{
+
+}
 |	"PROCESS"
+{
+
+}
 |	"PROFILE"
+{
+
+}
 |	"PROFILES"
+{
+
+}
 |	"MICROSECOND"
+{
+
+}
 |	"MINUTE"
+{
+
+}
 |	"PLUGINS"
+{
+
+}
 |	"PRECEDING"
+{
+
+}
 |	"QUERY"
+{
+
+}
 |	"QUERIES"
+{
+
+}
 |	"SECOND"
+{
+
+}
 |	"SEPARATOR"
+{
+
+}
 |	"SHARE"
+{
+
+}
 |	"SHARED"
+{
+
+}
 |	"SLOW"
+{
+
+}
 |	"MAX_CONNECTIONS_PER_HOUR"
+{
+
+}
 |	"MAX_QUERIES_PER_HOUR"
+{
+
+}
 |	"MAX_UPDATES_PER_HOUR"
+{
+
+}
 |	"MAX_USER_CONNECTIONS"
+{
+
+}
 |	"REPLICATION"
+{
+
+}
 |	"CLIENT"
+{
+
+}
 |	"SLAVE"
+{
+
+}
 |	"RELOAD"
+{
+
+}
 |	"TEMPORARY"
+{
+
+}
 |	"ROUTINE"
+{
+
+}
 |	"EVENT"
+{
+
+}
 |	"ALGORITHM"
+{
+
+}
 |	"DEFINER"
+{
+
+}
 |	"INVOKER"
+{
+
+}
 |	"MERGE"
+{
+
+}
 |	"TEMPTABLE"
+{
+
+}
 |	"UNDEFINED"
+{
+
+}
 |	"SECURITY"
+{
+
+}
 |	"CASCADED"
+{
+
+}
 |	"RECOVER"
+{
+
+}
 |	"CIPHER"
+{
+
+}
 |	"SUBJECT"
+{
+
+}
 |	"ISSUER"
+{
+
+}
 |	"X509"
+{
+
+}
 |	"NEVER"
+{
+
+}
 |	"EXPIRE"
+{
+
+}
 |	"ACCOUNT"
+{
+
+}
 |	"INCREMENTAL"
+{
+
+}
 |	"CPU"
+{
+
+}
 |	"MEMORY"
+{
+
+}
 |	"BLOCK"
+{
+
+}
 |	"IO"
+{
+
+}
 |	"CONTEXT"
+{
+
+}
 |	"SWITCHES"
+{
+
+}
 |	"PAGE"
+{
+
+}
 |	"FAULTS"
+{
+
+}
 |	"IPC"
+{
+
+}
 |	"SWAPS"
+{
+
+}
 |	"SOURCE"
+{
+
+}
 |	"TRADITIONAL"
+{
+
+}
 |	"SQL_BUFFER_RESULT"
+{
+
+}
 |	"DIRECTORY"
+{
+
+}
 |	"HISTOGRAM"
+{
+
+}
 |	"HISTORY"
+{
+
+}
 |	"LIST"
+{
+
+}
 |	"NODEGROUP"
+{
+
+}
 |	"SYSTEM_TIME"
+{
+
+}
 |	"PARTIAL"
+{
+
+}
 |	"SIMPLE"
+{
+
+}
 |	"REMOVE"
+{
+
+}
 |	"PARTITIONING"
+{
+
+}
 |	"STORAGE"
+{
+
+}
 |	"DISK"
+{
+
+}
 |	"STATS_SAMPLE_PAGES"
+{
+
+}
 |	"SECONDARY_ENGINE"
+{
+
+}
 |	"SECONDARY_LOAD"
+{
+
+}
 |	"SECONDARY_UNLOAD"
+{
+
+}
 |	"VALIDATION"
+{
+
+}
 |	"WITHOUT"
+{
+
+}
 |	"RTREE"
+{
+
+}
 |	"EXCHANGE"
+{
+
+}
 |	"COLUMN_FORMAT"
+{
+
+}
 |	"REPAIR"
+{
+
+}
 |	"IMPORT"
+{
+
+}
 |	"IMPORTS"
+{
+
+}
 |	"DISCARD"
+{
+
+}
 |	"TABLE_CHECKSUM"
+{
+
+}
 |	"UNICODE"
+{
+
+}
 |	"AUTO_RANDOM"
+{
+
+}
 |	"AUTO_RANDOM_BASE"
+{
+
+}
 |	"SQL_TSI_DAY"
+{
+
+}
 |	"SQL_TSI_HOUR"
+{
+
+}
 |	"SQL_TSI_MINUTE"
+{
+
+}
 |	"SQL_TSI_MONTH"
+{
+
+}
 |	"SQL_TSI_QUARTER"
+{
+
+}
 |	"SQL_TSI_SECOND"
+{
+
+}
 |	"LANGUAGE"
+{
+
+}
 |	"SQL_TSI_WEEK"
+{
+
+}
 |	"SQL_TSI_YEAR"
+{
+
+}
 |	"INVISIBLE"
+{
+
+}
 |	"VISIBLE"
+{
+
+}
 |	"TYPE"
+{
+
+}
 |	"NOWAIT"
+{
+
+}
 |	"INSTANCE"
+{
+
+}
 |	"REPLICA"
+{
+
+}
 |	"LOCATION"
+{
+
+}
 |	"LABELS"
+{
+
+}
 |	"LOGS"
+{
+
+}
 |	"HOSTS"
+{
+
+}
 |	"AGAINST"
+{
+
+}
 |	"EXPANSION"
+{
+
+}
 |	"INCREMENT"
+{
+
+}
 |	"MINVALUE"
+{
+
+}
 |	"NOMAXVALUE"
+{
+
+}
 |	"NOMINVALUE"
+{
+
+}
 |	"NOCACHE"
+{
+
+}
 |	"CACHE"
+{
+
+}
 |	"CYCLE"
+{
+
+}
 |	"NOCYCLE"
+{
+
+}
 |	"SEQUENCE"
+{
+
+}
 |	"MAX_MINUTES"
+{
+
+}
 |	"MAX_IDXNUM"
+{
+
+}
 |	"PER_TABLE"
+{
+
+}
 |	"PER_DB"
+{
+
+}
 |	"NEXT"
+{
+
+}
 |	"NEXTVAL"
+{
+
+}
 |	"LASTVAL"
+{
+
+}
 |	"SETVAL"
+{
+
+}
 |	"AGO"
+{
+
+}
 |	"BACKUP"
+{
+
+}
 |	"BACKUPS"
+{
+
+}
 |	"CONCURRENCY"
+{
+
+}
 |	"MB"
+{
+
+}
 |	"ONLINE"
+{
+
+}
 |	"RATE_LIMIT"
+{
+
+}
 |	"RESTORE"
+{
+
+}
 |	"RESTORES"
+{
+
+}
 |	"SEND_CREDENTIALS_TO_TIKV"
+{
+
+}
 |	"LAST_BACKUP"
+{
+
+}
 |	"CHECKPOINT"
+{
+
+}
 |	"SKIP_SCHEMA_FILES"
+{
+
+}
 |	"STRICT_FORMAT"
+{
+
+}
 |	"BACKEND"
+{
+
+}
 |	"CSV_BACKSLASH_ESCAPE"
+{
+
+}
 |	"CSV_NOT_NULL"
+{
+
+}
 |	"CSV_TRIM_LAST_SEPARATORS"
+{
+
+}
 |	"CSV_DELIMITER"
+{
+
+}
 |	"CSV_HEADER"
+{
+
+}
 |	"CSV_NULL"
+{
+
+}
 |	"CSV_SEPARATOR"
+{
+
+}
 |	"ON_DUPLICATE"
+{
+
+}
 |	"TIKV_IMPORTER"
+{
+
+}
 |	"REPLICAS"
+{
+
+}
 |	"POLICY"
+{
+
+}
 |	"WAIT"
+{
+
+}
 |	"CLIENT_ERRORS_SUMMARY"
+{
+
+}
 |	"BERNOULLI"
+{
+
+}
 |	"SYSTEM"
+{
+
+}
 |	"PERCENT"
+{
+
+}
 |	"RESUME"
+{
+
+}
 |	"OFF"
+{
+
+}
 |	"OPTIONAL"
+{
+
+}
 |	"REQUIRED"
+{
+
+}
 |	"PURGE"
+{
+
+}
 |	"SKIP"
+{
+
+}
 |	"LOCKED"
+{
+
+}
 |	"CLUSTERED"
+{
+
+}
 |	"NONCLUSTERED"
+{
+
+}
 |	"PRESERVE"
 
+{
+
+}
 TiDBKeyword:
 	"ADMIN"
+{
+
+}
 |	"BATCH"
+{
+
+}
 |	"BUCKETS"
+{
+
+}
 |	"BUILTINS"
+{
+
+}
 |	"CANCEL"
+{
+
+}
 |	"CARDINALITY"
+{
+
+}
 |	"CMSKETCH"
+{
+
+}
 |	"COLUMN_STATS_USAGE"
+{
+
+}
 |	"CORRELATION"
+{
+
+}
 |	"DDL"
+{
+
+}
 |	"DEPENDENCY"
+{
+
+}
 |	"DEPTH"
+{
+
+}
 |	"DRAINER"
+{
+
+}
 |	"JOBS"
+{
+
+}
 |	"JOB"
+{
+
+}
 |	"NODE_ID"
+{
+
+}
 |	"NODE_STATE"
+{
+
+}
 |	"PUMP"
+{
+
+}
 |	"SAMPLES"
+{
+
+}
 |	"SAMPLERATE"
+{
+
+}
 |	"STATISTICS"
+{
+
+}
 |	"STATS"
+{
+
+}
 |	"STATS_META"
+{
+
+}
 |	"STATS_HISTOGRAMS"
+{
+
+}
 |	"STATS_TOPN"
+{
+
+}
 |	"STATS_BUCKETS"
+{
+
+}
 |	"STATS_HEALTHY"
+{
+
+}
 |	"HISTOGRAMS_IN_FLIGHT"
+{
+
+}
 |	"TELEMETRY"
+{
+
+}
 |	"TELEMETRY_ID"
+{
+
+}
 |	"TIDB"
+{
+
+}
 |	"TIFLASH"
+{
+
+}
 |	"TOPN"
+{
+
+}
 |	"SPLIT"
+{
+
+}
 |	"OPTIMISTIC"
+{
+
+}
 |	"PESSIMISTIC"
+{
+
+}
 |	"WIDTH"
+{
+
+}
 |	"REGIONS"
+{
+
+}
 |	"REGION"
+{
+
+}
 |	"RESET"
+{
+
+}
 |	"DRY"
+{
+
+}
 |	"RUN"
 
+{
+
+}
 NotKeywordToken:
 	"ADDDATE"
+{
+
+}
 |	"APPROX_COUNT_DISTINCT"
+{
+
+}
 |	"APPROX_PERCENTILE"
+{
+
+}
 |	"BIT_AND"
+{
+
+}
 |	"BIT_OR"
+{
+
+}
 |	"BIT_XOR"
+{
+
+}
 |	"BRIEF"
+{
+
+}
 |	"CAST"
+{
+
+}
 |	"COPY"
+{
+
+}
 |	"CURTIME"
+{
+
+}
 |	"DATE_ADD"
+{
+
+}
 |	"DATE_SUB"
+{
+
+}
 |	"DOT"
+{
+
+}
 |	"DUMP"
+{
+
+}
 |	"EXTRACT"
+{
+
+}
 |	"GET_FORMAT"
+{
+
+}
 |	"GROUP_CONCAT"
+{
+
+}
 |	"INPLACE"
+{
+
+}
 |	"INSTANT"
+{
+
+}
 |	"INTERNAL"
+{
+
+}
 |	"MIN"
+{
+
+}
 |	"MAX"
+{
+
+}
 |	"NOW"
+{
+
+}
 |	"RECENT"
+{
+
+}
 |	"REPLAYER"
+{
+
+}
 |	"RUNNING"
+{
+
+}
 |	"PLACEMENT"
+{
+
+}
 |	"PLAN"
+{
+
+}
 |	"PLAN_CACHE"
+{
+
+}
 |	"POSITION"
+{
+
+}
 |	"PREDICATE"
+{
+
+}
 |	"S3"
+{
+
+}
 |	"STRICT"
+{
+
+}
 |	"SUBDATE"
+{
+
+}
 |	"SUBSTRING"
+{
+
+}
 |	"SUM"
+{
+
+}
 |	"STD"
+{
+
+}
 |	"STDDEV"
+{
+
+}
 |	"STDDEV_POP"
+{
+
+}
 |	"STDDEV_SAMP"
+{
+
+}
 |	"STOP"
+{
+
+}
 |	"VARIANCE"
+{
+
+}
 |	"VAR_POP"
+{
+
+}
 |	"VAR_SAMP"
+{
+
+}
 |	"TARGET"
+{
+
+}
 |	"TIMESTAMPADD"
+{
+
+}
 |	"TIMESTAMPDIFF"
+{
+
+}
 |	"TOKUDB_DEFAULT"
+{
+
+}
 |	"TOKUDB_FAST"
+{
+
+}
 |	"TOKUDB_LZMA"
+{
+
+}
 |	"TOKUDB_QUICKLZ"
+{
+
+}
 |	"TOKUDB_SNAPPY"
+{
+
+}
 |	"TOKUDB_SMALL"
+{
+
+}
 |	"TOKUDB_UNCOMPRESSED"
+{
+
+}
 |	"TOKUDB_ZLIB"
+{
+
+}
 |	"TOP"
+{
+
+}
 |	"TRIM"
+{
+
+}
 |	"NEXT_ROW_ID"
+{
+
+}
 |	"EXPR_PUSHDOWN_BLACKLIST"
+{
+
+}
 |	"OPT_RULE_BLACKLIST"
+{
+
+}
 |	"BOUND"
+{
+
+}
 |	"EXACT" %prec lowerThanStringLitToken
+{
+
+}
 |	"STALENESS"
+{
+
+}
 |	"STRONG"
+{
+
+}
 |	"FLASHBACK"
+{
+
+}
 |	"JSON_OBJECTAGG"
+{
+
+}
 |	"JSON_ARRAYAGG"
+{
+
+}
 |	"TLS"
+{
+
+}
 |	"FOLLOWER"
+{
+
+}
 |	"FOLLOWERS"
+{
+
+}
 |	"LEADER"
+{
+
+}
 |	"LEARNER"
+{
+
+}
 |	"LEARNERS"
+{
+
+}
 |	"VERBOSE"
+{
+
+}
 |	"TRUE_CARD_COST"
+{
+
+}
 |	"VOTER"
+{
+
+}
 |	"VOTERS"
+{
+
+}
 |	"CONSTRAINTS"
+{
+
+}
 |	"PRIMARY_REGION"
+{
+
+}
 |	"SCHEDULE"
+{
+
+}
 |	"LEADER_CONSTRAINTS"
+{
+
+}
 |	"FOLLOWER_CONSTRAINTS"
+{
+
+}
 |	"LEARNER_CONSTRAINTS"
+{
+
+}
 |	"VOTER_CONSTRAINTS"
 
-/************************************************************************************
- *
- *  Call Statements
- *
- **********************************************************************************/
+
+{
+
+}
 CallStmt:
 	"CALL" ProcedureCall
 	{
+sql_ir.LogGrammarCoverage("CallStmt,ProcedureCall")
+
+
 		$$ = &ast.CallStmt{
 			Procedure: $2.(*ast.FuncCallExpr),
 		}
@@ -6288,6 +9801,8 @@ CallStmt:
 ProcedureCall:
 	identifier
 	{
+
+
 		$$ = &ast.FuncCallExpr{
 			Tp:     ast.FuncCallExprTypeGeneric,
 			FnName: model.NewCIStr($1),
@@ -6296,6 +9811,10 @@ ProcedureCall:
 	}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("ProcedureCall,Identifier")
+sql_ir.LogGrammarCoverage("ProcedureCall,Identifier")
+
+
 		$$ = &ast.FuncCallExpr{
 			Tp:     ast.FuncCallExprTypeGeneric,
 			Schema: model.NewCIStr($1),
@@ -6305,6 +9824,9 @@ ProcedureCall:
 	}
 |	identifier '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("ProcedureCall,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{
 			Tp:     ast.FuncCallExprTypeGeneric,
 			FnName: model.NewCIStr($1),
@@ -6313,6 +9835,11 @@ ProcedureCall:
 	}
 |	Identifier '.' Identifier '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("ProcedureCall,Identifier")
+sql_ir.LogGrammarCoverage("ProcedureCall,Identifier")
+sql_ir.LogGrammarCoverage("ProcedureCall,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{
 			Tp:     ast.FuncCallExprTypeGeneric,
 			Schema: model.NewCIStr($1),
@@ -6321,14 +9848,20 @@ ProcedureCall:
 		}
 	}
 
-/************************************************************************************
- *
- *  Insert Statements
- *
- **********************************************************************************/
+
 InsertIntoStmt:
 	"INSERT" TableOptimizerHintsOpt PriorityOpt IgnoreOptional IntoOpt TableName PartitionNameListOpt InsertValues OnDuplicateKeyUpdate
 	{
+sql_ir.LogGrammarCoverage("InsertIntoStmt,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,PriorityOpt")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,IgnoreOptional")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,IntoOpt")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,TableName")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,InsertValues")
+sql_ir.LogGrammarCoverage("InsertIntoStmt,OnDuplicateKeyUpdate")
+
+
 		x := $8.(*ast.InsertStmt)
 		x.Priority = $3.(mysql.PriorityEnum)
 		x.IgnoreErr = $4.(bool)
@@ -6346,12 +9879,22 @@ InsertIntoStmt:
 	}
 
 IntoOpt:
-	{}
+	{
+
+}
 |	"INTO"
 
+{
+
+}
 InsertValues:
 	'(' ColumnNameListOpt ')' ValueSym ValuesList
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnNameListOpt")
+sql_ir.LogGrammarCoverage("InsertValues,ValueSym")
+sql_ir.LogGrammarCoverage("InsertValues,ValuesList")
+
+
 		$$ = &ast.InsertStmt{
 			Columns: $2.([]*ast.ColumnName),
 			Lists:   $5.([][]ast.ExprNode),
@@ -6359,18 +9902,34 @@ InsertValues:
 	}
 |	'(' ColumnNameListOpt ')' SetOprStmt
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnNameListOpt")
+sql_ir.LogGrammarCoverage("InsertValues,SetOprStmt")
+
+
 		$$ = &ast.InsertStmt{Columns: $2.([]*ast.ColumnName), Select: $4.(ast.ResultSetNode)}
 	}
 |	'(' ColumnNameListOpt ')' SelectStmt
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnNameListOpt")
+sql_ir.LogGrammarCoverage("InsertValues,SelectStmt")
+
+
 		$$ = &ast.InsertStmt{Columns: $2.([]*ast.ColumnName), Select: $4.(ast.ResultSetNode)}
 	}
 |	'(' ColumnNameListOpt ')' SelectStmtWithClause
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnNameListOpt")
+sql_ir.LogGrammarCoverage("InsertValues,SelectStmtWithClause")
+
+
 		$$ = &ast.InsertStmt{Columns: $2.([]*ast.ColumnName), Select: $4.(ast.ResultSetNode)}
 	}
 |	'(' ColumnNameListOpt ')' SubSelect
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnNameListOpt")
+sql_ir.LogGrammarCoverage("InsertValues,SubSelect")
+
+
 		var sel ast.ResultSetNode
 		switch x := $4.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -6384,22 +9943,38 @@ InsertValues:
 	}
 |	ValueSym ValuesList %prec insertValues
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ValueSym")
+sql_ir.LogGrammarCoverage("InsertValues,ValuesList")
+
+
 		$$ = &ast.InsertStmt{Lists: $2.([][]ast.ExprNode)}
 	}
 |	SetOprStmt
 	{
+sql_ir.LogGrammarCoverage("InsertValues,SetOprStmt")
+
+
 		$$ = &ast.InsertStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SelectStmt
 	{
+sql_ir.LogGrammarCoverage("InsertValues,SelectStmt")
+
+
 		$$ = &ast.InsertStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SelectStmtWithClause
 	{
+sql_ir.LogGrammarCoverage("InsertValues,SelectStmtWithClause")
+
+
 		$$ = &ast.InsertStmt{Select: $1.(ast.ResultSetNode)}
 	}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("InsertValues,SubSelect")
+
+
 		var sel ast.ResultSetNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -6413,55 +9988,97 @@ InsertValues:
 	}
 |	"SET" ColumnSetValueList
 	{
+sql_ir.LogGrammarCoverage("InsertValues,ColumnSetValueList")
+
+
 		$$ = &ast.InsertStmt{Setlist: $2.([]*ast.Assignment)}
 	}
 
 ValueSym:
 	"VALUE"
+{
+
+}
 |	"VALUES"
 
+{
+
+}
 ValuesList:
 	RowValue
 	{
+sql_ir.LogGrammarCoverage("ValuesList,RowValue")
+
+
 		$$ = [][]ast.ExprNode{$1.([]ast.ExprNode)}
 	}
 |	ValuesList ',' RowValue
 	{
+sql_ir.LogGrammarCoverage("ValuesList,ValuesList")
+sql_ir.LogGrammarCoverage("ValuesList,RowValue")
+
+
 		$$ = append($1.([][]ast.ExprNode), $3.([]ast.ExprNode))
 	}
 
 RowValue:
 	'(' ValuesOpt ')'
 	{
+sql_ir.LogGrammarCoverage("RowValue,ValuesOpt")
+
+
 		$$ = $2
 	}
 
 ValuesOpt:
 	{
+
+
 		$$ = []ast.ExprNode{}
 	}
 |	Values
 
+{
+sql_ir.LogGrammarCoverage("ValuesOpt,Values")
+
+}
 Values:
 	Values ',' ExprOrDefault
 	{
+sql_ir.LogGrammarCoverage("Values,Values")
+sql_ir.LogGrammarCoverage("Values,ExprOrDefault")
+
+
 		$$ = append($1.([]ast.ExprNode), $3)
 	}
 |	ExprOrDefault
 	{
+sql_ir.LogGrammarCoverage("Values,ExprOrDefault")
+
+
 		$$ = []ast.ExprNode{$1}
 	}
 
 ExprOrDefault:
 	Expression
+{
+sql_ir.LogGrammarCoverage("ExprOrDefault,Expression")
+
+}
 |	"DEFAULT"
 	{
+
+
 		$$ = &ast.DefaultExpr{}
 	}
 
 ColumnSetValue:
 	ColumnName eq ExprOrDefault
 	{
+sql_ir.LogGrammarCoverage("ColumnSetValue,ColumnName")
+sql_ir.LogGrammarCoverage("ColumnSetValue,ExprOrDefault")
+
+
 		$$ = &ast.Assignment{
 			Column: $1.(*ast.ColumnName),
 			Expr:   $3,
@@ -6470,38 +10087,52 @@ ColumnSetValue:
 
 ColumnSetValueList:
 	{
+
+
 		$$ = []*ast.Assignment{}
 	}
 |	ColumnSetValue
 	{
+sql_ir.LogGrammarCoverage("ColumnSetValueList,ColumnSetValue")
+
+
 		$$ = []*ast.Assignment{$1.(*ast.Assignment)}
 	}
 |	ColumnSetValueList ',' ColumnSetValue
 	{
+sql_ir.LogGrammarCoverage("ColumnSetValueList,ColumnSetValueList")
+sql_ir.LogGrammarCoverage("ColumnSetValueList,ColumnSetValue")
+
+
 		$$ = append($1.([]*ast.Assignment), $3.(*ast.Assignment))
 	}
 
-/*
- * ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ...
- * See https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
- */
+
 OnDuplicateKeyUpdate:
 	{
+
+
 		$$ = nil
 	}
 |	"ON" "DUPLICATE" "KEY" "UPDATE" AssignmentList
 	{
+sql_ir.LogGrammarCoverage("OnDuplicateKeyUpdate,AssignmentList")
+
+
 		$$ = $5
 	}
 
-/************************************************************************************
- *  Replace Statements
- *  See https://dev.mysql.com/doc/refman/5.7/en/replace.html
- *
- **********************************************************************************/
+
 ReplaceIntoStmt:
 	"REPLACE" PriorityOpt IntoOpt TableName PartitionNameListOpt InsertValues
 	{
+sql_ir.LogGrammarCoverage("ReplaceIntoStmt,PriorityOpt")
+sql_ir.LogGrammarCoverage("ReplaceIntoStmt,IntoOpt")
+sql_ir.LogGrammarCoverage("ReplaceIntoStmt,TableName")
+sql_ir.LogGrammarCoverage("ReplaceIntoStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("ReplaceIntoStmt,InsertValues")
+
+
 		x := $6.(*ast.InsertStmt)
 		x.IsReplace = true
 		x.Priority = $2.(mysql.PriorityEnum)
@@ -6514,31 +10145,50 @@ ReplaceIntoStmt:
 Literal:
 	"FALSE"
 	{
+
+
 		$$ = ast.NewValueExpr(false, parser.charset, parser.collation)
 	}
 |	"NULL"
 	{
+
+
 		$$ = ast.NewValueExpr(nil, parser.charset, parser.collation)
 	}
 |	"TRUE"
 	{
+
+
 		$$ = ast.NewValueExpr(true, parser.charset, parser.collation)
 	}
 |	floatLit
 	{
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	decLit
 	{
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	intLit
 	{
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	StringLiteral %prec lowerThanStringLitToken
+{
+sql_ir.LogGrammarCoverage("Literal,StringLiteral")
+
+}
 |	"UNDERSCORE_CHARSET" stringLit
 	{
+sql_ir.LogGrammarCoverage("Literal,stringLit")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/charset-literal.html
 		co, err := charset.GetDefaultCollationLegacy($1)
 		if err != nil {
@@ -6556,14 +10206,20 @@ Literal:
 	}
 |	hexLit
 	{
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	bitLit
 	{
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	"UNDERSCORE_CHARSET" hexLit
 	{
+
+
 		co, err := charset.GetDefaultCollationLegacy($1)
 		if err != nil {
 			yylex.AppendError(ast.ErrUnknownCharacterSet.GenWithStack("Unsupported character introducer: '%-.64s'", $1))
@@ -6580,6 +10236,8 @@ Literal:
 	}
 |	"UNDERSCORE_CHARSET" bitLit
 	{
+
+
 		co, err := charset.GetDefaultCollationLegacy($1)
 		if err != nil {
 			yylex.AppendError(ast.ErrUnknownCharacterSet.GenWithStack("Unsupported character introducer: '%-.64s'", $1))
@@ -6598,11 +10256,18 @@ Literal:
 StringLiteral:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("StringLiteral,stringLit")
+
+
 		expr := ast.NewValueExpr($1, parser.charset, parser.collation)
 		$$ = expr
 	}
 |	StringLiteral stringLit
 	{
+sql_ir.LogGrammarCoverage("StringLiteral,StringLiteral")
+sql_ir.LogGrammarCoverage("StringLiteral,stringLit")
+
+
 		valExpr := $1.(ast.ValueExpr)
 		strLit := valExpr.GetString()
 		expr := ast.NewValueExpr(strLit+$2, parser.charset, parser.collation)
@@ -6618,38 +10283,62 @@ StringLiteral:
 AlterOrderList:
 	AlterOrderItem
 	{
+sql_ir.LogGrammarCoverage("AlterOrderList,AlterOrderItem")
+
+
 		$$ = []*ast.AlterOrderItem{$1.(*ast.AlterOrderItem)}
 	}
 |	AlterOrderList ',' AlterOrderItem
 	{
+sql_ir.LogGrammarCoverage("AlterOrderList,AlterOrderList")
+sql_ir.LogGrammarCoverage("AlterOrderList,AlterOrderItem")
+
+
 		$$ = append($1.([]*ast.AlterOrderItem), $3.(*ast.AlterOrderItem))
 	}
 
 AlterOrderItem:
 	ColumnName OptOrder
 	{
+sql_ir.LogGrammarCoverage("AlterOrderItem,ColumnName")
+sql_ir.LogGrammarCoverage("AlterOrderItem,OptOrder")
+
+
 		$$ = &ast.AlterOrderItem{Column: $1.(*ast.ColumnName), Desc: $2.(bool)}
 	}
 
 OrderBy:
 	"ORDER" "BY" ByList
 	{
+sql_ir.LogGrammarCoverage("OrderBy,ByList")
+
+
 		$$ = &ast.OrderByClause{Items: $3.([]*ast.ByItem)}
 	}
 
 ByList:
 	ByItem
 	{
+sql_ir.LogGrammarCoverage("ByList,ByItem")
+
+
 		$$ = []*ast.ByItem{$1.(*ast.ByItem)}
 	}
 |	ByList ',' ByItem
 	{
+sql_ir.LogGrammarCoverage("ByList,ByList")
+sql_ir.LogGrammarCoverage("ByList,ByItem")
+
+
 		$$ = append($1.([]*ast.ByItem), $3.(*ast.ByItem))
 	}
 
 ByItem:
 	Expression
 	{
+sql_ir.LogGrammarCoverage("ByItem,Expression")
+
+
 		expr := $1
 		valueExpr, ok := expr.(ast.ValueExpr)
 		if ok {
@@ -6662,6 +10351,10 @@ ByItem:
 	}
 |	Expression Order
 	{
+sql_ir.LogGrammarCoverage("ByItem,Expression")
+sql_ir.LogGrammarCoverage("ByItem,Order")
+
+
 		expr := $1
 		valueExpr, ok := expr.(ast.ValueExpr)
 		if ok {
@@ -6676,60 +10369,108 @@ ByItem:
 Order:
 	"ASC"
 	{
+
+
 		$$ = false
 	}
 |	"DESC"
 	{
+
+
 		$$ = true
 	}
 
 OptOrder:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("OptOrder,/*")
+sql_ir.LogGrammarCoverage("OptOrder,EMPTY")
+sql_ir.LogGrammarCoverage("OptOrder,*/")
+
+
 		$$ = false // ASC by default
 	}
 |	"ASC"
 	{
+
+
 		$$ = false
 	}
 |	"DESC"
 	{
+
+
 		$$ = true
 	}
 
 OrderByOptional:
 	{
+
+
 		$$ = nil
 	}
 |	OrderBy
 
+{
+sql_ir.LogGrammarCoverage("OrderByOptional,OrderBy")
+
+}
 BitExpr:
 	BitExpr '|' BitExpr %prec '|'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Or, L: $1, R: $3}
 	}
 |	BitExpr '&' BitExpr %prec '&'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.And, L: $1, R: $3}
 	}
 |	BitExpr "<<" BitExpr %prec lsh
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.LeftShift, L: $1, R: $3}
 	}
 |	BitExpr ">>" BitExpr %prec rsh
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.RightShift, L: $1, R: $3}
 	}
 |	BitExpr '+' BitExpr %prec '+'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Plus, L: $1, R: $3}
 	}
 |	BitExpr '-' BitExpr %prec '-'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Minus, L: $1, R: $3}
 	}
 |	BitExpr '+' "INTERVAL" Expression TimeUnit %prec '+'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,Expression")
+sql_ir.LogGrammarCoverage("BitExpr,TimeUnit")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr("DATE_ADD"),
 			Args: []ast.ExprNode{
@@ -6741,6 +10482,11 @@ BitExpr:
 	}
 |	BitExpr '-' "INTERVAL" Expression TimeUnit %prec '+'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,Expression")
+sql_ir.LogGrammarCoverage("BitExpr,TimeUnit")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr("DATE_SUB"),
 			Args: []ast.ExprNode{
@@ -6752,39 +10498,74 @@ BitExpr:
 	}
 |	BitExpr '*' BitExpr %prec '*'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Mul, L: $1, R: $3}
 	}
 |	BitExpr '/' BitExpr %prec '/'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Div, L: $1, R: $3}
 	}
 |	BitExpr '%' BitExpr %prec '%'
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Mod, L: $1, R: $3}
 	}
 |	BitExpr "DIV" BitExpr %prec div
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.IntDiv, L: $1, R: $3}
 	}
 |	BitExpr "MOD" BitExpr %prec mod
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Mod, L: $1, R: $3}
 	}
 |	BitExpr '^' BitExpr
 	{
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+sql_ir.LogGrammarCoverage("BitExpr,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Xor, L: $1, R: $3}
 	}
 |	SimpleExpr
 
+{
+sql_ir.LogGrammarCoverage("BitExpr,SimpleExpr")
+
+}
 SimpleIdent:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+
+
 		$$ = &ast.ColumnNameExpr{Name: &ast.ColumnName{
 			Name: model.NewCIStr($1),
 		}}
 	}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+
+
 		$$ = &ast.ColumnNameExpr{Name: &ast.ColumnName{
 			Table: model.NewCIStr($1),
 			Name:  model.NewCIStr($3),
@@ -6792,6 +10573,11 @@ SimpleIdent:
 	}
 |	Identifier '.' Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+sql_ir.LogGrammarCoverage("SimpleIdent,Identifier")
+
+
 		$$ = &ast.ColumnNameExpr{Name: &ast.ColumnName{
 			Schema: model.NewCIStr($1),
 			Table:  model.NewCIStr($3),
@@ -6801,48 +10587,112 @@ SimpleIdent:
 
 SimpleExpr:
 	SimpleIdent
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleIdent")
+
+}
 |	FunctionCallKeyword
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,FunctionCallKeyword")
+
+}
 |	FunctionCallNonKeyword
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,FunctionCallNonKeyword")
+
+}
 |	FunctionCallGeneric
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,FunctionCallGeneric")
+
+}
 |	SimpleExpr "COLLATE" CollationName
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+sql_ir.LogGrammarCoverage("SimpleExpr,CollationName")
+
+
 		$$ = &ast.SetCollationExpr{Expr: $1, Collate: $3}
 	}
 |	WindowFuncCall
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,WindowFuncCall")
+
+}
 |	Literal
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,Literal")
+
+}
 |	paramMarker
 	{
+
+
 		$$ = ast.NewParamMarkerExpr(yyS[yypt].offset)
 	}
 |	Variable
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,Variable")
+
+}
 |	SumExpr
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,SumExpr")
+
+}
 |	'!' SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Not2, V: $2}
 	}
 |	'~' SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.BitNeg, V: $2}
 	}
 |	'-' SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Minus, V: $2}
 	}
 |	'+' SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Plus, V: $2}
 	}
 |	SimpleExpr pipes SimpleExpr
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.Concat), Args: []ast.ExprNode{$1, $3}}
 	}
 |	not2 SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		$$ = &ast.UnaryOperationExpr{Op: opcode.Not2, V: $2}
 	}
 |	SubSelect %prec neg
+{
+sql_ir.LogGrammarCoverage("SimpleExpr,SubSelect")
+
+}
 |	'(' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-1])
 		endOffset := parser.endOffset(&yyS[yypt])
 		expr := $2
@@ -6851,26 +10701,38 @@ SimpleExpr:
 	}
 |	'(' ExpressionList ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,ExpressionList")
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+
+
 		values := append($2.([]ast.ExprNode), $4)
 		$$ = &ast.RowExpr{Values: values}
 	}
 |	"ROW" '(' ExpressionList ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,ExpressionList")
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+
+
 		values := append($3.([]ast.ExprNode), $5)
 		$$ = &ast.RowExpr{Values: values}
 	}
 |	"EXISTS" SubSelect
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SubSelect")
+
+
 		sq := $2.(*ast.SubqueryExpr)
 		sq.Exists = true
 		$$ = &ast.ExistsSubqueryExpr{Sel: sq}
 	}
 |	'{' Identifier Expression '}'
 	{
-		/*
-		 * ODBC escape syntax.
-		 * See https://dev.mysql.com/doc/refman/5.7/en/expressions.html
-		 */
+sql_ir.LogGrammarCoverage("SimpleExpr,Identifier")
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+
+
+		
 		tp := $3.GetType()
 		switch $2 {
 		case "d":
@@ -6891,6 +10753,9 @@ SimpleExpr:
 	}
 |	"BINARY" SimpleExpr %prec neg
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleExpr")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/cast-functions.html#operator_binary
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetCharset(charset.CharsetBin)
@@ -6904,7 +10769,11 @@ SimpleExpr:
 	}
 |	builtinCast '(' Expression "AS" CastType ')'
 	{
-		/* See https://dev.mysql.com/doc/refman/5.7/en/cast-functions.html#function_cast */
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+sql_ir.LogGrammarCoverage("SimpleExpr,CastType")
+
+
+		
 		tp := $5.(*types.FieldType)
 		defaultFlen, defaultDecimal := mysql.GetDefaultFieldLengthAndDecimalForCast(tp.GetType())
 		if tp.GetFlen() == types.UnspecifiedLength {
@@ -6924,6 +10793,11 @@ SimpleExpr:
 	}
 |	"CASE" ExpressionOpt WhenClauseList ElseOpt "END"
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,ExpressionOpt")
+sql_ir.LogGrammarCoverage("SimpleExpr,WhenClauseList")
+sql_ir.LogGrammarCoverage("SimpleExpr,ElseOpt")
+
+
 		x := &ast.CaseExpr{WhenClauses: $3.([]*ast.WhenClause)}
 		if $2 != nil {
 			x.Value = $2
@@ -6935,6 +10809,10 @@ SimpleExpr:
 	}
 |	"CONVERT" '(' Expression ',' CastType ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+sql_ir.LogGrammarCoverage("SimpleExpr,CastType")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/cast-functions.html#function_convert
 		tp := $5.(*types.FieldType)
 		defaultFlen, defaultDecimal := mysql.GetDefaultFieldLengthAndDecimalForCast(tp.GetType())
@@ -6955,6 +10833,10 @@ SimpleExpr:
 	}
 |	"CONVERT" '(' Expression "USING" CharsetName ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
+sql_ir.LogGrammarCoverage("SimpleExpr,CharsetName")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/cast-functions.html#function_convert
 		charset1 := ast.NewValueExpr($5, "", "")
 		$$ = &ast.FuncCallExpr{
@@ -6964,19 +10846,33 @@ SimpleExpr:
 	}
 |	"DEFAULT" '(' SimpleIdent ')'
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleIdent")
+
+
 		$$ = &ast.DefaultExpr{Name: $3.(*ast.ColumnNameExpr).Name}
 	}
 |	"VALUES" '(' SimpleIdent ')' %prec lowerThanInsertValues
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleIdent")
+
+
 		$$ = &ast.ValuesExpr{Column: $3.(*ast.ColumnNameExpr)}
 	}
 |	SimpleIdent jss stringLit
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleIdent")
+sql_ir.LogGrammarCoverage("SimpleExpr,stringLit")
+
+
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONExtract), Args: []ast.ExprNode{$1, expr}}
 	}
 |	SimpleIdent juss stringLit
 	{
+sql_ir.LogGrammarCoverage("SimpleExpr,SimpleIdent")
+sql_ir.LogGrammarCoverage("SimpleExpr,stringLit")
+
+
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
 		extract := &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONExtract), Args: []ast.ExprNode{$1, expr}}
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONUnquote), Args: []ast.ExprNode{extract}}
@@ -6984,106 +10880,274 @@ SimpleExpr:
 
 DistinctKwd:
 	"DISTINCT"
+{
+
+}
 |	"DISTINCTROW"
 
+{
+
+}
 DistinctOpt:
 	"ALL"
 	{
+
+
 		$$ = false
 	}
 |	DistinctKwd
 	{
+sql_ir.LogGrammarCoverage("DistinctOpt,DistinctKwd")
+
+
 		$$ = true
 	}
 
 DefaultFalseDistinctOpt:
 	{
+
+
 		$$ = false
 	}
 |	DistinctOpt
 
+{
+sql_ir.LogGrammarCoverage("DefaultFalseDistinctOpt,DistinctOpt")
+
+}
 DefaultTrueDistinctOpt:
 	{
+
+
 		$$ = true
 	}
 |	DistinctOpt
 
+{
+sql_ir.LogGrammarCoverage("DefaultTrueDistinctOpt,DistinctOpt")
+
+}
 BuggyDefaultFalseDistinctOpt:
 	DefaultFalseDistinctOpt
+{
+sql_ir.LogGrammarCoverage("BuggyDefaultFalseDistinctOpt,DefaultFalseDistinctOpt")
+
+}
 |	DistinctKwd "ALL"
 	{
+sql_ir.LogGrammarCoverage("BuggyDefaultFalseDistinctOpt,DistinctKwd")
+
+
 		$$ = true
 	}
 
 FunctionNameConflict:
 	"ASCII"
+{
+
+}
 |	"CHARSET"
+{
+
+}
 |	"COALESCE"
+{
+
+}
 |	"COLLATION"
+{
+
+}
 |	"DATE"
+{
+
+}
 |	"DATABASE"
+{
+
+}
 |	"DAY"
+{
+
+}
 |	"HOUR"
+{
+
+}
 |	"IF"
+{
+
+}
 |	"INTERVAL"
+{
+
+}
 |	"FORMAT"
+{
+
+}
 |	"LEFT"
+{
+
+}
 |	"MICROSECOND"
+{
+
+}
 |	"MINUTE"
+{
+
+}
 |	"MONTH"
+{
+
+}
 |	builtinNow
+{
+
+}
 |	"QUARTER"
+{
+
+}
 |	"REPEAT"
+{
+
+}
 |	"REPLACE"
+{
+
+}
 |	"REVERSE"
+{
+
+}
 |	"RIGHT"
+{
+
+}
 |	"ROW_COUNT"
+{
+
+}
 |	"SECOND"
+{
+
+}
 |	"TIME"
+{
+
+}
 |	"TIMESTAMP"
+{
+
+}
 |	"TRUNCATE"
+{
+
+}
 |	"USER"
+{
+
+}
 |	"WEEK"
+{
+
+}
 |	"YEAR"
 
+{
+
+}
 OptionalBraces:
-	{}
+	{
+
+}
 |	'(' ')'
-	{}
+	{
+
+}
 
 FunctionNameOptionalBraces:
 	"CURRENT_USER"
+{
+
+}
 |	"CURRENT_DATE"
+{
+
+}
 |	"CURRENT_ROLE"
+{
+
+}
 |	"UTC_DATE"
 
+{
+
+}
 FunctionNameDatetimePrecision:
 	"CURRENT_TIME"
+{
+
+}
 |	"CURRENT_TIMESTAMP"
+{
+
+}
 |	"LOCALTIME"
+{
+
+}
 |	"LOCALTIMESTAMP"
+{
+
+}
 |	"UTC_TIME"
+{
+
+}
 |	"UTC_TIMESTAMP"
 
+{
+
+}
 FunctionCallKeyword:
 	FunctionNameConflict '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,FunctionNameConflict")
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
 	}
 |	builtinUser '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
 	}
 |	FunctionNameOptionalBraces OptionalBraces
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,FunctionNameOptionalBraces")
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,OptionalBraces")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1)}
 	}
 |	builtinCurDate '(' ')'
 	{
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1)}
 	}
 |	FunctionNameDatetimePrecision FuncDatetimePrec
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,FunctionNameDatetimePrecision")
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,FuncDatetimePrec")
+
+
 		args := []ast.ExprNode{}
 		if $2 != nil {
 			args = append(args, $2.(ast.ExprNode))
@@ -7092,6 +11156,9 @@ FunctionCallKeyword:
 	}
 |	"CHAR" '(' ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionList")
+
+
 		nilVal := ast.NewValueExpr(nil, parser.charset, parser.collation)
 		args := $3.([]ast.ExprNode)
 		$$ = &ast.FuncCallExpr{
@@ -7101,6 +11168,10 @@ FunctionCallKeyword:
 	}
 |	"CHAR" '(' ExpressionList "USING" CharsetName ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionList")
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,CharsetName")
+
+
 		charset1 := ast.NewValueExpr($5, "", "")
 		args := $3.([]ast.ExprNode)
 		$$ = &ast.FuncCallExpr{
@@ -7110,43 +11181,73 @@ FunctionCallKeyword:
 	}
 |	"DATE" stringLit
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,stringLit")
+
+
 		expr := ast.NewValueExpr($2, "", "")
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.DateLiteral), Args: []ast.ExprNode{expr}}
 	}
 |	"TIME" stringLit
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,stringLit")
+
+
 		expr := ast.NewValueExpr($2, "", "")
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.TimeLiteral), Args: []ast.ExprNode{expr}}
 	}
 |	"TIMESTAMP" stringLit
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,stringLit")
+
+
 		expr := ast.NewValueExpr($2, "", "")
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.TimestampLiteral), Args: []ast.ExprNode{expr}}
 	}
 |	"INSERT" '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.InsertFunc), Args: $3.([]ast.ExprNode)}
 	}
 |	"MOD" '(' BitExpr ',' BitExpr ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,BitExpr")
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,BitExpr")
+
+
 		$$ = &ast.BinaryOperationExpr{Op: opcode.Mod, L: $3, R: $5}
 	}
 |	"PASSWORD" '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallKeyword,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.PasswordFunc), Args: $3.([]ast.ExprNode)}
 	}
 
 FunctionCallNonKeyword:
 	builtinCurTime '(' FuncDatetimePrecListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FuncDatetimePrecListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
 	}
 |	builtinSysDate '(' FuncDatetimePrecListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FuncDatetimePrecListOpt")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
 	}
 |	FunctionNameDateArithMultiForms '(' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FunctionNameDateArithMultiForms")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
@@ -7158,6 +11259,12 @@ FunctionCallNonKeyword:
 	}
 |	FunctionNameDateArithMultiForms '(' Expression ',' "INTERVAL" Expression TimeUnit ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FunctionNameDateArithMultiForms")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TimeUnit")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
@@ -7169,6 +11276,12 @@ FunctionCallNonKeyword:
 	}
 |	FunctionNameDateArith '(' Expression ',' "INTERVAL" Expression TimeUnit ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FunctionNameDateArith")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TimeUnit")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
@@ -7180,6 +11293,10 @@ FunctionCallNonKeyword:
 	}
 |	builtinExtract '(' TimeUnit "FROM" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TimeUnit")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		timeUnit := &ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
@@ -7188,6 +11305,10 @@ FunctionCallNonKeyword:
 	}
 |	"GET_FORMAT" '(' GetFormatSelector ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,GetFormatSelector")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
@@ -7198,10 +11319,18 @@ FunctionCallNonKeyword:
 	}
 |	builtinPosition '(' BitExpr "IN" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,BitExpr")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: []ast.ExprNode{$3, $5}}
 	}
 |	builtinSubstring '(' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5},
@@ -7209,6 +11338,10 @@ FunctionCallNonKeyword:
 	}
 |	builtinSubstring '(' Expression "FROM" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5},
@@ -7216,6 +11349,11 @@ FunctionCallNonKeyword:
 	}
 |	builtinSubstring '(' Expression ',' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5, $7},
@@ -7223,6 +11361,11 @@ FunctionCallNonKeyword:
 	}
 |	builtinSubstring '(' Expression "FROM" Expression "FOR" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5, $7},
@@ -7230,6 +11373,11 @@ FunctionCallNonKeyword:
 	}
 |	"TIMESTAMPADD" '(' TimestampUnit ',' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TimestampUnit")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{&ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}, $5, $7},
@@ -7237,6 +11385,11 @@ FunctionCallNonKeyword:
 	}
 |	"TIMESTAMPDIFF" '(' TimestampUnit ',' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TimestampUnit")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{&ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}, $5, $7},
@@ -7244,6 +11397,9 @@ FunctionCallNonKeyword:
 	}
 |	builtinTrim '(' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3},
@@ -7251,6 +11407,10 @@ FunctionCallNonKeyword:
 	}
 |	builtinTrim '(' Expression "FROM" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$5, $3},
@@ -7258,6 +11418,10 @@ FunctionCallNonKeyword:
 	}
 |	builtinTrim '(' TrimDirection "FROM" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TrimDirection")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		spaceVal := ast.NewValueExpr(" ", parser.charset, parser.collation)
 		direction := &ast.TrimDirectionExpr{Direction: $3.(ast.TrimDirectionType)}
 		$$ = &ast.FuncCallExpr{
@@ -7267,6 +11431,11 @@ FunctionCallNonKeyword:
 	}
 |	builtinTrim '(' TrimDirection Expression "FROM" Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,TrimDirection")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		direction := &ast.TrimDirectionExpr{Direction: $3.(ast.TrimDirectionType)}
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
@@ -7275,6 +11444,9 @@ FunctionCallNonKeyword:
 	}
 |	weightString '(' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3},
@@ -7282,6 +11454,11 @@ FunctionCallNonKeyword:
 	}
 |	weightString '(' Expression "AS" Char FieldLen ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Char")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FieldLen")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, ast.NewValueExpr("CHAR", parser.charset, parser.collation), ast.NewValueExpr($6, parser.charset, parser.collation)},
@@ -7289,14 +11466,27 @@ FunctionCallNonKeyword:
 	}
 |	weightString '(' Expression "AS" "BINARY" FieldLen ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FieldLen")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, ast.NewValueExpr("BINARY", parser.charset, parser.collation), ast.NewValueExpr($6, parser.charset, parser.collation)},
 		}
 	}
 |	FunctionNameSequence
+{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,FunctionNameSequence")
+
+}
 |	builtinTranslate '(' Expression ',' Expression ',' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+sql_ir.LogGrammarCoverage("FunctionCallNonKeyword,Expression")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5, $7},
@@ -7306,46 +11496,75 @@ FunctionCallNonKeyword:
 GetFormatSelector:
 	"DATE"
 	{
+
+
 		$$ = ast.GetFormatSelectorDate
 	}
 |	"DATETIME"
 	{
+
+
 		$$ = ast.GetFormatSelectorDatetime
 	}
 |	"TIME"
 	{
+
+
 		$$ = ast.GetFormatSelectorTime
 	}
 |	"TIMESTAMP"
 	{
+
+
 		$$ = ast.GetFormatSelectorDatetime
 	}
 
 FunctionNameDateArith:
 	builtinDateAdd
+{
+
+}
 |	builtinDateSub
 
+{
+
+}
 FunctionNameDateArithMultiForms:
 	addDate
+{
+
+}
 |	subDate
 
+{
+
+}
 TrimDirection:
 	"BOTH"
 	{
+
+
 		$$ = ast.TrimBoth
 	}
 |	"LEADING"
 	{
+
+
 		$$ = ast.TrimLeading
 	}
 |	"TRAILING"
 	{
+
+
 		$$ = ast.TrimTrailing
 	}
 
 FunctionNameSequence:
 	"LASTVAL" '(' TableName ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionNameSequence,TableName")
+
+
 		objNameExpr := &ast.TableNameExpr{
 			Name: $3.(*ast.TableName),
 		}
@@ -7356,6 +11575,10 @@ FunctionNameSequence:
 	}
 |	"SETVAL" '(' TableName ',' SignedNum ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionNameSequence,TableName")
+sql_ir.LogGrammarCoverage("FunctionNameSequence,SignedNum")
+
+
 		objNameExpr := &ast.TableNameExpr{
 			Name: $3.(*ast.TableName),
 		}
@@ -7367,9 +11590,18 @@ FunctionNameSequence:
 	}
 |	NextValueForSequence
 
+{
+sql_ir.LogGrammarCoverage("FunctionNameSequence,NextValueForSequence")
+
+}
 SumExpr:
 	"AVG" '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7378,14 +11610,24 @@ SumExpr:
 	}
 |	builtinApproxCountDistinct '(' ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("SumExpr,ExpressionList")
+
+
 		$$ = &ast.AggregateFuncExpr{F: $1, Args: $3.([]ast.ExprNode), Distinct: false}
 	}
 |	builtinApproxPercentile '(' ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("SumExpr,ExpressionList")
+
+
 		$$ = &ast.AggregateFuncExpr{F: $1, Args: $3.([]ast.ExprNode)}
 	}
 |	builtinBitAnd '(' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: *($5.(*ast.WindowSpec))}
 		} else {
@@ -7394,6 +11636,10 @@ SumExpr:
 	}
 |	builtinBitAnd '(' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7402,6 +11648,10 @@ SumExpr:
 	}
 |	builtinBitOr '(' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: *($5.(*ast.WindowSpec))}
 		} else {
@@ -7410,6 +11660,10 @@ SumExpr:
 	}
 |	builtinBitOr '(' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7418,6 +11672,10 @@ SumExpr:
 	}
 |	builtinBitXor '(' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: *($5.(*ast.WindowSpec))}
 		} else {
@@ -7426,6 +11684,10 @@ SumExpr:
 	}
 |	builtinBitXor '(' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7434,10 +11696,18 @@ SumExpr:
 	}
 |	builtinCount '(' DistinctKwd ExpressionList ')'
 	{
+sql_ir.LogGrammarCoverage("SumExpr,DistinctKwd")
+sql_ir.LogGrammarCoverage("SumExpr,ExpressionList")
+
+
 		$$ = &ast.AggregateFuncExpr{F: $1, Args: $4.([]ast.ExprNode), Distinct: true}
 	}
 |	builtinCount '(' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7446,6 +11716,10 @@ SumExpr:
 	}
 |	builtinCount '(' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: *($5.(*ast.WindowSpec))}
 		} else {
@@ -7454,6 +11728,9 @@ SumExpr:
 	}
 |	builtinCount '(' '*' ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		args := []ast.ExprNode{ast.NewValueExpr(1, parser.charset, parser.collation)}
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: args, Spec: *($5.(*ast.WindowSpec))}
@@ -7463,6 +11740,13 @@ SumExpr:
 	}
 |	builtinGroupConcat '(' BuggyDefaultFalseDistinctOpt ExpressionList OrderByOptional OptGConcatSeparator ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,ExpressionList")
+sql_ir.LogGrammarCoverage("SumExpr,OrderByOptional")
+sql_ir.LogGrammarCoverage("SumExpr,OptGConcatSeparator")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		args := $4.([]ast.ExprNode)
 		args = append(args, $6.(ast.ExprNode))
 		if $8 != nil {
@@ -7477,6 +11761,11 @@ SumExpr:
 	}
 |	builtinMax '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7485,6 +11774,11 @@ SumExpr:
 	}
 |	builtinMin '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7493,6 +11787,11 @@ SumExpr:
 	}
 |	builtinSum '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7501,6 +11800,11 @@ SumExpr:
 	}
 |	builtinStddevPop '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: ast.AggFuncStddevPop, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7509,6 +11813,11 @@ SumExpr:
 	}
 |	builtinStddevSamp '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7517,6 +11826,11 @@ SumExpr:
 	}
 |	builtinVarPop '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: ast.AggFuncVarPop, Args: []ast.ExprNode{$4}, Distinct: $3.(bool), Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7525,10 +11839,19 @@ SumExpr:
 	}
 |	builtinVarSamp '(' BuggyDefaultFalseDistinctOpt Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,BuggyDefaultFalseDistinctOpt")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		$$ = &ast.AggregateFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Distinct: $3.(bool)}
 	}
 |	"JSON_ARRAYAGG" '(' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $5 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: *($5.(*ast.WindowSpec))}
 		} else {
@@ -7537,6 +11860,10 @@ SumExpr:
 	}
 |	"JSON_ARRAYAGG" '(' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $6 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4}, Spec: *($6.(*ast.WindowSpec))}
 		} else {
@@ -7545,6 +11872,11 @@ SumExpr:
 	}
 |	"JSON_OBJECTAGG" '(' Expression ',' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $7 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3, $5}, Spec: *($7.(*ast.WindowSpec))}
 		} else {
@@ -7553,6 +11885,11 @@ SumExpr:
 	}
 |	"JSON_OBJECTAGG" '(' "ALL" Expression ',' Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $8 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4, $6}, Spec: *($8.(*ast.WindowSpec))}
 		} else {
@@ -7561,6 +11898,11 @@ SumExpr:
 	}
 |	"JSON_OBJECTAGG" '(' Expression ',' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $8 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3, $6}, Spec: *($8.(*ast.WindowSpec))}
 		} else {
@@ -7569,6 +11911,11 @@ SumExpr:
 	}
 |	"JSON_OBJECTAGG" '(' "ALL" Expression ',' "ALL" Expression ')' OptWindowingClause
 	{
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,Expression")
+sql_ir.LogGrammarCoverage("SumExpr,OptWindowingClause")
+
+
 		if $9 != nil {
 			$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$4, $7}, Spec: *($9.(*ast.WindowSpec))}
 		} else {
@@ -7578,16 +11925,24 @@ SumExpr:
 
 OptGConcatSeparator:
 	{
+
+
 		$$ = ast.NewValueExpr(",", "", "")
 	}
 |	"SEPARATOR" stringLit
 	{
+sql_ir.LogGrammarCoverage("OptGConcatSeparator,stringLit")
+
+
 		$$ = ast.NewValueExpr($2, "", "")
 	}
 
 FunctionCallGeneric:
 	identifier '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallGeneric,ExpressionListOpt")
+
+
 		$$ = &ast.FuncCallExpr{
 			FnName: model.NewCIStr($1),
 			Args:   $3.([]ast.ExprNode),
@@ -7595,6 +11950,11 @@ FunctionCallGeneric:
 	}
 |	Identifier '.' Identifier '(' ExpressionListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("FunctionCallGeneric,Identifier")
+sql_ir.LogGrammarCoverage("FunctionCallGeneric,Identifier")
+sql_ir.LogGrammarCoverage("FunctionCallGeneric,ExpressionListOpt")
+
+
 		var tp ast.FuncCallExprType
 		if isInTokenMap($3) {
 			tp = ast.FuncCallExprTypeKeyword
@@ -7611,154 +11971,237 @@ FunctionCallGeneric:
 
 FuncDatetimePrec:
 	{
+
+
 		$$ = nil
 	}
 |	'(' ')'
 	{
+
+
 		$$ = nil
 	}
 |	'(' intLit ')'
 	{
+
+
 		expr := ast.NewValueExpr($2, parser.charset, parser.collation)
 		$$ = expr
 	}
 
 TimeUnit:
 	TimestampUnit
+{
+sql_ir.LogGrammarCoverage("TimeUnit,TimestampUnit")
+
+}
 |	"SECOND_MICROSECOND"
 	{
+
+
 		$$ = ast.TimeUnitSecondMicrosecond
 	}
 |	"MINUTE_MICROSECOND"
 	{
+
+
 		$$ = ast.TimeUnitMinuteMicrosecond
 	}
 |	"MINUTE_SECOND"
 	{
+
+
 		$$ = ast.TimeUnitMinuteSecond
 	}
 |	"HOUR_MICROSECOND"
 	{
+
+
 		$$ = ast.TimeUnitHourMicrosecond
 	}
 |	"HOUR_SECOND"
 	{
+
+
 		$$ = ast.TimeUnitHourSecond
 	}
 |	"HOUR_MINUTE"
 	{
+
+
 		$$ = ast.TimeUnitHourMinute
 	}
 |	"DAY_MICROSECOND"
 	{
+
+
 		$$ = ast.TimeUnitDayMicrosecond
 	}
 |	"DAY_SECOND"
 	{
+
+
 		$$ = ast.TimeUnitDaySecond
 	}
 |	"DAY_MINUTE"
 	{
+
+
 		$$ = ast.TimeUnitDayMinute
 	}
 |	"DAY_HOUR"
 	{
+
+
 		$$ = ast.TimeUnitDayHour
 	}
 |	"YEAR_MONTH"
 	{
+
+
 		$$ = ast.TimeUnitYearMonth
 	}
 
 TimestampUnit:
 	"MICROSECOND"
 	{
+
+
 		$$ = ast.TimeUnitMicrosecond
 	}
 |	"SECOND"
 	{
+
+
 		$$ = ast.TimeUnitSecond
 	}
 |	"MINUTE"
 	{
+
+
 		$$ = ast.TimeUnitMinute
 	}
 |	"HOUR"
 	{
+
+
 		$$ = ast.TimeUnitHour
 	}
 |	"DAY"
 	{
+
+
 		$$ = ast.TimeUnitDay
 	}
 |	"WEEK"
 	{
+
+
 		$$ = ast.TimeUnitWeek
 	}
 |	"MONTH"
 	{
+
+
 		$$ = ast.TimeUnitMonth
 	}
 |	"QUARTER"
 	{
+
+
 		$$ = ast.TimeUnitQuarter
 	}
 |	"YEAR"
 	{
+
+
 		$$ = ast.TimeUnitYear
 	}
 |	"SQL_TSI_SECOND"
 	{
+
+
 		$$ = ast.TimeUnitSecond
 	}
 |	"SQL_TSI_MINUTE"
 	{
+
+
 		$$ = ast.TimeUnitMinute
 	}
 |	"SQL_TSI_HOUR"
 	{
+
+
 		$$ = ast.TimeUnitHour
 	}
 |	"SQL_TSI_DAY"
 	{
+
+
 		$$ = ast.TimeUnitDay
 	}
 |	"SQL_TSI_WEEK"
 	{
+
+
 		$$ = ast.TimeUnitWeek
 	}
 |	"SQL_TSI_MONTH"
 	{
+
+
 		$$ = ast.TimeUnitMonth
 	}
 |	"SQL_TSI_QUARTER"
 	{
+
+
 		$$ = ast.TimeUnitQuarter
 	}
 |	"SQL_TSI_YEAR"
 	{
+
+
 		$$ = ast.TimeUnitYear
 	}
 
 ExpressionOpt:
 	{
+
+
 		$$ = nil
 	}
 |	Expression
 
+{
+sql_ir.LogGrammarCoverage("ExpressionOpt,Expression")
+
+}
 WhenClauseList:
 	WhenClause
 	{
+sql_ir.LogGrammarCoverage("WhenClauseList,WhenClause")
+
+
 		$$ = []*ast.WhenClause{$1.(*ast.WhenClause)}
 	}
 |	WhenClauseList WhenClause
 	{
+sql_ir.LogGrammarCoverage("WhenClauseList,WhenClauseList")
+sql_ir.LogGrammarCoverage("WhenClauseList,WhenClause")
+
+
 		$$ = append($1.([]*ast.WhenClause), $2.(*ast.WhenClause))
 	}
 
 WhenClause:
 	"WHEN" Expression "THEN" Expression
 	{
+sql_ir.LogGrammarCoverage("WhenClause,Expression")
+sql_ir.LogGrammarCoverage("WhenClause,Expression")
+
+
 		$$ = &ast.WhenClause{
 			Expr:   $2,
 			Result: $4,
@@ -7766,18 +12209,26 @@ WhenClause:
 	}
 
 ElseOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = nil
 	}
 |	"ELSE" Expression
 	{
+sql_ir.LogGrammarCoverage("ElseOpt,Expression")
+
+
 		$$ = $2
 	}
 
 CastType:
 	"BINARY" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("CastType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeVarString)
 		tp.SetFlen($2.(int)) // TODO: Flen should be the flen of expression
 		if tp.GetFlen() != types.UnspecifiedLength {
@@ -7790,6 +12241,11 @@ CastType:
 	}
 |	Char OptFieldLen OptBinary
 	{
+sql_ir.LogGrammarCoverage("CastType,Char")
+sql_ir.LogGrammarCoverage("CastType,OptFieldLen")
+sql_ir.LogGrammarCoverage("CastType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeVarString)
 		tp.SetFlen($2.(int)) // TODO: Flen should be the flen of expression
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
@@ -7813,6 +12269,8 @@ CastType:
 	}
 |	"DATE"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeDate)
 		tp.SetCharset(charset.CharsetBin)
 		tp.SetCollate(charset.CollationBin)
@@ -7821,6 +12279,8 @@ CastType:
 	}
 |	"YEAR"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeYear)
 		tp.SetCharset(charset.CharsetBin)
 		tp.SetCollate(charset.CollationBin)
@@ -7829,6 +12289,9 @@ CastType:
 	}
 |	"DATETIME" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("CastType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeDatetime)
 		flen, _ := mysql.GetDefaultFieldLengthAndDecimalForCast(mysql.TypeDatetime)
 		tp.SetFlen(flen)
@@ -7843,6 +12306,9 @@ CastType:
 	}
 |	"DECIMAL" FloatOpt
 	{
+sql_ir.LogGrammarCoverage("CastType,FloatOpt")
+
+
 		fopt := $2.(*ast.FloatOpt)
 		tp := types.NewFieldType(mysql.TypeNewDecimal)
 		tp.SetFlen(fopt.Flen)
@@ -7854,6 +12320,9 @@ CastType:
 	}
 |	"TIME" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("CastType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeDuration)
 		flen, _ := mysql.GetDefaultFieldLengthAndDecimalForCast(mysql.TypeDuration)
 		tp.SetFlen(flen)
@@ -7868,6 +12337,9 @@ CastType:
 	}
 |	"SIGNED" OptInteger
 	{
+sql_ir.LogGrammarCoverage("CastType,OptInteger")
+
+
 		tp := types.NewFieldType(mysql.TypeLonglong)
 		tp.SetCharset(charset.CharsetBin)
 		tp.SetCollate(charset.CollationBin)
@@ -7876,6 +12348,9 @@ CastType:
 	}
 |	"UNSIGNED" OptInteger
 	{
+sql_ir.LogGrammarCoverage("CastType,OptInteger")
+
+
 		tp := types.NewFieldType(mysql.TypeLonglong)
 		tp.AddFlag(mysql.UnsignedFlag | mysql.BinaryFlag)
 		tp.SetCharset(charset.CharsetBin)
@@ -7884,6 +12359,8 @@ CastType:
 	}
 |	"JSON"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeJSON)
 		tp.AddFlag(mysql.BinaryFlag | mysql.ParseToJSONFlag)
 		tp.SetCharset(mysql.DefaultCharset)
@@ -7892,6 +12369,8 @@ CastType:
 	}
 |	"DOUBLE"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeDouble)
 		flen, decimal := mysql.GetDefaultFieldLengthAndDecimalForCast(mysql.TypeDouble)
 		tp.SetFlen(flen)
@@ -7903,6 +12382,9 @@ CastType:
 	}
 |	"FLOAT" FloatOpt
 	{
+sql_ir.LogGrammarCoverage("CastType,FloatOpt")
+
+
 		tp := types.NewFieldType(mysql.TypeFloat)
 		fopt := $2.(*ast.FloatOpt)
 		if fopt.Flen >= 54 {
@@ -7920,6 +12402,8 @@ CastType:
 	}
 |	"REAL"
 	{
+
+
 		var tp *types.FieldType
 		if parser.lexer.GetSQLMode().HasRealAsFloatMode() {
 			tp = types.NewFieldType(mysql.TypeFloat)
@@ -7938,92 +12422,139 @@ CastType:
 Priority:
 	"LOW_PRIORITY"
 	{
+
+
 		$$ = mysql.LowPriority
 	}
 |	"HIGH_PRIORITY"
 	{
+
+
 		$$ = mysql.HighPriority
 	}
 |	"DELAYED"
 	{
+
+
 		$$ = mysql.DelayedPriority
 	}
 
 PriorityOpt:
 	{
+
+
 		$$ = mysql.NoPriority
 	}
 |	Priority
 
+{
+sql_ir.LogGrammarCoverage("PriorityOpt,Priority")
+
+}
 TableName:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("TableName,Identifier")
+
+
 		$$ = &ast.TableName{Name: model.NewCIStr($1)}
 	}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("TableName,Identifier")
+sql_ir.LogGrammarCoverage("TableName,Identifier")
+
+
 		$$ = &ast.TableName{Schema: model.NewCIStr($1), Name: model.NewCIStr($3)}
 	}
 
 TableNameList:
 	TableName
 	{
+sql_ir.LogGrammarCoverage("TableNameList,TableName")
+
+
 		tbl := []*ast.TableName{$1.(*ast.TableName)}
 		$$ = tbl
 	}
 |	TableNameList ',' TableName
 	{
+sql_ir.LogGrammarCoverage("TableNameList,TableNameList")
+sql_ir.LogGrammarCoverage("TableNameList,TableName")
+
+
 		$$ = append($1.([]*ast.TableName), $3.(*ast.TableName))
 	}
 
 TableNameOptWild:
 	Identifier OptWild
 	{
+sql_ir.LogGrammarCoverage("TableNameOptWild,Identifier")
+sql_ir.LogGrammarCoverage("TableNameOptWild,OptWild")
+
+
 		$$ = &ast.TableName{Name: model.NewCIStr($1)}
 	}
 |	Identifier '.' Identifier OptWild
 	{
+sql_ir.LogGrammarCoverage("TableNameOptWild,Identifier")
+sql_ir.LogGrammarCoverage("TableNameOptWild,Identifier")
+sql_ir.LogGrammarCoverage("TableNameOptWild,OptWild")
+
+
 		$$ = &ast.TableName{Schema: model.NewCIStr($1), Name: model.NewCIStr($3)}
 	}
 
 TableAliasRefList:
 	TableNameOptWild
 	{
+sql_ir.LogGrammarCoverage("TableAliasRefList,TableNameOptWild")
+
+
 		tbl := []*ast.TableName{$1.(*ast.TableName)}
 		$$ = tbl
 	}
 |	TableAliasRefList ',' TableNameOptWild
 	{
+sql_ir.LogGrammarCoverage("TableAliasRefList,TableAliasRefList")
+sql_ir.LogGrammarCoverage("TableAliasRefList,TableNameOptWild")
+
+
 		$$ = append($1.([]*ast.TableName), $3.(*ast.TableName))
 	}
 
 OptWild:
 	%prec empty
-	{}
+	{
+
+}
 |	'.' '*'
-	{}
+	{
+
+}
 
 QuickOptional:
 	%prec empty
 	{
+
+
 		$$ = false
 	}
 |	"QUICK"
 	{
+
+
 		$$ = true
 	}
 
-/***************************Prepared Statement Start******************************
- * See https://dev.mysql.com/doc/refman/5.7/en/prepare.html
- * Example:
- * PREPARE stmt_name FROM 'SELECT SQRT(POW(?,2) + POW(?,2)) AS hypotenuse';
- * OR
- * SET @s = 'SELECT SQRT(POW(?,2) + POW(?,2)) AS hypotenuse';
- * PREPARE stmt_name FROM @s;
- */
+
 PreparedStmt:
 	"PREPARE" Identifier "FROM" PrepareSQL
 	{
+sql_ir.LogGrammarCoverage("PreparedStmt,Identifier")
+sql_ir.LogGrammarCoverage("PreparedStmt,PrepareSQL")
+
+
 		var sqlText string
 		var sqlVar *ast.VariableExpr
 		switch x := $4.(type) {
@@ -8042,27 +12573,34 @@ PreparedStmt:
 PrepareSQL:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("PrepareSQL,stringLit")
+
+
 		$$ = $1
 	}
 |	UserVariable
 	{
+sql_ir.LogGrammarCoverage("PrepareSQL,UserVariable")
+
+
 		$$ = $1
 	}
 
-/*
- * See https://dev.mysql.com/doc/refman/5.7/en/execute.html
- * Example:
- * EXECUTE stmt1 USING @a, @b;
- * OR
- * EXECUTE stmt1;
- */
+
 ExecuteStmt:
 	"EXECUTE" Identifier
 	{
+sql_ir.LogGrammarCoverage("ExecuteStmt,Identifier")
+
+
 		$$ = &ast.ExecuteStmt{Name: $2}
 	}
 |	"EXECUTE" Identifier "USING" UserVariableList
 	{
+sql_ir.LogGrammarCoverage("ExecuteStmt,Identifier")
+sql_ir.LogGrammarCoverage("ExecuteStmt,UserVariableList")
+
+
 		$$ = &ast.ExecuteStmt{
 			Name:      $2,
 			UsingVars: $4.([]ast.ExprNode),
@@ -8072,84 +12610,131 @@ ExecuteStmt:
 UserVariableList:
 	UserVariable
 	{
+sql_ir.LogGrammarCoverage("UserVariableList,UserVariable")
+
+
 		$$ = []ast.ExprNode{$1}
 	}
 |	UserVariableList ',' UserVariable
 	{
+sql_ir.LogGrammarCoverage("UserVariableList,UserVariableList")
+sql_ir.LogGrammarCoverage("UserVariableList,UserVariable")
+
+
 		$$ = append($1.([]ast.ExprNode), $3)
 	}
 
 DeallocateStmt:
 	DeallocateSym "PREPARE" Identifier
 	{
+sql_ir.LogGrammarCoverage("DeallocateStmt,DeallocateSym")
+sql_ir.LogGrammarCoverage("DeallocateStmt,Identifier")
+
+
 		$$ = &ast.DeallocateStmt{Name: $3}
 	}
 
 DeallocateSym:
 	"DEALLOCATE"
+{
+
+}
 |	"DROP"
 
+{
+
+}
 RollbackStmt:
 	"ROLLBACK"
 	{
+
+
 		$$ = &ast.RollbackStmt{}
 	}
 |	"ROLLBACK" CompletionTypeWithinTransaction
 	{
+sql_ir.LogGrammarCoverage("RollbackStmt,CompletionTypeWithinTransaction")
+
+
 		$$ = &ast.RollbackStmt{CompletionType: $2.(ast.CompletionType)}
 	}
 
 CompletionTypeWithinTransaction:
 	"AND" "CHAIN" "NO" "RELEASE"
 	{
+
+
 		$$ = ast.CompletionTypeChain
 	}
 |	"AND" "NO" "CHAIN" "RELEASE"
 	{
+
+
 		$$ = ast.CompletionTypeRelease
 	}
 |	"AND" "NO" "CHAIN" "NO" "RELEASE"
 	{
+
+
 		$$ = ast.CompletionTypeDefault
 	}
 |	"AND" "CHAIN"
 	{
+
+
 		$$ = ast.CompletionTypeChain
 	}
 |	"AND" "NO" "CHAIN"
 	{
+
+
 		$$ = ast.CompletionTypeDefault
 	}
 |	"RELEASE"
 	{
+
+
 		$$ = ast.CompletionTypeRelease
 	}
 |	"NO" "RELEASE"
 	{
+
+
 		$$ = ast.CompletionTypeDefault
 	}
 
 ShutdownStmt:
 	"SHUTDOWN"
 	{
+
+
 		$$ = &ast.ShutdownStmt{}
 	}
 
 RestartStmt:
 	"RESTART"
 	{
+
+
 		$$ = &ast.RestartStmt{}
 	}
 
 HelpStmt:
 	"HELP" stringLit
 	{
+sql_ir.LogGrammarCoverage("HelpStmt,stringLit")
+
+
 		$$ = &ast.HelpStmt{Topic: $2}
 	}
 
 SelectStmtBasic:
 	"SELECT" SelectStmtOpts SelectStmtFieldList
 	{
+sql_ir.LogGrammarCoverage("SelectStmtBasic,SelectStmtOpts")
+sql_ir.LogGrammarCoverage("SelectStmtBasic,SelectStmtFieldList")
+
+
 		st := &ast.SelectStmt{
 			SelectStmtOpts: $2.(*ast.SelectStmtOpts),
 			Distinct:       $2.(*ast.SelectStmtOpts).Distinct,
@@ -8165,6 +12750,11 @@ SelectStmtBasic:
 SelectStmtFromDualTable:
 	SelectStmtBasic FromDual WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("SelectStmtFromDualTable,SelectStmtBasic")
+sql_ir.LogGrammarCoverage("SelectStmtFromDualTable,FromDual")
+sql_ir.LogGrammarCoverage("SelectStmtFromDualTable,WhereClauseOptional")
+
+
 		st := $1.(*ast.SelectStmt)
 		lastField := st.Fields.Fields[len(st.Fields.Fields)-1]
 		if lastField.Expr != nil && lastField.AsName.O == "" {
@@ -8179,6 +12769,14 @@ SelectStmtFromDualTable:
 SelectStmtFromTable:
 	SelectStmtBasic "FROM" TableRefsClause WhereClauseOptional SelectStmtGroup HavingClause WindowClauseOptional
 	{
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,SelectStmtBasic")
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,TableRefsClause")
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,SelectStmtGroup")
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,HavingClause")
+sql_ir.LogGrammarCoverage("SelectStmtFromTable,WindowClauseOptional")
+
+
 		st := $1.(*ast.SelectStmt)
 		st.From = $3.(*ast.TableRefsClause)
 		lastField := st.Fields.Fields[len(st.Fields.Fields)-1]
@@ -8204,10 +12802,18 @@ SelectStmtFromTable:
 TableSampleOpt:
 	%prec empty
 	{
+
+
 		$$ = nil
 	}
 |	"TABLESAMPLE" TableSampleMethodOpt '(' Expression TableSampleUnitOpt ')' RepeatableOpt
 	{
+sql_ir.LogGrammarCoverage("TableSampleOpt,TableSampleMethodOpt")
+sql_ir.LogGrammarCoverage("TableSampleOpt,Expression")
+sql_ir.LogGrammarCoverage("TableSampleOpt,TableSampleUnitOpt")
+sql_ir.LogGrammarCoverage("TableSampleOpt,RepeatableOpt")
+
+
 		var repSeed ast.ExprNode
 		if $7 != nil {
 			repSeed = ast.NewValueExpr($7, parser.charset, parser.collation)
@@ -8221,6 +12827,10 @@ TableSampleOpt:
 	}
 |	"TABLESAMPLE" TableSampleMethodOpt '(' ')' RepeatableOpt
 	{
+sql_ir.LogGrammarCoverage("TableSampleOpt,TableSampleMethodOpt")
+sql_ir.LogGrammarCoverage("TableSampleOpt,RepeatableOpt")
+
+
 		var repSeed ast.ExprNode
 		if $5 != nil {
 			repSeed = ast.NewValueExpr($5, parser.charset, parser.collation)
@@ -8234,48 +12844,76 @@ TableSampleOpt:
 TableSampleMethodOpt:
 	%prec empty
 	{
+
+
 		$$ = ast.SampleMethodTypeNone
 	}
 |	"SYSTEM"
 	{
+
+
 		$$ = ast.SampleMethodTypeSystem
 	}
 |	"BERNOULLI"
 	{
+
+
 		$$ = ast.SampleMethodTypeBernoulli
 	}
 |	"REGIONS"
 	{
+
+
 		$$ = ast.SampleMethodTypeTiDBRegion
 	}
 
 TableSampleUnitOpt:
 	%prec empty
 	{
+
+
 		$$ = ast.SampleClauseUnitTypeDefault
 	}
 |	"ROWS"
 	{
+
+
 		$$ = ast.SampleClauseUnitTypeRow
 	}
 |	"PERCENT"
 	{
+
+
 		$$ = ast.SampleClauseUnitTypePercent
 	}
 
 RepeatableOpt:
 	%prec empty
 	{
+
+
 		$$ = nil
 	}
 |	"REPEATABLE" '(' Expression ')'
 	{
+sql_ir.LogGrammarCoverage("RepeatableOpt,Expression")
+
+
 		$$ = $3
 	}
 
 SelectStmt:
 	SelectStmtBasic WhereClauseOptional SelectStmtGroup OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtBasic")
+sql_ir.LogGrammarCoverage("SelectStmt,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtGroup")
+sql_ir.LogGrammarCoverage("SelectStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtLimitOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectLockOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtIntoOption")
+
+
 		st := $1.(*ast.SelectStmt)
 		if $6 != nil {
 			st.LockInfo = $6.(*ast.SelectLockInfo)
@@ -8323,6 +12961,14 @@ SelectStmt:
 	}
 |	SelectStmtFromDualTable SelectStmtGroup OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtFromDualTable")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtGroup")
+sql_ir.LogGrammarCoverage("SelectStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtLimitOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectLockOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtIntoOption")
+
+
 		st := $1.(*ast.SelectStmt)
 		if $2 != nil {
 			st.GroupBy = $2.(*ast.GroupByClause)
@@ -8343,6 +12989,13 @@ SelectStmt:
 	}
 |	SelectStmtFromTable OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtFromTable")
+sql_ir.LogGrammarCoverage("SelectStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtLimitOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectLockOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtIntoOption")
+
+
 		st := $1.(*ast.SelectStmt)
 		if $4 != nil {
 			st.LockInfo = $4.(*ast.SelectLockInfo)
@@ -8360,6 +13013,13 @@ SelectStmt:
 	}
 |	"TABLE" TableName OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmt,TableName")
+sql_ir.LogGrammarCoverage("SelectStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtLimitOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectLockOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtIntoOption")
+
+
 		st := &ast.SelectStmt{
 			Kind:   ast.SelectStmtKindTable,
 			Fields: &ast.FieldList{Fields: []*ast.SelectField{{WildCard: &ast.WildCardField{}}}},
@@ -8382,6 +13042,13 @@ SelectStmt:
 	}
 |	"VALUES" ValuesStmtList OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmt,ValuesStmtList")
+sql_ir.LogGrammarCoverage("SelectStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtLimitOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectLockOpt")
+sql_ir.LogGrammarCoverage("SelectStmt,SelectStmtIntoOption")
+
+
 		st := &ast.SelectStmt{
 			Kind:   ast.SelectStmtKindValues,
 			Fields: &ast.FieldList{Fields: []*ast.SelectField{{WildCard: &ast.WildCardField{}}}},
@@ -8405,12 +13072,20 @@ SelectStmt:
 SelectStmtWithClause:
 	WithClause SelectStmt
 	{
+sql_ir.LogGrammarCoverage("SelectStmtWithClause,WithClause")
+sql_ir.LogGrammarCoverage("SelectStmtWithClause,SelectStmt")
+
+
 		sel := $2.(*ast.SelectStmt)
 		sel.With = $1.(*ast.WithClause)
 		$$ = sel
 	}
 |	WithClause SubSelect
 	{
+sql_ir.LogGrammarCoverage("SelectStmtWithClause,WithClause")
+sql_ir.LogGrammarCoverage("SelectStmtWithClause,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $2.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -8429,10 +13104,16 @@ SelectStmtWithClause:
 WithClause:
 	"WITH" WithList
 	{
+sql_ir.LogGrammarCoverage("WithClause,WithList")
+
+
 		$$ = $2
 	}
 |	"WITH" recursive WithList
 	{
+sql_ir.LogGrammarCoverage("WithClause,WithList")
+
+
 		ws := $3.(*ast.WithClause)
 		ws.IsRecursive = true
 		for _, cte := range ws.CTEs {
@@ -8444,12 +13125,19 @@ WithClause:
 WithList:
 	WithList ',' CommonTableExpr
 	{
+sql_ir.LogGrammarCoverage("WithList,WithList")
+sql_ir.LogGrammarCoverage("WithList,CommonTableExpr")
+
+
 		ws := $1.(*ast.WithClause)
 		ws.CTEs = append(ws.CTEs, $3.(*ast.CommonTableExpression))
 		$$ = ws
 	}
 |	CommonTableExpr
 	{
+sql_ir.LogGrammarCoverage("WithList,CommonTableExpr")
+
+
 		ws := &ast.WithClause{}
 		ws.CTEs = make([]*ast.CommonTableExpression, 0, 4)
 		ws.CTEs = append(ws.CTEs, $1.(*ast.CommonTableExpression))
@@ -8459,6 +13147,11 @@ WithList:
 CommonTableExpr:
 	Identifier IdentListWithParenOpt "AS" SubSelect
 	{
+sql_ir.LogGrammarCoverage("CommonTableExpr,Identifier")
+sql_ir.LogGrammarCoverage("CommonTableExpr,IdentListWithParenOpt")
+sql_ir.LogGrammarCoverage("CommonTableExpr,SubSelect")
+
+
 		cte := &ast.CommonTableExpression{}
 		cte.Name = model.NewCIStr($1)
 		cte.ColNameList = $2.([]model.CIStr)
@@ -8469,28 +13162,47 @@ CommonTableExpr:
 FromDual:
 	"FROM" "DUAL"
 
+{
+
+}
 WindowClauseOptional:
 	{
+
+
 		$$ = nil
 	}
 |	"WINDOW" WindowDefinitionList
 	{
+sql_ir.LogGrammarCoverage("WindowClauseOptional,WindowDefinitionList")
+
+
 		$$ = $2.([]ast.WindowSpec)
 	}
 
 WindowDefinitionList:
 	WindowDefinition
 	{
+sql_ir.LogGrammarCoverage("WindowDefinitionList,WindowDefinition")
+
+
 		$$ = []ast.WindowSpec{$1.(ast.WindowSpec)}
 	}
 |	WindowDefinitionList ',' WindowDefinition
 	{
+sql_ir.LogGrammarCoverage("WindowDefinitionList,WindowDefinitionList")
+sql_ir.LogGrammarCoverage("WindowDefinitionList,WindowDefinition")
+
+
 		$$ = append($1.([]ast.WindowSpec), $3.(ast.WindowSpec))
 	}
 
 WindowDefinition:
 	WindowName "AS" WindowSpec
 	{
+sql_ir.LogGrammarCoverage("WindowDefinition,WindowName")
+sql_ir.LogGrammarCoverage("WindowDefinition,WindowSpec")
+
+
 		var spec = $3.(ast.WindowSpec)
 		spec.Name = $1.(model.CIStr)
 		$$ = spec
@@ -8499,18 +13211,30 @@ WindowDefinition:
 WindowName:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("WindowName,Identifier")
+
+
 		$$ = model.NewCIStr($1)
 	}
 
 WindowSpec:
 	'(' WindowSpecDetails ')'
 	{
+sql_ir.LogGrammarCoverage("WindowSpec,WindowSpecDetails")
+
+
 		$$ = $2.(ast.WindowSpec)
 	}
 
 WindowSpecDetails:
 	OptExistingWindowName OptPartitionClause OptWindowOrderByClause OptWindowFrameClause
 	{
+sql_ir.LogGrammarCoverage("WindowSpecDetails,OptExistingWindowName")
+sql_ir.LogGrammarCoverage("WindowSpecDetails,OptPartitionClause")
+sql_ir.LogGrammarCoverage("WindowSpecDetails,OptWindowOrderByClause")
+sql_ir.LogGrammarCoverage("WindowSpecDetails,OptWindowFrameClause")
+
+
 		spec := ast.WindowSpec{Ref: $1.(model.CIStr)}
 		if $2 != nil {
 			spec.PartitionBy = $2.(*ast.PartitionByClause)
@@ -8526,34 +13250,56 @@ WindowSpecDetails:
 
 OptExistingWindowName:
 	{
+
+
 		$$ = model.CIStr{}
 	}
 |	WindowName
 
+{
+sql_ir.LogGrammarCoverage("OptExistingWindowName,WindowName")
+
+}
 OptPartitionClause:
 	{
+
+
 		$$ = nil
 	}
 |	"PARTITION" "BY" ByList
 	{
+sql_ir.LogGrammarCoverage("OptPartitionClause,ByList")
+
+
 		$$ = &ast.PartitionByClause{Items: $3.([]*ast.ByItem)}
 	}
 
 OptWindowOrderByClause:
 	{
+
+
 		$$ = nil
 	}
 |	"ORDER" "BY" ByList
 	{
+sql_ir.LogGrammarCoverage("OptWindowOrderByClause,ByList")
+
+
 		$$ = &ast.OrderByClause{Items: $3.([]*ast.ByItem)}
 	}
 
 OptWindowFrameClause:
 	{
+
+
 		$$ = nil
 	}
 |	WindowFrameUnits WindowFrameExtent
 	{
+sql_ir.LogGrammarCoverage("OptWindowFrameClause,WindowFrameUnits")
+sql_ir.LogGrammarCoverage("OptWindowFrameClause,WindowFrameExtent")
+
+
 		$$ = &ast.FrameClause{
 			Type:   $1.(ast.FrameType),
 			Extent: $2.(ast.FrameExtent),
@@ -8563,20 +13309,29 @@ OptWindowFrameClause:
 WindowFrameUnits:
 	"ROWS"
 	{
+
+
 		$$ = ast.FrameType(ast.Rows)
 	}
 |	"RANGE"
 	{
+
+
 		$$ = ast.FrameType(ast.Ranges)
 	}
 |	"GROUPS"
 	{
+
+
 		$$ = ast.FrameType(ast.Groups)
 	}
 
 WindowFrameExtent:
 	WindowFrameStart
 	{
+sql_ir.LogGrammarCoverage("WindowFrameExtent,WindowFrameStart")
+
+
 		$$ = ast.FrameExtent{
 			Start: $1.(ast.FrameBound),
 			End:   ast.FrameBound{Type: ast.CurrentRow},
@@ -8584,59 +13339,100 @@ WindowFrameExtent:
 	}
 |	WindowFrameBetween
 
+{
+sql_ir.LogGrammarCoverage("WindowFrameExtent,WindowFrameBetween")
+
+}
 WindowFrameStart:
 	"UNBOUNDED" "PRECEDING"
 	{
+
+
 		$$ = ast.FrameBound{Type: ast.Preceding, UnBounded: true}
 	}
 |	NumLiteral "PRECEDING"
 	{
+sql_ir.LogGrammarCoverage("WindowFrameStart,NumLiteral")
+
+
 		$$ = ast.FrameBound{Type: ast.Preceding, Expr: ast.NewValueExpr($1, parser.charset, parser.collation)}
 	}
 |	paramMarker "PRECEDING"
 	{
+
+
 		$$ = ast.FrameBound{Type: ast.Preceding, Expr: ast.NewParamMarkerExpr(yyS[yypt].offset)}
 	}
 |	"INTERVAL" Expression TimeUnit "PRECEDING"
 	{
+sql_ir.LogGrammarCoverage("WindowFrameStart,Expression")
+sql_ir.LogGrammarCoverage("WindowFrameStart,TimeUnit")
+
+
 		$$ = ast.FrameBound{Type: ast.Preceding, Expr: $2, Unit: $3.(ast.TimeUnitType)}
 	}
 |	"CURRENT" "ROW"
 	{
+
+
 		$$ = ast.FrameBound{Type: ast.CurrentRow}
 	}
 
 WindowFrameBetween:
 	"BETWEEN" WindowFrameBound "AND" WindowFrameBound
 	{
+sql_ir.LogGrammarCoverage("WindowFrameBetween,WindowFrameBound")
+sql_ir.LogGrammarCoverage("WindowFrameBetween,WindowFrameBound")
+
+
 		$$ = ast.FrameExtent{Start: $2.(ast.FrameBound), End: $4.(ast.FrameBound)}
 	}
 
 WindowFrameBound:
 	WindowFrameStart
+{
+sql_ir.LogGrammarCoverage("WindowFrameBound,WindowFrameStart")
+
+}
 |	"UNBOUNDED" "FOLLOWING"
 	{
+
+
 		$$ = ast.FrameBound{Type: ast.Following, UnBounded: true}
 	}
 |	NumLiteral "FOLLOWING"
 	{
+sql_ir.LogGrammarCoverage("WindowFrameBound,NumLiteral")
+
+
 		$$ = ast.FrameBound{Type: ast.Following, Expr: ast.NewValueExpr($1, parser.charset, parser.collation)}
 	}
 |	paramMarker "FOLLOWING"
 	{
+
+
 		$$ = ast.FrameBound{Type: ast.Following, Expr: ast.NewParamMarkerExpr(yyS[yypt].offset)}
 	}
 |	"INTERVAL" Expression TimeUnit "FOLLOWING"
 	{
+sql_ir.LogGrammarCoverage("WindowFrameBound,Expression")
+sql_ir.LogGrammarCoverage("WindowFrameBound,TimeUnit")
+
+
 		$$ = ast.FrameBound{Type: ast.Following, Expr: $2, Unit: $3.(ast.TimeUnitType)}
 	}
 
 OptWindowingClause:
 	{
+
+
 		$$ = nil
 	}
 |	WindowingClause
 	{
+sql_ir.LogGrammarCoverage("OptWindowingClause,WindowingClause")
+
+
 		spec := $1.(ast.WindowSpec)
 		$$ = &spec
 	}
@@ -8644,43 +13440,78 @@ OptWindowingClause:
 WindowingClause:
 	"OVER" WindowNameOrSpec
 	{
+sql_ir.LogGrammarCoverage("WindowingClause,WindowNameOrSpec")
+
+
 		$$ = $2.(ast.WindowSpec)
 	}
 
 WindowNameOrSpec:
 	WindowName
 	{
+sql_ir.LogGrammarCoverage("WindowNameOrSpec,WindowName")
+
+
 		$$ = ast.WindowSpec{Name: $1.(model.CIStr), OnlyAlias: true}
 	}
 |	WindowSpec
 
+{
+sql_ir.LogGrammarCoverage("WindowNameOrSpec,WindowSpec")
+
+}
 WindowFuncCall:
 	"ROW_NUMBER" '(' ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Spec: $4.(ast.WindowSpec)}
 	}
 |	"RANK" '(' ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Spec: $4.(ast.WindowSpec)}
 	}
 |	"DENSE_RANK" '(' ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Spec: $4.(ast.WindowSpec)}
 	}
 |	"CUME_DIST" '(' ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Spec: $4.(ast.WindowSpec)}
 	}
 |	"PERCENT_RANK" '(' ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Spec: $4.(ast.WindowSpec)}
 	}
 |	"NTILE" '(' SimpleExpr ')' WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,SimpleExpr")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, Spec: $5.(ast.WindowSpec)}
 	}
 |	"LEAD" '(' Expression OptLeadLagInfo ')' OptNullTreatment WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,Expression")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptLeadLagInfo")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptNullTreatment")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		args := []ast.ExprNode{$3}
 		if $4 != nil {
 			args = append(args, $4.([]ast.ExprNode)...)
@@ -8689,6 +13520,12 @@ WindowFuncCall:
 	}
 |	"LAG" '(' Expression OptLeadLagInfo ')' OptNullTreatment WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,Expression")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptLeadLagInfo")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptNullTreatment")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		args := []ast.ExprNode{$3}
 		if $4 != nil {
 			args = append(args, $4.([]ast.ExprNode)...)
@@ -8697,23 +13534,46 @@ WindowFuncCall:
 	}
 |	"FIRST_VALUE" '(' Expression ')' OptNullTreatment WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,Expression")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptNullTreatment")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, IgnoreNull: $5.(bool), Spec: $6.(ast.WindowSpec)}
 	}
 |	"LAST_VALUE" '(' Expression ')' OptNullTreatment WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,Expression")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptNullTreatment")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3}, IgnoreNull: $5.(bool), Spec: $6.(ast.WindowSpec)}
 	}
 |	"NTH_VALUE" '(' Expression ',' SimpleExpr ')' OptFromFirstLast OptNullTreatment WindowingClause
 	{
+sql_ir.LogGrammarCoverage("WindowFuncCall,Expression")
+sql_ir.LogGrammarCoverage("WindowFuncCall,SimpleExpr")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptFromFirstLast")
+sql_ir.LogGrammarCoverage("WindowFuncCall,OptNullTreatment")
+sql_ir.LogGrammarCoverage("WindowFuncCall,WindowingClause")
+
+
 		$$ = &ast.WindowFuncExpr{F: $1, Args: []ast.ExprNode{$3, $5}, FromLast: $7.(bool), IgnoreNull: $8.(bool), Spec: $9.(ast.WindowSpec)}
 	}
 
 OptLeadLagInfo:
 	{
+
+
 		$$ = nil
 	}
 |	',' NumLiteral OptLLDefault
 	{
+sql_ir.LogGrammarCoverage("OptLeadLagInfo,NumLiteral")
+sql_ir.LogGrammarCoverage("OptLeadLagInfo,OptLLDefault")
+
+
 		args := []ast.ExprNode{ast.NewValueExpr($2, parser.charset, parser.collation)}
 		if $3 != nil {
 			args = append(args, $3.(ast.ExprNode))
@@ -8722,6 +13582,9 @@ OptLeadLagInfo:
 	}
 |	',' paramMarker OptLLDefault
 	{
+sql_ir.LogGrammarCoverage("OptLeadLagInfo,OptLLDefault")
+
+
 		args := []ast.ExprNode{ast.NewParamMarkerExpr(yyS[yypt-1].offset)}
 		if $3 != nil {
 			args = append(args, $3.(ast.ExprNode))
@@ -8731,48 +13594,71 @@ OptLeadLagInfo:
 
 OptLLDefault:
 	{
+
+
 		$$ = nil
 	}
 |	',' Expression
 	{
+sql_ir.LogGrammarCoverage("OptLLDefault,Expression")
+
+
 		$$ = $2
 	}
 
 OptNullTreatment:
 	{
+
+
 		$$ = false
 	}
 |	"RESPECT" "NULLS"
 	{
+
+
 		$$ = false
 	}
 |	"IGNORE" "NULLS"
 	{
+
+
 		$$ = true
 	}
 
 OptFromFirstLast:
 	{
+
+
 		$$ = false
 	}
 |	"FROM" "FIRST"
 	{
+
+
 		$$ = false
 	}
 |	"FROM" "LAST"
 	{
+
+
 		$$ = true
 	}
 
 TableRefsClause:
 	TableRefs
 	{
+sql_ir.LogGrammarCoverage("TableRefsClause,TableRefs")
+
+
 		$$ = &ast.TableRefsClause{TableRefs: $1.(*ast.Join)}
 	}
 
 TableRefs:
 	EscapedTableRef
 	{
+sql_ir.LogGrammarCoverage("TableRefs,EscapedTableRef")
+
+
 		if j, ok := $1.(*ast.Join); ok {
 			// if $1 is Join, use it directly
 			$$ = j
@@ -8782,28 +13668,53 @@ TableRefs:
 	}
 |	TableRefs ',' EscapedTableRef
 	{
-		/* from a, b is default cross join */
+sql_ir.LogGrammarCoverage("TableRefs,TableRefs")
+sql_ir.LogGrammarCoverage("TableRefs,EscapedTableRef")
+
+
+		
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.CrossJoin}
 	}
 
 EscapedTableRef:
 	TableRef %prec lowerThanSetKeyword
+{
+sql_ir.LogGrammarCoverage("EscapedTableRef,TableRef")
+
+}
 |	'{' Identifier TableRef '}'
 	{
-		/*
-		 * ODBC escape syntax for outer join is { OJ join_table }
-		 * Use an Identifier for OJ
-		 */
+sql_ir.LogGrammarCoverage("EscapedTableRef,Identifier")
+sql_ir.LogGrammarCoverage("EscapedTableRef,TableRef")
+
+
+		
 		$$ = $3
 	}
 
 TableRef:
 	TableFactor
+{
+sql_ir.LogGrammarCoverage("TableRef,TableFactor")
+
+}
 |	JoinTable
 
+{
+sql_ir.LogGrammarCoverage("TableRef,JoinTable")
+
+}
 TableFactor:
 	TableName PartitionNameListOpt TableAsNameOpt AsOfClauseOpt IndexHintListOpt TableSampleOpt
 	{
+sql_ir.LogGrammarCoverage("TableFactor,TableName")
+sql_ir.LogGrammarCoverage("TableFactor,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("TableFactor,TableAsNameOpt")
+sql_ir.LogGrammarCoverage("TableFactor,AsOfClauseOpt")
+sql_ir.LogGrammarCoverage("TableFactor,IndexHintListOpt")
+sql_ir.LogGrammarCoverage("TableFactor,TableSampleOpt")
+
+
 		tn := $1.(*ast.TableName)
 		tn.PartitionNames = $2.([]model.CIStr)
 		tn.IndexHints = $5.([]*ast.IndexHint)
@@ -8817,77 +13728,123 @@ TableFactor:
 	}
 |	SubSelect TableAsNameOpt
 	{
+sql_ir.LogGrammarCoverage("TableFactor,SubSelect")
+sql_ir.LogGrammarCoverage("TableFactor,TableAsNameOpt")
+
+
 		resultNode := $1.(*ast.SubqueryExpr).Query
 		$$ = &ast.TableSource{Source: resultNode, AsName: $2.(model.CIStr)}
 	}
 |	'(' TableRefs ')'
 	{
+sql_ir.LogGrammarCoverage("TableFactor,TableRefs")
+
+
 		j := $2.(*ast.Join)
 		j.ExplicitParens = true
 		$$ = $2
 	}
 
 PartitionNameListOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = []model.CIStr{}
 	}
 |	"PARTITION" '(' PartitionNameList ')'
 	{
+sql_ir.LogGrammarCoverage("PartitionNameListOpt,PartitionNameList")
+
+
 		$$ = $3
 	}
 
 TableAsNameOpt:
 	%prec empty
 	{
+
+
 		$$ = model.CIStr{}
 	}
 |	TableAsName
 
+{
+sql_ir.LogGrammarCoverage("TableAsNameOpt,TableAsName")
+
+}
 TableAsName:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("TableAsName,Identifier")
+
+
 		$$ = model.NewCIStr($1)
 	}
 |	"AS" Identifier
 	{
+sql_ir.LogGrammarCoverage("TableAsName,Identifier")
+
+
 		$$ = model.NewCIStr($2)
 	}
 
 IndexHintType:
 	"USE" KeyOrIndex
 	{
+sql_ir.LogGrammarCoverage("IndexHintType,KeyOrIndex")
+
+
 		$$ = ast.HintUse
 	}
 |	"IGNORE" KeyOrIndex
 	{
+sql_ir.LogGrammarCoverage("IndexHintType,KeyOrIndex")
+
+
 		$$ = ast.HintIgnore
 	}
 |	"FORCE" KeyOrIndex
 	{
+sql_ir.LogGrammarCoverage("IndexHintType,KeyOrIndex")
+
+
 		$$ = ast.HintForce
 	}
 
 IndexHintScope:
 	{
+
+
 		$$ = ast.HintForScan
 	}
 |	"FOR" "JOIN"
 	{
+
+
 		$$ = ast.HintForJoin
 	}
 |	"FOR" "ORDER" "BY"
 	{
+
+
 		$$ = ast.HintForOrderBy
 	}
 |	"FOR" "GROUP" "BY"
 	{
+
+
 		$$ = ast.HintForGroupBy
 	}
 
 IndexHint:
 	IndexHintType IndexHintScope '(' IndexNameList ')'
 	{
+sql_ir.LogGrammarCoverage("IndexHint,IndexHintType")
+sql_ir.LogGrammarCoverage("IndexHint,IndexHintScope")
+sql_ir.LogGrammarCoverage("IndexHint,IndexNameList")
+
+
 		$$ = &ast.IndexHint{
 			IndexNames: $4.([]model.CIStr),
 			HintType:   $1.(ast.IndexHintType),
@@ -8897,80 +13854,157 @@ IndexHint:
 
 IndexNameList:
 	{
+
+
 		var nameList []model.CIStr
 		$$ = nameList
 	}
 |	Identifier
 	{
+sql_ir.LogGrammarCoverage("IndexNameList,Identifier")
+
+
 		$$ = []model.CIStr{model.NewCIStr($1)}
 	}
 |	IndexNameList ',' Identifier
 	{
+sql_ir.LogGrammarCoverage("IndexNameList,IndexNameList")
+sql_ir.LogGrammarCoverage("IndexNameList,Identifier")
+
+
 		$$ = append($1.([]model.CIStr), model.NewCIStr($3))
 	}
 |	"PRIMARY"
 	{
+
+
 		$$ = []model.CIStr{model.NewCIStr($1)}
 	}
 |	IndexNameList ',' "PRIMARY"
 	{
+sql_ir.LogGrammarCoverage("IndexNameList,IndexNameList")
+
+
 		$$ = append($1.([]model.CIStr), model.NewCIStr($3))
 	}
 
 IndexHintList:
 	IndexHint
 	{
+sql_ir.LogGrammarCoverage("IndexHintList,IndexHint")
+
+
 		$$ = []*ast.IndexHint{$1.(*ast.IndexHint)}
 	}
 |	IndexHintList IndexHint
 	{
+sql_ir.LogGrammarCoverage("IndexHintList,IndexHintList")
+sql_ir.LogGrammarCoverage("IndexHintList,IndexHint")
+
+
 		$$ = append($1.([]*ast.IndexHint), $2.(*ast.IndexHint))
 	}
 
 IndexHintListOpt:
 	{
+
+
 		$$ = []*ast.IndexHint{}
 	}
 |	IndexHintList
 
+{
+sql_ir.LogGrammarCoverage("IndexHintListOpt,IndexHintList")
+
+}
 JoinTable:
-	/* Use %prec to evaluate production TableRef before cross join */
+	
 	TableRef CrossOpt TableRef %prec tableRefPriority
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,CrossOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+
+
 		$$ = ast.NewCrossJoin($1.(ast.ResultSetNode), $3.(ast.ResultSetNode))
 	}
 |	TableRef CrossOpt TableRef "ON" Expression
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,CrossOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,Expression")
+
+
 		on := &ast.OnCondition{Expr: $5}
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.CrossJoin, On: on}
 	}
 |	TableRef CrossOpt TableRef "USING" '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,CrossOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,ColumnNameList")
+
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.CrossJoin, Using: $6.([]*ast.ColumnName)}
 	}
 |	TableRef JoinType OuterOpt "JOIN" TableRef "ON" Expression
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,JoinType")
+sql_ir.LogGrammarCoverage("JoinTable,OuterOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,Expression")
+
+
 		on := &ast.OnCondition{Expr: $7}
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $5.(ast.ResultSetNode), Tp: $2.(ast.JoinType), On: on}
 	}
 |	TableRef JoinType OuterOpt "JOIN" TableRef "USING" '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,JoinType")
+sql_ir.LogGrammarCoverage("JoinTable,OuterOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,ColumnNameList")
+
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $5.(ast.ResultSetNode), Tp: $2.(ast.JoinType), Using: $8.([]*ast.ColumnName)}
 	}
 |	TableRef "NATURAL" "JOIN" TableRef
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $4.(ast.ResultSetNode), NaturalJoin: true}
 	}
 |	TableRef "NATURAL" JoinType OuterOpt "JOIN" TableRef
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,JoinType")
+sql_ir.LogGrammarCoverage("JoinTable,OuterOpt")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $6.(ast.ResultSetNode), Tp: $3.(ast.JoinType), NaturalJoin: true}
 	}
 |	TableRef "STRAIGHT_JOIN" TableRef
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), StraightJoin: true}
 	}
 |	TableRef "STRAIGHT_JOIN" TableRef "ON" Expression
 	{
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,TableRef")
+sql_ir.LogGrammarCoverage("JoinTable,Expression")
+
+
 		on := &ast.OnCondition{Expr: $5}
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), StraightJoin: true, On: on}
 	}
@@ -8978,82 +14012,153 @@ JoinTable:
 JoinType:
 	"LEFT"
 	{
+
+
 		$$ = ast.LeftJoin
 	}
 |	"RIGHT"
 	{
+
+
 		$$ = ast.RightJoin
 	}
 
 OuterOpt:
-	{}
+	{
+
+}
 |	"OUTER"
 
+{
+
+}
 CrossOpt:
 	"JOIN"
+{
+
+}
 |	"CROSS" "JOIN"
+{
+
+}
 |	"INNER" "JOIN"
 
+{
+
+}
 LimitClause:
 	{
+
+
 		$$ = nil
 	}
 |	"LIMIT" LimitOption
 	{
+sql_ir.LogGrammarCoverage("LimitClause,LimitOption")
+
+
 		$$ = &ast.Limit{Count: $2.(ast.ValueExpr)}
 	}
 
 LimitOption:
 	LengthNum
 	{
+sql_ir.LogGrammarCoverage("LimitOption,LengthNum")
+
+
 		$$ = ast.NewValueExpr($1, parser.charset, parser.collation)
 	}
 |	paramMarker
 	{
+
+
 		$$ = ast.NewParamMarkerExpr(yyS[yypt].offset)
 	}
 
 RowOrRows:
 	"ROW"
+{
+
+}
 |	"ROWS"
 
+{
+
+}
 FirstOrNext:
 	"FIRST"
+{
+
+}
 |	"NEXT"
 
+{
+
+}
 FetchFirstOpt:
 	{
+
+
 		$$ = ast.NewValueExpr(uint64(1), parser.charset, parser.collation)
 	}
 |	LimitOption
 
+{
+sql_ir.LogGrammarCoverage("FetchFirstOpt,LimitOption")
+
+}
 SelectStmtLimit:
 	"LIMIT" LimitOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmtLimit,LimitOption")
+
+
 		$$ = &ast.Limit{Count: $2.(ast.ExprNode)}
 	}
 |	"LIMIT" LimitOption ',' LimitOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmtLimit,LimitOption")
+sql_ir.LogGrammarCoverage("SelectStmtLimit,LimitOption")
+
+
 		$$ = &ast.Limit{Offset: $2.(ast.ExprNode), Count: $4.(ast.ExprNode)}
 	}
 |	"LIMIT" LimitOption "OFFSET" LimitOption
 	{
+sql_ir.LogGrammarCoverage("SelectStmtLimit,LimitOption")
+sql_ir.LogGrammarCoverage("SelectStmtLimit,LimitOption")
+
+
 		$$ = &ast.Limit{Offset: $4.(ast.ExprNode), Count: $2.(ast.ExprNode)}
 	}
 |	"FETCH" FirstOrNext FetchFirstOpt RowOrRows "ONLY"
 	{
+sql_ir.LogGrammarCoverage("SelectStmtLimit,FirstOrNext")
+sql_ir.LogGrammarCoverage("SelectStmtLimit,FetchFirstOpt")
+sql_ir.LogGrammarCoverage("SelectStmtLimit,RowOrRows")
+
+
 		$$ = &ast.Limit{Count: $3.(ast.ExprNode)}
 	}
 
 SelectStmtLimitOpt:
 	{
+
+
 		$$ = nil
 	}
 |	SelectStmtLimit
 
+{
+sql_ir.LogGrammarCoverage("SelectStmtLimitOpt,SelectStmtLimit")
+
+}
 SelectStmtOpt:
 	TableOptimizerHints
 	{
+sql_ir.LogGrammarCoverage("SelectStmtOpt,TableOptimizerHints")
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.TableHints = $1.([]*ast.TableOptimizerHint)
@@ -9061,6 +14166,9 @@ SelectStmtOpt:
 	}
 |	DistinctOpt
 	{
+sql_ir.LogGrammarCoverage("SelectStmtOpt,DistinctOpt")
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		if $1.(bool) {
@@ -9073,6 +14181,9 @@ SelectStmtOpt:
 	}
 |	Priority
 	{
+sql_ir.LogGrammarCoverage("SelectStmtOpt,Priority")
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.Priority = $1.(mysql.PriorityEnum)
@@ -9080,6 +14191,8 @@ SelectStmtOpt:
 	}
 |	"SQL_SMALL_RESULT"
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.SQLSmallResult = true
@@ -9087,6 +14200,8 @@ SelectStmtOpt:
 	}
 |	"SQL_BIG_RESULT"
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.SQLBigResult = true
@@ -9094,6 +14209,8 @@ SelectStmtOpt:
 	}
 |	"SQL_BUFFER_RESULT"
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.SQLBufferResult = true
@@ -9101,12 +14218,17 @@ SelectStmtOpt:
 	}
 |	SelectStmtSQLCache
 	{
+sql_ir.LogGrammarCoverage("SelectStmtOpt,SelectStmtSQLCache")
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = $1.(bool)
 		$$ = opt
 	}
 |	"SQL_CALC_FOUND_ROWS"
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.CalcFoundRows = true
@@ -9114,6 +14236,8 @@ SelectStmtOpt:
 	}
 |	"STRAIGHT_JOIN"
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		opt.StraightJoin = true
@@ -9123,15 +14247,25 @@ SelectStmtOpt:
 SelectStmtOpts:
 	%prec empty
 	{
+
+
 		opt := &ast.SelectStmtOpts{}
 		opt.SQLCache = true
 		$$ = opt
 	}
 |	SelectStmtOptsList %prec lowerThanSelectOpt
 
+{
+sql_ir.LogGrammarCoverage("SelectStmtOpts,SelectStmtOptsList")
+
+}
 SelectStmtOptsList:
 	SelectStmtOptsList SelectStmtOpt
 	{
+sql_ir.LogGrammarCoverage("SelectStmtOptsList,SelectStmtOptsList")
+sql_ir.LogGrammarCoverage("SelectStmtOptsList,SelectStmtOpt")
+
+
 		opts := $1.(*ast.SelectStmtOpts)
 		opt := $2.(*ast.SelectStmtOpts)
 
@@ -9177,9 +14311,15 @@ SelectStmtOptsList:
 	}
 |	SelectStmtOpt
 
+{
+sql_ir.LogGrammarCoverage("SelectStmtOptsList,SelectStmtOpt")
+
+}
 TableOptimizerHints:
 	hintComment
 	{
+
+
 		hints, warns := parser.parseHint($1)
 		for _, w := range warns {
 			yylex.AppendError(w)
@@ -9189,41 +14329,70 @@ TableOptimizerHints:
 	}
 
 TableOptimizerHintsOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = nil
 	}
 |	TableOptimizerHints
 
+{
+sql_ir.LogGrammarCoverage("TableOptimizerHintsOpt,TableOptimizerHints")
+
+}
 SelectStmtSQLCache:
 	"SQL_CACHE"
 	{
+
+
 		$$ = true
 	}
 |	"SQL_NO_CACHE"
 	{
+
+
 		$$ = false
 	}
 
 SelectStmtFieldList:
 	FieldList
 	{
+sql_ir.LogGrammarCoverage("SelectStmtFieldList,FieldList")
+
+
 		$$ = &ast.FieldList{Fields: $1.([]*ast.SelectField)}
 	}
 
 SelectStmtGroup:
 	/* EMPTY */
 	{
+sql_ir.LogGrammarCoverage("SelectStmtGroup,/*")
+sql_ir.LogGrammarCoverage("SelectStmtGroup,EMPTY")
+sql_ir.LogGrammarCoverage("SelectStmtGroup,*/")
+
+
 		$$ = nil
 	}
 |	GroupByClause
 
+{
+sql_ir.LogGrammarCoverage("SelectStmtGroup,GroupByClause")
+
+}
 SelectStmtIntoOption:
 	{
+
+
 		$$ = nil
 	}
 |	"INTO" "OUTFILE" stringLit Fields Lines
 	{
+sql_ir.LogGrammarCoverage("SelectStmtIntoOption,stringLit")
+sql_ir.LogGrammarCoverage("SelectStmtIntoOption,Fields")
+sql_ir.LogGrammarCoverage("SelectStmtIntoOption,Lines")
+
+
 		x := &ast.SelectIntoOption{
 			Tp:       ast.SelectIntoOutfile,
 			FileName: $3,
@@ -9242,6 +14411,9 @@ SelectStmtIntoOption:
 SubSelect:
 	'(' SelectStmt ')'
 	{
+sql_ir.LogGrammarCoverage("SubSelect,SelectStmt")
+
+
 		rs := $2.(*ast.SelectStmt)
 		endOffset := parser.endOffset(&yyS[yypt])
 		parser.setLastSelectFieldText(rs, endOffset)
@@ -9252,6 +14424,9 @@ SubSelect:
 	}
 |	'(' SetOprStmt ')'
 	{
+sql_ir.LogGrammarCoverage("SubSelect,SetOprStmt")
+
+
 		rs := $2.(*ast.SetOprStmt)
 		src := parser.src
 		rs.SetText(parser.lexer.client, src[yyS[yypt-1].offset:yyS[yypt].offset])
@@ -9259,6 +14434,9 @@ SubSelect:
 	}
 |	'(' SelectStmtWithClause ')'
 	{
+sql_ir.LogGrammarCoverage("SubSelect,SelectStmtWithClause")
+
+
 		rs := $2.(*ast.SelectStmt)
 		endOffset := parser.endOffset(&yyS[yypt])
 		parser.setLastSelectFieldText(rs, endOffset)
@@ -9269,6 +14447,9 @@ SubSelect:
 	}
 |	'(' SubSelect ')'
 	{
+sql_ir.LogGrammarCoverage("SubSelect,SubSelect")
+
+
 		subQuery := $2.(*ast.SubqueryExpr).Query
 		isRecursive := true
 		// remove redundant brackets like '((select 1))'
@@ -9293,12 +14474,17 @@ SubSelect:
 
 // See https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html
 SelectLockOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = nil
 	}
 |	"FOR" "UPDATE" OfTablesOpt
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForUpdate,
 			Tables:   $3.([]*ast.TableName),
@@ -9306,6 +14492,9 @@ SelectLockOpt:
 	}
 |	"FOR" "SHARE" OfTablesOpt
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForShare,
 			Tables:   $3.([]*ast.TableName),
@@ -9313,6 +14502,9 @@ SelectLockOpt:
 	}
 |	"FOR" "UPDATE" OfTablesOpt "NOWAIT"
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForUpdateNoWait,
 			Tables:   $3.([]*ast.TableName),
@@ -9320,6 +14512,10 @@ SelectLockOpt:
 	}
 |	"FOR" "UPDATE" OfTablesOpt "WAIT" NUM
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+sql_ir.LogGrammarCoverage("SelectLockOpt,NUM")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForUpdateWaitN,
 			WaitSec:  getUint64FromNUM($5),
@@ -9328,6 +14524,9 @@ SelectLockOpt:
 	}
 |	"FOR" "SHARE" OfTablesOpt "NOWAIT"
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForShareNoWait,
 			Tables:   $3.([]*ast.TableName),
@@ -9335,6 +14534,9 @@ SelectLockOpt:
 	}
 |	"FOR" "UPDATE" OfTablesOpt "SKIP" "LOCKED"
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForUpdateSkipLocked,
 			Tables:   $3.([]*ast.TableName),
@@ -9342,6 +14544,9 @@ SelectLockOpt:
 	}
 |	"FOR" "SHARE" OfTablesOpt "SKIP" "LOCKED"
 	{
+sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForShareSkipLocked,
 			Tables:   $3.([]*ast.TableName),
@@ -9349,6 +14554,8 @@ SelectLockOpt:
 	}
 |	"LOCK" "IN" "SHARE" "MODE"
 	{
+
+
 		$$ = &ast.SelectLockInfo{
 			LockType: ast.SelectLockForShare,
 			Tables:   []*ast.TableName{},
@@ -9356,26 +14563,47 @@ SelectLockOpt:
 	}
 
 OfTablesOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = []*ast.TableName{}
 	}
 |	"OF" TableNameList
 	{
+sql_ir.LogGrammarCoverage("OfTablesOpt,TableNameList")
+
+
 		$$ = $2.([]*ast.TableName)
 	}
 
 SetOprStmt:
 	SetOprStmtWoutLimitOrderBy
+{
+sql_ir.LogGrammarCoverage("SetOprStmt,SetOprStmtWoutLimitOrderBy")
+
+}
 |	SetOprStmtWithLimitOrderBy
+{
+sql_ir.LogGrammarCoverage("SetOprStmt,SetOprStmtWithLimitOrderBy")
+
+}
 |	WithClause SetOprStmtWithLimitOrderBy
 	{
+sql_ir.LogGrammarCoverage("SetOprStmt,WithClause")
+sql_ir.LogGrammarCoverage("SetOprStmt,SetOprStmtWithLimitOrderBy")
+
+
 		setOpr := $2.(*ast.SetOprStmt)
 		setOpr.With = $1.(*ast.WithClause)
 		$$ = setOpr
 	}
 |	WithClause SetOprStmtWoutLimitOrderBy
 	{
+sql_ir.LogGrammarCoverage("SetOprStmt,WithClause")
+sql_ir.LogGrammarCoverage("SetOprStmt,SetOprStmtWoutLimitOrderBy")
+
+
 		setOpr := $2.(*ast.SetOprStmt)
 		setOpr.With = $1.(*ast.WithClause)
 		$$ = setOpr
@@ -9387,6 +14615,11 @@ SetOprStmt:
 SetOprStmtWoutLimitOrderBy:
 	SetOprClauseList SetOpr SelectStmt
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SelectStmt")
+
+
 		setOprList1 := $1.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
 			endOffset := parser.endOffset(&yyS[yypt-1])
@@ -9404,6 +14637,11 @@ SetOprStmtWoutLimitOrderBy:
 	}
 |	SetOprClauseList SetOpr SubSelect
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprStmtWoutLimitOrderBy,SubSelect")
+
+
 		setOprList1 := $1.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
 			endOffset := parser.endOffset(&yyS[yypt-1])
@@ -9429,6 +14667,12 @@ SetOprStmtWoutLimitOrderBy:
 SetOprStmtWithLimitOrderBy:
 	SetOprClauseList SetOpr SubSelect OrderBy
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,OrderBy")
+
+
 		setOprList1 := $1.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
 			endOffset := parser.endOffset(&yyS[yypt-2])
@@ -9453,6 +14697,12 @@ SetOprStmtWithLimitOrderBy:
 	}
 |	SetOprClauseList SetOpr SubSelect SelectStmtLimit
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SelectStmtLimit")
+
+
 		setOprList1 := $1.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
 			endOffset := parser.endOffset(&yyS[yypt-2])
@@ -9477,6 +14727,13 @@ SetOprStmtWithLimitOrderBy:
 	}
 |	SetOprClauseList SetOpr SubSelect OrderBy SelectStmtLimit
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,OrderBy")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SelectStmtLimit")
+
+
 		setOprList1 := $1.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
 			endOffset := parser.endOffset(&yyS[yypt-3])
@@ -9502,6 +14759,10 @@ SetOprStmtWithLimitOrderBy:
 	}
 |	SubSelect OrderBy
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,OrderBy")
+
+
 		var setOprList []ast.Node
 		var with *ast.WithClause
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
@@ -9518,6 +14779,10 @@ SetOprStmtWithLimitOrderBy:
 	}
 |	SubSelect SelectStmtLimit
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SelectStmtLimit")
+
+
 		var setOprList []ast.Node
 		var with *ast.WithClause
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
@@ -9534,6 +14799,11 @@ SetOprStmtWithLimitOrderBy:
 	}
 |	SubSelect OrderBy SelectStmtLimit
 	{
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SubSelect")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,OrderBy")
+sql_ir.LogGrammarCoverage("SetOprStmtWithLimitOrderBy,SelectStmtLimit")
+
+
 		var setOprList []ast.Node
 		var with *ast.WithClause
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
@@ -9552,8 +14822,17 @@ SetOprStmtWithLimitOrderBy:
 
 SetOprClauseList:
 	SetOprClause
+{
+sql_ir.LogGrammarCoverage("SetOprClauseList,SetOprClause")
+
+}
 |	SetOprClauseList SetOpr SetOprClause
 	{
+sql_ir.LogGrammarCoverage("SetOprClauseList,SetOprClauseList")
+sql_ir.LogGrammarCoverage("SetOprClauseList,SetOpr")
+sql_ir.LogGrammarCoverage("SetOprClauseList,SetOprClause")
+
+
 		setOprList1 := $1.([]ast.Node)
 		setOprList2 := $3.([]ast.Node)
 		if sel, isSelect := setOprList1[len(setOprList1)-1].(*ast.SelectStmt); isSelect && !sel.IsInBraces {
@@ -9572,10 +14851,16 @@ SetOprClauseList:
 SetOprClause:
 	SelectStmt
 	{
+sql_ir.LogGrammarCoverage("SetOprClause,SelectStmt")
+
+
 		$$ = []ast.Node{$1.(*ast.SelectStmt)}
 	}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("SetOprClause,SubSelect")
+
+
 		var setOprList []ast.Node
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -9589,6 +14874,9 @@ SetOprClause:
 SetOpr:
 	"UNION" SetOprOpt
 	{
+sql_ir.LogGrammarCoverage("SetOpr,SetOprOpt")
+
+
 		var tp ast.SetOprType
 		tp = ast.Union
 		if $2 == false {
@@ -9598,6 +14886,9 @@ SetOpr:
 	}
 |	"EXCEPT" SetOprOpt
 	{
+sql_ir.LogGrammarCoverage("SetOpr,SetOprOpt")
+
+
 		var tp ast.SetOprType
 		tp = ast.Except
 		if $2 == false {
@@ -9607,6 +14898,9 @@ SetOpr:
 	}
 |	"INTERSECT" SetOprOpt
 	{
+sql_ir.LogGrammarCoverage("SetOpr,SetOprOpt")
+
+
 		var tp ast.SetOprType
 		tp = ast.Intersect
 		if $2 == false {
@@ -9618,10 +14912,18 @@ SetOpr:
 SetOprOpt:
 	DefaultTrueDistinctOpt
 
-/********************Change Statement*******************************/
+
+{
+sql_ir.LogGrammarCoverage("SetOprOpt,DefaultTrueDistinctOpt")
+
+}
 ChangeStmt:
 	"CHANGE" "PUMP" "TO" "NODE_STATE" eq stringLit forKwd "NODE_ID" stringLit
 	{
+sql_ir.LogGrammarCoverage("ChangeStmt,stringLit")
+sql_ir.LogGrammarCoverage("ChangeStmt,stringLit")
+
+
 		$$ = &ast.ChangeStmt{
 			NodeType: ast.PumpType,
 			State:    $6,
@@ -9630,6 +14932,10 @@ ChangeStmt:
 	}
 |	"CHANGE" "DRAINER" "TO" "NODE_STATE" eq stringLit forKwd "NODE_ID" stringLit
 	{
+sql_ir.LogGrammarCoverage("ChangeStmt,stringLit")
+sql_ir.LogGrammarCoverage("ChangeStmt,stringLit")
+
+
 		$$ = &ast.ChangeStmt{
 			NodeType: ast.DrainerType,
 			State:    $6,
@@ -9637,22 +14943,35 @@ ChangeStmt:
 		}
 	}
 
-/********************Set Statement*******************************/
+
 SetStmt:
 	"SET" VariableAssignmentList
 	{
+sql_ir.LogGrammarCoverage("SetStmt,VariableAssignmentList")
+
+
 		$$ = &ast.SetStmt{Variables: $2.([]*ast.VariableAssignment)}
 	}
 |	"SET" "PASSWORD" eq PasswordOpt
 	{
+sql_ir.LogGrammarCoverage("SetStmt,PasswordOpt")
+
+
 		$$ = &ast.SetPwdStmt{Password: $4}
 	}
 |	"SET" "PASSWORD" "FOR" Username eq PasswordOpt
 	{
+sql_ir.LogGrammarCoverage("SetStmt,Username")
+sql_ir.LogGrammarCoverage("SetStmt,PasswordOpt")
+
+
 		$$ = &ast.SetPwdStmt{User: $4.(*auth.UserIdentity), Password: $6}
 	}
 |	"SET" "GLOBAL" "TRANSACTION" TransactionChars
 	{
+sql_ir.LogGrammarCoverage("SetStmt,TransactionChars")
+
+
 		vars := $4.([]*ast.VariableAssignment)
 		for _, v := range vars {
 			v.IsGlobal = true
@@ -9661,10 +14980,16 @@ SetStmt:
 	}
 |	"SET" "SESSION" "TRANSACTION" TransactionChars
 	{
+sql_ir.LogGrammarCoverage("SetStmt,TransactionChars")
+
+
 		$$ = &ast.SetStmt{Variables: $4.([]*ast.VariableAssignment)}
 	}
 |	"SET" "TRANSACTION" TransactionChars
 	{
+sql_ir.LogGrammarCoverage("SetStmt,TransactionChars")
+
+
 		assigns := $3.([]*ast.VariableAssignment)
 		for i := 0; i < len(assigns); i++ {
 			if assigns[i].Name == "tx_isolation" {
@@ -9676,22 +15001,41 @@ SetStmt:
 	}
 |	"SET" "CONFIG" Identifier ConfigItemName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("SetStmt,Identifier")
+sql_ir.LogGrammarCoverage("SetStmt,ConfigItemName")
+sql_ir.LogGrammarCoverage("SetStmt,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("SetStmt,SetExpr")
+
+
 		$$ = &ast.SetConfigStmt{Type: strings.ToLower($3), Name: $4, Value: $6}
 	}
 |	"SET" "CONFIG" stringLit ConfigItemName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("SetStmt,stringLit")
+sql_ir.LogGrammarCoverage("SetStmt,ConfigItemName")
+sql_ir.LogGrammarCoverage("SetStmt,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("SetStmt,SetExpr")
+
+
 		$$ = &ast.SetConfigStmt{Instance: $3, Name: $4, Value: $6}
 	}
 
 SetRoleStmt:
 	"SET" "ROLE" SetRoleOpt
 	{
+sql_ir.LogGrammarCoverage("SetRoleStmt,SetRoleOpt")
+
+
 		$$ = $3.(*ast.SetRoleStmt)
 	}
 
 SetDefaultRoleStmt:
 	"SET" "DEFAULT" "ROLE" SetDefaultRoleOpt "TO" UsernameList
 	{
+sql_ir.LogGrammarCoverage("SetDefaultRoleStmt,SetDefaultRoleOpt")
+sql_ir.LogGrammarCoverage("SetDefaultRoleStmt,UsernameList")
+
+
 		tmp := $4.(*ast.SetRoleStmt)
 		$$ = &ast.SetDefaultRoleStmt{
 			SetRoleOpt: tmp.SetRoleOpt,
@@ -9703,31 +15047,50 @@ SetDefaultRoleStmt:
 SetDefaultRoleOpt:
 	"NONE"
 	{
+
+
 		$$ = &ast.SetRoleStmt{SetRoleOpt: ast.SetRoleNone, RoleList: nil}
 	}
 |	"ALL"
 	{
+
+
 		$$ = &ast.SetRoleStmt{SetRoleOpt: ast.SetRoleAll, RoleList: nil}
 	}
 |	RolenameList
 	{
+sql_ir.LogGrammarCoverage("SetDefaultRoleOpt,RolenameList")
+
+
 		$$ = &ast.SetRoleStmt{SetRoleOpt: ast.SetRoleRegular, RoleList: $1.([]*auth.RoleIdentity)}
 	}
 
 SetRoleOpt:
 	"ALL" "EXCEPT" RolenameList
 	{
+sql_ir.LogGrammarCoverage("SetRoleOpt,RolenameList")
+
+
 		$$ = &ast.SetRoleStmt{SetRoleOpt: ast.SetRoleAllExcept, RoleList: $3.([]*auth.RoleIdentity)}
 	}
 |	SetDefaultRoleOpt
+{
+sql_ir.LogGrammarCoverage("SetRoleOpt,SetDefaultRoleOpt")
+
+}
 |	"DEFAULT"
 	{
+
+
 		$$ = &ast.SetRoleStmt{SetRoleOpt: ast.SetRoleDefault, RoleList: nil}
 	}
 
 TransactionChars:
 	TransactionChar
 	{
+sql_ir.LogGrammarCoverage("TransactionChars,TransactionChar")
+
+
 		if $1 != nil {
 			$$ = $1
 		} else {
@@ -9736,6 +15099,10 @@ TransactionChars:
 	}
 |	TransactionChars ',' TransactionChar
 	{
+sql_ir.LogGrammarCoverage("TransactionChars,TransactionChars")
+sql_ir.LogGrammarCoverage("TransactionChars,TransactionChar")
+
+
 		if $3 != nil {
 			varAssigns := $3.([]*ast.VariableAssignment)
 			$$ = append($1.([]*ast.VariableAssignment), varAssigns...)
@@ -9747,6 +15114,9 @@ TransactionChars:
 TransactionChar:
 	"ISOLATION" "LEVEL" IsolationLevel
 	{
+sql_ir.LogGrammarCoverage("TransactionChar,IsolationLevel")
+
+
 		varAssigns := []*ast.VariableAssignment{}
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
 		varAssigns = append(varAssigns, &ast.VariableAssignment{Name: "tx_isolation", Value: expr, IsSystem: true})
@@ -9754,6 +15124,8 @@ TransactionChar:
 	}
 |	"READ" "WRITE"
 	{
+
+
 		varAssigns := []*ast.VariableAssignment{}
 		expr := ast.NewValueExpr("0", parser.charset, parser.collation)
 		varAssigns = append(varAssigns, &ast.VariableAssignment{Name: "tx_read_only", Value: expr, IsSystem: true})
@@ -9761,6 +15133,8 @@ TransactionChar:
 	}
 |	"READ" "ONLY"
 	{
+
+
 		varAssigns := []*ast.VariableAssignment{}
 		expr := ast.NewValueExpr("1", parser.charset, parser.collation)
 		varAssigns = append(varAssigns, &ast.VariableAssignment{Name: "tx_read_only", Value: expr, IsSystem: true})
@@ -9768,6 +15142,9 @@ TransactionChar:
 	}
 |	"READ" "ONLY" AsOfClause
 	{
+sql_ir.LogGrammarCoverage("TransactionChar,AsOfClause")
+
+
 		varAssigns := []*ast.VariableAssignment{}
 		asof := $3.(*ast.AsOfClause)
 		if asof != nil {
@@ -9779,73 +15156,139 @@ TransactionChar:
 IsolationLevel:
 	"REPEATABLE" "READ"
 	{
+
+
 		$$ = ast.RepeatableRead
 	}
 |	"READ" "COMMITTED"
 	{
+
+
 		$$ = ast.ReadCommitted
 	}
 |	"READ" "UNCOMMITTED"
 	{
+
+
 		$$ = ast.ReadUncommitted
 	}
 |	"SERIALIZABLE"
 	{
+
+
 		$$ = ast.Serializable
 	}
 
 SetExpr:
 	"ON"
 	{
+
+
 		$$ = ast.NewValueExpr("ON", parser.charset, parser.collation)
 	}
 |	"BINARY"
 	{
+
+
 		$$ = ast.NewValueExpr("BINARY", parser.charset, parser.collation)
 	}
 |	ExprOrDefault
 
+{
+sql_ir.LogGrammarCoverage("SetExpr,ExprOrDefault")
+
+}
 EqOrAssignmentEq:
 	eq
+{
+
+}
 |	assignmentEq
 
+{
+
+}
 VariableName:
 	Identifier
+{
+sql_ir.LogGrammarCoverage("VariableName,Identifier")
+
+}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("VariableName,Identifier")
+sql_ir.LogGrammarCoverage("VariableName,Identifier")
+
+
 		$$ = $1 + "." + $3
 	}
 
 ConfigItemName:
 	Identifier
+{
+sql_ir.LogGrammarCoverage("ConfigItemName,Identifier")
+
+}
 |	Identifier '.' ConfigItemName
 	{
+sql_ir.LogGrammarCoverage("ConfigItemName,Identifier")
+sql_ir.LogGrammarCoverage("ConfigItemName,ConfigItemName")
+
+
 		$$ = $1 + "." + $3
 	}
 |	Identifier '-' ConfigItemName
 	{
+sql_ir.LogGrammarCoverage("ConfigItemName,Identifier")
+sql_ir.LogGrammarCoverage("ConfigItemName,ConfigItemName")
+
+
 		$$ = $1 + "-" + $3
 	}
 
 VariableAssignment:
 	VariableName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,VariableName")
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,SetExpr")
+
+
 		$$ = &ast.VariableAssignment{Name: $1, Value: $3, IsSystem: true}
 	}
 |	"GLOBAL" VariableName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,VariableName")
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,SetExpr")
+
+
 		$$ = &ast.VariableAssignment{Name: $2, Value: $4, IsGlobal: true, IsSystem: true}
 	}
 |	"SESSION" VariableName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,VariableName")
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,SetExpr")
+
+
 		$$ = &ast.VariableAssignment{Name: $2, Value: $4, IsSystem: true}
 	}
 |	"LOCAL" VariableName EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,VariableName")
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,SetExpr")
+
+
 		$$ = &ast.VariableAssignment{Name: $2, Value: $4, IsSystem: true}
 	}
 |	doubleAtIdentifier EqOrAssignmentEq SetExpr
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,SetExpr")
+
+
 		v := strings.ToLower($1)
 		var isGlobal bool
 		if strings.HasPrefix(v, "@@global.") {
@@ -9862,12 +15305,19 @@ VariableAssignment:
 	}
 |	singleAtIdentifier EqOrAssignmentEq Expression
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,EqOrAssignmentEq")
+sql_ir.LogGrammarCoverage("VariableAssignment,Expression")
+
+
 		v := $1
 		v = strings.TrimPrefix(v, "@")
 		$$ = &ast.VariableAssignment{Name: v, Value: $3}
 	}
 |	"NAMES" CharsetName
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,CharsetName")
+
+
 		$$ = &ast.VariableAssignment{
 			Name:  ast.SetNames,
 			Value: ast.NewValueExpr($2, "", ""),
@@ -9875,6 +15325,9 @@ VariableAssignment:
 	}
 |	"NAMES" CharsetName "COLLATE" "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,CharsetName")
+
+
 		$$ = &ast.VariableAssignment{
 			Name:  ast.SetNames,
 			Value: ast.NewValueExpr($2, "", ""),
@@ -9882,6 +15335,10 @@ VariableAssignment:
 	}
 |	"NAMES" CharsetName "COLLATE" StringName
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,CharsetName")
+sql_ir.LogGrammarCoverage("VariableAssignment,StringName")
+
+
 		$$ = &ast.VariableAssignment{
 			Name:        ast.SetNames,
 			Value:       ast.NewValueExpr($2, "", ""),
@@ -9890,27 +15347,41 @@ VariableAssignment:
 	}
 |	"NAMES" "DEFAULT"
 	{
+
+
 		v := &ast.DefaultExpr{}
 		$$ = &ast.VariableAssignment{Name: ast.SetNames, Value: v}
 	}
 |	CharsetKw CharsetNameOrDefault
 	{
+sql_ir.LogGrammarCoverage("VariableAssignment,CharsetKw")
+sql_ir.LogGrammarCoverage("VariableAssignment,CharsetNameOrDefault")
+
+
 		$$ = &ast.VariableAssignment{Name: ast.SetCharset, Value: $2}
 	}
 
 CharsetNameOrDefault:
 	CharsetName
 	{
+sql_ir.LogGrammarCoverage("CharsetNameOrDefault,CharsetName")
+
+
 		$$ = ast.NewValueExpr($1, "", "")
 	}
 |	"DEFAULT"
 	{
+
+
 		$$ = &ast.DefaultExpr{}
 	}
 
 CharsetName:
 	StringName
 	{
+sql_ir.LogGrammarCoverage("CharsetName,StringName")
+
+
 		// Validate input charset name to keep the same behavior as parser of MySQL.
 		cs, err := charset.GetCharsetInfo($1)
 		if err != nil {
@@ -9923,12 +15394,17 @@ CharsetName:
 	}
 |	binaryType
 	{
+
+
 		$$ = charset.CharsetBin
 	}
 
 CollationName:
 	StringName
 	{
+sql_ir.LogGrammarCoverage("CollationName,StringName")
+
+
 		info, err := charset.GetCollationByName($1)
 		if err != nil {
 			yylex.AppendError(err)
@@ -9938,26 +15414,45 @@ CollationName:
 	}
 |	binaryType
 	{
+
+
 		$$ = charset.CollationBin
 	}
 
 VariableAssignmentList:
 	VariableAssignment
 	{
+sql_ir.LogGrammarCoverage("VariableAssignmentList,VariableAssignment")
+
+
 		$$ = []*ast.VariableAssignment{$1.(*ast.VariableAssignment)}
 	}
 |	VariableAssignmentList ',' VariableAssignment
 	{
+sql_ir.LogGrammarCoverage("VariableAssignmentList,VariableAssignmentList")
+sql_ir.LogGrammarCoverage("VariableAssignmentList,VariableAssignment")
+
+
 		$$ = append($1.([]*ast.VariableAssignment), $3.(*ast.VariableAssignment))
 	}
 
 Variable:
 	SystemVariable
+{
+sql_ir.LogGrammarCoverage("Variable,SystemVariable")
+
+}
 |	UserVariable
 
+{
+sql_ir.LogGrammarCoverage("Variable,UserVariable")
+
+}
 SystemVariable:
 	doubleAtIdentifier
 	{
+
+
 		v := strings.ToLower($1)
 		var isGlobal bool
 		explicitScope := true
@@ -9977,6 +15472,8 @@ SystemVariable:
 UserVariable:
 	singleAtIdentifier
 	{
+
+
 		v := $1
 		v = strings.TrimPrefix(v, "@")
 		$$ = &ast.VariableExpr{Name: v, IsGlobal: false, IsSystem: false}
@@ -9985,93 +15482,162 @@ UserVariable:
 Username:
 	StringName
 	{
+sql_ir.LogGrammarCoverage("Username,StringName")
+
+
 		$$ = &auth.UserIdentity{Username: $1, Hostname: "%"}
 	}
 |	StringName '@' StringName
 	{
+sql_ir.LogGrammarCoverage("Username,StringName")
+sql_ir.LogGrammarCoverage("Username,StringName")
+
+
 		$$ = &auth.UserIdentity{Username: $1, Hostname: $3}
 	}
 |	StringName singleAtIdentifier
 	{
+sql_ir.LogGrammarCoverage("Username,StringName")
+
+
 		$$ = &auth.UserIdentity{Username: $1, Hostname: strings.TrimPrefix($2, "@")}
 	}
 |	"CURRENT_USER" OptionalBraces
 	{
+sql_ir.LogGrammarCoverage("Username,OptionalBraces")
+
+
 		$$ = &auth.UserIdentity{CurrentUser: true}
 	}
 
 UsernameList:
 	Username
 	{
+sql_ir.LogGrammarCoverage("UsernameList,Username")
+
+
 		$$ = []*auth.UserIdentity{$1.(*auth.UserIdentity)}
 	}
 |	UsernameList ',' Username
 	{
+sql_ir.LogGrammarCoverage("UsernameList,UsernameList")
+sql_ir.LogGrammarCoverage("UsernameList,Username")
+
+
 		$$ = append($1.([]*auth.UserIdentity), $3.(*auth.UserIdentity))
 	}
 
 PasswordOpt:
 	stringLit
+{
+sql_ir.LogGrammarCoverage("PasswordOpt,stringLit")
+
+}
 |	"PASSWORD" '(' AuthString ')'
 	{
+sql_ir.LogGrammarCoverage("PasswordOpt,AuthString")
+
+
 		$$ = $3
 	}
 
 AuthString:
 	stringLit
 
+{
+sql_ir.LogGrammarCoverage("AuthString,stringLit")
+
+}
 RoleNameString:
 	stringLit
+{
+sql_ir.LogGrammarCoverage("RoleNameString,stringLit")
+
+}
 |	identifier
 
+{
+
+}
 RolenameComposed:
 	StringName '@' StringName
 	{
+sql_ir.LogGrammarCoverage("RolenameComposed,StringName")
+sql_ir.LogGrammarCoverage("RolenameComposed,StringName")
+
+
 		$$ = &auth.RoleIdentity{Username: $1, Hostname: $3}
 	}
 |	StringName singleAtIdentifier
 	{
+sql_ir.LogGrammarCoverage("RolenameComposed,StringName")
+
+
 		$$ = &auth.RoleIdentity{Username: $1, Hostname: strings.TrimPrefix($2, "@")}
 	}
 
 RolenameWithoutIdent:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("RolenameWithoutIdent,stringLit")
+
+
 		$$ = &auth.RoleIdentity{Username: $1, Hostname: "%"}
 	}
 |	RolenameComposed
 	{
+sql_ir.LogGrammarCoverage("RolenameWithoutIdent,RolenameComposed")
+
+
 		$$ = $1
 	}
 
 Rolename:
 	RoleNameString
 	{
+sql_ir.LogGrammarCoverage("Rolename,RoleNameString")
+
+
 		$$ = &auth.RoleIdentity{Username: $1, Hostname: "%"}
 	}
 |	RolenameComposed
 	{
+sql_ir.LogGrammarCoverage("Rolename,RolenameComposed")
+
+
 		$$ = $1
 	}
 
 RolenameList:
 	Rolename
 	{
+sql_ir.LogGrammarCoverage("RolenameList,Rolename")
+
+
 		$$ = []*auth.RoleIdentity{$1.(*auth.RoleIdentity)}
 	}
 |	RolenameList ',' Rolename
 	{
+sql_ir.LogGrammarCoverage("RolenameList,RolenameList")
+sql_ir.LogGrammarCoverage("RolenameList,Rolename")
+
+
 		$$ = append($1.([]*auth.RoleIdentity), $3.(*auth.RoleIdentity))
 	}
 
-/****************************Admin Statement*******************************/
+
 AdminStmt:
 	"ADMIN" "SHOW" "DDL"
 	{
+
+
 		$$ = &ast.AdminStmt{Tp: ast.AdminShowDDL}
 	}
 |	"ADMIN" "SHOW" "DDL" "JOBS" WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,WhereClauseOptional")
+
+
 		stmt := &ast.AdminStmt{Tp: ast.AdminShowDDLJobs}
 		if $5 != nil {
 			stmt.Where = $5.(ast.ExprNode)
@@ -10080,6 +15646,10 @@ AdminStmt:
 	}
 |	"ADMIN" "SHOW" "DDL" "JOBS" Int64Num WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,Int64Num")
+sql_ir.LogGrammarCoverage("AdminStmt,WhereClauseOptional")
+
+
 		stmt := &ast.AdminStmt{
 			Tp:        ast.AdminShowDDLJobs,
 			JobNumber: $5.(int64),
@@ -10091,6 +15661,9 @@ AdminStmt:
 	}
 |	"ADMIN" "SHOW" TableName "NEXT_ROW_ID"
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminShowNextRowID,
 			Tables: []*ast.TableName{$3.(*ast.TableName)},
@@ -10098,6 +15671,9 @@ AdminStmt:
 	}
 |	"ADMIN" "CHECK" "TABLE" TableNameList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableNameList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminCheckTable,
 			Tables: $4.([]*ast.TableName),
@@ -10105,6 +15681,10 @@ AdminStmt:
 	}
 |	"ADMIN" "CHECK" "INDEX" TableName Identifier
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+sql_ir.LogGrammarCoverage("AdminStmt,Identifier")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminCheckIndex,
 			Tables: []*ast.TableName{$4.(*ast.TableName)},
@@ -10113,6 +15693,10 @@ AdminStmt:
 	}
 |	"ADMIN" "RECOVER" "INDEX" TableName Identifier
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+sql_ir.LogGrammarCoverage("AdminStmt,Identifier")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminRecoverIndex,
 			Tables: []*ast.TableName{$4.(*ast.TableName)},
@@ -10121,6 +15705,10 @@ AdminStmt:
 	}
 |	"ADMIN" "CLEANUP" "INDEX" TableName Identifier
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+sql_ir.LogGrammarCoverage("AdminStmt,Identifier")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminCleanupIndex,
 			Tables: []*ast.TableName{$4.(*ast.TableName)},
@@ -10129,6 +15717,11 @@ AdminStmt:
 	}
 |	"ADMIN" "CHECK" "INDEX" TableName Identifier HandleRangeList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+sql_ir.LogGrammarCoverage("AdminStmt,Identifier")
+sql_ir.LogGrammarCoverage("AdminStmt,HandleRangeList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:           ast.AdminCheckIndexRange,
 			Tables:       []*ast.TableName{$4.(*ast.TableName)},
@@ -10138,6 +15731,9 @@ AdminStmt:
 	}
 |	"ADMIN" "CHECKSUM" "TABLE" TableNameList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableNameList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminChecksumTable,
 			Tables: $4.([]*ast.TableName),
@@ -10145,6 +15741,9 @@ AdminStmt:
 	}
 |	"ADMIN" "CANCEL" "DDL" "JOBS" NumList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,NumList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminCancelDDLJobs,
 			JobIDs: $5.([]int64),
@@ -10152,6 +15751,9 @@ AdminStmt:
 	}
 |	"ADMIN" "SHOW" "DDL" "JOB" "QUERIES" NumList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,NumList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:     ast.AdminShowDDLJobQueries,
 			JobIDs: $6.([]int64),
@@ -10159,6 +15761,9 @@ AdminStmt:
 	}
 |	"ADMIN" "SHOW" "SLOW" AdminShowSlow
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,AdminShowSlow")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:       ast.AdminShowSlow,
 			ShowSlow: $4.(*ast.ShowSlow),
@@ -10166,18 +15771,25 @@ AdminStmt:
 	}
 |	"ADMIN" "RELOAD" "EXPR_PUSHDOWN_BLACKLIST"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminReloadExprPushdownBlacklist,
 		}
 	}
 |	"ADMIN" "RELOAD" "OPT_RULE_BLACKLIST"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminReloadOptRuleBlacklist,
 		}
 	}
 |	"ADMIN" "PLUGINS" "ENABLE" PluginNameList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,PluginNameList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:      ast.AdminPluginEnable,
 			Plugins: $4.([]string),
@@ -10185,6 +15797,9 @@ AdminStmt:
 	}
 |	"ADMIN" "PLUGINS" "DISABLE" PluginNameList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,PluginNameList")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:      ast.AdminPluginDisable,
 			Plugins: $4.([]string),
@@ -10192,12 +15807,19 @@ AdminStmt:
 	}
 |	"ADMIN" "CLEANUP" "TABLE" "LOCK" TableNameList
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableNameList")
+
+
 		$$ = &ast.CleanupTableLockStmt{
 			Tables: $5.([]*ast.TableName),
 		}
 	}
 |	"ADMIN" "REPAIR" "TABLE" TableName CreateTableStmt
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,TableName")
+sql_ir.LogGrammarCoverage("AdminStmt,CreateTableStmt")
+
+
 		$$ = &ast.RepairTableStmt{
 			Table:      $4.(*ast.TableName),
 			CreateStmt: $5.(*ast.CreateTableStmt),
@@ -10205,54 +15827,73 @@ AdminStmt:
 	}
 |	"ADMIN" "FLUSH" "BINDINGS"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminFlushBindings,
 		}
 	}
 |	"ADMIN" "CAPTURE" "BINDINGS"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminCaptureBindings,
 		}
 	}
 |	"ADMIN" "EVOLVE" "BINDINGS"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminEvolveBindings,
 		}
 	}
 |	"ADMIN" "RELOAD" "BINDINGS"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminReloadBindings,
 		}
 	}
 |	"ADMIN" "RELOAD" "STATS_EXTENDED"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminReloadStatistics,
 		}
 	}
 |	"ADMIN" "RELOAD" "STATISTICS"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminReloadStatistics,
 		}
 	}
 |	"ADMIN" "SHOW" "TELEMETRY"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminShowTelemetry,
 		}
 	}
 |	"ADMIN" "RESET" "TELEMETRY_ID"
 	{
+
+
 		$$ = &ast.AdminStmt{
 			Tp: ast.AdminResetTelemetryID,
 		}
 	}
 |	"ADMIN" "FLUSH" StatementScope "PLAN_CACHE"
 	{
+sql_ir.LogGrammarCoverage("AdminStmt,StatementScope")
+
+
 		$$ = &ast.AdminStmt{
 			Tp:             ast.AdminFlushPlanCache,
 			StatementScope: $3.(ast.StatementScope),
@@ -10262,6 +15903,9 @@ AdminStmt:
 AdminShowSlow:
 	"RECENT" NUM
 	{
+sql_ir.LogGrammarCoverage("AdminShowSlow,NUM")
+
+
 		$$ = &ast.ShowSlow{
 			Tp:    ast.ShowSlowRecent,
 			Count: getUint64FromNUM($2),
@@ -10269,6 +15913,9 @@ AdminShowSlow:
 	}
 |	"TOP" NUM
 	{
+sql_ir.LogGrammarCoverage("AdminShowSlow,NUM")
+
+
 		$$ = &ast.ShowSlow{
 			Tp:    ast.ShowSlowTop,
 			Kind:  ast.ShowSlowKindDefault,
@@ -10277,6 +15924,9 @@ AdminShowSlow:
 	}
 |	"TOP" "INTERNAL" NUM
 	{
+sql_ir.LogGrammarCoverage("AdminShowSlow,NUM")
+
+
 		$$ = &ast.ShowSlow{
 			Tp:    ast.ShowSlowTop,
 			Kind:  ast.ShowSlowKindInternal,
@@ -10285,6 +15935,9 @@ AdminShowSlow:
 	}
 |	"TOP" "ALL" NUM
 	{
+sql_ir.LogGrammarCoverage("AdminShowSlow,NUM")
+
+
 		$$ = &ast.ShowSlow{
 			Tp:    ast.ShowSlowTop,
 			Kind:  ast.ShowSlowKindAll,
@@ -10295,33 +15948,55 @@ AdminShowSlow:
 HandleRangeList:
 	HandleRange
 	{
+sql_ir.LogGrammarCoverage("HandleRangeList,HandleRange")
+
+
 		$$ = []ast.HandleRange{$1.(ast.HandleRange)}
 	}
 |	HandleRangeList ',' HandleRange
 	{
+sql_ir.LogGrammarCoverage("HandleRangeList,HandleRangeList")
+sql_ir.LogGrammarCoverage("HandleRangeList,HandleRange")
+
+
 		$$ = append($1.([]ast.HandleRange), $3.(ast.HandleRange))
 	}
 
 HandleRange:
 	'(' Int64Num ',' Int64Num ')'
 	{
+sql_ir.LogGrammarCoverage("HandleRange,Int64Num")
+sql_ir.LogGrammarCoverage("HandleRange,Int64Num")
+
+
 		$$ = ast.HandleRange{Begin: $2.(int64), End: $4.(int64)}
 	}
 
 NumList:
 	Int64Num
 	{
+sql_ir.LogGrammarCoverage("NumList,Int64Num")
+
+
 		$$ = []int64{$1.(int64)}
 	}
 |	NumList ',' Int64Num
 	{
+sql_ir.LogGrammarCoverage("NumList,NumList")
+sql_ir.LogGrammarCoverage("NumList,Int64Num")
+
+
 		$$ = append($1.([]int64), $3.(int64))
 	}
 
-/****************************Show Statement*******************************/
+
 ShowStmt:
 	"SHOW" ShowTargetFilterable ShowLikeOrWhereOpt
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,ShowTargetFilterable")
+sql_ir.LogGrammarCoverage("ShowStmt,ShowLikeOrWhereOpt")
+
+
 		stmt := $2.(*ast.ShowStmt)
 		if $3 != nil {
 			if x, ok := $3.(*ast.PatternLikeExpr); ok && x.Expr == nil {
@@ -10334,6 +16009,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "TABLE" TableName
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowCreateTable,
 			Table: $4.(*ast.TableName),
@@ -10341,6 +16019,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "VIEW" TableName
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowCreateView,
 			Table: $4.(*ast.TableName),
@@ -10348,6 +16029,10 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "DATABASE" IfNotExists DBName
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("ShowStmt,DBName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:          ast.ShowCreateDatabase,
 			IfNotExists: $4.(bool),
@@ -10356,6 +16041,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "SEQUENCE" TableName
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowCreateSequence,
 			Table: $4.(*ast.TableName),
@@ -10363,6 +16051,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "PLACEMENT" "POLICY" PolicyName
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,PolicyName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowCreatePlacementPolicy,
 			DBName: $5,
@@ -10370,6 +16061,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "USER" Username
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,Username")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/show-create-user.html
 		$$ = &ast.ShowStmt{
 			Tp:   ast.ShowCreateUser,
@@ -10378,6 +16072,9 @@ ShowStmt:
 	}
 |	"SHOW" "CREATE" "IMPORT" Identifier
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,Identifier")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowCreateImport,
 			DBName: $4, // we reuse DBName of ShowStmt
@@ -10385,6 +16082,11 @@ ShowStmt:
 	}
 |	"SHOW" "TABLE" TableName PartitionNameListOpt "REGIONS" WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+sql_ir.LogGrammarCoverage("ShowStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("ShowStmt,WhereClauseOptional")
+
+
 		stmt := &ast.ShowStmt{
 			Tp:    ast.ShowRegions,
 			Table: $3.(*ast.TableName),
@@ -10397,6 +16099,9 @@ ShowStmt:
 	}
 |	"SHOW" "TABLE" TableName "NEXT_ROW_ID"
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowTableNextRowId,
 			Table: $3.(*ast.TableName),
@@ -10404,6 +16109,12 @@ ShowStmt:
 	}
 |	"SHOW" "TABLE" TableName PartitionNameListOpt "INDEX" Identifier "REGIONS" WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,TableName")
+sql_ir.LogGrammarCoverage("ShowStmt,PartitionNameListOpt")
+sql_ir.LogGrammarCoverage("ShowStmt,Identifier")
+sql_ir.LogGrammarCoverage("ShowStmt,WhereClauseOptional")
+
+
 		stmt := &ast.ShowStmt{
 			Tp:        ast.ShowRegions,
 			Table:     $3.(*ast.TableName),
@@ -10417,11 +16128,17 @@ ShowStmt:
 	}
 |	"SHOW" "GRANTS"
 	{
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/show-grants.html
 		$$ = &ast.ShowStmt{Tp: ast.ShowGrants}
 	}
 |	"SHOW" "GRANTS" "FOR" Username UsingRoles
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,Username")
+sql_ir.LogGrammarCoverage("ShowStmt,UsingRoles")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/show-grants.html
 		if $5 != nil {
 			$$ = &ast.ShowStmt{
@@ -10439,12 +16156,17 @@ ShowStmt:
 	}
 |	"SHOW" "MASTER" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowMasterStatus,
 		}
 	}
 |	"SHOW" OptFull "PROCESSLIST"
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,OptFull")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:   ast.ShowProcessList,
 			Full: $2.(bool),
@@ -10452,12 +16174,19 @@ ShowStmt:
 	}
 |	"SHOW" "PROFILES"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowProfiles,
 		}
 	}
 |	"SHOW" "PROFILE" ShowProfileTypesOpt ShowProfileArgsOpt SelectStmtLimitOpt
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,ShowProfileTypesOpt")
+sql_ir.LogGrammarCoverage("ShowStmt,ShowProfileArgsOpt")
+sql_ir.LogGrammarCoverage("ShowStmt,SelectStmtLimitOpt")
+
+
 		v := &ast.ShowStmt{
 			Tp: ast.ShowProfile,
 		}
@@ -10474,24 +16203,35 @@ ShowStmt:
 	}
 |	"SHOW" "PRIVILEGES"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowPrivileges,
 		}
 	}
 |	"SHOW" "BUILTINS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowBuiltins,
 		}
 	}
 |	"SHOW" "PLACEMENT" "FOR" ShowPlacementTarget
 	{
+sql_ir.LogGrammarCoverage("ShowStmt,ShowPlacementTarget")
+
+
 		$$ = $4.(*ast.ShowStmt)
 	}
 
 ShowPlacementTarget:
 	DatabaseSym DBName
 	{
+sql_ir.LogGrammarCoverage("ShowPlacementTarget,DatabaseSym")
+sql_ir.LogGrammarCoverage("ShowPlacementTarget,DBName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowPlacementForDatabase,
 			DBName: $2,
@@ -10499,6 +16239,9 @@ ShowPlacementTarget:
 	}
 |	"TABLE" TableName
 	{
+sql_ir.LogGrammarCoverage("ShowPlacementTarget,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowPlacementForTable,
 			Table: $2.(*ast.TableName),
@@ -10506,6 +16249,10 @@ ShowPlacementTarget:
 	}
 |	"TABLE" TableName "PARTITION" Identifier
 	{
+sql_ir.LogGrammarCoverage("ShowPlacementTarget,TableName")
+sql_ir.LogGrammarCoverage("ShowPlacementTarget,Identifier")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:        ast.ShowPlacementForPartition,
 			Table:     $2.(*ast.TableName),
@@ -10515,17 +16262,30 @@ ShowPlacementTarget:
 
 ShowProfileTypesOpt:
 	{
+
+
 		$$ = nil
 	}
 |	ShowProfileTypes
 
+{
+sql_ir.LogGrammarCoverage("ShowProfileTypesOpt,ShowProfileTypes")
+
+}
 ShowProfileTypes:
 	ShowProfileType
 	{
+sql_ir.LogGrammarCoverage("ShowProfileTypes,ShowProfileType")
+
+
 		$$ = []int{$1.(int)}
 	}
 |	ShowProfileTypes ',' ShowProfileType
 	{
+sql_ir.LogGrammarCoverage("ShowProfileTypes,ShowProfileTypes")
+sql_ir.LogGrammarCoverage("ShowProfileTypes,ShowProfileType")
+
+
 		l := $1.([]int)
 		l = append(l, $3.(int))
 		$$ = l
@@ -10534,88 +16294,144 @@ ShowProfileTypes:
 ShowProfileType:
 	"CPU"
 	{
+
+
 		$$ = ast.ProfileTypeCPU
 	}
 |	"MEMORY"
 	{
+
+
 		$$ = ast.ProfileTypeMemory
 	}
 |	"BLOCK" "IO"
 	{
+
+
 		$$ = ast.ProfileTypeBlockIo
 	}
 |	"CONTEXT" "SWITCHES"
 	{
+
+
 		$$ = ast.ProfileTypeContextSwitch
 	}
 |	"PAGE" "FAULTS"
 	{
+
+
 		$$ = ast.ProfileTypePageFaults
 	}
 |	"IPC"
 	{
+
+
 		$$ = ast.ProfileTypeIpc
 	}
 |	"SWAPS"
 	{
+
+
 		$$ = ast.ProfileTypeSwaps
 	}
 |	"SOURCE"
 	{
+
+
 		$$ = ast.ProfileTypeSource
 	}
 |	"ALL"
 	{
+
+
 		$$ = ast.ProfileTypeAll
 	}
 
 ShowProfileArgsOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"FOR" "QUERY" Int64Num
 	{
+sql_ir.LogGrammarCoverage("ShowProfileArgsOpt,Int64Num")
+
+
 		v := $3.(int64)
 		$$ = &v
 	}
 
 UsingRoles:
 	{
+
+
 		$$ = nil
 	}
 |	"USING" RolenameList
 	{
+sql_ir.LogGrammarCoverage("UsingRoles,RolenameList")
+
+
 		$$ = $2.([]*auth.RoleIdentity)
 	}
 
 ShowIndexKwd:
 	"INDEX"
+{
+
+}
 |	"INDEXES"
+{
+
+}
 |	"KEYS"
 
+{
+
+}
 FromOrIn:
 	"FROM"
+{
+
+}
 |	"IN"
 
+{
+
+}
 ShowTargetFilterable:
 	"ENGINES"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowEngines}
 	}
 |	"DATABASES"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowDatabases}
 	}
 |	"CONFIG"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowConfig}
 	}
 |	CharsetKw
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,CharsetKw")
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowCharset}
 	}
 |	OptFull "TABLES" ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,OptFull")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowTables,
 			DBName: $3,
@@ -10624,6 +16440,9 @@ ShowTargetFilterable:
 	}
 |	"OPEN" "TABLES" ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowOpenTables,
 			DBName: $3,
@@ -10631,6 +16450,9 @@ ShowTargetFilterable:
 	}
 |	"TABLE" "STATUS" ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowTableStatus,
 			DBName: $3,
@@ -10638,6 +16460,11 @@ ShowTargetFilterable:
 	}
 |	ShowIndexKwd FromOrIn TableName
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowIndexKwd")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,FromOrIn")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,TableName")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:    ast.ShowIndex,
 			Table: $3.(*ast.TableName),
@@ -10645,6 +16472,13 @@ ShowTargetFilterable:
 	}
 |	ShowIndexKwd FromOrIn Identifier FromOrIn Identifier
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowIndexKwd")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,FromOrIn")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,Identifier")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,FromOrIn")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,Identifier")
+
+
 		show := &ast.ShowStmt{
 			Tp:    ast.ShowIndex,
 			Table: &ast.TableName{Name: model.NewCIStr($3), Schema: model.NewCIStr($5)},
@@ -10653,6 +16487,12 @@ ShowTargetFilterable:
 	}
 |	OptFull FieldsOrColumns ShowTableAliasOpt ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,OptFull")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,FieldsOrColumns")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowTableAliasOpt")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowColumns,
 			Table:  $3.(*ast.TableName),
@@ -10662,6 +16502,12 @@ ShowTargetFilterable:
 	}
 |	"EXTENDED" OptFull FieldsOrColumns ShowTableAliasOpt ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,OptFull")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,FieldsOrColumns")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowTableAliasOpt")
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:       ast.ShowColumns,
 			Table:    $4.(*ast.TableName),
@@ -10672,14 +16518,21 @@ ShowTargetFilterable:
 	}
 |	"WARNINGS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowWarnings}
 	}
 |	"ERRORS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowErrors}
 	}
 |	GlobalScope "VARIABLES"
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,GlobalScope")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:          ast.ShowVariables,
 			GlobalScope: $1.(bool),
@@ -10687,6 +16540,9 @@ ShowTargetFilterable:
 	}
 |	GlobalScope "STATUS"
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,GlobalScope")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:          ast.ShowStatus,
 			GlobalScope: $1.(bool),
@@ -10694,6 +16550,9 @@ ShowTargetFilterable:
 	}
 |	GlobalScope "BINDINGS"
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,GlobalScope")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:          ast.ShowBindings,
 			GlobalScope: $1.(bool),
@@ -10701,12 +16560,17 @@ ShowTargetFilterable:
 	}
 |	"COLLATION"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowCollation,
 		}
 	}
 |	"TRIGGERS" ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowTriggers,
 			DBName: $2,
@@ -10714,30 +16578,40 @@ ShowTargetFilterable:
 	}
 |	"BINDING_CACHE" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowBindingCacheStatus,
 		}
 	}
 |	"PROCEDURE" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowProcedureStatus,
 		}
 	}
 |	"PUMP" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowPumpStatus,
 		}
 	}
 |	"DRAINER" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowDrainerStatus,
 		}
 	}
 |	"FUNCTION" "STATUS"
 	{
+
+
 		// This statement is similar to SHOW PROCEDURE STATUS but for stored functions.
 		// See http://dev.mysql.com/doc/refman/5.7/en/show-function-status.html
 		// We do not support neither stored functions nor stored procedures.
@@ -10748,6 +16622,9 @@ ShowTargetFilterable:
 	}
 |	"EVENTS" ShowDatabaseNameOpt
 	{
+sql_ir.LogGrammarCoverage("ShowTargetFilterable,ShowDatabaseNameOpt")
+
+
 		$$ = &ast.ShowStmt{
 			Tp:     ast.ShowEvents,
 			DBName: $2,
@@ -10755,73 +16632,108 @@ ShowTargetFilterable:
 	}
 |	"PLUGINS"
 	{
+
+
 		$$ = &ast.ShowStmt{
 			Tp: ast.ShowPlugins,
 		}
 	}
 |	"STATS_EXTENDED"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsExtended}
 	}
 |	"STATS_META"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsMeta}
 	}
 |	"STATS_HISTOGRAMS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsHistograms}
 	}
 |	"STATS_TOPN"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsTopN}
 	}
 |	"STATS_BUCKETS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsBuckets}
 	}
 |	"STATS_HEALTHY"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowStatsHealthy}
 	}
 |	"HISTOGRAMS_IN_FLIGHT"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowHistogramsInFlight}
 	}
 |	"COLUMN_STATS_USAGE"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowColumnStatsUsage}
 	}
 |	"ANALYZE" "STATUS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowAnalyzeStatus}
 	}
 |	"BACKUPS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowBackups}
 	}
 |	"RESTORES"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowRestores}
 	}
 |	"IMPORTS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowImports}
 	}
 |	"PLACEMENT"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowPlacement}
 	}
 |	"PLACEMENT" "LABELS"
 	{
+
+
 		$$ = &ast.ShowStmt{Tp: ast.ShowPlacementLabels}
 	}
 
 ShowLikeOrWhereOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"LIKE" SimpleExpr
 	{
+sql_ir.LogGrammarCoverage("ShowLikeOrWhereOpt,SimpleExpr")
+
+
 		$$ = &ast.PatternLikeExpr{
 			Pattern: $2,
 			Escape:  '\\',
@@ -10829,66 +16741,101 @@ ShowLikeOrWhereOpt:
 	}
 |	"WHERE" Expression
 	{
+sql_ir.LogGrammarCoverage("ShowLikeOrWhereOpt,Expression")
+
+
 		$$ = $2
 	}
 
 GlobalScope:
 	{
+
+
 		$$ = false
 	}
 |	"GLOBAL"
 	{
+
+
 		$$ = true
 	}
 |	"SESSION"
 	{
+
+
 		$$ = false
 	}
 
 StatementScope:
 	{
+
+
 		$$ = ast.StatementScopeSession
 	}
 |	"GLOBAL"
 	{
+
+
 		$$ = ast.StatementScopeGlobal
 	}
 |	"INSTANCE"
 	{
+
+
 		$$ = ast.StatementScopeInstance
 	}
 |	"SESSION"
 	{
+
+
 		$$ = ast.StatementScopeSession
 	}
 
 OptFull:
 	{
+
+
 		$$ = false
 	}
 |	"FULL"
 	{
+
+
 		$$ = true
 	}
 
 ShowDatabaseNameOpt:
 	{
+
+
 		$$ = ""
 	}
 |	FromOrIn DBName
 	{
+sql_ir.LogGrammarCoverage("ShowDatabaseNameOpt,FromOrIn")
+sql_ir.LogGrammarCoverage("ShowDatabaseNameOpt,DBName")
+
+
 		$$ = $2
 	}
 
 ShowTableAliasOpt:
 	FromOrIn TableName
 	{
+sql_ir.LogGrammarCoverage("ShowTableAliasOpt,FromOrIn")
+sql_ir.LogGrammarCoverage("ShowTableAliasOpt,TableName")
+
+
 		$$ = $2.(*ast.TableName)
 	}
 
 FlushStmt:
 	"FLUSH" NoWriteToBinLogAliasOpt FlushOption
 	{
+sql_ir.LogGrammarCoverage("FlushStmt,NoWriteToBinLogAliasOpt")
+sql_ir.LogGrammarCoverage("FlushStmt,FlushOption")
+
+
 		tmp := $3.(*ast.FlushStmt)
 		tmp.NoWriteToBinLog = $2.(bool)
 		$$ = tmp
@@ -10897,28 +16844,42 @@ FlushStmt:
 PluginNameList:
 	Identifier
 	{
+sql_ir.LogGrammarCoverage("PluginNameList,Identifier")
+
+
 		$$ = []string{$1}
 	}
 |	PluginNameList ',' Identifier
 	{
+sql_ir.LogGrammarCoverage("PluginNameList,PluginNameList")
+sql_ir.LogGrammarCoverage("PluginNameList,Identifier")
+
+
 		$$ = append($1.([]string), $3)
 	}
 
 FlushOption:
 	"PRIVILEGES"
 	{
+
+
 		$$ = &ast.FlushStmt{
 			Tp: ast.FlushPrivileges,
 		}
 	}
 |	"STATUS"
 	{
+
+
 		$$ = &ast.FlushStmt{
 			Tp: ast.FlushStatus,
 		}
 	}
 |	"TIDB" "PLUGINS" PluginNameList
 	{
+sql_ir.LogGrammarCoverage("FlushOption,PluginNameList")
+
+
 		$$ = &ast.FlushStmt{
 			Tp:      ast.FlushTiDBPlugin,
 			Plugins: $3.([]string),
@@ -10926,12 +16887,17 @@ FlushOption:
 	}
 |	"HOSTS"
 	{
+
+
 		$$ = &ast.FlushStmt{
 			Tp: ast.FlushHosts,
 		}
 	}
 |	LogTypeOpt "LOGS"
 	{
+sql_ir.LogGrammarCoverage("FlushOption,LogTypeOpt")
+
+
 		$$ = &ast.FlushStmt{
 			Tp:      ast.FlushLogs,
 			LogType: $1.(ast.LogType),
@@ -10939,6 +16905,11 @@ FlushOption:
 	}
 |	TableOrTables TableNameListOpt WithReadLockOpt
 	{
+sql_ir.LogGrammarCoverage("FlushOption,TableOrTables")
+sql_ir.LogGrammarCoverage("FlushOption,TableNameListOpt")
+sql_ir.LogGrammarCoverage("FlushOption,WithReadLockOpt")
+
+
 		$$ = &ast.FlushStmt{
 			Tp:       ast.FlushTables,
 			Tables:   $2.([]*ast.TableName),
@@ -10947,148 +16918,458 @@ FlushOption:
 	}
 |	"CLIENT_ERRORS_SUMMARY"
 	{
+
+
 		$$ = &ast.FlushStmt{
 			Tp: ast.FlushClientErrorsSummary,
 		}
 	}
 
 LogTypeOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = ast.LogTypeDefault
 	}
 |	"BINARY"
 	{
+
+
 		$$ = ast.LogTypeBinary
 	}
 |	"ENGINE"
 	{
+
+
 		$$ = ast.LogTypeEngine
 	}
 |	"ERROR"
 	{
+
+
 		$$ = ast.LogTypeError
 	}
 |	"GENERAL"
 	{
+
+
 		$$ = ast.LogTypeGeneral
 	}
 |	"SLOW"
 	{
+
+
 		$$ = ast.LogTypeSlow
 	}
 
 NoWriteToBinLogAliasOpt:
 	%prec lowerThanLocal
 	{
+
+
 		$$ = false
 	}
 |	"NO_WRITE_TO_BINLOG"
 	{
+
+
 		$$ = true
 	}
 |	"LOCAL"
 	{
+
+
 		$$ = true
 	}
 
 TableNameListOpt:
 	%prec empty
 	{
+
+
 		$$ = []*ast.TableName{}
 	}
 |	TableNameList
 
+{
+sql_ir.LogGrammarCoverage("TableNameListOpt,TableNameList")
+
+}
 TableNameListOpt2:
 	%prec empty
 	{
+
+
 		$$ = []*ast.TableName{}
 	}
 |	"TABLE" TableNameList
 	{
+sql_ir.LogGrammarCoverage("TableNameListOpt2,TableNameList")
+
+
 		$$ = $2
 	}
 
 WithReadLockOpt:
 	{
+
+
 		$$ = false
 	}
 |	"WITH" "READ" "LOCK"
 	{
+
+
 		$$ = true
 	}
 
 Statement:
 	EmptyStmt
+{
+sql_ir.LogGrammarCoverage("Statement,EmptyStmt")
+
+}
 |	AdminStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AdminStmt")
+
+}
 |	AlterDatabaseStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterDatabaseStmt")
+
+}
 |	AlterTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterTableStmt")
+
+}
 |	AlterUserStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterUserStmt")
+
+}
 |	AlterImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterImportStmt")
+
+}
 |	AlterInstanceStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterInstanceStmt")
+
+}
 |	AlterSequenceStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterSequenceStmt")
+
+}
 |	AlterPolicyStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AlterPolicyStmt")
+
+}
 |	AnalyzeTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,AnalyzeTableStmt")
+
+}
 |	BeginTransactionStmt
+{
+sql_ir.LogGrammarCoverage("Statement,BeginTransactionStmt")
+
+}
 |	BinlogStmt
+{
+sql_ir.LogGrammarCoverage("Statement,BinlogStmt")
+
+}
 |	BRIEStmt
+{
+sql_ir.LogGrammarCoverage("Statement,BRIEStmt")
+
+}
 |	CommitStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CommitStmt")
+
+}
 |	DeallocateStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DeallocateStmt")
+
+}
 |	DeleteFromStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DeleteFromStmt")
+
+}
 |	ExecuteStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ExecuteStmt")
+
+}
 |	ExplainStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ExplainStmt")
+
+}
 |	ChangeStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ChangeStmt")
+
+}
 |	CreateDatabaseStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateDatabaseStmt")
+
+}
 |	CreateImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateImportStmt")
+
+}
 |	CreateIndexStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateIndexStmt")
+
+}
 |	CreateTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateTableStmt")
+
+}
 |	CreateViewStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateViewStmt")
+
+}
 |	CreateUserStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateUserStmt")
+
+}
 |	CreateRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateRoleStmt")
+
+}
 |	CreateBindingStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateBindingStmt")
+
+}
 |	CreatePolicyStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreatePolicyStmt")
+
+}
 |	CreateSequenceStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateSequenceStmt")
+
+}
 |	CreateStatisticsStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CreateStatisticsStmt")
+
+}
 |	DoStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DoStmt")
+
+}
 |	DropDatabaseStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropDatabaseStmt")
+
+}
 |	DropImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropImportStmt")
+
+}
 |	DropIndexStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropIndexStmt")
+
+}
 |	DropTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropTableStmt")
+
+}
 |	DropPolicyStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropPolicyStmt")
+
+}
 |	DropSequenceStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropSequenceStmt")
+
+}
 |	DropViewStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropViewStmt")
+
+}
 |	DropUserStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropUserStmt")
+
+}
 |	DropRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropRoleStmt")
+
+}
 |	DropStatisticsStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropStatisticsStmt")
+
+}
 |	DropStatsStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropStatsStmt")
+
+}
 |	DropBindingStmt
+{
+sql_ir.LogGrammarCoverage("Statement,DropBindingStmt")
+
+}
 |	FlushStmt
+{
+sql_ir.LogGrammarCoverage("Statement,FlushStmt")
+
+}
 |	FlashbackTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,FlashbackTableStmt")
+
+}
 |	GrantStmt
+{
+sql_ir.LogGrammarCoverage("Statement,GrantStmt")
+
+}
 |	GrantProxyStmt
+{
+sql_ir.LogGrammarCoverage("Statement,GrantProxyStmt")
+
+}
 |	GrantRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,GrantRoleStmt")
+
+}
 |	CallStmt
+{
+sql_ir.LogGrammarCoverage("Statement,CallStmt")
+
+}
 |	InsertIntoStmt
+{
+sql_ir.LogGrammarCoverage("Statement,InsertIntoStmt")
+
+}
 |	IndexAdviseStmt
+{
+sql_ir.LogGrammarCoverage("Statement,IndexAdviseStmt")
+
+}
 |	KillStmt
+{
+sql_ir.LogGrammarCoverage("Statement,KillStmt")
+
+}
 |	LoadDataStmt
+{
+sql_ir.LogGrammarCoverage("Statement,LoadDataStmt")
+
+}
 |	LoadStatsStmt
+{
+sql_ir.LogGrammarCoverage("Statement,LoadStatsStmt")
+
+}
 |	PlanReplayerStmt
+{
+sql_ir.LogGrammarCoverage("Statement,PlanReplayerStmt")
+
+}
 |	PreparedStmt
+{
+sql_ir.LogGrammarCoverage("Statement,PreparedStmt")
+
+}
 |	PurgeImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,PurgeImportStmt")
+
+}
 |	RollbackStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RollbackStmt")
+
+}
 |	RenameTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RenameTableStmt")
+
+}
 |	RenameUserStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RenameUserStmt")
+
+}
 |	ReplaceIntoStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ReplaceIntoStmt")
+
+}
 |	RecoverTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RecoverTableStmt")
+
+}
 |	ResumeImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ResumeImportStmt")
+
+}
 |	RevokeStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RevokeStmt")
+
+}
 |	RevokeRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RevokeRoleStmt")
+
+}
 |	SetOprStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SetOprStmt")
+
+}
 |	SelectStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SelectStmt")
+
+}
 |	SelectStmtWithClause
+{
+sql_ir.LogGrammarCoverage("Statement,SelectStmtWithClause")
+
+}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("Statement,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -11101,34 +17382,137 @@ Statement:
 		$$ = sel
 	}
 |	SetStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SetStmt")
+
+}
 |	SetBindingStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SetBindingStmt")
+
+}
 |	SetRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SetRoleStmt")
+
+}
 |	SetDefaultRoleStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SetDefaultRoleStmt")
+
+}
 |	SplitRegionStmt
+{
+sql_ir.LogGrammarCoverage("Statement,SplitRegionStmt")
+
+}
 |	StopImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,StopImportStmt")
+
+}
 |	ShowImportStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ShowImportStmt")
+
+}
 |	ShowStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ShowStmt")
+
+}
 |	TraceStmt
+{
+sql_ir.LogGrammarCoverage("Statement,TraceStmt")
+
+}
 |	TruncateTableStmt
+{
+sql_ir.LogGrammarCoverage("Statement,TruncateTableStmt")
+
+}
 |	UpdateStmt
+{
+sql_ir.LogGrammarCoverage("Statement,UpdateStmt")
+
+}
 |	UseStmt
+{
+sql_ir.LogGrammarCoverage("Statement,UseStmt")
+
+}
 |	UnlockTablesStmt
+{
+sql_ir.LogGrammarCoverage("Statement,UnlockTablesStmt")
+
+}
 |	LockTablesStmt
+{
+sql_ir.LogGrammarCoverage("Statement,LockTablesStmt")
+
+}
 |	ShutdownStmt
+{
+sql_ir.LogGrammarCoverage("Statement,ShutdownStmt")
+
+}
 |	RestartStmt
+{
+sql_ir.LogGrammarCoverage("Statement,RestartStmt")
+
+}
 |	HelpStmt
+{
+sql_ir.LogGrammarCoverage("Statement,HelpStmt")
+
+}
 |	NonTransactionalDeleteStmt
 
+{
+sql_ir.LogGrammarCoverage("Statement,NonTransactionalDeleteStmt")
+
+}
 TraceableStmt:
 	DeleteFromStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,DeleteFromStmt")
+
+}
 |	UpdateStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,UpdateStmt")
+
+}
 |	InsertIntoStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,InsertIntoStmt")
+
+}
 |	ReplaceIntoStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,ReplaceIntoStmt")
+
+}
 |	SetOprStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,SetOprStmt")
+
+}
 |	SelectStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,SelectStmt")
+
+}
 |	SelectStmtWithClause
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,SelectStmtWithClause")
+
+}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("TraceableStmt,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -11141,21 +17525,72 @@ TraceableStmt:
 		$$ = sel
 	}
 |	LoadDataStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,LoadDataStmt")
+
+}
 |	BeginTransactionStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,BeginTransactionStmt")
+
+}
 |	CommitStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,CommitStmt")
+
+}
 |	RollbackStmt
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,RollbackStmt")
+
+}
 |	SetStmt
 
+{
+sql_ir.LogGrammarCoverage("TraceableStmt,SetStmt")
+
+}
 ExplainableStmt:
 	DeleteFromStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,DeleteFromStmt")
+
+}
 |	UpdateStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,UpdateStmt")
+
+}
 |	InsertIntoStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,InsertIntoStmt")
+
+}
 |	ReplaceIntoStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,ReplaceIntoStmt")
+
+}
 |	SetOprStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,SetOprStmt")
+
+}
 |	SelectStmt
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,SelectStmt")
+
+}
 |	SelectStmtWithClause
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,SelectStmtWithClause")
+
+}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("ExplainableStmt,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -11169,9 +17604,16 @@ ExplainableStmt:
 	}
 |	AlterTableStmt
 
+{
+sql_ir.LogGrammarCoverage("ExplainableStmt,AlterTableStmt")
+
+}
 StatementList:
 	Statement
 	{
+sql_ir.LogGrammarCoverage("StatementList,Statement")
+
+
 		if $1 != nil {
 			s := $1
 			if lexer, ok := yylex.(stmtTexter); ok {
@@ -11182,6 +17624,10 @@ StatementList:
 	}
 |	StatementList ';' Statement
 	{
+sql_ir.LogGrammarCoverage("StatementList,StatementList")
+sql_ir.LogGrammarCoverage("StatementList,Statement")
+
+
 		if $3 != nil {
 			s := $3
 			if lexer, ok := yylex.(stmtTexter); ok {
@@ -11194,6 +17640,10 @@ StatementList:
 Constraint:
 	ConstraintKeywordOpt ConstraintElem
 	{
+sql_ir.LogGrammarCoverage("Constraint,ConstraintKeywordOpt")
+sql_ir.LogGrammarCoverage("Constraint,ConstraintElem")
+
+
 		cst := $2.(*ast.Constraint)
 		if $1 != nil {
 			cst.Name = $1.(string)
@@ -11203,15 +17653,32 @@ Constraint:
 
 CheckConstraintKeyword:
 	"CHECK"
+{
+
+}
 |	"CONSTRAINT"
 
+{
+
+}
 TableElement:
 	ColumnDef
+{
+sql_ir.LogGrammarCoverage("TableElement,ColumnDef")
+
+}
 |	Constraint
 
+{
+sql_ir.LogGrammarCoverage("TableElement,Constraint")
+
+}
 TableElementList:
 	TableElement
 	{
+sql_ir.LogGrammarCoverage("TableElementList,TableElement")
+
+
 		if $1 != nil {
 			$$ = []interface{}{$1.(interface{})}
 		} else {
@@ -11220,6 +17687,10 @@ TableElementList:
 	}
 |	TableElementList ',' TableElement
 	{
+sql_ir.LogGrammarCoverage("TableElementList,TableElementList")
+sql_ir.LogGrammarCoverage("TableElementList,TableElement")
+
+
 		if $3 != nil {
 			$$ = append($1.([]interface{}), $3)
 		} else {
@@ -11228,8 +17699,10 @@ TableElementList:
 	}
 
 TableElementListOpt:
-	/* empty */ %prec lowerThanCreateTableSelect
+	 %prec lowerThanCreateTableSelect
 	{
+
+
 		var columnDefs []*ast.ColumnDef
 		var constraints []*ast.Constraint
 		$$ = &ast.CreateTableStmt{
@@ -11239,6 +17712,9 @@ TableElementListOpt:
 	}
 |	'(' TableElementList ')'
 	{
+sql_ir.LogGrammarCoverage("TableElementListOpt,TableElementList")
+
+
 		tes := $2.([]interface{})
 		var columnDefs []*ast.ColumnDef
 		var constraints []*ast.Constraint
@@ -11258,70 +17734,142 @@ TableElementListOpt:
 
 TableOption:
 	PartDefOption
+{
+sql_ir.LogGrammarCoverage("TableOption,PartDefOption")
+
+}
 |	DefaultKwdOpt CharsetKw EqOpt CharsetName
 	{
+sql_ir.LogGrammarCoverage("TableOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("TableOption,CharsetKw")
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,CharsetName")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionCharset, StrValue: $4,
 			UintValue: ast.TableOptionCharsetWithoutConvertTo}
 	}
 |	DefaultKwdOpt "COLLATE" EqOpt CollationName
 	{
+sql_ir.LogGrammarCoverage("TableOption,DefaultKwdOpt")
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,CollationName")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionCollate, StrValue: $4,
 			UintValue: ast.TableOptionCharsetWithoutConvertTo}
 	}
 |	ForceOpt "AUTO_INCREMENT" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,ForceOpt")
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionAutoIncrement, UintValue: $4.(uint64), BoolValue: $1.(bool)}
 	}
 |	"AUTO_ID_CACHE" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionAutoIdCache, UintValue: $3.(uint64)}
 	}
 |	ForceOpt "AUTO_RANDOM_BASE" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,ForceOpt")
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionAutoRandomBase, UintValue: $4.(uint64), BoolValue: $1.(bool)}
 	}
 |	"AVG_ROW_LENGTH" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionAvgRowLength, UintValue: $3.(uint64)}
 	}
 |	"CONNECTION" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionConnection, StrValue: $3}
 	}
 |	"CHECKSUM" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionCheckSum, UintValue: $3.(uint64)}
 	}
 |	"TABLE_CHECKSUM" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionTableCheckSum, UintValue: $3.(uint64)}
 	}
 |	"PASSWORD" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionPassword, StrValue: $3}
 	}
 |	"COMPRESSION" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionCompression, StrValue: $3}
 	}
 |	"KEY_BLOCK_SIZE" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionKeyBlockSize, UintValue: $3.(uint64)}
 	}
 |	"DELAY_KEY_WRITE" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionDelayKeyWrite, UintValue: $3.(uint64)}
 	}
 |	RowFormat
 	{
+sql_ir.LogGrammarCoverage("TableOption,RowFormat")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionRowFormat, UintValue: $1.(uint64)}
 	}
 |	"STATS_PERSISTENT" EqOpt StatsPersistentVal
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,StatsPersistentVal")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsPersistent}
 	}
 |	"STATS_AUTO_RECALC" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		n := $3.(uint64)
 		if n != 0 && n != 1 {
 			yylex.AppendError(yylex.Errorf("The value of STATS_AUTO_RECALC must be one of [0|1|DEFAULT]."))
@@ -11333,12 +17881,19 @@ TableOption:
 	}
 |	"STATS_AUTO_RECALC" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsAutoRecalc, Default: true}
 		yylex.AppendError(yylex.Errorf("The STATS_AUTO_RECALC is parsed but ignored by all storage engines."))
 		parser.lastErrorAsWarn()
 	}
 |	"STATS_SAMPLE_PAGES" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		// Parse it but will ignore it.
 		// In MySQL, STATS_SAMPLE_PAGES=N(Where 0<N<=65535) or STAS_SAMPLE_PAGES=DEFAULT.
 		// Cause we don't support it, so we don't check range of the value.
@@ -11348,6 +17903,9 @@ TableOption:
 	}
 |	"STATS_SAMPLE_PAGES" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+
+
 		// Parse it but will ignore it.
 		// In MySQL, default value of STATS_SAMPLE_PAGES is 0.
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsSamplePages, Default: true}
@@ -11356,39 +17914,73 @@ TableOption:
 	}
 |	"STATS_BUCKETS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsBuckets, UintValue: $3.(uint64)}
 	}
 |	"STATS_TOPN" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsTopN, UintValue: $3.(uint64)}
 	}
 |	"STATS_SAMPLE_RATE" EqOpt NumLiteral
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,NumLiteral")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsSampleRate, Value: ast.NewValueExpr($3, "", "")}
 	}
 |	"STATS_COL_CHOICE" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsColsChoice, StrValue: $3}
 	}
 |	"STATS_COL_LIST" EqOpt stringLit
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,stringLit")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionStatsColList, StrValue: $3}
 	}
 |	"SHARD_ROW_ID_BITS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionShardRowID, UintValue: $3.(uint64)}
 	}
 |	"PRE_SPLIT_REGIONS" EqOpt LengthNum
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,LengthNum")
+
+
 		$$ = &ast.TableOption{Tp: ast.TableOptionPreSplitRegion, UintValue: $3.(uint64)}
 	}
 |	"PACK_KEYS" EqOpt StatsPersistentVal
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,StatsPersistentVal")
+
+
 		// Parse it but will ignore it.
 		$$ = &ast.TableOption{Tp: ast.TableOptionPackKeys}
 	}
 |	"STORAGE" "MEMORY"
 	{
+
+
 		// Parse it but will ignore it.
 		$$ = &ast.TableOption{Tp: ast.TableOptionStorageMedia, StrValue: "MEMORY"}
 		yylex.AppendError(yylex.Errorf("The STORAGE clause is parsed but ignored by all storage engines."))
@@ -11396,6 +17988,8 @@ TableOption:
 	}
 |	"STORAGE" "DISK"
 	{
+
+
 		// Parse it but will ignore it.
 		$$ = &ast.TableOption{Tp: ast.TableOptionStorageMedia, StrValue: "DISK"}
 		yylex.AppendError(yylex.Errorf("The STORAGE clause is parsed but ignored by all storage engines."))
@@ -11403,6 +17997,9 @@ TableOption:
 	}
 |	"SECONDARY_ENGINE" EqOpt "NULL"
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+
+
 		// Parse it but will ignore it
 		// See https://github.com/mysql/mysql-server/blob/8.0/sql/sql_yacc.yy#L5977-L5984
 		$$ = &ast.TableOption{Tp: ast.TableOptionSecondaryEngineNull}
@@ -11411,6 +18008,10 @@ TableOption:
 	}
 |	"SECONDARY_ENGINE" EqOpt StringName
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,StringName")
+
+
 		// Parse it but will ignore it
 		// See https://github.com/mysql/mysql-server/blob/8.0/sql/sql_yacc.yy#L5977-L5984
 		$$ = &ast.TableOption{Tp: ast.TableOptionSecondaryEngine, StrValue: $3}
@@ -11419,6 +18020,10 @@ TableOption:
 	}
 |	"UNION" EqOpt '(' TableNameListOpt ')'
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,TableNameListOpt")
+
+
 		// Parse it but will ignore it
 		$$ = &ast.TableOption{
 			Tp:         ast.TableOptionUnion,
@@ -11429,124 +18034,222 @@ TableOption:
 	}
 |	"ENCRYPTION" EqOpt EncryptionOpt
 	{
+sql_ir.LogGrammarCoverage("TableOption,EqOpt")
+sql_ir.LogGrammarCoverage("TableOption,EncryptionOpt")
+
+
 		// Parse it but will ignore it
 		$$ = &ast.TableOption{Tp: ast.TableOptionEncryption, StrValue: $3}
 	}
 
 ForceOpt:
-	/* empty */
+	
 	{
+
+
 		$$ = false
 	}
 |	"FORCE"
 	{
+
+
 		$$ = true
 	}
 
 StatsPersistentVal:
 	"DEFAULT"
-	{}
+	{
+
+}
 |	LengthNum
-	{}
+	{
+sql_ir.LogGrammarCoverage("StatsPersistentVal,LengthNum")
+
+}
 
 CreateTableOptionListOpt:
-	/* empty */ %prec lowerThanCreateTableSelect
+	 %prec lowerThanCreateTableSelect
 	{
+
+
 		$$ = []*ast.TableOption{}
 	}
 |	TableOptionList %prec lowerThanComma
 
+{
+sql_ir.LogGrammarCoverage("CreateTableOptionListOpt,TableOptionList")
+
+}
 TableOptionList:
 	TableOption
 	{
+sql_ir.LogGrammarCoverage("TableOptionList,TableOption")
+
+
 		$$ = []*ast.TableOption{$1.(*ast.TableOption)}
 	}
 |	TableOptionList TableOption
 	{
+sql_ir.LogGrammarCoverage("TableOptionList,TableOptionList")
+sql_ir.LogGrammarCoverage("TableOptionList,TableOption")
+
+
 		$$ = append($1.([]*ast.TableOption), $2.(*ast.TableOption))
 	}
 |	TableOptionList ',' TableOption
 	{
+sql_ir.LogGrammarCoverage("TableOptionList,TableOptionList")
+sql_ir.LogGrammarCoverage("TableOptionList,TableOption")
+
+
 		$$ = append($1.([]*ast.TableOption), $3.(*ast.TableOption))
 	}
 
 OptTable:
-	{}
+	{
+
+}
 |	"TABLE"
 
+{
+
+}
 TruncateTableStmt:
 	"TRUNCATE" OptTable TableName
 	{
+sql_ir.LogGrammarCoverage("TruncateTableStmt,OptTable")
+sql_ir.LogGrammarCoverage("TruncateTableStmt,TableName")
+
+
 		$$ = &ast.TruncateTableStmt{Table: $3.(*ast.TableName)}
 	}
 
 RowFormat:
 	"ROW_FORMAT" EqOpt "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatDefault
 	}
 |	"ROW_FORMAT" EqOpt "DYNAMIC"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatDynamic
 	}
 |	"ROW_FORMAT" EqOpt "FIXED"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatFixed
 	}
 |	"ROW_FORMAT" EqOpt "COMPRESSED"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatCompressed
 	}
 |	"ROW_FORMAT" EqOpt "REDUNDANT"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatRedundant
 	}
 |	"ROW_FORMAT" EqOpt "COMPACT"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.RowFormatCompact
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatDefault
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_FAST"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatFast
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_SMALL"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatSmall
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_ZLIB"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatZlib
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_QUICKLZ"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatQuickLZ
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_LZMA"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatLzma
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_SNAPPY"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatSnappy
 	}
 |	"ROW_FORMAT" EqOpt "TOKUDB_UNCOMPRESSED"
 	{
+sql_ir.LogGrammarCoverage("RowFormat,EqOpt")
+
+
 		$$ = ast.TokuDBRowFormatUncompressed
 	}
 
-/*************************************Type Begin***************************************/
+
 Type:
 	NumericType
+{
+sql_ir.LogGrammarCoverage("Type,NumericType")
+
+}
 |	StringType
+{
+sql_ir.LogGrammarCoverage("Type,StringType")
+
+}
 |	DateAndTimeType
 
+{
+sql_ir.LogGrammarCoverage("Type,DateAndTimeType")
+
+}
 NumericType:
 	IntegerType OptFieldLen FieldOpts
 	{
+sql_ir.LogGrammarCoverage("NumericType,IntegerType")
+sql_ir.LogGrammarCoverage("NumericType,OptFieldLen")
+sql_ir.LogGrammarCoverage("NumericType,FieldOpts")
+
+
 		// TODO: check flen 0
 		tp := types.NewFieldType($1.(byte))
 		tp.SetFlen($2.(int))
@@ -11566,6 +18269,10 @@ NumericType:
 	}
 |	BooleanType FieldOpts
 	{
+sql_ir.LogGrammarCoverage("NumericType,BooleanType")
+sql_ir.LogGrammarCoverage("NumericType,FieldOpts")
+
+
 		// TODO: check flen 0
 		tp := types.NewFieldType($1.(byte))
 		tp.SetFlen(1)
@@ -11581,6 +18288,11 @@ NumericType:
 	}
 |	FixedPointType FloatOpt FieldOpts
 	{
+sql_ir.LogGrammarCoverage("NumericType,FixedPointType")
+sql_ir.LogGrammarCoverage("NumericType,FloatOpt")
+sql_ir.LogGrammarCoverage("NumericType,FieldOpts")
+
+
 		fopt := $2.(*ast.FloatOpt)
 		tp := types.NewFieldType($1.(byte))
 		tp.SetFlen(fopt.Flen)
@@ -11597,6 +18309,11 @@ NumericType:
 	}
 |	FloatingPointType FloatOpt FieldOpts
 	{
+sql_ir.LogGrammarCoverage("NumericType,FloatingPointType")
+sql_ir.LogGrammarCoverage("NumericType,FloatOpt")
+sql_ir.LogGrammarCoverage("NumericType,FieldOpts")
+
+
 		fopt := $2.(*ast.FloatOpt)
 		tp := types.NewFieldType($1.(byte))
 		// check for a double(10) for syntax error
@@ -11626,6 +18343,10 @@ NumericType:
 	}
 |	BitValueType OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("NumericType,BitValueType")
+sql_ir.LogGrammarCoverage("NumericType,OptFieldLen")
+
+
 		tp := types.NewFieldType($1.(byte))
 		tp.SetFlen($2.(int))
 		if tp.GetFlen() == types.UnspecifiedLength {
@@ -11637,85 +18358,129 @@ NumericType:
 IntegerType:
 	"TINYINT"
 	{
+
+
 		$$ = mysql.TypeTiny
 	}
 |	"SMALLINT"
 	{
+
+
 		$$ = mysql.TypeShort
 	}
 |	"MEDIUMINT"
 	{
+
+
 		$$ = mysql.TypeInt24
 	}
 |	"INT"
 	{
+
+
 		$$ = mysql.TypeLong
 	}
 |	"INT1"
 	{
+
+
 		$$ = mysql.TypeTiny
 	}
 |	"INT2"
 	{
+
+
 		$$ = mysql.TypeShort
 	}
 |	"INT3"
 	{
+
+
 		$$ = mysql.TypeInt24
 	}
 |	"INT4"
 	{
+
+
 		$$ = mysql.TypeLong
 	}
 |	"INT8"
 	{
+
+
 		$$ = mysql.TypeLonglong
 	}
 |	"INTEGER"
 	{
+
+
 		$$ = mysql.TypeLong
 	}
 |	"BIGINT"
 	{
+
+
 		$$ = mysql.TypeLonglong
 	}
 
 BooleanType:
 	"BOOL"
 	{
+
+
 		$$ = mysql.TypeTiny
 	}
 |	"BOOLEAN"
 	{
+
+
 		$$ = mysql.TypeTiny
 	}
 
 OptInteger:
-	{}
+	{
+
+}
 |	"INTEGER"
+{
+
+}
 |	"INT"
 
+{
+
+}
 FixedPointType:
 	"DECIMAL"
 	{
+
+
 		$$ = mysql.TypeNewDecimal
 	}
 |	"NUMERIC"
 	{
+
+
 		$$ = mysql.TypeNewDecimal
 	}
 |	"FIXED"
 	{
+
+
 		$$ = mysql.TypeNewDecimal
 	}
 
 FloatingPointType:
 	"FLOAT"
 	{
+
+
 		$$ = mysql.TypeFloat
 	}
 |	"REAL"
 	{
+
+
 		if parser.lexer.GetSQLMode().HasRealAsFloatMode() {
 			$$ = mysql.TypeFloat
 		} else {
@@ -11724,22 +18489,33 @@ FloatingPointType:
 	}
 |	"DOUBLE"
 	{
+
+
 		$$ = mysql.TypeDouble
 	}
 |	"DOUBLE" "PRECISION"
 	{
+
+
 		$$ = mysql.TypeDouble
 	}
 
 BitValueType:
 	"BIT"
 	{
+
+
 		$$ = mysql.TypeBit
 	}
 
 StringType:
 	Char FieldLen OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,Char")
+sql_ir.LogGrammarCoverage("StringType,FieldLen")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetFlen($2.(int))
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
@@ -11750,6 +18526,10 @@ StringType:
 	}
 |	Char OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,Char")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetCharset($2.(*ast.OptBinary).Charset)
 		if $2.(*ast.OptBinary).IsBinary {
@@ -11759,6 +18539,11 @@ StringType:
 	}
 |	NChar FieldLen OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,NChar")
+sql_ir.LogGrammarCoverage("StringType,FieldLen")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetFlen($2.(int))
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
@@ -11769,6 +18554,10 @@ StringType:
 	}
 |	NChar OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,NChar")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetCharset($2.(*ast.OptBinary).Charset)
 		if $2.(*ast.OptBinary).IsBinary {
@@ -11778,6 +18567,11 @@ StringType:
 	}
 |	Varchar FieldLen OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,Varchar")
+sql_ir.LogGrammarCoverage("StringType,FieldLen")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeVarchar)
 		tp.SetFlen($2.(int))
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
@@ -11788,6 +18582,11 @@ StringType:
 	}
 |	NVarchar FieldLen OptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,NVarchar")
+sql_ir.LogGrammarCoverage("StringType,FieldLen")
+sql_ir.LogGrammarCoverage("StringType,OptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeVarchar)
 		tp.SetFlen($2.(int))
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
@@ -11798,6 +18597,9 @@ StringType:
 	}
 |	"BINARY" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("StringType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeString)
 		tp.SetFlen($2.(int))
 		tp.SetCharset(charset.CharsetBin)
@@ -11807,6 +18609,9 @@ StringType:
 	}
 |	"VARBINARY" FieldLen
 	{
+sql_ir.LogGrammarCoverage("StringType,FieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeVarchar)
 		tp.SetFlen($2.(int))
 		tp.SetCharset(charset.CharsetBin)
@@ -11816,6 +18621,9 @@ StringType:
 	}
 |	BlobType
 	{
+sql_ir.LogGrammarCoverage("StringType,BlobType")
+
+
 		tp := $1.(*types.FieldType)
 		tp.SetCharset(charset.CharsetBin)
 		tp.SetCollate(charset.CharsetBin)
@@ -11824,6 +18632,10 @@ StringType:
 	}
 |	TextType OptCharsetWithOptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,TextType")
+sql_ir.LogGrammarCoverage("StringType,OptCharsetWithOptBinary")
+
+
 		tp := $1.(*types.FieldType)
 		tp.SetCharset($2.(*ast.OptBinary).Charset)
 		if $2.(*ast.OptBinary).IsBinary {
@@ -11833,6 +18645,10 @@ StringType:
 	}
 |	"ENUM" '(' TextStringList ')' OptCharsetWithOptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,TextStringList")
+sql_ir.LogGrammarCoverage("StringType,OptCharsetWithOptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeEnum)
 		elems := $3.([]*ast.TextString)
 		opt := $5.(*ast.OptBinary)
@@ -11853,6 +18669,10 @@ StringType:
 	}
 |	"SET" '(' TextStringList ')' OptCharsetWithOptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,TextStringList")
+sql_ir.LogGrammarCoverage("StringType,OptCharsetWithOptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeSet)
 		elems := $3.([]*ast.TextString)
 		opt := $5.(*ast.OptBinary)
@@ -11871,6 +18691,8 @@ StringType:
 	}
 |	"JSON"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeJSON)
 		tp.SetDecimal(0)
 		tp.SetCharset(charset.CharsetBin)
@@ -11879,6 +18701,10 @@ StringType:
 	}
 |	"LONG" Varchar OptCharsetWithOptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,Varchar")
+sql_ir.LogGrammarCoverage("StringType,OptCharsetWithOptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeMediumBlob)
 		tp.SetCharset($3.(*ast.OptBinary).Charset)
 		if $3.(*ast.OptBinary).IsBinary {
@@ -11888,6 +18714,9 @@ StringType:
 	}
 |	"LONG" OptCharsetWithOptBinary
 	{
+sql_ir.LogGrammarCoverage("StringType,OptCharsetWithOptBinary")
+
+
 		tp := types.NewFieldType(mysql.TypeMediumBlob)
 		tp.SetCharset($2.(*ast.OptBinary).Charset)
 		if $2.(*ast.OptBinary).IsBinary {
@@ -11898,57 +18727,125 @@ StringType:
 
 Char:
 	"CHARACTER"
+{
+
+}
 |	"CHAR"
 
+{
+
+}
 NChar:
 	"NCHAR"
+{
+
+}
 |	"NATIONAL" "CHARACTER"
+{
+
+}
 |	"NATIONAL" "CHAR"
 
+{
+
+}
 Varchar:
 	"CHARACTER" "VARYING"
+{
+
+}
 |	"CHAR" "VARYING"
+{
+
+}
 |	"VARCHAR"
+{
+
+}
 |	"VARCHARACTER"
 
+{
+
+}
 NVarchar:
 	"NATIONAL" "VARCHAR"
+{
+
+}
 |	"NATIONAL" "VARCHARACTER"
+{
+
+}
 |	"NVARCHAR"
+{
+
+}
 |	"NCHAR" "VARCHAR"
+{
+
+}
 |	"NCHAR" "VARCHARACTER"
+{
+
+}
 |	"NATIONAL" "CHARACTER" "VARYING"
+{
+
+}
 |	"NATIONAL" "CHAR" "VARYING"
+{
+
+}
 |	"NCHAR" "VARYING"
 
+{
+
+}
 Year:
 	"YEAR"
+{
+
+}
 |	"SQL_TSI_YEAR"
 
+{
+
+}
 BlobType:
 	"TINYBLOB"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeTinyBlob)
 		$$ = tp
 	}
 |	"BLOB" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("BlobType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeBlob)
 		tp.SetFlen($2.(int))
 		$$ = tp
 	}
 |	"MEDIUMBLOB"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeMediumBlob)
 		$$ = tp
 	}
 |	"LONGBLOB"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeLongBlob)
 		$$ = tp
 	}
 |	"LONG" "VARBINARY"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeMediumBlob)
 		$$ = tp
 	}
@@ -11956,30 +18853,45 @@ BlobType:
 TextType:
 	"TINYTEXT"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeTinyBlob)
 		$$ = tp
 	}
 |	"TEXT" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("TextType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeBlob)
 		tp.SetFlen($2.(int))
 		$$ = tp
 	}
 |	"MEDIUMTEXT"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeMediumBlob)
 		$$ = tp
 	}
 |	"LONGTEXT"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeLongBlob)
 		$$ = tp
 	}
 
 OptCharsetWithOptBinary:
 	OptBinary
+{
+sql_ir.LogGrammarCoverage("OptCharsetWithOptBinary,OptBinary")
+
+}
 |	"ASCII"
 	{
+
+
 		$$ = &ast.OptBinary{
 			IsBinary: false,
 			Charset:  charset.CharsetLatin1,
@@ -11987,6 +18899,8 @@ OptCharsetWithOptBinary:
 	}
 |	"UNICODE"
 	{
+
+
 		cs, err := charset.GetCharsetInfo("ucs2")
 		if err != nil {
 			yylex.AppendError(ErrUnknownCharacterSet.GenWithStackByArgs("ucs2"))
@@ -11999,6 +18913,8 @@ OptCharsetWithOptBinary:
 	}
 |	"BYTE"
 	{
+
+
 		$$ = &ast.OptBinary{
 			IsBinary: false,
 			Charset:  "",
@@ -12008,11 +18924,16 @@ OptCharsetWithOptBinary:
 DateAndTimeType:
 	"DATE"
 	{
+
+
 		tp := types.NewFieldType(mysql.TypeDate)
 		$$ = tp
 	}
 |	"DATETIME" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("DateAndTimeType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeDatetime)
 		tp.SetFlen(mysql.MaxDatetimeWidthNoFsp)
 		tp.SetDecimal($2.(int))
@@ -12023,6 +18944,9 @@ DateAndTimeType:
 	}
 |	"TIMESTAMP" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("DateAndTimeType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeTimestamp)
 		tp.SetFlen(mysql.MaxDatetimeWidthNoFsp)
 		tp.SetDecimal($2.(int))
@@ -12033,6 +18957,9 @@ DateAndTimeType:
 	}
 |	"TIME" OptFieldLen
 	{
+sql_ir.LogGrammarCoverage("DateAndTimeType,OptFieldLen")
+
+
 		tp := types.NewFieldType(mysql.TypeDuration)
 		tp.SetFlen(mysql.MaxDurationWidthNoFsp)
 		tp.SetDecimal($2.(int))
@@ -12043,6 +18970,11 @@ DateAndTimeType:
 	}
 |	Year OptFieldLen FieldOpts
 	{
+sql_ir.LogGrammarCoverage("DateAndTimeType,Year")
+sql_ir.LogGrammarCoverage("DateAndTimeType,OptFieldLen")
+sql_ir.LogGrammarCoverage("DateAndTimeType,FieldOpts")
+
+
 		tp := types.NewFieldType(mysql.TypeYear)
 		tp.SetFlen($2.(int))
 		if tp.GetFlen() != types.UnspecifiedLength && tp.GetFlen() != 4 {
@@ -12055,65 +18987,105 @@ DateAndTimeType:
 FieldLen:
 	'(' LengthNum ')'
 	{
+sql_ir.LogGrammarCoverage("FieldLen,LengthNum")
+
+
 		$$ = int($2.(uint64))
 	}
 
 OptFieldLen:
 	{
+
+
 		$$ = types.UnspecifiedLength
 	}
 |	FieldLen
 
+{
+sql_ir.LogGrammarCoverage("OptFieldLen,FieldLen")
+
+}
 FieldOpt:
 	"UNSIGNED"
 	{
+
+
 		$$ = &ast.TypeOpt{IsUnsigned: true}
 	}
 |	"SIGNED"
 	{
+
+
 		$$ = &ast.TypeOpt{IsUnsigned: false}
 	}
 |	"ZEROFILL"
 	{
+
+
 		$$ = &ast.TypeOpt{IsZerofill: true, IsUnsigned: true}
 	}
 
 FieldOpts:
 	{
+
+
 		$$ = []*ast.TypeOpt{}
 	}
 |	FieldOpts FieldOpt
 	{
+sql_ir.LogGrammarCoverage("FieldOpts,FieldOpts")
+sql_ir.LogGrammarCoverage("FieldOpts,FieldOpt")
+
+
 		$$ = append($1.([]*ast.TypeOpt), $2.(*ast.TypeOpt))
 	}
 
 FloatOpt:
 	{
+
+
 		$$ = &ast.FloatOpt{Flen: types.UnspecifiedLength, Decimal: types.UnspecifiedLength}
 	}
 |	FieldLen
 	{
+sql_ir.LogGrammarCoverage("FloatOpt,FieldLen")
+
+
 		$$ = &ast.FloatOpt{Flen: $1.(int), Decimal: types.UnspecifiedLength}
 	}
 |	Precision
 
+{
+sql_ir.LogGrammarCoverage("FloatOpt,Precision")
+
+}
 Precision:
 	'(' LengthNum ',' LengthNum ')'
 	{
+sql_ir.LogGrammarCoverage("Precision,LengthNum")
+sql_ir.LogGrammarCoverage("Precision,LengthNum")
+
+
 		$$ = &ast.FloatOpt{Flen: int($2.(uint64)), Decimal: int($4.(uint64))}
 	}
 
 OptBinMod:
 	{
+
+
 		$$ = false
 	}
 |	"BINARY"
 	{
+
+
 		$$ = true
 	}
 
 OptBinary:
 	{
+
+
 		$$ = &ast.OptBinary{
 			IsBinary: false,
 			Charset:  "",
@@ -12121,6 +19093,9 @@ OptBinary:
 	}
 |	"BINARY" OptCharset
 	{
+sql_ir.LogGrammarCoverage("OptBinary,OptCharset")
+
+
 		$$ = &ast.OptBinary{
 			IsBinary: true,
 			Charset:  $2,
@@ -12128,6 +19103,11 @@ OptBinary:
 	}
 |	CharsetKw CharsetName OptBinMod
 	{
+sql_ir.LogGrammarCoverage("OptBinary,CharsetKw")
+sql_ir.LogGrammarCoverage("OptBinary,CharsetName")
+sql_ir.LogGrammarCoverage("OptBinary,OptBinMod")
+
+
 		$$ = &ast.OptBinary{
 			IsBinary: $3.(bool),
 			Charset:  $2,
@@ -12136,78 +19116,142 @@ OptBinary:
 
 OptCharset:
 	{
+
+
 		$$ = ""
 	}
 |	CharsetKw CharsetName
 	{
+sql_ir.LogGrammarCoverage("OptCharset,CharsetKw")
+sql_ir.LogGrammarCoverage("OptCharset,CharsetName")
+
+
 		$$ = $2
 	}
 
 CharsetKw:
 	"CHARACTER" "SET"
+{
+
+}
 |	"CHARSET"
+{
+
+}
 |	"CHAR" "SET"
 
+{
+
+}
 OptCollate:
 	{
+
+
 		$$ = ""
 	}
 |	"COLLATE" CollationName
 	{
+sql_ir.LogGrammarCoverage("OptCollate,CollationName")
+
+
 		$$ = $2
 	}
 
 StringList:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("StringList,stringLit")
+
+
 		$$ = []string{$1}
 	}
 |	StringList ',' stringLit
 	{
+sql_ir.LogGrammarCoverage("StringList,StringList")
+sql_ir.LogGrammarCoverage("StringList,stringLit")
+
+
 		$$ = append($1.([]string), $3)
 	}
 
 TextString:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("TextString,stringLit")
+
+
 		$$ = &ast.TextString{Value: $1}
 	}
 |	hexLit
 	{
+
+
 		$$ = &ast.TextString{Value: $1.(ast.BinaryLiteral).ToString(), IsBinaryLiteral: true}
 	}
 |	bitLit
 	{
+
+
 		$$ = &ast.TextString{Value: $1.(ast.BinaryLiteral).ToString(), IsBinaryLiteral: true}
 	}
 
 TextStringList:
 	TextString
 	{
+sql_ir.LogGrammarCoverage("TextStringList,TextString")
+
+
 		$$ = []*ast.TextString{$1.(*ast.TextString)}
 	}
 |	TextStringList ',' TextString
 	{
+sql_ir.LogGrammarCoverage("TextStringList,TextStringList")
+sql_ir.LogGrammarCoverage("TextStringList,TextString")
+
+
 		$$ = append($1.([]*ast.TextString), $3.(*ast.TextString))
 	}
 
 StringName:
 	stringLit
+{
+sql_ir.LogGrammarCoverage("StringName,stringLit")
+
+}
 |	Identifier
 
+{
+sql_ir.LogGrammarCoverage("StringName,Identifier")
+
+}
 StringNameOrBRIEOptionKeyword:
 	StringName
+{
+sql_ir.LogGrammarCoverage("StringNameOrBRIEOptionKeyword,StringName")
+
+}
 |	"IGNORE"
+{
+
+}
 |	"REPLACE"
 
-/***********************************************************************************
- * Update Statement
- * See https://dev.mysql.com/doc/refman/5.7/en/update.html
- ***********************************************************************************/
+
+{
+
+}
 UpdateStmt:
 	UpdateStmtNoWith
+{
+sql_ir.LogGrammarCoverage("UpdateStmt,UpdateStmtNoWith")
+
+}
 |	WithClause UpdateStmtNoWith
 	{
+sql_ir.LogGrammarCoverage("UpdateStmt,WithClause")
+sql_ir.LogGrammarCoverage("UpdateStmt,UpdateStmtNoWith")
+
+
 		u := $2.(*ast.UpdateStmt)
 		u.With = $1.(*ast.WithClause)
 		$$ = u
@@ -12216,6 +19260,16 @@ UpdateStmt:
 UpdateStmtNoWith:
 	"UPDATE" TableOptimizerHintsOpt PriorityOpt IgnoreOptional TableRef "SET" AssignmentList WhereClauseOptional OrderByOptional LimitClause
 	{
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,PriorityOpt")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,IgnoreOptional")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,TableRef")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,AssignmentList")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,OrderByOptional")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,LimitClause")
+
+
 		var refs *ast.Join
 		if x, ok := $5.(*ast.Join); ok {
 			refs = x
@@ -12244,6 +19298,14 @@ UpdateStmtNoWith:
 	}
 |	"UPDATE" TableOptimizerHintsOpt PriorityOpt IgnoreOptional TableRefs "SET" AssignmentList WhereClauseOptional
 	{
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,TableOptimizerHintsOpt")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,PriorityOpt")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,IgnoreOptional")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,TableRefs")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,AssignmentList")
+sql_ir.LogGrammarCoverage("UpdateStmtNoWith,WhereClauseOptional")
+
+
 		st := &ast.UpdateStmt{
 			Priority:  $3.(mysql.PriorityEnum),
 			TableRefs: &ast.TableRefsClause{TableRefs: $5.(*ast.Join)},
@@ -12262,33 +19324,53 @@ UpdateStmtNoWith:
 UseStmt:
 	"USE" DBName
 	{
+sql_ir.LogGrammarCoverage("UseStmt,DBName")
+
+
 		$$ = &ast.UseStmt{DBName: $2}
 	}
 
 WhereClause:
 	"WHERE" Expression
 	{
+sql_ir.LogGrammarCoverage("WhereClause,Expression")
+
+
 		$$ = $2
 	}
 
 WhereClauseOptional:
 	{
+
+
 		$$ = nil
 	}
 |	WhereClause
 
-CommaOpt:
-	{}
-|	','
-	{}
+{
+sql_ir.LogGrammarCoverage("WhereClauseOptional,WhereClause")
 
-/************************************************************************************
- *  Account Management Statements
- *  https://dev.mysql.com/doc/refman/5.7/en/account-management-sql.html
- ************************************************************************************/
+}
+CommaOpt:
+	{
+
+}
+|	','
+	{
+
+}
+
+
 CreateUserStmt:
 	"CREATE" "USER" IfNotExists UserSpecList RequireClauseOpt ConnectionOptions PasswordOrLockOptions
 	{
+sql_ir.LogGrammarCoverage("CreateUserStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateUserStmt,UserSpecList")
+sql_ir.LogGrammarCoverage("CreateUserStmt,RequireClauseOpt")
+sql_ir.LogGrammarCoverage("CreateUserStmt,ConnectionOptions")
+sql_ir.LogGrammarCoverage("CreateUserStmt,PasswordOrLockOptions")
+
+
 		// See https://dev.mysql.com/doc/refman/5.7/en/create-user.html
 		$$ = &ast.CreateUserStmt{
 			IsCreateRole:          false,
@@ -12303,6 +19385,10 @@ CreateUserStmt:
 CreateRoleStmt:
 	"CREATE" "ROLE" IfNotExists RoleSpecList
 	{
+sql_ir.LogGrammarCoverage("CreateRoleStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateRoleStmt,RoleSpecList")
+
+
 		// See https://dev.mysql.com/doc/refman/8.0/en/create-role.html
 		$$ = &ast.CreateUserStmt{
 			IsCreateRole: true,
@@ -12311,10 +19397,17 @@ CreateRoleStmt:
 		}
 	}
 
-/* See http://dev.mysql.com/doc/refman/5.7/en/alter-user.html */
+
 AlterUserStmt:
 	"ALTER" "USER" IfExists UserSpecList RequireClauseOpt ConnectionOptions PasswordOrLockOptions
 	{
+sql_ir.LogGrammarCoverage("AlterUserStmt,IfExists")
+sql_ir.LogGrammarCoverage("AlterUserStmt,UserSpecList")
+sql_ir.LogGrammarCoverage("AlterUserStmt,RequireClauseOpt")
+sql_ir.LogGrammarCoverage("AlterUserStmt,ConnectionOptions")
+sql_ir.LogGrammarCoverage("AlterUserStmt,PasswordOrLockOptions")
+
+
 		$$ = &ast.AlterUserStmt{
 			IfExists:              $3.(bool),
 			Specs:                 $4.([]*ast.UserSpec),
@@ -12325,6 +19418,10 @@ AlterUserStmt:
 	}
 |	"ALTER" "USER" IfExists "USER" '(' ')' "IDENTIFIED" "BY" AuthString
 	{
+sql_ir.LogGrammarCoverage("AlterUserStmt,IfExists")
+sql_ir.LogGrammarCoverage("AlterUserStmt,AuthString")
+
+
 		auth := &ast.AuthOption{
 			AuthString:   $9,
 			ByAuthString: true,
@@ -12335,22 +19432,29 @@ AlterUserStmt:
 		}
 	}
 
-/* See https://dev.mysql.com/doc/refman/8.0/en/alter-instance.html */
+
 AlterInstanceStmt:
 	"ALTER" "INSTANCE" InstanceOption
 	{
+sql_ir.LogGrammarCoverage("AlterInstanceStmt,InstanceOption")
+
+
 		$$ = $3.(*ast.AlterInstanceStmt)
 	}
 
 InstanceOption:
 	"RELOAD" "TLS"
 	{
+
+
 		$$ = &ast.AlterInstanceStmt{
 			ReloadTLS: true,
 		}
 	}
 |	"RELOAD" "TLS" "NO" "ROLLBACK" "ON" "ERROR"
 	{
+
+
 		$$ = &ast.AlterInstanceStmt{
 			ReloadTLS:         true,
 			NoRollbackOnError: true,
@@ -12360,6 +19464,10 @@ InstanceOption:
 UserSpec:
 	Username AuthOption
 	{
+sql_ir.LogGrammarCoverage("UserSpec,Username")
+sql_ir.LogGrammarCoverage("UserSpec,AuthOption")
+
+
 		userSpec := &ast.UserSpec{
 			User: $1.(*auth.UserIdentity),
 		}
@@ -12372,20 +19480,32 @@ UserSpec:
 UserSpecList:
 	UserSpec
 	{
+sql_ir.LogGrammarCoverage("UserSpecList,UserSpec")
+
+
 		$$ = []*ast.UserSpec{$1.(*ast.UserSpec)}
 	}
 |	UserSpecList ',' UserSpec
 	{
+sql_ir.LogGrammarCoverage("UserSpecList,UserSpecList")
+sql_ir.LogGrammarCoverage("UserSpecList,UserSpec")
+
+
 		$$ = append($1.([]*ast.UserSpec), $3.(*ast.UserSpec))
 	}
 
 ConnectionOptions:
 	{
+
+
 		l := []*ast.ResourceOption{}
 		$$ = l
 	}
 |	"WITH" ConnectionOptionList
 	{
+sql_ir.LogGrammarCoverage("ConnectionOptions,ConnectionOptionList")
+
+
 		$$ = $2
 		yylex.AppendError(yylex.Errorf("TiDB does not support WITH ConnectionOptions now, they would be parsed but ignored."))
 		parser.lastErrorAsWarn()
@@ -12394,10 +19514,17 @@ ConnectionOptions:
 ConnectionOptionList:
 	ConnectionOption
 	{
+sql_ir.LogGrammarCoverage("ConnectionOptionList,ConnectionOption")
+
+
 		$$ = []*ast.ResourceOption{$1.(*ast.ResourceOption)}
 	}
 |	ConnectionOptionList ConnectionOption
 	{
+sql_ir.LogGrammarCoverage("ConnectionOptionList,ConnectionOptionList")
+sql_ir.LogGrammarCoverage("ConnectionOptionList,ConnectionOption")
+
+
 		l := $1.([]*ast.ResourceOption)
 		l = append(l, $2.(*ast.ResourceOption))
 		$$ = l
@@ -12406,6 +19533,9 @@ ConnectionOptionList:
 ConnectionOption:
 	"MAX_QUERIES_PER_HOUR" Int64Num
 	{
+sql_ir.LogGrammarCoverage("ConnectionOption,Int64Num")
+
+
 		$$ = &ast.ResourceOption{
 			Type:  ast.MaxQueriesPerHour,
 			Count: $2.(int64),
@@ -12413,6 +19543,9 @@ ConnectionOption:
 	}
 |	"MAX_UPDATES_PER_HOUR" Int64Num
 	{
+sql_ir.LogGrammarCoverage("ConnectionOption,Int64Num")
+
+
 		$$ = &ast.ResourceOption{
 			Type:  ast.MaxUpdatesPerHour,
 			Count: $2.(int64),
@@ -12420,6 +19553,9 @@ ConnectionOption:
 	}
 |	"MAX_CONNECTIONS_PER_HOUR" Int64Num
 	{
+sql_ir.LogGrammarCoverage("ConnectionOption,Int64Num")
+
+
 		$$ = &ast.ResourceOption{
 			Type:  ast.MaxConnectionsPerHour,
 			Count: $2.(int64),
@@ -12427,6 +19563,9 @@ ConnectionOption:
 	}
 |	"MAX_USER_CONNECTIONS" Int64Num
 	{
+sql_ir.LogGrammarCoverage("ConnectionOption,Int64Num")
+
+
 		$$ = &ast.ResourceOption{
 			Type:  ast.MaxUserConnections,
 			Count: $2.(int64),
@@ -12435,13 +19574,21 @@ ConnectionOption:
 
 RequireClauseOpt:
 	{
+
+
 		$$ = []*ast.TLSOption{}
 	}
 |	RequireClause
 
+{
+sql_ir.LogGrammarCoverage("RequireClauseOpt,RequireClause")
+
+}
 RequireClause:
 	"REQUIRE" "NONE"
 	{
+
+
 		t := &ast.TLSOption{
 			Type: ast.TlsNone,
 		}
@@ -12449,6 +19596,8 @@ RequireClause:
 	}
 |	"REQUIRE" "SSL"
 	{
+
+
 		t := &ast.TLSOption{
 			Type: ast.Ssl,
 		}
@@ -12456,6 +19605,8 @@ RequireClause:
 	}
 |	"REQUIRE" "X509"
 	{
+
+
 		t := &ast.TLSOption{
 			Type: ast.X509,
 		}
@@ -12463,22 +19614,36 @@ RequireClause:
 	}
 |	"REQUIRE" RequireList
 	{
+sql_ir.LogGrammarCoverage("RequireClause,RequireList")
+
+
 		$$ = $2
 	}
 
 RequireList:
 	RequireListElement
 	{
+sql_ir.LogGrammarCoverage("RequireList,RequireListElement")
+
+
 		$$ = []*ast.TLSOption{$1.(*ast.TLSOption)}
 	}
 |	RequireList "AND" RequireListElement
 	{
+sql_ir.LogGrammarCoverage("RequireList,RequireList")
+sql_ir.LogGrammarCoverage("RequireList,RequireListElement")
+
+
 		l := $1.([]*ast.TLSOption)
 		l = append(l, $3.(*ast.TLSOption))
 		$$ = l
 	}
 |	RequireList RequireListElement
 	{
+sql_ir.LogGrammarCoverage("RequireList,RequireList")
+sql_ir.LogGrammarCoverage("RequireList,RequireListElement")
+
+
 		l := $1.([]*ast.TLSOption)
 		l = append(l, $2.(*ast.TLSOption))
 		$$ = l
@@ -12487,6 +19652,9 @@ RequireList:
 RequireListElement:
 	"ISSUER" stringLit
 	{
+sql_ir.LogGrammarCoverage("RequireListElement,stringLit")
+
+
 		$$ = &ast.TLSOption{
 			Type:  ast.Issuer,
 			Value: $2,
@@ -12494,6 +19662,9 @@ RequireListElement:
 	}
 |	"SUBJECT" stringLit
 	{
+sql_ir.LogGrammarCoverage("RequireListElement,stringLit")
+
+
 		$$ = &ast.TLSOption{
 			Type:  ast.Subject,
 			Value: $2,
@@ -12501,6 +19672,9 @@ RequireListElement:
 	}
 |	"CIPHER" stringLit
 	{
+sql_ir.LogGrammarCoverage("RequireListElement,stringLit")
+
+
 		$$ = &ast.TLSOption{
 			Type:  ast.Cipher,
 			Value: $2,
@@ -12508,6 +19682,9 @@ RequireListElement:
 	}
 |	"SAN" stringLit
 	{
+sql_ir.LogGrammarCoverage("RequireListElement,stringLit")
+
+
 		$$ = &ast.TLSOption{
 			Type:  ast.SAN,
 			Value: $2,
@@ -12516,11 +19693,16 @@ RequireListElement:
 
 PasswordOrLockOptions:
 	{
+
+
 		l := []*ast.PasswordOrLockOption{}
 		$$ = l
 	}
 |	PasswordOrLockOptionList
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOptions,PasswordOrLockOptionList")
+
+
 		$$ = $1
 		yylex.AppendError(yylex.Errorf("TiDB does not support PASSWORD EXPIRE and ACCOUNT LOCK now, they would be parsed but ignored."))
 		parser.lastErrorAsWarn()
@@ -12529,10 +19711,17 @@ PasswordOrLockOptions:
 PasswordOrLockOptionList:
 	PasswordOrLockOption
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOptionList,PasswordOrLockOption")
+
+
 		$$ = []*ast.PasswordOrLockOption{$1.(*ast.PasswordOrLockOption)}
 	}
 |	PasswordOrLockOptionList PasswordOrLockOption
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOptionList,PasswordOrLockOptionList")
+sql_ir.LogGrammarCoverage("PasswordOrLockOptionList,PasswordOrLockOption")
+
+
 		l := $1.([]*ast.PasswordOrLockOption)
 		l = append(l, $2.(*ast.PasswordOrLockOption))
 		$$ = l
@@ -12541,24 +19730,35 @@ PasswordOrLockOptionList:
 PasswordOrLockOption:
 	"ACCOUNT" "UNLOCK"
 	{
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type: ast.Unlock,
 		}
 	}
 |	"ACCOUNT" "LOCK"
 	{
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type: ast.Lock,
 		}
 	}
 |	PasswordExpire
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOption,PasswordExpire")
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type: ast.PasswordExpire,
 		}
 	}
 |	PasswordExpire "INTERVAL" Int64Num "DAY"
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOption,PasswordExpire")
+sql_ir.LogGrammarCoverage("PasswordOrLockOption,Int64Num")
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type:  ast.PasswordExpireInterval,
 			Count: $3.(int64),
@@ -12566,12 +19766,18 @@ PasswordOrLockOption:
 	}
 |	PasswordExpire "NEVER"
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOption,PasswordExpire")
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type: ast.PasswordExpireNever,
 		}
 	}
 |	PasswordExpire "DEFAULT"
 	{
+sql_ir.LogGrammarCoverage("PasswordOrLockOption,PasswordExpire")
+
+
 		$$ = &ast.PasswordOrLockOption{
 			Type: ast.PasswordExpireDefault,
 		}
@@ -12580,20 +19786,30 @@ PasswordOrLockOption:
 PasswordExpire:
 	"PASSWORD" "EXPIRE" ClearPasswordExpireOptions
 	{
+sql_ir.LogGrammarCoverage("PasswordExpire,ClearPasswordExpireOptions")
+
+
 		$$ = nil
 	}
 
 ClearPasswordExpireOptions:
 	{
+
+
 		$$ = nil
 	}
 
 AuthOption:
 	{
+
+
 		$$ = nil
 	}
 |	"IDENTIFIED" "BY" AuthString
 	{
+sql_ir.LogGrammarCoverage("AuthOption,AuthString")
+
+
 		$$ = &ast.AuthOption{
 			AuthString:   $3,
 			ByAuthString: true,
@@ -12601,12 +19817,19 @@ AuthOption:
 	}
 |	"IDENTIFIED" "WITH" AuthPlugin
 	{
+sql_ir.LogGrammarCoverage("AuthOption,AuthPlugin")
+
+
 		$$ = &ast.AuthOption{
 			AuthPlugin: $3,
 		}
 	}
 |	"IDENTIFIED" "WITH" AuthPlugin "BY" AuthString
 	{
+sql_ir.LogGrammarCoverage("AuthOption,AuthPlugin")
+sql_ir.LogGrammarCoverage("AuthOption,AuthString")
+
+
 		$$ = &ast.AuthOption{
 			AuthPlugin:   $3,
 			AuthString:   $5,
@@ -12615,6 +19838,10 @@ AuthOption:
 	}
 |	"IDENTIFIED" "WITH" AuthPlugin "AS" HashString
 	{
+sql_ir.LogGrammarCoverage("AuthOption,AuthPlugin")
+sql_ir.LogGrammarCoverage("AuthOption,HashString")
+
+
 		$$ = &ast.AuthOption{
 			AuthPlugin: $3,
 			HashString: $5,
@@ -12622,6 +19849,9 @@ AuthOption:
 	}
 |	"IDENTIFIED" "BY" "PASSWORD" HashString
 	{
+sql_ir.LogGrammarCoverage("AuthOption,HashString")
+
+
 		$$ = &ast.AuthOption{
 			AuthPlugin: mysql.AuthNativePassword,
 			HashString: $4,
@@ -12631,16 +19861,29 @@ AuthOption:
 AuthPlugin:
 	StringName
 
+{
+sql_ir.LogGrammarCoverage("AuthPlugin,StringName")
+
+}
 HashString:
 	stringLit
+{
+sql_ir.LogGrammarCoverage("HashString,stringLit")
+
+}
 |	hexLit
 	{
+
+
 		$$ = $1.(ast.BinaryLiteral).ToString()
 	}
 
 RoleSpec:
 	Rolename
 	{
+sql_ir.LogGrammarCoverage("RoleSpec,Rolename")
+
+
 		role := $1.(*auth.RoleIdentity)
 		roleSpec := &ast.UserSpec{
 			User: &auth.UserIdentity{
@@ -12655,19 +19898,41 @@ RoleSpec:
 RoleSpecList:
 	RoleSpec
 	{
+sql_ir.LogGrammarCoverage("RoleSpecList,RoleSpec")
+
+
 		$$ = []*ast.UserSpec{$1.(*ast.UserSpec)}
 	}
 |	RoleSpecList ',' RoleSpec
 	{
+sql_ir.LogGrammarCoverage("RoleSpecList,RoleSpecList")
+sql_ir.LogGrammarCoverage("RoleSpecList,RoleSpec")
+
+
 		$$ = append($1.([]*ast.UserSpec), $3.(*ast.UserSpec))
 	}
 
 BindableStmt:
 	SetOprStmt
+{
+sql_ir.LogGrammarCoverage("BindableStmt,SetOprStmt")
+
+}
 |	SelectStmt
+{
+sql_ir.LogGrammarCoverage("BindableStmt,SelectStmt")
+
+}
 |	SelectStmtWithClause
+{
+sql_ir.LogGrammarCoverage("BindableStmt,SelectStmtWithClause")
+
+}
 |	SubSelect
 	{
+sql_ir.LogGrammarCoverage("BindableStmt,SubSelect")
+
+
 		var sel ast.StmtNode
 		switch x := $1.(*ast.SubqueryExpr).Query.(type) {
 		case *ast.SelectStmt:
@@ -12680,20 +19945,35 @@ BindableStmt:
 		$$ = sel
 	}
 |	UpdateStmt
+{
+sql_ir.LogGrammarCoverage("BindableStmt,UpdateStmt")
+
+}
 |	DeleteWithoutUsingStmt
+{
+sql_ir.LogGrammarCoverage("BindableStmt,DeleteWithoutUsingStmt")
+
+}
 |	InsertIntoStmt
+{
+sql_ir.LogGrammarCoverage("BindableStmt,InsertIntoStmt")
+
+}
 |	ReplaceIntoStmt
 
-/*******************************************************************
- *
- *  Create Binding Statement
- *
- *  Example:
- *      CREATE GLOBAL BINDING FOR select Col1,Col2 from table USING select Col1,Col2 from table use index(Col1)
- *******************************************************************/
+
+{
+sql_ir.LogGrammarCoverage("BindableStmt,ReplaceIntoStmt")
+
+}
 CreateBindingStmt:
 	"CREATE" GlobalScope "BINDING" "FOR" BindableStmt "USING" BindableStmt
 	{
+sql_ir.LogGrammarCoverage("CreateBindingStmt,GlobalScope")
+sql_ir.LogGrammarCoverage("CreateBindingStmt,BindableStmt")
+sql_ir.LogGrammarCoverage("CreateBindingStmt,BindableStmt")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-2])
 		endOffset := parser.startOffset(&yyS[yypt-1])
 		originStmt := $5
@@ -12712,16 +19992,14 @@ CreateBindingStmt:
 		$$ = x
 	}
 
-/*******************************************************************
- *
- *  Drop Binding Statement
- *
- *  Example:
- *      DROP GLOBAL BINDING FOR select Col1,Col2 from table
- *******************************************************************/
+
 DropBindingStmt:
 	"DROP" GlobalScope "BINDING" "FOR" BindableStmt
 	{
+sql_ir.LogGrammarCoverage("DropBindingStmt,GlobalScope")
+sql_ir.LogGrammarCoverage("DropBindingStmt,BindableStmt")
+
+
 		startOffset := parser.startOffset(&yyS[yypt])
 		originStmt := $5
 		originStmt.SetText(parser.lexer.client, strings.TrimSpace(parser.src[startOffset:]))
@@ -12735,6 +20013,11 @@ DropBindingStmt:
 	}
 |	"DROP" GlobalScope "BINDING" "FOR" BindableStmt "USING" BindableStmt
 	{
+sql_ir.LogGrammarCoverage("DropBindingStmt,GlobalScope")
+sql_ir.LogGrammarCoverage("DropBindingStmt,BindableStmt")
+sql_ir.LogGrammarCoverage("DropBindingStmt,BindableStmt")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-2])
 		endOffset := parser.startOffset(&yyS[yypt-1])
 		originStmt := $5
@@ -12756,6 +20039,10 @@ DropBindingStmt:
 SetBindingStmt:
 	"SET" "BINDING" BindingStatusType "FOR" BindableStmt
 	{
+sql_ir.LogGrammarCoverage("SetBindingStmt,BindingStatusType")
+sql_ir.LogGrammarCoverage("SetBindingStmt,BindableStmt")
+
+
 		startOffset := parser.startOffset(&yyS[yypt])
 		originStmt := $5
 		originStmt.SetText(parser.lexer.client, strings.TrimSpace(parser.src[startOffset:]))
@@ -12769,6 +20056,11 @@ SetBindingStmt:
 	}
 |	"SET" "BINDING" BindingStatusType "FOR" BindableStmt "USING" BindableStmt
 	{
+sql_ir.LogGrammarCoverage("SetBindingStmt,BindingStatusType")
+sql_ir.LogGrammarCoverage("SetBindingStmt,BindableStmt")
+sql_ir.LogGrammarCoverage("SetBindingStmt,BindableStmt")
+
+
 		startOffset := parser.startOffset(&yyS[yypt-2])
 		endOffset := parser.startOffset(&yyS[yypt-1])
 		originStmt := $5
@@ -12787,13 +20079,18 @@ SetBindingStmt:
 		$$ = x
 	}
 
-/*************************************************************************************
- * Grant statement
- * See https://dev.mysql.com/doc/refman/5.7/en/grant.html
- *************************************************************************************/
+
 GrantStmt:
 	"GRANT" RoleOrPrivElemList "ON" ObjectType PrivLevel "TO" UserSpecList RequireClauseOpt WithGrantOptionOpt
 	{
+sql_ir.LogGrammarCoverage("GrantStmt,RoleOrPrivElemList")
+sql_ir.LogGrammarCoverage("GrantStmt,ObjectType")
+sql_ir.LogGrammarCoverage("GrantStmt,PrivLevel")
+sql_ir.LogGrammarCoverage("GrantStmt,UserSpecList")
+sql_ir.LogGrammarCoverage("GrantStmt,RequireClauseOpt")
+sql_ir.LogGrammarCoverage("GrantStmt,WithGrantOptionOpt")
+
+
 		p, err := convertToPriv($2.([]*ast.RoleOrPriv))
 		if err != nil {
 			yylex.AppendError(err)
@@ -12812,6 +20109,11 @@ GrantStmt:
 GrantProxyStmt:
 	"GRANT" "PROXY" "ON" Username "TO" UsernameList WithGrantOptionOpt
 	{
+sql_ir.LogGrammarCoverage("GrantProxyStmt,Username")
+sql_ir.LogGrammarCoverage("GrantProxyStmt,UsernameList")
+sql_ir.LogGrammarCoverage("GrantProxyStmt,WithGrantOptionOpt")
+
+
 		$$ = &ast.GrantProxyStmt{
 			LocalUser:     $4.(*auth.UserIdentity),
 			ExternalUsers: $6.([]*auth.UserIdentity),
@@ -12822,6 +20124,10 @@ GrantProxyStmt:
 GrantRoleStmt:
 	"GRANT" RoleOrPrivElemList "TO" UsernameList
 	{
+sql_ir.LogGrammarCoverage("GrantRoleStmt,RoleOrPrivElemList")
+sql_ir.LogGrammarCoverage("GrantRoleStmt,UsernameList")
+
+
 		r, err := convertToRole($2.([]*ast.RoleOrPriv))
 		if err != nil {
 			yylex.AppendError(err)
@@ -12835,66 +20141,100 @@ GrantRoleStmt:
 
 WithGrantOptionOpt:
 	{
+
+
 		$$ = false
 	}
 |	"WITH" "GRANT" "OPTION"
 	{
+
+
 		$$ = true
 	}
 |	"WITH" "MAX_QUERIES_PER_HOUR" NUM
 	{
+sql_ir.LogGrammarCoverage("WithGrantOptionOpt,NUM")
+
+
 		$$ = false
 	}
 |	"WITH" "MAX_UPDATES_PER_HOUR" NUM
 	{
+sql_ir.LogGrammarCoverage("WithGrantOptionOpt,NUM")
+
+
 		$$ = false
 	}
 |	"WITH" "MAX_CONNECTIONS_PER_HOUR" NUM
 	{
+sql_ir.LogGrammarCoverage("WithGrantOptionOpt,NUM")
+
+
 		$$ = false
 	}
 |	"WITH" "MAX_USER_CONNECTIONS" NUM
 	{
+sql_ir.LogGrammarCoverage("WithGrantOptionOpt,NUM")
+
+
 		$$ = false
 	}
 
 ExtendedPriv:
 	identifier
 	{
+
+
 		$$ = []string{$1}
 	}
 |	ExtendedPriv identifier
 	{
+sql_ir.LogGrammarCoverage("ExtendedPriv,ExtendedPriv")
+
+
 		$$ = append($1.([]string), $2)
 	}
 
 RoleOrPrivElem:
 	PrivElem
 	{
+sql_ir.LogGrammarCoverage("RoleOrPrivElem,PrivElem")
+
+
 		$$ = &ast.RoleOrPriv{
 			Node: $1,
 		}
 	}
 |	RolenameWithoutIdent
 	{
+sql_ir.LogGrammarCoverage("RoleOrPrivElem,RolenameWithoutIdent")
+
+
 		$$ = &ast.RoleOrPriv{
 			Node: $1,
 		}
 	}
 |	ExtendedPriv
 	{
+sql_ir.LogGrammarCoverage("RoleOrPrivElem,ExtendedPriv")
+
+
 		$$ = &ast.RoleOrPriv{
 			Symbols: strings.Join($1.([]string), " "),
 		}
 	}
 |	"LOAD" "FROM" "S3"
 	{
+
+
 		$$ = &ast.RoleOrPriv{
 			Symbols: "LOAD FROM S3",
 		}
 	}
 |	"SELECT" "INTO" "S3"
 	{
+
+
 		$$ = &ast.RoleOrPriv{
 			Symbols: "SELECT INTO S3",
 		}
@@ -12903,22 +20243,36 @@ RoleOrPrivElem:
 RoleOrPrivElemList:
 	RoleOrPrivElem
 	{
+sql_ir.LogGrammarCoverage("RoleOrPrivElemList,RoleOrPrivElem")
+
+
 		$$ = []*ast.RoleOrPriv{$1.(*ast.RoleOrPriv)}
 	}
 |	RoleOrPrivElemList ',' RoleOrPrivElem
 	{
+sql_ir.LogGrammarCoverage("RoleOrPrivElemList,RoleOrPrivElemList")
+sql_ir.LogGrammarCoverage("RoleOrPrivElemList,RoleOrPrivElem")
+
+
 		$$ = append($1.([]*ast.RoleOrPriv), $3.(*ast.RoleOrPriv))
 	}
 
 PrivElem:
 	PrivType
 	{
+sql_ir.LogGrammarCoverage("PrivElem,PrivType")
+
+
 		$$ = &ast.PrivElem{
 			Priv: $1.(mysql.PrivilegeType),
 		}
 	}
 |	PrivType '(' ColumnNameList ')'
 	{
+sql_ir.LogGrammarCoverage("PrivElem,PrivType")
+sql_ir.LogGrammarCoverage("PrivElem,ColumnNameList")
+
+
 		$$ = &ast.PrivElem{
 			Priv: $1.(mysql.PrivilegeType),
 			Cols: $3.([]*ast.ColumnName),
@@ -12928,178 +20282,263 @@ PrivElem:
 PrivType:
 	"ALL"
 	{
+
+
 		$$ = mysql.AllPriv
 	}
 |	"ALL" "PRIVILEGES"
 	{
+
+
 		$$ = mysql.AllPriv
 	}
 |	"ALTER"
 	{
+
+
 		$$ = mysql.AlterPriv
 	}
 |	"CREATE"
 	{
+
+
 		$$ = mysql.CreatePriv
 	}
 |	"CREATE" "USER"
 	{
+
+
 		$$ = mysql.CreateUserPriv
 	}
 |	"CREATE" "TABLESPACE"
 	{
+
+
 		$$ = mysql.CreateTablespacePriv
 	}
 |	"TRIGGER"
 	{
+
+
 		$$ = mysql.TriggerPriv
 	}
 |	"DELETE"
 	{
+
+
 		$$ = mysql.DeletePriv
 	}
 |	"DROP"
 	{
+
+
 		$$ = mysql.DropPriv
 	}
 |	"PROCESS"
 	{
+
+
 		$$ = mysql.ProcessPriv
 	}
 |	"EXECUTE"
 	{
+
+
 		$$ = mysql.ExecutePriv
 	}
 |	"INDEX"
 	{
+
+
 		$$ = mysql.IndexPriv
 	}
 |	"INSERT"
 	{
+
+
 		$$ = mysql.InsertPriv
 	}
 |	"SELECT"
 	{
+
+
 		$$ = mysql.SelectPriv
 	}
 |	"SUPER"
 	{
+
+
 		$$ = mysql.SuperPriv
 	}
 |	"SHOW" "DATABASES"
 	{
+
+
 		$$ = mysql.ShowDBPriv
 	}
 |	"UPDATE"
 	{
+
+
 		$$ = mysql.UpdatePriv
 	}
 |	"GRANT" "OPTION"
 	{
+
+
 		$$ = mysql.GrantPriv
 	}
 |	"REFERENCES"
 	{
+
+
 		$$ = mysql.ReferencesPriv
 	}
 |	"REPLICATION" "SLAVE"
 	{
+
+
 		$$ = mysql.ReplicationSlavePriv
 	}
 |	"REPLICATION" "CLIENT"
 	{
+
+
 		$$ = mysql.ReplicationClientPriv
 	}
 |	"USAGE"
 	{
+
+
 		$$ = mysql.UsagePriv
 	}
 |	"RELOAD"
 	{
+
+
 		$$ = mysql.ReloadPriv
 	}
 |	"FILE"
 	{
+
+
 		$$ = mysql.FilePriv
 	}
 |	"CONFIG"
 	{
+
+
 		$$ = mysql.ConfigPriv
 	}
 |	"CREATE" "TEMPORARY" "TABLES"
 	{
+
+
 		$$ = mysql.CreateTMPTablePriv
 	}
 |	"LOCK" "TABLES"
 	{
+
+
 		$$ = mysql.LockTablesPriv
 	}
 |	"CREATE" "VIEW"
 	{
+
+
 		$$ = mysql.CreateViewPriv
 	}
 |	"SHOW" "VIEW"
 	{
+
+
 		$$ = mysql.ShowViewPriv
 	}
 |	"CREATE" "ROLE"
 	{
+
+
 		$$ = mysql.CreateRolePriv
 	}
 |	"DROP" "ROLE"
 	{
+
+
 		$$ = mysql.DropRolePriv
 	}
 |	"CREATE" "ROUTINE"
 	{
+
+
 		$$ = mysql.CreateRoutinePriv
 	}
 |	"ALTER" "ROUTINE"
 	{
+
+
 		$$ = mysql.AlterRoutinePriv
 	}
 |	"EVENT"
 	{
+
+
 		$$ = mysql.EventPriv
 	}
 |	"SHUTDOWN"
 	{
+
+
 		$$ = mysql.ShutdownPriv
 	}
 
 ObjectType:
 	%prec lowerThanFunction
 	{
+
+
 		$$ = ast.ObjectTypeNone
 	}
 |	"TABLE"
 	{
+
+
 		$$ = ast.ObjectTypeTable
 	}
 |	"FUNCTION"
 	{
+
+
 		$$ = ast.ObjectTypeFunction
 	}
 |	"PROCEDURE"
 	{
+
+
 		$$ = ast.ObjectTypeProcedure
 	}
 
 PrivLevel:
 	'*'
 	{
+
+
 		$$ = &ast.GrantLevel{
 			Level: ast.GrantLevelDB,
 		}
 	}
 |	'*' '.' '*'
 	{
+
+
 		$$ = &ast.GrantLevel{
 			Level: ast.GrantLevelGlobal,
 		}
 	}
 |	Identifier '.' '*'
 	{
+sql_ir.LogGrammarCoverage("PrivLevel,Identifier")
+
+
 		$$ = &ast.GrantLevel{
 			Level:  ast.GrantLevelDB,
 			DBName: $1,
@@ -13107,6 +20546,10 @@ PrivLevel:
 	}
 |	Identifier '.' Identifier
 	{
+sql_ir.LogGrammarCoverage("PrivLevel,Identifier")
+sql_ir.LogGrammarCoverage("PrivLevel,Identifier")
+
+
 		$$ = &ast.GrantLevel{
 			Level:     ast.GrantLevelTable,
 			DBName:    $1,
@@ -13115,18 +20558,25 @@ PrivLevel:
 	}
 |	Identifier
 	{
+sql_ir.LogGrammarCoverage("PrivLevel,Identifier")
+
+
 		$$ = &ast.GrantLevel{
 			Level:     ast.GrantLevelTable,
 			TableName: $1,
 		}
 	}
 
-/**************************************RevokeStmt*******************************************
- * See https://dev.mysql.com/doc/refman/5.7/en/revoke.html
- *******************************************************************************************/
+
 RevokeStmt:
 	"REVOKE" RoleOrPrivElemList "ON" ObjectType PrivLevel "FROM" UserSpecList
 	{
+sql_ir.LogGrammarCoverage("RevokeStmt,RoleOrPrivElemList")
+sql_ir.LogGrammarCoverage("RevokeStmt,ObjectType")
+sql_ir.LogGrammarCoverage("RevokeStmt,PrivLevel")
+sql_ir.LogGrammarCoverage("RevokeStmt,UserSpecList")
+
+
 		p, err := convertToPriv($2.([]*ast.RoleOrPriv))
 		if err != nil {
 			yylex.AppendError(err)
@@ -13143,6 +20593,10 @@ RevokeStmt:
 RevokeRoleStmt:
 	"REVOKE" RoleOrPrivElemList "FROM" UsernameList
 	{
+sql_ir.LogGrammarCoverage("RevokeRoleStmt,RoleOrPrivElemList")
+sql_ir.LogGrammarCoverage("RevokeRoleStmt,UsernameList")
+
+
 		// MySQL has special syntax for REVOKE ALL [PRIVILEGES], GRANT OPTION
 		// which uses the RevokeRoleStmt syntax but is of type RevokeStmt.
 		// It is documented at https://dev.mysql.com/doc/refman/5.7/en/revoke.html
@@ -13174,12 +20628,22 @@ RevokeRoleStmt:
 		}
 	}
 
-/**************************************LoadDataStmt*****************************************
- * See https://dev.mysql.com/doc/refman/5.7/en/load-data.html
- *******************************************************************************************/
+
 LoadDataStmt:
 	"LOAD" "DATA" LocalOpt "INFILE" stringLit DuplicateOpt "INTO" "TABLE" TableName CharsetOpt Fields Lines IgnoreLines ColumnNameOrUserVarListOptWithBrackets LoadDataSetSpecOpt
 	{
+sql_ir.LogGrammarCoverage("LoadDataStmt,LocalOpt")
+sql_ir.LogGrammarCoverage("LoadDataStmt,stringLit")
+sql_ir.LogGrammarCoverage("LoadDataStmt,DuplicateOpt")
+sql_ir.LogGrammarCoverage("LoadDataStmt,TableName")
+sql_ir.LogGrammarCoverage("LoadDataStmt,CharsetOpt")
+sql_ir.LogGrammarCoverage("LoadDataStmt,Fields")
+sql_ir.LogGrammarCoverage("LoadDataStmt,Lines")
+sql_ir.LogGrammarCoverage("LoadDataStmt,IgnoreLines")
+sql_ir.LogGrammarCoverage("LoadDataStmt,ColumnNameOrUserVarListOptWithBrackets")
+sql_ir.LogGrammarCoverage("LoadDataStmt,LoadDataSetSpecOpt")
+
+
 		x := &ast.LoadDataStmt{
 			Path:               $5,
 			OnDuplicate:        $6.(ast.OnDuplicateKeyHandlingType),
@@ -13217,28 +20681,45 @@ LoadDataStmt:
 
 IgnoreLines:
 	{
+
+
 		$$ = uint64(0)
 	}
 |	"IGNORE" NUM "LINES"
 	{
+sql_ir.LogGrammarCoverage("IgnoreLines,NUM")
+
+
 		$$ = getUint64FromNUM($2)
 	}
 
 CharsetOpt:
-	{}
+	{
+
+}
 |	"CHARACTER" "SET" CharsetName
 
+{
+sql_ir.LogGrammarCoverage("CharsetOpt,CharsetName")
+
+}
 LocalOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"LOCAL"
 	{
+
+
 		$$ = $1
 	}
 
 Fields:
 	{
+
+
 		escape := "\\"
 		$$ = &ast.FieldsClause{
 			Terminated: "\t",
@@ -13247,6 +20728,10 @@ Fields:
 	}
 |	FieldsOrColumns FieldItemList
 	{
+sql_ir.LogGrammarCoverage("Fields,FieldsOrColumns")
+sql_ir.LogGrammarCoverage("Fields,FieldItemList")
+
+
 		fieldsClause := &ast.FieldsClause{
 			Terminated: "\t",
 			Escaped:    []byte("\\")[0],
@@ -13278,16 +20763,29 @@ Fields:
 
 FieldsOrColumns:
 	"FIELDS"
+{
+
+}
 |	"COLUMNS"
 
+{
+
+}
 FieldItemList:
 	FieldItemList FieldItem
 	{
+sql_ir.LogGrammarCoverage("FieldItemList,FieldItemList")
+sql_ir.LogGrammarCoverage("FieldItemList,FieldItem")
+
+
 		fieldItems := $1.([]*ast.FieldItem)
 		$$ = append(fieldItems, $2.(*ast.FieldItem))
 	}
 |	FieldItem
 	{
+sql_ir.LogGrammarCoverage("FieldItemList,FieldItem")
+
+
 		fieldItems := make([]*ast.FieldItem, 1, 1)
 		fieldItems[0] = $1.(*ast.FieldItem)
 		$$ = fieldItems
@@ -13296,6 +20794,9 @@ FieldItemList:
 FieldItem:
 	"TERMINATED" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("FieldItem,FieldTerminator")
+
+
 		$$ = &ast.FieldItem{
 			Type:  ast.Terminated,
 			Value: $3,
@@ -13303,6 +20804,9 @@ FieldItem:
 	}
 |	"OPTIONALLY" "ENCLOSED" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("FieldItem,FieldTerminator")
+
+
 		str := $4
 		if str != "\\" && len(str) > 1 {
 			yylex.AppendError(ErrWrongFieldTerminators.GenWithStackByArgs())
@@ -13316,6 +20820,9 @@ FieldItem:
 	}
 |	"ENCLOSED" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("FieldItem,FieldTerminator")
+
+
 		str := $3
 		if str != "\\" && len(str) > 1 {
 			yylex.AppendError(ErrWrongFieldTerminators.GenWithStackByArgs())
@@ -13328,6 +20835,9 @@ FieldItem:
 	}
 |	"ESCAPED" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("FieldItem,FieldTerminator")
+
+
 		str := $3
 		if str != "\\" && len(str) > 1 {
 			yylex.AppendError(ErrWrongFieldTerminators.GenWithStackByArgs())
@@ -13341,85 +20851,128 @@ FieldItem:
 
 FieldTerminator:
 	stringLit
+{
+sql_ir.LogGrammarCoverage("FieldTerminator,stringLit")
+
+}
 |	hexLit
 	{
+
+
 		$$ = $1.(ast.BinaryLiteral).ToString()
 	}
 |	bitLit
 	{
+
+
 		$$ = $1.(ast.BinaryLiteral).ToString()
 	}
 
 Lines:
 	{
+
+
 		$$ = &ast.LinesClause{Terminated: "\n"}
 	}
 |	"LINES" Starting LinesTerminated
 	{
+sql_ir.LogGrammarCoverage("Lines,Starting")
+sql_ir.LogGrammarCoverage("Lines,LinesTerminated")
+
+
 		$$ = &ast.LinesClause{Starting: $2, Terminated: $3}
 	}
 
 Starting:
 	{
+
+
 		$$ = ""
 	}
 |	"STARTING" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("Starting,FieldTerminator")
+
+
 		$$ = $3
 	}
 
 LinesTerminated:
 	{
+
+
 		$$ = "\n"
 	}
 |	"TERMINATED" "BY" FieldTerminator
 	{
+sql_ir.LogGrammarCoverage("LinesTerminated,FieldTerminator")
+
+
 		$$ = $3
 	}
 
 LoadDataSetSpecOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"SET" LoadDataSetList
 	{
+sql_ir.LogGrammarCoverage("LoadDataSetSpecOpt,LoadDataSetList")
+
+
 		$$ = $2
 	}
 
 LoadDataSetList:
 	LoadDataSetList ',' LoadDataSetItem
 	{
+sql_ir.LogGrammarCoverage("LoadDataSetList,LoadDataSetList")
+sql_ir.LogGrammarCoverage("LoadDataSetList,LoadDataSetItem")
+
+
 		l := $1.([]*ast.Assignment)
 		$$ = append(l, $3.(*ast.Assignment))
 	}
 |	LoadDataSetItem
 	{
+sql_ir.LogGrammarCoverage("LoadDataSetList,LoadDataSetItem")
+
+
 		$$ = []*ast.Assignment{$1.(*ast.Assignment)}
 	}
 
 LoadDataSetItem:
 	SimpleIdent "=" ExprOrDefault
 	{
+sql_ir.LogGrammarCoverage("LoadDataSetItem,SimpleIdent")
+sql_ir.LogGrammarCoverage("LoadDataSetItem,ExprOrDefault")
+
+
 		$$ = &ast.Assignment{
 			Column: $1.(*ast.ColumnNameExpr).Name,
 			Expr:   $3,
 		}
 	}
 
-/*********************************************************************
- * Lock/Unlock Tables
- * See http://dev.mysql.com/doc/refman/5.7/en/lock-tables.html
- * All the statement leaves empty. This is used to prevent mysqldump error.
- *********************************************************************/
+
 UnlockTablesStmt:
 	"UNLOCK" TablesTerminalSym
 	{
+sql_ir.LogGrammarCoverage("UnlockTablesStmt,TablesTerminalSym")
+
+
 		$$ = &ast.UnlockTablesStmt{}
 	}
 
 LockTablesStmt:
 	"LOCK" TablesTerminalSym TableLockList
 	{
+sql_ir.LogGrammarCoverage("LockTablesStmt,TablesTerminalSym")
+sql_ir.LogGrammarCoverage("LockTablesStmt,TableLockList")
+
+
 		$$ = &ast.LockTablesStmt{
 			TableLocks: $3.([]ast.TableLock),
 		}
@@ -13427,11 +20980,21 @@ LockTablesStmt:
 
 TablesTerminalSym:
 	"TABLES"
+{
+
+}
 |	"TABLE"
 
+{
+
+}
 TableLock:
 	TableName LockType
 	{
+sql_ir.LogGrammarCoverage("TableLock,TableName")
+sql_ir.LogGrammarCoverage("TableLock,LockType")
+
+
 		$$ = ast.TableLock{
 			Table: $1.(*ast.TableName),
 			Type:  $2.(model.TableLockType),
@@ -13441,38 +21004,56 @@ TableLock:
 LockType:
 	"READ"
 	{
+
+
 		$$ = model.TableLockRead
 	}
 |	"READ" "LOCAL"
 	{
+
+
 		$$ = model.TableLockReadLocal
 	}
 |	"WRITE"
 	{
+
+
 		$$ = model.TableLockWrite
 	}
 |	"WRITE" "LOCAL"
 	{
+
+
 		$$ = model.TableLockWriteLocal
 	}
 
 TableLockList:
 	TableLock
 	{
+sql_ir.LogGrammarCoverage("TableLockList,TableLock")
+
+
 		$$ = []ast.TableLock{$1.(ast.TableLock)}
 	}
 |	TableLockList ',' TableLock
 	{
+sql_ir.LogGrammarCoverage("TableLockList,TableLockList")
+sql_ir.LogGrammarCoverage("TableLockList,TableLock")
+
+
 		$$ = append($1.([]ast.TableLock), $3.(ast.TableLock))
 	}
 
-/********************************************************************
- * Non-transactional Delete Statement
- * Split a SQL on a column. Used for bulk delete that doesn't need ACID.
- *******************************************************************/
+
 NonTransactionalDeleteStmt:
 	"BATCH" OptionalShardColumn "LIMIT" NUM DryRunOptions DeleteFromStmt
 	{
+sql_ir.LogGrammarCoverage("NonTransactionalDeleteStmt,OptionalShardColumn")
+sql_ir.LogGrammarCoverage("NonTransactionalDeleteStmt,NUM")
+sql_ir.LogGrammarCoverage("NonTransactionalDeleteStmt,DryRunOptions")
+sql_ir.LogGrammarCoverage("NonTransactionalDeleteStmt,DeleteFromStmt")
+
+
 		$$ = &ast.NonTransactionalDeleteStmt{
 			DryRun:      $5.(int),
 			ShardColumn: $2.(*ast.ColumnName),
@@ -13483,33 +21064,45 @@ NonTransactionalDeleteStmt:
 
 DryRunOptions:
 	{
+
+
 		$$ = ast.NoDryRun
 	}
 |	"DRY" "RUN"
 	{
+
+
 		$$ = ast.DryRunSplitDml
 	}
 |	"DRY" "RUN" "QUERY"
 	{
+
+
 		$$ = ast.DryRunQuery
 	}
 
 OptionalShardColumn:
 	{
+
+
 		$$ = (*ast.ColumnName)(nil)
 	}
 |	"ON" ColumnName
 	{
+sql_ir.LogGrammarCoverage("OptionalShardColumn,ColumnName")
+
+
 		$$ = $2.(*ast.ColumnName)
 	}
 
-/********************************************************************
- * Kill Statement
- * See https://dev.mysql.com/doc/refman/5.7/en/kill.html
- *******************************************************************/
+
 KillStmt:
 	KillOrKillTiDB NUM
 	{
+sql_ir.LogGrammarCoverage("KillStmt,KillOrKillTiDB")
+sql_ir.LogGrammarCoverage("KillStmt,NUM")
+
+
 		$$ = &ast.KillStmt{
 			ConnectionID:  getUint64FromNUM($2),
 			TiDBExtension: $1.(bool),
@@ -13517,6 +21110,10 @@ KillStmt:
 	}
 |	KillOrKillTiDB "CONNECTION" NUM
 	{
+sql_ir.LogGrammarCoverage("KillStmt,KillOrKillTiDB")
+sql_ir.LogGrammarCoverage("KillStmt,NUM")
+
+
 		$$ = &ast.KillStmt{
 			ConnectionID:  getUint64FromNUM($3),
 			TiDBExtension: $1.(bool),
@@ -13524,6 +21121,10 @@ KillStmt:
 	}
 |	KillOrKillTiDB "QUERY" NUM
 	{
+sql_ir.LogGrammarCoverage("KillStmt,KillOrKillTiDB")
+sql_ir.LogGrammarCoverage("KillStmt,NUM")
+
+
 		$$ = &ast.KillStmt{
 			ConnectionID:  getUint64FromNUM($3),
 			Query:         true,
@@ -13534,18 +21135,24 @@ KillStmt:
 KillOrKillTiDB:
 	"KILL"
 	{
+
+
 		$$ = false
 	}
-/* KILL TIDB is a special grammar extension in TiDB, it can be used only when
-   the client connect to TiDB directly, not proxied under LVS. */
+
 |	"KILL" "TIDB"
 	{
+
+
 		$$ = true
 	}
 
 LoadStatsStmt:
 	"LOAD" "STATS" stringLit
 	{
+sql_ir.LogGrammarCoverage("LoadStatsStmt,stringLit")
+
+
 		$$ = &ast.LoadStatsStmt{
 			Path: $3,
 		}
@@ -13554,6 +21161,10 @@ LoadStatsStmt:
 DropPolicyStmt:
 	"DROP" "PLACEMENT" "POLICY" IfExists PolicyName
 	{
+sql_ir.LogGrammarCoverage("DropPolicyStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropPolicyStmt,PolicyName")
+
+
 		$$ = &ast.DropPlacementPolicyStmt{
 			IfExists:   $4.(bool),
 			PolicyName: model.NewCIStr($5),
@@ -13563,6 +21174,12 @@ DropPolicyStmt:
 CreatePolicyStmt:
 	"CREATE" OrReplace "PLACEMENT" "POLICY" IfNotExists PolicyName PlacementOptionList
 	{
+sql_ir.LogGrammarCoverage("CreatePolicyStmt,OrReplace")
+sql_ir.LogGrammarCoverage("CreatePolicyStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreatePolicyStmt,PolicyName")
+sql_ir.LogGrammarCoverage("CreatePolicyStmt,PlacementOptionList")
+
+
 		$$ = &ast.CreatePlacementPolicyStmt{
 			OrReplace:        $2.(bool),
 			IfNotExists:      $5.(bool),
@@ -13574,6 +21191,11 @@ CreatePolicyStmt:
 AlterPolicyStmt:
 	"ALTER" "PLACEMENT" "POLICY" IfExists PolicyName PlacementOptionList
 	{
+sql_ir.LogGrammarCoverage("AlterPolicyStmt,IfExists")
+sql_ir.LogGrammarCoverage("AlterPolicyStmt,PolicyName")
+sql_ir.LogGrammarCoverage("AlterPolicyStmt,PlacementOptionList")
+
+
 		$$ = &ast.AlterPlacementPolicyStmt{
 			IfExists:         $4.(bool),
 			PolicyName:       model.NewCIStr($5),
@@ -13581,23 +21203,16 @@ AlterPolicyStmt:
 		}
 	}
 
-/********************************************************************************************
- *
- *  Create Sequence Statement
- *
- *  Example:
- *	CREATE [TEMPORARY] SEQUENCE [IF NOT EXISTS] sequence_name
- *	[ INCREMENT [ BY | = ] increment ]
- *	[ MINVALUE [=] minvalue | NO MINVALUE | NOMINVALUE ]
- *	[ MAXVALUE [=] maxvalue | NO MAXVALUE | NOMAXVALUE ]
- *	[ START [ WITH | = ] start ]
- *	[ CACHE [=] cache | NOCACHE | NO CACHE]
- *	[ CYCLE | NOCYCLE | NO CYCLE]
- *	[table_options]
- ********************************************************************************************/
+
 CreateSequenceStmt:
 	"CREATE" "SEQUENCE" IfNotExists TableName CreateSequenceOptionListOpt CreateTableOptionListOpt
 	{
+sql_ir.LogGrammarCoverage("CreateSequenceStmt,IfNotExists")
+sql_ir.LogGrammarCoverage("CreateSequenceStmt,TableName")
+sql_ir.LogGrammarCoverage("CreateSequenceStmt,CreateSequenceOptionListOpt")
+sql_ir.LogGrammarCoverage("CreateSequenceStmt,CreateTableOptionListOpt")
+
+
 		$$ = &ast.CreateSequenceStmt{
 			IfNotExists: $3.(bool),
 			Name:        $4.(*ast.TableName),
@@ -13608,94 +21223,161 @@ CreateSequenceStmt:
 
 CreateSequenceOptionListOpt:
 	{
+
+
 		$$ = []*ast.SequenceOption{}
 	}
 |	SequenceOptionList
 
+{
+sql_ir.LogGrammarCoverage("CreateSequenceOptionListOpt,SequenceOptionList")
+
+}
 SequenceOptionList:
 	SequenceOption
 	{
+sql_ir.LogGrammarCoverage("SequenceOptionList,SequenceOption")
+
+
 		$$ = []*ast.SequenceOption{$1.(*ast.SequenceOption)}
 	}
 |	SequenceOptionList SequenceOption
 	{
+sql_ir.LogGrammarCoverage("SequenceOptionList,SequenceOptionList")
+sql_ir.LogGrammarCoverage("SequenceOptionList,SequenceOption")
+
+
 		$$ = append($1.([]*ast.SequenceOption), $2.(*ast.SequenceOption))
 	}
 
 SequenceOption:
 	"INCREMENT" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceOptionIncrementBy, IntValue: $3.(int64)}
 	}
 |	"INCREMENT" "BY" SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceOptionIncrementBy, IntValue: $3.(int64)}
 	}
 |	"START" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceStartWith, IntValue: $3.(int64)}
 	}
 |	"START" "WITH" SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceStartWith, IntValue: $3.(int64)}
 	}
 |	"MINVALUE" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceMinValue, IntValue: $3.(int64)}
 	}
 |	"NOMINVALUE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoMinValue}
 	}
 |	"NO" "MINVALUE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoMinValue}
 	}
 |	"MAXVALUE" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceMaxValue, IntValue: $3.(int64)}
 	}
 |	"NOMAXVALUE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoMaxValue}
 	}
 |	"NO" "MAXVALUE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoMaxValue}
 	}
 |	"CACHE" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("SequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("SequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceCache, IntValue: $3.(int64)}
 	}
 |	"NOCACHE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoCache}
 	}
 |	"NO" "CACHE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoCache}
 	}
 |	"CYCLE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceCycle}
 	}
 |	"NOCYCLE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoCycle}
 	}
 |	"NO" "CYCLE"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceNoCycle}
 	}
 
 SignedNum:
 	Int64Num
+{
+sql_ir.LogGrammarCoverage("SignedNum,Int64Num")
+
+}
 |	'+' Int64Num
 	{
+sql_ir.LogGrammarCoverage("SignedNum,Int64Num")
+
+
 		$$ = $2
 	}
 |	'-' NUM
 	{
+sql_ir.LogGrammarCoverage("SignedNum,NUM")
+
+
 		unsigned_num := getUint64FromNUM($2)
 		if unsigned_num > 9223372036854775808 {
 			yylex.AppendError(yylex.Errorf("the Signed Value should be at the range of [-9223372036854775808, 9223372036854775807]."))
@@ -13711,29 +21393,25 @@ SignedNum:
 DropSequenceStmt:
 	"DROP" "SEQUENCE" IfExists TableNameList
 	{
+sql_ir.LogGrammarCoverage("DropSequenceStmt,IfExists")
+sql_ir.LogGrammarCoverage("DropSequenceStmt,TableNameList")
+
+
 		$$ = &ast.DropSequenceStmt{
 			IfExists:  $3.(bool),
 			Sequences: $4.([]*ast.TableName),
 		}
 	}
 
-/********************************************************************************************
- *
- *  Alter Sequence Statement
- *
- *  Example:
- *	ALTER SEQUENCE [IF EXISTS] sequence_name
- *	[ INCREMENT [ BY | = ] increment ]
- *	[ MINVALUE [=] minvalue | NO MINVALUE | NOMINVALUE ]
- *	[ MAXVALUE [=] maxvalue | NO MAXVALUE | NOMAXVALUE ]
- *	[ START [ WITH | = ] start ]
- *	[ CACHE [=] cache | NOCACHE | NO CACHE]
- *	[ CYCLE | NOCYCLE | NO CYCLE]
- *	[ RESTART [WITH | = ] restart ]
- ********************************************************************************************/
+
 AlterSequenceStmt:
 	"ALTER" "SEQUENCE" IfExists TableName AlterSequenceOptionList
 	{
+sql_ir.LogGrammarCoverage("AlterSequenceStmt,IfExists")
+sql_ir.LogGrammarCoverage("AlterSequenceStmt,TableName")
+sql_ir.LogGrammarCoverage("AlterSequenceStmt,AlterSequenceOptionList")
+
+
 		$$ = &ast.AlterSequenceStmt{
 			IfExists:   $3.(bool),
 			Name:       $4.(*ast.TableName),
@@ -13744,47 +21422,59 @@ AlterSequenceStmt:
 AlterSequenceOptionList:
 	AlterSequenceOption
 	{
+sql_ir.LogGrammarCoverage("AlterSequenceOptionList,AlterSequenceOption")
+
+
 		$$ = []*ast.SequenceOption{$1.(*ast.SequenceOption)}
 	}
 |	AlterSequenceOptionList AlterSequenceOption
 	{
+sql_ir.LogGrammarCoverage("AlterSequenceOptionList,AlterSequenceOptionList")
+sql_ir.LogGrammarCoverage("AlterSequenceOptionList,AlterSequenceOption")
+
+
 		$$ = append($1.([]*ast.SequenceOption), $2.(*ast.SequenceOption))
 	}
 
 AlterSequenceOption:
 	SequenceOption
+{
+sql_ir.LogGrammarCoverage("AlterSequenceOption,SequenceOption")
+
+}
 |	"RESTART"
 	{
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceRestart}
 	}
 |	"RESTART" EqOpt SignedNum
 	{
+sql_ir.LogGrammarCoverage("AlterSequenceOption,EqOpt")
+sql_ir.LogGrammarCoverage("AlterSequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceRestartWith, IntValue: $3.(int64)}
 	}
 |	"RESTART" "WITH" SignedNum
 	{
+sql_ir.LogGrammarCoverage("AlterSequenceOption,SignedNum")
+
+
 		$$ = &ast.SequenceOption{Tp: ast.SequenceRestartWith, IntValue: $3.(int64)}
 	}
 
-/********************************************************************
- * Index Advisor Statement
- *
- * INDEX ADVISE
- * 	[LOCAL]
- *	INFILE 'file_name'
- *	[MAX_MINUTES number]
- *	[MAX_IDXNUM
- *  	[PER_TABLE number]
- *  	[PER_DB number]
- *	]
- *	[LINES
- *  	[STARTING BY 'string']
- *  	[TERMINATED BY 'string']
- *	]
- *******************************************************************/
+
 IndexAdviseStmt:
 	"INDEX" "ADVISE" LocalOpt "INFILE" stringLit MaxMinutesOpt MaxIndexNumOpt Lines
 	{
+sql_ir.LogGrammarCoverage("IndexAdviseStmt,LocalOpt")
+sql_ir.LogGrammarCoverage("IndexAdviseStmt,stringLit")
+sql_ir.LogGrammarCoverage("IndexAdviseStmt,MaxMinutesOpt")
+sql_ir.LogGrammarCoverage("IndexAdviseStmt,MaxIndexNumOpt")
+sql_ir.LogGrammarCoverage("IndexAdviseStmt,Lines")
+
+
 		x := &ast.IndexAdviseStmt{
 			Path:       $5,
 			MaxMinutes: $6.(uint64),
@@ -13803,19 +21493,30 @@ IndexAdviseStmt:
 
 MaxMinutesOpt:
 	{
+
+
 		$$ = uint64(ast.UnspecifiedSize)
 	}
 |	"MAX_MINUTES" NUM
 	{
+sql_ir.LogGrammarCoverage("MaxMinutesOpt,NUM")
+
+
 		$$ = getUint64FromNUM($2)
 	}
 
 MaxIndexNumOpt:
 	{
+
+
 		$$ = nil
 	}
 |	"MAX_IDXNUM" PerTable PerDB
 	{
+sql_ir.LogGrammarCoverage("MaxIndexNumOpt,PerTable")
+sql_ir.LogGrammarCoverage("MaxIndexNumOpt,PerDB")
+
+
 		$$ = &ast.MaxIndexNumClause{
 			PerTable: $2.(uint64),
 			PerDB:    $3.(uint64),
@@ -13824,25 +21525,38 @@ MaxIndexNumOpt:
 
 PerTable:
 	{
+
+
 		$$ = uint64(ast.UnspecifiedSize)
 	}
 |	"PER_TABLE" NUM
 	{
+sql_ir.LogGrammarCoverage("PerTable,NUM")
+
+
 		$$ = getUint64FromNUM($2)
 	}
 
 PerDB:
 	{
+
+
 		$$ = uint64(ast.UnspecifiedSize)
 	}
 |	"PER_DB" NUM
 	{
+sql_ir.LogGrammarCoverage("PerDB,NUM")
+
+
 		$$ = getUint64FromNUM($2)
 	}
 
 EncryptionOpt:
 	stringLit
 	{
+sql_ir.LogGrammarCoverage("EncryptionOpt,stringLit")
+
+
 		// Parse it but will ignore it
 		switch $1 {
 		case "Y", "y":
@@ -13860,36 +21574,36 @@ EncryptionOpt:
 ValuesStmtList:
 	RowStmt
 	{
+sql_ir.LogGrammarCoverage("ValuesStmtList,RowStmt")
+
+
 		$$ = append([]*ast.RowExpr{}, $1.(*ast.RowExpr))
 	}
 |	ValuesStmtList ',' RowStmt
 	{
+sql_ir.LogGrammarCoverage("ValuesStmtList,ValuesStmtList")
+sql_ir.LogGrammarCoverage("ValuesStmtList,RowStmt")
+
+
 		$$ = append($1.([]*ast.RowExpr), $3.(*ast.RowExpr))
 	}
 
 RowStmt:
 	"ROW" RowValue
 	{
+sql_ir.LogGrammarCoverage("RowStmt,RowValue")
+
+
 		$$ = &ast.RowExpr{Values: $2.([]ast.ExprNode)}
 	}
 
-/********************************************************************
- *
- * Plan Replayer Statement
- *
- * PLAN REPLAYER
- * 		[DUMP EXPLAIN
- *			[ANALYZE]
- *			{ExplainableStmt
- *			| [WHERE where_condition]
- *			  [ORDER BY {col_name | expr | position}
- *    			[ASC | DESC], ... [WITH ROLLUP]]
- *  		  [LIMIT {[offset,] row_count | row_count OFFSET offset}]}
- *		| LOAD 'file_name']
- *******************************************************************/
+
 PlanReplayerStmt:
 	"PLAN" "REPLAYER" "DUMP" "EXPLAIN" ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,ExplainableStmt")
+
+
 		x := &ast.PlanReplayerStmt{
 			Stmt:    $5,
 			Analyze: false,
@@ -13906,6 +21620,9 @@ PlanReplayerStmt:
 	}
 |	"PLAN" "REPLAYER" "DUMP" "EXPLAIN" "ANALYZE" ExplainableStmt
 	{
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,ExplainableStmt")
+
+
 		x := &ast.PlanReplayerStmt{
 			Stmt:    $6,
 			Analyze: true,
@@ -13922,6 +21639,11 @@ PlanReplayerStmt:
 	}
 |	"PLAN" "REPLAYER" "DUMP" "EXPLAIN" "SLOW" "QUERY" WhereClauseOptional OrderByOptional SelectStmtLimitOpt
 	{
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,SelectStmtLimitOpt")
+
+
 		x := &ast.PlanReplayerStmt{
 			Stmt:    nil,
 			Analyze: false,
@@ -13942,6 +21664,11 @@ PlanReplayerStmt:
 	}
 |	"PLAN" "REPLAYER" "DUMP" "EXPLAIN" "ANALYZE" "SLOW" "QUERY" WhereClauseOptional OrderByOptional SelectStmtLimitOpt
 	{
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,WhereClauseOptional")
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,OrderByOptional")
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,SelectStmtLimitOpt")
+
+
 		x := &ast.PlanReplayerStmt{
 			Stmt:    nil,
 			Analyze: true,
@@ -13962,6 +21689,9 @@ PlanReplayerStmt:
 	}
 |	"PLAN" "REPLAYER" "LOAD" stringLit
 	{
+sql_ir.LogGrammarCoverage("PlanReplayerStmt,stringLit")
+
+
 		x := &ast.PlanReplayerStmt{
 			Stmt:    nil,
 			Analyze: false,
@@ -13974,4 +21704,5 @@ PlanReplayerStmt:
 
 		$$ = x
 	}
+
 %%

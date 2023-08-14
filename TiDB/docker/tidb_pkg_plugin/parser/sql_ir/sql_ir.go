@@ -365,3 +365,24 @@ func GetSubNodeFromParentNodeWithDataType(curRootNode *SqlRsgIR,
 
 	return irVecMatchingType
 }
+
+// Function for Logging Parser Grammar Coverage
+type GramCovLogger struct {
+	NewUnsavedCov []string
+}
+
+var gramCov GramCovLogger
+
+func GetGrammarCoverage() []string {
+	var newCov = make([]string, len(gramCov.NewUnsavedCov))
+	copy(newCov, gramCov.NewUnsavedCov)
+	return newCov
+}
+
+func ResetGrammarCoverage() {
+	gramCov.NewUnsavedCov = make([]string, 0)
+}
+
+func LogGrammarCoverage(ruleStr string) {
+	gramCov.NewUnsavedCov = append(gramCov.NewUnsavedCov, ruleStr)
+}
