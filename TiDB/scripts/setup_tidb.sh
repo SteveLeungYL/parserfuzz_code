@@ -3,7 +3,7 @@ cd "$(dirname "$0")"/../docker
 
 rm -rf ./tidb_pkg_plugin/rsg &> /dev/null
 cp -r ../../Common_Tootls/rsg ./tidb_pkg_plugin/rsg
-rm ./tidb_pkg_plugin/parser/parser.y; exit 0
+rm ./tidb_pkg_plugin/parser/parser.y
 cp ./tidb_pkg_plugin/parser_translate/assets/tidb_parser_inst_modi.y ./tidb_pkg_plugin/parser/parser.y
 
 ## For debug purpose, keep all intermediate steps to fast reproduce the run results.
