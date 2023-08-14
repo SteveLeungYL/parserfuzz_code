@@ -4907,13 +4907,7 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
     return ir_set;
   }
 
-  if (root_ir->get_ir_type() == TypePanic) {
-    // This is a crashing problem from the parser side.
-    // If too much, consider disable this logging option.
-    this->log_parser_crashes_bugs(query_str);
-    ir_set.clear();
-    return ir_set;
-  }
+
 
   log_grammar_coverage(root_ir);
 
@@ -4932,10 +4926,21 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
         ir->get_ir_type() == TypeGrantRoleStmt || ir->get_ir_type() == TypeGrantStmt ||
         ir->get_ir_type() == TypeDropUserStmt || ir->get_ir_type() == TypeSetPwdStmt
         ) {
-      // Do not parse SHUTDOWN statement.
+      // Do not parse these statements.
+      root_ir->deep_drop();
       ir_set.clear();
       return ir_set;
     }
+
+    if (ir->get_ir_type() == TypePanic) {
+      // This is a crashing problem from the parser side.
+      // If too much, consider disable this logging option.
+      this->log_parser_crashes_bugs(query_str);
+      root_ir->deep_drop();
+      ir_set.clear();
+      return ir_set;
+    }
+
   }
 
   return ir_set;
