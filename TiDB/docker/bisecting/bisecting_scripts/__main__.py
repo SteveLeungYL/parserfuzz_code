@@ -1,13 +1,8 @@
 import bisecting
-import click
 import constants
 import file_io 
 import utils
 from loguru import logger
-import os
-from pathlib import Path
-import getopt
-import sys
 
 def setup_logger(debug_level):
     logger.add(

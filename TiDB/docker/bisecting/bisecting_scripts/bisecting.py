@@ -47,7 +47,7 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
 
         commit_ID = all_commits_str[tmp_commit_index]
 
-        rn_correctness = mysql.execute_queries(query, commit_ID)
+        rn_correctness = tidb_driver.execute_queries(query, commit_ID)
 
         if rn_correctness == constants.RESULT.PASS:  # The correct version.
             # Good commit.

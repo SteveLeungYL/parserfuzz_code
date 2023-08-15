@@ -2,7 +2,7 @@ from enum import Enum
 import os
 
 # IMPORTANT VARIBLES to setup
-BISECTING_SCRIPTS_ROOT = "/home/tidb/bisecting"
+BISECTING_SCRIPTS_ROOT = "/home/tidb/bisecting/bisecting_scripts"
 TIDB_CACHE_ROOT = "/home/tidb/tidb_binary"
 TIDB_SRC = "/home/tidb/go_projects/src/github.com/tidb/tidb"
 

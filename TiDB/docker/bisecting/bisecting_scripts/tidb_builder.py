@@ -60,7 +60,7 @@ def copy_binaries (hexsha: str):
 
     if os.path.isfile(os.path.join(src_folder, "tidb-server")):
         # Contain the bin subfolder
-        shutil.copytree(src_folder, dest_folder)
+        shutil.copytree(src_folder, os.path.join(dest_folder, "bin"))
         return True
 
     else:

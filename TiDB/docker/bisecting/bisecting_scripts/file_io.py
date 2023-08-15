@@ -1,9 +1,7 @@
 import os
 import re
-from typing import List
 
 import constants
-from pathlib import Path
 from loguru import logger
 import os
 

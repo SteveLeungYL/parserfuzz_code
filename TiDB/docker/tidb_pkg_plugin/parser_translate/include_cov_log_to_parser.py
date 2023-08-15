@@ -2,6 +2,8 @@ import json
 
 count = 0
 tidb_keyword_mapping = {}
+unique_grammar_edge = set()
+
 with open("./assets/tidb_keyword_mapping.json", "r") as tidb_map_file:
     tidb_keyword_mapping = json.load(tidb_map_file)
 
@@ -19,6 +21,7 @@ def is_keyword_terminated(cur_keyword: str) -> bool:
     return False
 
 def gen_cov_logging_func_call(cur_keyword, token_seq: str) -> str:
+    global unique_grammar_edge
     global count
     count += 1
 
@@ -33,6 +36,8 @@ def gen_cov_logging_func_call(cur_keyword, token_seq: str) -> str:
         if not is_keyword_terminated(cur_token):
             #TODO: Change to Type representation instead of reuse the original keyword string?
             res_str += f"sql_ir.LogGrammarCoverage(\"{cur_keyword},{cur_token}\")\n"
+            if f"{cur_keyword},{cur_token}" not in unique_grammar_edge:
+                unique_grammar_edge.add(f"{cur_keyword},{cur_token}")
     return res_str
 
 grammar_fd = open("assets/tidb_parser_ori.y", "r")
@@ -222,3 +227,10 @@ res_has_cov += "\n%%\n"
 
 out_fd = open("assets/tidb_parser_inst_modi.y", "w")
 out_fd.write(res_has_cov)
+
+# Print all the unique grammar edge
+all_edges_out = open("all_edges.txt", "w")
+all_edges_out.write(f"Total edge num: {len(unique_grammar_edge)}\n")
+
+for _, edge in enumerate(unique_grammar_edge):
+    all_edges_out.write(f"{edge}\n")

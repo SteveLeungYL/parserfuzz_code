@@ -42,7 +42,8 @@ RUN apt -y upgrade \
 && apt -y install clang \
 && apt install -y g++-9 \
 && apt install -y gcc-9 \
-&& pip3 install libtmux
+&& pip3 install libtmux loguru click
+&& apt -y install lsof
 
 RUN useradd -ms /bin/bash tidb
 USER tidb

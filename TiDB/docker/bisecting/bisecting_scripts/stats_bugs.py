@@ -1,7 +1,6 @@
 import tidb_driver
 import constants
 import utils
-from loguru import logger
 
 def filter_known_bugs(query: str, file_name: str):
     # Return is_known bugs.

@@ -1,12 +1,11 @@
-from pathlib import Path
 import os
-
 import constants
 import utils
 from loguru import logger
 import subprocess
 import time
 import tidb_builder
+import shutil
 
 def get_tidb_binary_sub_dir(cur_dir:str):
     command = "bin"
@@ -62,6 +61,11 @@ def start_tidb_server(hexsha: str):
         utils.dump_failed_commit(hexsha)
         return
 
+    cur_tidb_cache_root = os.path.join(cur_tidb_cache_root, get_tidb_binary_sub_dir(cur_tidb_cache_root))
+    if os.path.isdir(os.path.join(cur_tidb_cache_root, "db_data")):
+        # remove the old database folder.
+        shutil.rmtree(os.path.isdir(os.path.join(cur_tidb_cache_root, "db_data")))
+
     logger.debug("Starting tidb server with hash: %s" % (hexsha))
 
     # And then, call TiDB server process. 
@@ -78,7 +82,7 @@ def start_tidb_server(hexsha: str):
 
     _ = subprocess.Popen(
                         tidb_server_launch_command,
-                        cwd=os.path.join(cur_tidb_cache_root, get_tidb_binary_sub_dir(cur_tidb_cache_root)),
+                        cwd=cur_tidb_cache_root,
                         shell=True,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
@@ -106,9 +110,15 @@ def execute_queries(query: str, hexsha: str):
 
     start_tidb_server(hexsha=hexsha)
 
+    check_wait_trial = 0
     if not check_tidb_server_alive():
-        # Did not find the mysql server process after the start_mysqld function. Failed to compile.
-        return constants.RESULT.FAIL_TO_COMPILE
+        # Did not find the tidb server process after the start_tidb_server function. wait for a while before abort.
+        time.sleep(0.1)
+        check_wait_trial += 1
+
+        if check_wait_trial > 100:
+            # tidb server did not start after 10 second.
+            return constants.RESULT.FAIL_TO_COMPILE
     
     cur_mysql_root = os.path.join(constants.TIDB_CACHE_ROOT, hexsha)
 
@@ -131,7 +141,8 @@ def execute_queries(query: str, hexsha: str):
         mysql_client, input_contents=safe_query, timeout=5  # 5 seconds timeout. 
     )
 
-    logger.debug(f"Query:\n\n{safe_query}")
+    # safe_query itself is far too long. Do not print it.
+    # logger.debug(f"Query:\n\n{safe_query}")
     logger.debug(f"Result: \n\n{output}\n")
     logger.debug(f"Directory: {cur_mysql_root}")
     logger.debug(f"Return Code: {status}")
