@@ -9,8 +9,8 @@ import os
 
 def read_queries_from_files():
 
-    def get_contents(file):
-        with open(file, errors="replace") as f:
+    def get_contents(input_file_name):
+        with open(input_file_name, errors="replace") as f:
             contents = f.read()
 
         contents = re.sub(r"[^\x00-\x7F]+", " ", contents)
@@ -21,17 +21,32 @@ def read_queries_from_files():
         logger.debug("print queries for debug purpose. \n")
         logger.debug(queries)
 
-    mysql_samples = Path(constants.BUG_SAMPLES_PATH)
-    sample_files = [sample for sample in mysql_samples.glob("*")]
-    sample_files = list(filter(lambda x: x.is_file(), sample_files))
-    sample_files.sort(key=os.path.getctime)
-    
-    logger.info(f"Getting {len(sample_files)} number of bugs that needs bisecting. ")
+    tidb_bug_root = os.path.join(constants.BUG_SAMPLES_PATH)
+    cur_parser_bug_root = os.path.join(tidb_bug_root, "parser_crash")
+    cur_crash_bug_root = os.path.join(tidb_bug_root, "crashes")
+    total_bug_num = len(os.listdir(cur_parser_bug_root)) + len(os.listdir(cur_crash_bug_root))
+    bug_scan_index = 0
 
-    for index, sample_file_name in enumerate(sample_files):
-        logger.debug(f"Got sample - {index}: {sample_file_name}")
-        cur_query = get_contents(sample_file_name)
-        debug_print_queries(cur_query)
-        yield str(sample_file_name.stem), cur_query
+    logger.info(f"Getting {total_bug_num} number of bugs that needs bisecting. ")
+
+    if os.path.isdir(cur_parser_bug_root):
+        all_files = list(os.listdir(cur_parser_bug_root))
+        all_files = [os.path.join(cur_parser_bug_root, f) for f in all_files]
+        all_files.sort(key=lambda x: os.path.getctime(x))
+        for cur_file in all_files:
+            bug_scan_index+=1
+            logger.info(f"Currently scanning file: {bug_scan_index}/{total_bug_num}: {cur_file}")
+            cur_query = get_contents(cur_file)
+            yield cur_file, cur_query
+
+    if os.path.isdir(cur_crash_bug_root):
+        all_files = list(os.listdir(cur_crash_bug_root))
+        all_files = [os.path.join(cur_crash_bug_root, f) for f in all_files]
+        all_files.sort(key=lambda x: os.path.getctime(x))
+        for cur_file in all_files:
+            bug_scan_index+=1
+            logger.info(f"Currently scanning file: {bug_scan_index}/{total_bug_num}: {cur_file}")
+            cur_query = get_contents(cur_file)
+            yield cur_file, cur_query
 
     logger.info("Finished reading all the query files from the bug input folder. ")
