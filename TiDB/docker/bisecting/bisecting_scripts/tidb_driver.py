@@ -64,7 +64,7 @@ def start_tidb_server(hexsha: str):
     cur_tidb_cache_root = os.path.join(cur_tidb_cache_root, get_tidb_binary_sub_dir(cur_tidb_cache_root))
     if os.path.isdir(os.path.join(cur_tidb_cache_root, "db_data")):
         # remove the old database folder.
-        shutil.rmtree(os.path.isdir(os.path.join(cur_tidb_cache_root, "db_data")))
+        shutil.rmtree(os.path.join(cur_tidb_cache_root, "db_data"))
 
     logger.debug("Starting tidb server with hash: %s" % (hexsha))
 
@@ -96,10 +96,8 @@ def start_tidb_server(hexsha: str):
         trial += 1
         if trial >= 60:
             logger.warning("TiDB-Server not alive after 6 seconds. ")
+            stop_tidb_server()
             return
-
-    time.sleep(0.1)
-    stop_tidb_server()
     
     return
 
@@ -110,15 +108,8 @@ def execute_queries(query: str, hexsha: str):
 
     start_tidb_server(hexsha=hexsha)
 
-    check_wait_trial = 0
     if not check_tidb_server_alive():
-        # Did not find the tidb server process after the start_tidb_server function. wait for a while before abort.
-        time.sleep(0.1)
-        check_wait_trial += 1
-
-        if check_wait_trial > 100:
-            # tidb server did not start after 10 second.
-            return constants.RESULT.FAIL_TO_COMPILE
+        return constants.RESULT.FAIL_TO_COMPILE
     
     cur_mysql_root = os.path.join(constants.TIDB_CACHE_ROOT, hexsha)
 
