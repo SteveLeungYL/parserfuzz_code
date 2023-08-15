@@ -144,6 +144,11 @@ RUN cp /home/tidb/src/afl-fuzz /home/tidb/fuzz_root/afl-fuzz && cp /home/tidb/ti
 # This has been proven to be not working.
 # RUN python3 /home/tidb/tidb_pkg_plugin/setup_tidb_database.py
 
+# Setup the Bisecting folder.
+COPY bisecting /home/tidb/bisecting
+USER root
+RUN chown -R tidb:tidb /home/tidb/bisecting
+
 USER root
 WORKDIR /home/tidb/fuzz_root/
 
