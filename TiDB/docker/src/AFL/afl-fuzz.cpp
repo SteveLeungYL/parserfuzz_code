@@ -6119,6 +6119,11 @@ static u8 fuzz_one(char** argv)
 
       if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
         // If the stmt is TRANSACTION related, ignored.
+        /* Clean up allocated resource.  */
+        for (int i = 0; i < all_pre_trans_vec.size(); i++) {
+          all_pre_trans_vec[i]->deep_drop();
+        }
+        all_pre_trans_vec.clear();
         continue;
       }
 
