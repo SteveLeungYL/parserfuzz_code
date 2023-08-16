@@ -4864,7 +4864,7 @@ bool Mutator::get_select_str_from_lib(string& select_str)
   abort();
 }
 
-void Mutator::log_parser_crashes_bugs(string query_in) const
+void Mutator::log_parser_crashes_bugs(string query_in)
 {
   if (!filesystem::exists("../../Bug_Analysis/")) {
     filesystem::create_directory("../../Bug_Analysis/");
@@ -4876,12 +4876,14 @@ void Mutator::log_parser_crashes_bugs(string query_in) const
     filesystem::create_directory("../../Bug_Analysis/bug_samples/parser_crash");
   }
 
-  string bug_output_dir = "../../Bug_Analysis/bug_samples/parser_crash/bug:" + to_string(unique_parser_crashes_num - 1) + ":core:" + std::to_string(this->bind_to_core_id) + ".txt";
+  string bug_output_dir = "../../Bug_Analysis/bug_samples/parser_crash/bug:" + to_string(unique_parser_crashes_num) + ":core:" + std::to_string(this->bind_to_core_id) + ".txt";
   // cerr << "Bug output dir is: " << bug_output_dir << endl;
   ofstream outputfile;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
   outputfile << query_in;
   outputfile.close();
+
+  unique_parser_crashes_num++;
 
 #ifdef DEBUG
   cerr << "\n\n\n\n\nFOUND PARSER CRASHING BUG. \n\n\n\n\n";
@@ -4890,7 +4892,7 @@ void Mutator::log_parser_crashes_bugs(string query_in) const
   return;
 }
 
-vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str) const
+vector<IR*> Mutator::parse_query_str_get_ir_set(string& query_str)
 {
   vector<IR*> ir_set;
 

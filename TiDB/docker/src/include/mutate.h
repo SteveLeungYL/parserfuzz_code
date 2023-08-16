@@ -149,7 +149,7 @@ class Mutator {
   void add_ir_to_library_no_deepcopy(IR*);
 
   bool get_select_str_from_lib(string&);
-  vector<IR*> parse_query_str_get_ir_set(string& query_str) const;
+  vector<IR*> parse_query_str_get_ir_set(string& query_str);
   bool check_node_num(IR* root, unsigned int limit);
   vector<IR*> extract_statement(IR* root);
   void set_p_oracle(SQL_ORACLE* oracle) { this->p_oracle = oracle; }
@@ -403,7 +403,7 @@ class Mutator {
 
   string rsg_generate_valid(const IRTYPE type = TypeUnknown);
 
-  void log_parser_crashes_bugs(string query_in) const;
+  void log_parser_crashes_bugs(string query_in);
   void set_bind_to_core_id(int bind_in) { this->bind_to_core_id = bind_in; };
 
   private:
