@@ -745,7 +745,7 @@ class MysqlClient {
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
-    v_cmd_str.push_back(cmd_str);
+//    v_cmd_str.push_back(cmd_str);
 
     SQLSTATUS correctness;
     int server_response;
