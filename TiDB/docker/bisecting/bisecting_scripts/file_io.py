@@ -13,6 +13,15 @@ def read_queries_from_files():
 
         contents = re.sub(r"[^\x00-\x7F]+", " ", contents)
         contents = contents.replace("\ufffd", " ")
+
+        # Filter out the irrelevant strings.
+        if "Query: 0:" in contents:
+            contents = contents.split("Query: 0:")[1]
+        if "Query:" in contents:
+            contents = contents.split("Query")[1]
+        if "Result string:" in contents:
+            contents = contents.split("Result string:")[0]
+
         return contents
 
     def debug_print_queries(queries):

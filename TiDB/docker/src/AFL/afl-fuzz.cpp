@@ -3182,64 +3182,11 @@ inline void print_fuzzer_exec_debug_info()
 void stream_output_res(const ALL_COMP_RES& all_comp_res, ostream& out)
 {
   if (p_oracle->get_mul_run_num() <= 1) {
-    out << "Query: \n";
     out << all_comp_res.cmd_str << "\n";
-    out << "Result string: \n";
-    out << all_comp_res.res_str << "\n";
-    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
-    out << "Detailed result: "
-        << "\n";
-    int iter = 0;
-    for (const COMP_RES& res : all_comp_res.v_res) {
-      out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res
-          << "\n";
-      out << "First stmt res is (str): " << res.res_str_0 << "\n"
-          << "First stmt res is (int): " << res.res_int_0 << "\n";
-      out << "Second stmt res is (str): " << res.res_str_1 << "\n"
-          << "Second stmt is (int): " << res.res_int_1 << "\n";
-      out << "Third stmt res is (str): " << res.res_str_2 << "\n"
-          << "Third stmt is (int): " << res.res_int_2 << "\n";
-      out << "Fourth stmt res is (str): " << res.res_str_3 << "\n"
-          << "Fourth stmt is (int): " << res.res_int_3 << "\n";
-    }
-
-    out << "Compare_No_Rec_result_int: \n"
-        << all_comp_res.final_res;
-    out << "\n\n\n\n";
-  } else { // multiple execute SQLite.
-    out << "Multiple execution of CockroachDB: \n";
-
-    for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++) {
-      out << "Query: " << i << ": \n";
-      out << all_comp_res.v_cmd_str[i] << "\n";
-      out << "Result string: \n";
-      if (i < all_comp_res.v_res_str.size()) {
-        out << all_comp_res.v_res_str[i] << "\n";
-      } else {
-        out << "\n";
-      }
-    }
-    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
-    out << "Detailed result: "
-        << "\n";
-    int iter = 0;
-    for (const COMP_RES& res : all_comp_res.v_res) {
-      out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res
-          << "\n";
-      for (int j = 0; j < max(res.v_res_str.size(), res.v_res_int.size());
-           j++) {
-        if (j < res.v_res_str.size())
-          out << "Str: " << res.v_res_str[j] << " \n";
-        if (j < res.v_res_int.size())
-          out << "INT: " << res.v_res_int[j] << " \n";
-      }
-      iter++;
-    }
-
-    out << "Compare_result_int: \n"
-        << all_comp_res.final_res;
-    out << "\n\n\n\n";
+  } else {
+    out << all_comp_res.v_cmd_str.front() << "\n";
   }
+  return;
 }
 
 /* The same, but with an adjustable gap. Used for trimming. */
