@@ -779,7 +779,9 @@ class MysqlClient {
         debug_error++;
       }
 
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR || findStringIn(res_str, "Lost connection")) {
+      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR || findStringIn(res_str, "Lost connection") ||
+          findStringIn(res_str, "ERROR 1105") || findStringIn(res_str, "ERROR 2013")
+          ) {
         cerr << "Server Lost or Server Crashes! \n\n\n";
         break;
       }
@@ -788,7 +790,9 @@ class MysqlClient {
 
     auto res = kNormal;
 
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR || findStringIn(res_str, "Lost connection")) {
+    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR || findStringIn(res_str, "Lost connection") ||
+        findStringIn(res_str, "ERROR 1105") || findStringIn(res_str, "ERROR 2013")
+            ) {
 #ifdef DEBUG
       cerr << "Server Lost or Server Crashes! \n\n\n";
 #endif
