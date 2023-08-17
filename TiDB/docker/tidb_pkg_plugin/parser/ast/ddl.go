@@ -2095,16 +2095,16 @@ func (n *CreateTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.ReferTable != nil {
 		midfix := " LIKE "
 		rNode := n.ReferTable.LogCurrentNode(depth + 1)
-		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(rNode, sql_ir.DataTableName)
-		for _, tableNameNode := range tableNameNodeList {
-			tableNameNode.DataType = sql_ir.DataTableName
-			tableNameNode.ContextFlag = sql_ir.ContextUse
+		tmpTableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(rNode, sql_ir.DataTableName)
+		for _, tmpTableNameNode := range tmpTableNameNodeList {
+			tmpTableNameNode.DataType = sql_ir.DataTableName
+			tmpTableNameNode.ContextFlag = sql_ir.ContextUse
 		}
 
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
-			LNode:    lNode,
+			LNode:    rootNode,
 			RNode:    rNode,
 			Prefix:   "",
 			Infix:    midfix,

@@ -2364,7 +2364,7 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 
 		if n.From == nil && n.Where != nil {
-			midfix += " FROM DUAL"
+			midfix += " FROM DUAL "
 		}
 
 		if n.Where != nil {
@@ -3106,6 +3106,7 @@ func (n *SetOprSelectList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			if i != 0 {
 				midfix += " " + selectStmt.AfterSetOperator.String() + " "
 			}
+			midfix += "("
 			rNode := selectStmt.LogCurrentNode(depth + 1)
 
 			rootNode = &sql_ir.SqlRsgIR{
@@ -3114,6 +3115,7 @@ func (n *SetOprSelectList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				LNode:    rootNode,
 				RNode:    rNode,
 				Infix:    midfix,
+				Suffix:   ")",
 				Depth:    depth,
 			}
 

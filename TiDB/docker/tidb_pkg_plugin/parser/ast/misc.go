@@ -1668,7 +1668,7 @@ func (n *KillStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "KILL"
 	if n.TiDBExtension {
-		prefix += " TIDB"
+		prefix += " TIDB "
 	}
 	if n.Query {
 		prefix += " QUERY "
