@@ -3094,10 +3094,10 @@ func (n *SetOprSelectList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		DataType: sql_ir.DataNone,
 		Depth:    depth,
 	}
-	if n.With != nil {
-		lNode := n.With.LogCurrentNode(depth + 1)
-		rootNode.LNode = lNode
-	}
+	//if n.With != nil {
+	//lNode := n.With.LogCurrentNode(depth + 1)
+	//rootNode.LNode = lNode
+	//}
 
 	for i, stmt := range n.Selects {
 		switch selectStmt := stmt.(type) {
