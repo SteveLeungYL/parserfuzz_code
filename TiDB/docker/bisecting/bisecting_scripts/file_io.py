@@ -24,14 +24,19 @@ def read_queries_from_files():
 
         return contents
 
-    def debug_print_queries(queries):
-        logger.debug("print queries for debug purpose. \n")
-        logger.debug(queries)
+    # def debug_print_queries(queries):
+        # logger.debug("print queries for debug purpose. \n")
+        # logger.debug(queries)
 
     tidb_bug_root = os.path.join(constants.BUG_SAMPLES_PATH)
     cur_parser_bug_root = os.path.join(tidb_bug_root, "parser_crash")
     cur_crash_bug_root = os.path.join(tidb_bug_root, "crashes")
-    total_bug_num = len(os.listdir(cur_parser_bug_root)) + len(os.listdir(cur_crash_bug_root))
+    total_bug_num = 0
+    if os.path.isdir(cur_parser_bug_root):
+        total_bug_num += len(os.listdir(cur_parser_bug_root))
+    if os.path.isdir(cur_crash_bug_root):
+        total_bug_num += len(os.listdir(cur_crash_bug_root))
+
     bug_scan_index = 0
 
     logger.info(f"Getting {total_bug_num} number of bugs that needs bisecting. ")
