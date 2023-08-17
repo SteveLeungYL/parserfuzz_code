@@ -72,6 +72,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     shutil.copytree("./inputs", os.path.join(cur_workdir, "./inputs"))
     shutil.copytree("./tidb_initlib", os.path.join(cur_workdir, "./tidb_initlib"))
     shutil.copytree("./db_data", os.path.join(cur_workdir, "./db_data"))
+    shutil.copytree("./db_data", os.path.join(cur_workdir, "./db_data_ori"))
 
 
     cur_output_file = os.path.join(cur_workdir, "output.txt")

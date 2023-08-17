@@ -3030,13 +3030,23 @@ static void restart_tidb(char** argv)
     wait(&status);
   }
   forksrv_pid = -1;
-
   close(fsrv_st_fd);
   close(fsrv_ctl_fd);
 
+  /* Experimental: reset the database folder after every restart
+   * in order to avoid accumulative state causing crashes.
+   * */
+  if (!filesystem::exists("./db_data_ori")) {
+    FATAL("Error: The database backup db_data_ori folder not existed in the current folder. \n");
+  }
+  if (filesystem::exists("./db_data")) {
+    filesystem::remove_all("./db_data");
+  }
+  filesystem::copy("./db_data_ori", "./db_data", filesystem::copy_options::recursive | filesystem::copy_options::overwrite_existing);
+
   forksrv_pid = -1;
   init_forkserver(argv);
-  return;
+
 }
 
 /* Execute target application, monitoring for timeouts. Return status
@@ -4141,12 +4151,6 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault,
   /* If we're here, we apparently want to save the crash or hang
      test case, too. */
 
-  //  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
-  //  if (fd < 0)
-  //    PFATAL("Unable to create '%s'", fn);
-  //  ck_write(fd, query_str.c_str(), query_str.size(), fn);
-  //  close(fd);
-
   string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
 
   if (!filesystem::exists("../../Bug_Analysis/")) {
@@ -4160,16 +4164,11 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault,
   }
 
   string bug_output_dir = "../../Bug_Analysis/bug_samples/crashes/bug:" + to_string(unique_crashes - 1) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
-  // cerr << "Bug output dir is: " << bug_output_dir << endl;
   ofstream outputfile;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
   stream_output_res(all_comp_res, outputfile);
   outputfile.close();
 
-  // ofstream crash_output_file;
-  // crash_output_file.open(crash_output_file_fn, std::ofstream::out);
-  // stream_output_res(all_comp_res, crash_output_file);
-  // crash_output_file.close();
 #ifdef DEBUG
   cerr << "\n\n\n\n\nFOUND CRASHING BUG. \n\n\n\n\n";
 #endif
