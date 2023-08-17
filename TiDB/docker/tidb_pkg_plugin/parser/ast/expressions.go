@@ -1649,6 +1649,14 @@ func (n *ParenthesesExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	lNode := n.Expr.LogCurrentNode(depth + 1)
 	midfix := ")"
 
+	if lNode != nil && lNode.LNode != nil &&
+		(lNode.LNode.IRType == sql_ir.TypeParenthesesExpr || lNode.LNode.IRType == sql_ir.TypeBinaryOperationExpr) {
+		// Do not nested embed the parenthesesExpr or TypeBinaryOperationExpr. Seems to be a bug in the original TiDB Restore function.
+		prefix = ""
+		midfix = ""
+		return lNode
+	}
+
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
