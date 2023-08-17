@@ -106,25 +106,23 @@ func (n *RoleIdentity) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Str:      n.Username,
 		Depth:    depth,
 	}
-	var rNode *sql_ir.SqlRsgIR
 
-	midfix := ""
-	if n.Hostname != "" {
-		midfix += "@"
-		rNode = &sql_ir.SqlRsgIR{
-			IRType:   sql_ir.TypeIdentifier,
-			DataType: sql_ir.DataRoleName,
-			Str:      n.Hostname,
-			Depth:    depth,
-		}
-	}
+	/* Ignore the n.Hostname string settings. */
+	//midfix := ""
+	//if n.Hostname != "" {
+	//midfix += "@"
+	//rNode = &sql_ir.SqlRsgIR{
+	//IRType:   sql_ir.TypeIdentifier,
+	//DataType: sql_ir.DataRoleName,
+	//Str:      n.Hostname,
+	//Depth:    depth,
+	//}
+	//}
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
 		LNode:    lNode,
-		RNode:    rNode,
-		Infix:    midfix,
 		Depth:    depth,
 	}
 

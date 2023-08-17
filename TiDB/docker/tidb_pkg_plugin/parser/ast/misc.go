@@ -4055,7 +4055,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case AdminShowNextRowID:
 		prefix += "SHOW "
 		lNode := restoreTables()
-		midfix := " NEXT_ROW_ID"
+		midfix := " NEXT_ROW_ID "
 		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
 		rootNode.Infix = midfix
@@ -4076,6 +4076,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
+		rootNode.Infix = " "
 		rootNode.LNode = lNode
 		rootNode.RNode = rNode
 
@@ -4090,6 +4091,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
+		rootNode.Infix = " "
 		rootNode.LNode = lNode
 		rootNode.RNode = rNode
 
@@ -4104,6 +4106,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
+		rootNode.Infix = " "
 		rootNode.LNode = lNode
 		rootNode.RNode = rNode
 
@@ -4119,6 +4122,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 
 		rootNode.Prefix = prefix
+		rootNode.Infix = " "
 		rootNode.LNode = lNode
 		rootNode.RNode = rNode
 
@@ -4176,6 +4180,7 @@ func (n *AdminStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				DataType: sql_ir.DataNone,
 				LNode:    rootNode,
 				RNode:    tmpRootNode,
+				Infix:    " ",
 				Depth:    depth,
 			}
 		}
