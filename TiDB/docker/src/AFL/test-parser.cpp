@@ -27,9 +27,13 @@ enum Code {
 class Modifier {
   Code code;
 
-public:
-  Modifier(Code pCode) : code(pCode) {}
-  friend std::ostream &operator<<(std::ostream &os, const Modifier &mod) {
+  public:
+  Modifier(Code pCode)
+      : code(pCode)
+  {
+  }
+  friend std::ostream& operator<<(std::ostream& os, const Modifier& mod)
+  {
     return os << "\033[" << mod.code << "m";
   }
 };
@@ -39,9 +43,10 @@ Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
 
 Mutator mutator;
-SQL_ORACLE *p_oracle;
+SQL_ORACLE* p_oracle;
 
-inline void remove_str_bracket_space(string &parsed_str) {
+inline void remove_str_bracket_space(string& parsed_str)
+{
   string tmp_parsed_str;
   for (int idx = 0; idx < parsed_str.size() - 1; idx++) {
     if (parsed_str[idx] == '(' && parsed_str[idx + 1] == ' ') {
@@ -60,43 +65,58 @@ inline void remove_str_bracket_space(string &parsed_str) {
   parsed_str = tmp_parsed_str;
 }
 
-IR *test_parse(string &query) {
+IR* test_parse(string& query, bool debug = true)
+{
 
-  vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
+  vector<IR*> v_ir = mutator.parse_query_str_get_ir_set(query);
   if (v_ir.size() <= 0) {
-    cerr << RED << "parse failed" << DEF << endl;
+    if (debug) {
+      cerr << RED << "parse failed" << DEF << endl;
+    }
     return NULL;
   }
 
-  IR *root = v_ir.back();
+  IR* root = v_ir.back();
 
-  mutator.debug(root, 0);
+  if (debug) {
+    mutator.debug(root, 0);
+  }
 
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
-    cerr << RED << "tostring failed" << DEF << endl;
+    if (debug) {
+      cerr << RED << "tostring failed" << DEF << endl;
+    }
     root->deep_drop();
     return NULL;
   }
-  cout << "tostring: >" << tostring << "<" << endl;
+  if (debug) {
+    cout << "tostring: >" << tostring << "<" << endl;
+  }
 
-  IR *root_ext_struct = root->deep_copy();
+  IR* root_ext_struct = root->deep_copy();
   string structure = mutator.extract_struct(root_ext_struct);
   if (structure.size() <= 0) {
-    cerr << RED << "extract failed" << DEF << endl;
+    if (debug) {
+      cerr << RED << "extract failed" << DEF << endl;
+    }
     root->deep_drop();
     root_ext_struct->deep_drop();
     return NULL;
   }
-  cout << "structur: >" << structure << "<" << endl;
+
+  if (debug) {
+    cout << "structur: >" << structure << "<" << endl;
+  }
   root_ext_struct->deep_drop();
 
-  IR *cur_root = root->deep_copy();
+  IR* cur_root = root->deep_copy();
   root->deep_drop();
   return cur_root;
 }
 
-bool try_validate_query(IR *cur_root) {
+bool try_validate_query(IR* cur_root)
+{
   /*
   pre_transform, post_transform and validate()
   */
@@ -109,9 +129,9 @@ bool try_validate_query(IR *cur_root) {
   mutator.pre_validate(); // Reset global variables for query sequence.
 
   p_oracle->init_ir_wrapper(cur_root);
-  vector<IR *> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
-  for (IR *cur_trans_stmt : all_stmt_vec) {
+  for (IR* cur_trans_stmt : all_stmt_vec) {
     mutator.reset_data_library_single_stmt();
     cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt->to_string()
          << "\n\n\n";
@@ -145,7 +165,7 @@ bool try_validate_query(IR *cur_root) {
     return false;
   }
   string tmp_validity = "";
-  for (auto &it : validity) {
+  for (auto& it : validity) {
     if (it == ';') {
       tmp_validity += "; \n";
     } else {
@@ -154,14 +174,17 @@ bool try_validate_query(IR *cur_root) {
   }
   validity = tmp_validity;
 
-  cout << "validate: \n" << validity << "\n\n\n" << endl;
+  cout << "validate: \n"
+       << validity << "\n\n\n"
+       << endl;
 
   cur_root->deep_drop();
 
   return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
 
   if (argc != 2) {
 
@@ -183,7 +206,7 @@ int main(int argc, char *argv[]) {
 
   vector<pair<string, string>> mismatch_query_pairs;
 
-  IR *root = NULL;
+  IR* root = NULL;
 
   while (getline(input_test, line)) {
 
@@ -198,7 +221,7 @@ int main(int argc, char *argv[]) {
     cout << "----------------------------------------" << endl;
     cout << ">>>>>>>>>>>" << line << "<\n";
 
-    IR *cur_root = test_parse(line);
+    IR* cur_root = test_parse(line);
     if (cur_root == NULL) {
       cout << "Parsing failed. Ignored. \n";
       continue;
@@ -211,14 +234,14 @@ int main(int argc, char *argv[]) {
     remove_str_bracket_space(parsed_str);
 
     if (parsed_str != line) {
-      mismatch_query_pairs.push_back(pair<string, string>{line, parsed_str});
+      mismatch_query_pairs.push_back(pair<string, string> { line, parsed_str });
     }
 
     if (root == NULL) {
       root = cur_root;
       // cout << "Save to root. \n\n\n";
     } else {
-      IR *cur_stmt = p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root);
+      IR* cur_stmt = p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root);
       p_oracle->ir_wrapper.set_ir_root(root);
       p_oracle->ir_wrapper.append_stmt_at_end(cur_stmt->deep_copy());
       //       cout << "Appended stmts: \n\n\n";
@@ -246,10 +269,21 @@ int main(int argc, char *argv[]) {
   if (mismatch_query_pairs.size() == 0) {
     cerr << "\n\n\nNo mismatched. \n\n\n";
   }
-  for (const pair<string, string> &cur_mis : mismatch_query_pairs) {
+  for (const pair<string, string>& cur_mis : mismatch_query_pairs) {
     cerr << "\n\n\nFound string mismatched: \n"
          << cur_mis.first << "\n"
-         << cur_mis.second << "\nEnd mismatched\n\n\n";
+         << cur_mis.second << "\n";
+
+    // Double check whether the parsed string can pass the parser again.
+    string mismatched_str = cur_mis.second;
+    IR* reparsed_root = test_parse(mismatched_str, false);
+    if (reparsed_root == NULL) {
+      cerr << "ERROR: Reparsing failed. \n";
+      continue;
+    } else {
+      reparsed_root->deep_drop();
+    }
+    cerr << "End mismatched\n\n\n";
   }
 
   //  // Just unit test the set statment.
