@@ -3866,10 +3866,10 @@ func (n *LinesClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.Starting != "" || n.Terminated != "\n" {
 		prefix += " LINES"
 		if n.Starting != "" {
-			prefix += " STARTING BY " + n.Starting
+			prefix += " STARTING BY '" + n.Starting + "'"
 		}
 		if n.Terminated != "\n" {
-			prefix += " TERMINATED BY " + n.Terminated
+			prefix += " TERMINATED BY '" + n.Terminated + "'"
 		}
 	}
 
@@ -7270,7 +7270,7 @@ func (n *SplitOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	prefix := ""
 	if len(n.ValueLists) == 0 {
-		prefix += "BETWEEN "
+		prefix += " BETWEEN "
 
 		tmpRootNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -7327,7 +7327,7 @@ func (n *SplitOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.Infix = midfix
 		rootNode.RNode = tmpRootNode
 
-		midfix = " REGIONS"
+		midfix = " REGIONS "
 		rNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeIntegerLiteral,
 			DataType: sql_ir.DataNone,
@@ -7347,7 +7347,7 @@ func (n *SplitOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.IRType = sql_ir.TypeSplitOption
 		return rootNode
 	}
-	prefix += "BY "
+	prefix += " BY "
 	tmpRootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,

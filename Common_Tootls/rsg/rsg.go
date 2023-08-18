@@ -3699,7 +3699,7 @@ func (r *RSG) generateTiDB(root string, rootPathNode *PathNode, parentHash uint3
 			case "decLit":
 				v = []string{fmt.Sprint(r.Float64())}
 			case "hexLit":
-				v = []string{"0xac12"}
+				v = []string{"'ac12'"}
 			case "bitLit":
 				v = []string{"b'01'"}
 			case "BITCONST":

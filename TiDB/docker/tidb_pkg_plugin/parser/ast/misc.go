@@ -5625,7 +5625,7 @@ type HelpStmt struct {
 
 func (n *HelpStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "HELP "
+	prefix := "HELP '" + n.Topic + "'"
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
@@ -5916,7 +5916,7 @@ func (n *BRIEOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	switch n.Tp {
 	case BRIEOptionBackupTS, BRIEOptionLastBackupTS, BRIEOptionBackend, BRIEOptionOnDuplicate, BRIEOptionTiKVImporter, BRIEOptionCSVDelimiter, BRIEOptionCSVNull, BRIEOptionCSVSeparator:
-		prefix += n.StrValue
+		prefix += "'" + n.StrValue + "'"
 	case BRIEOptionBackupTimeAgo:
 		lNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -5925,7 +5925,7 @@ func (n *BRIEOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Str:      strconv.FormatInt(int64(n.UintValue/1000), 10),
 			Depth:    depth,
 		}
-		midfix = "MICROSECOND AGO"
+		midfix = " MICROSECOND AGO "
 	case BRIEOptionRateLimit:
 		lNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -5934,10 +5934,10 @@ func (n *BRIEOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Str:      strconv.FormatInt(int64(n.UintValue/1048576), 10),
 			Depth:    depth,
 		}
-		midfix += "MB / SECOND"
+		midfix += " MB / SECOND "
 	case BRIEOptionCSVHeader:
 		if n.UintValue == BRIECSVHeaderIsColumns {
-			prefix += "COLUMNS"
+			prefix += " COLUMNS "
 		} else {
 			lNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
@@ -6123,7 +6123,7 @@ func (n *BRIEStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case BRIEKindRestore:
 		midfix = " FROM "
 	}
-	midfix += n.Storage
+	midfix += "'" + n.Storage + "' "
 
 	tmpRootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,

@@ -38,8 +38,17 @@ type UserIdentity struct {
 
 func (n *UserIdentity) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	prefix := ""
+	var lNode *sql_ir.SqlRsgIR
 	if n.CurrentUser {
-		prefix += "CURRENT_USER"
+		prefix += " CURRENT_USER "
+	} else {
+		lNode = &sql_ir.SqlRsgIR{
+			IRType:   sql_ir.TypeStringLiteral,
+			DataType: sql_ir.DataNone,
+			Str:      "'" + n.Username + "'",
+			LNode:    lNode,
+			Depth:    depth,
+		}
 	}
 	/* Do not use the custom user and host name here. Always fix to CurrentUser */
 	//else {
@@ -47,9 +56,11 @@ func (n *UserIdentity) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	//ctx.WritePlain("@")
 	//ctx.WriteName(user.Hostname)
 	//}
+
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
+		LNode:    lNode,
 		Prefix:   prefix,
 		Depth:    depth,
 	}
