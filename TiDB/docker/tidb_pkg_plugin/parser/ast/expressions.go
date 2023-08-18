@@ -1002,12 +1002,12 @@ type DefaultExpr struct {
 }
 
 func (n *DefaultExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
-	prefix := "DEFAULT"
+	prefix := " DEFAULT "
 	midfix := ""
 	suffix := ""
 	var lNode *sql_ir.SqlRsgIR
 	if n.Name != nil {
-		midfix = "("
+		prefix += "("
 		lNode = n.Name.LogCurrentNode(depth + 1)
 		columnNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(lNode, sql_ir.DataColumnName)
 		for _, columnNameNode := range columnNameNodeList {
@@ -1015,7 +1015,7 @@ func (n *DefaultExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			columnNameNode.ContextFlag = sql_ir.ContextUse
 		}
 
-		suffix = ")"
+		midfix = ")"
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{

@@ -165,10 +165,10 @@ func (n *TraceStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.TracePlan {
 		prefix += "PLAN "
 		if n.TracePlanTarget != "" {
-			prefix += "TARGET = " + n.TracePlanTarget + " "
+			prefix += "TARGET = '" + n.TracePlanTarget + "' "
 		}
 	} else if n.Format != "row" {
-		prefix += "FORMAT = " + n.Format + " "
+		prefix += "FORMAT = '" + n.Format + "' "
 	}
 
 	lNode := n.Stmt.LogCurrentNode(depth + 1)
@@ -237,7 +237,7 @@ type ExplainForStmt struct {
 
 func (n *ExplainForStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "EXPLAIN FORMAT = " + n.Format + " FOR CONNECTION"
+	prefix := "EXPLAIN FORMAT = " + n.Format + " FOR CONNECTION "
 	lNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
@@ -424,7 +424,7 @@ func (n *PlanReplayerStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Depth:    depth,
 	}
 	if n.Load {
-		prefix += "PLAN REPLAYER LOAD " + n.File
+		prefix += "PLAN REPLAYER LOAD '" + n.File + "'"
 		rootNode.Prefix = prefix
 		rootNode.IRType = sql_ir.TypePlanReplayerStmt
 		return rootNode
@@ -461,9 +461,6 @@ func (n *PlanReplayerStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 		}
 
-		rootNode.Prefix = prefix
-		prefix = ""
-
 		if n.Limit != nil {
 			midfix := " "
 			rNode := n.Limit.LogCurrentNode(depth + 1)
@@ -476,8 +473,6 @@ func (n *PlanReplayerStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				Depth:    depth,
 			}
 		}
-		rootNode.Prefix = prefix
-		prefix = ""
 
 		rootNode.IRType = sql_ir.TypePlanReplayerStmt
 		return rootNode
@@ -1027,7 +1022,7 @@ type BinlogStmt struct {
 
 func (n *BinlogStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "BINLOG " + n.Str
+	prefix := "BINLOG '" + n.Str + "'"
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -1480,7 +1475,7 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:    depth,
 		}
 		prefix = ""
-		midfix = "''"
+		midfix = ""
 
 	case FlushPrivileges:
 		prefix += "PRIVILEGES "
@@ -1567,7 +1562,14 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		break
 	}
 
+	rootNode = &sql_ir.SqlRsgIR{
+		IRType:   sql_ir.TypeUnknown,
+		DataType: sql_ir.DataNone,
+		LNode:    rootNode,
+		Depth:    depth,
+	}
 	rootNode.IRType = sql_ir.TypeFlushStmt
+	rootNode.Infix = prefix
 	return rootNode
 }
 
@@ -1979,7 +1981,7 @@ type ChangeStmt struct {
 
 func (n *ChangeStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "CHANGE " + n.NodeType + " TO NODE_STATE = " + n.State + " FOR NODE_ID " + n.NodeID
+	prefix := "CHANGE " + n.NodeType + " TO NODE_STATE = '" + n.State + "' FOR NODE_ID '" + n.NodeID + "'"
 
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -2041,10 +2043,10 @@ type SetRoleStmt struct {
 
 func (n *SetRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "SET ROLE"
+	prefix := "SET ROLE "
 	switch n.SetRoleOpt {
 	case SetRoleDefault:
-		prefix += "SET ROLE DEFAULT "
+		prefix += " DEFAULT "
 	case SetRoleNone:
 		prefix += " NONE "
 	case SetRoleAll:
@@ -2133,12 +2135,12 @@ type SetDefaultRoleStmt struct {
 
 func (n *SetDefaultRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "SET DEFAULT ROLE"
+	prefix := "SET DEFAULT ROLE "
 	switch n.SetRoleOpt {
 	case SetRoleNone:
-		prefix += " NONE"
+		prefix += " NONE "
 	case SetRoleAll:
-		prefix += " ALL"
+		prefix += " ALL "
 	default:
 	}
 
@@ -2178,7 +2180,7 @@ func (n *SetDefaultRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	prefix = ""
 
-	midfix := " TO"
+	midfix := " TO "
 	tmpRootNode = &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
@@ -6110,10 +6112,12 @@ func (n *BRIEStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 		rootNode.Prefix = prefix
 		rootNode.LNode = tmpRootNode
+		prefix = ""
 
 	default:
-		prefix = " DATABASE *"
+		prefix += " DATABASE *"
 		rootNode.Prefix = prefix
+		prefix = ""
 	}
 
 	midfix := ""
@@ -6342,7 +6346,7 @@ func (n *CreateImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 	midfix := " FROM '" + n.Storage + "' "
 	if n.ErrorHandling != ErrorHandleError {
-		midfix += " " + n.ErrorHandling.String()
+		midfix += " " + n.ErrorHandling.String() + " "
 	}
 
 	tmpRootNode := &sql_ir.SqlRsgIR{
@@ -6562,9 +6566,9 @@ func (n *AlterImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Depth:       depth,
 	}
 
-	midfix := ""
+	midfix := " "
 	if n.ErrorHandling != ErrorHandleError {
-		midfix = " " + n.ErrorHandling.String()
+		midfix = " " + n.ErrorHandling.String() + " "
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -6576,7 +6580,7 @@ func (n *AlterImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Depth:    depth,
 	}
 	prefix = ""
-	midfix = ""
+	midfix = " "
 
 	tmpRootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
@@ -6609,12 +6613,12 @@ func (n *AlterImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Depth:    depth,
 	}
 
-	midfix = ""
+	midfix = " "
 	if n.Truncate != nil {
 		if n.Truncate.IsErrorsOnly {
-			midfix += " TRUNCATE ERRORS"
+			midfix += " TRUNCATE ERRORS "
 		} else {
-			midfix += " TRUNCATE ALL"
+			midfix += " TRUNCATE ALL "
 		}
 		if len(n.Truncate.TableNames) != 0 {
 			midfix += " TABLE "
@@ -6726,7 +6730,7 @@ func (n *DropImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		IRType:      sql_ir.TypeIdentifier,
 		DataType:    sql_ir.DataNone,
 		ContextFlag: sql_ir.ContextUndefine,
-		Suffix:      n.Name,
+		Str:         n.Name,
 		Depth:       depth,
 	}
 
@@ -6734,6 +6738,7 @@ func (n *DropImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
 		LNode:    nameNode,
+		Prefix:   prefix,
 		Depth:    depth,
 	}
 

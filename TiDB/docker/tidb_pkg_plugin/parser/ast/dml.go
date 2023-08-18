@@ -1819,7 +1819,7 @@ func (n *TableSample) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	case SampleMethodTypeSystem:
 		prefix += "SYSTEM "
 	case SampleMethodTypeTiDBRegion:
-		prefix += "REGION "
+		prefix += "REGIONS "
 	}
 	prefix += "("
 	rootNode := &sql_ir.SqlRsgIR{
@@ -2560,13 +2560,12 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 					LNode:    rootNode,
 					RNode:    rNode,
 					Infix:    midfix,
-					Suffix:   " nowait",
 					Depth:    depth,
 				}
 				rNode = nil
 				midfix = ""
 			}
-			midfix += " wait"
+			midfix += " wait "
 			rNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeIntegerLiteral,
 				DataType: sql_ir.DataNone,
@@ -3107,7 +3106,7 @@ func (n *SetOprSelectList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			if i != 0 {
 				midfix += " " + selectStmt.AfterSetOperator.String() + " "
 			}
-			midfix += "("
+			//midfix += "("
 			rNode := selectStmt.LogCurrentNode(depth + 1)
 
 			rootNode = &sql_ir.SqlRsgIR{
@@ -3116,8 +3115,8 @@ func (n *SetOprSelectList) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				LNode:    rootNode,
 				RNode:    rNode,
 				Infix:    midfix,
-				Suffix:   ")",
-				Depth:    depth,
+				//Suffix:   ")",
+				Depth: depth,
 			}
 
 		case *SetOprSelectList:
@@ -3548,7 +3547,7 @@ func (n *LoadDataStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.IsLocal {
 		prefix += "LOCAL "
 	}
-	prefix += "INFILE " + n.Path
+	prefix += "INFILE '" + n.Path + "'"
 	if n.OnDuplicate == OnDuplicateKeyHandlingReplace {
 		prefix += " REPLACE"
 	} else if n.OnDuplicate == OnDuplicateKeyHandlingIgnore {
@@ -3597,7 +3596,7 @@ func (n *LoadDataStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
-			LNode:    lNode,
+			LNode:    rootNode,
 			RNode:    rNode,
 			Infix:    midfix,
 			Suffix:   " LINES",
@@ -6985,6 +6984,7 @@ func (n *FrameBound) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			lNode = n.Expr.LogCurrentNode(depth + 1)
 			rootNode.Prefix = prefix
 			rootNode.LNode = lNode
+			prefix = ""
 		}
 		if n.Unit != TimeUnitInvalid {
 			midfix += " " + n.Unit.String()

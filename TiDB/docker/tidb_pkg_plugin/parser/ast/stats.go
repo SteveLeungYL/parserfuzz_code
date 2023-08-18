@@ -192,7 +192,7 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.HistogramOperation != HistogramOperationNop {
 		midfix += " " + (n.HistogramOperation.String()) + " "
 		if len(n.ColumnNames) > 0 {
-			midfix += "ON "
+			midfix += " ON "
 			tmpRootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
 				DataType: sql_ir.DataNone,
@@ -239,7 +239,7 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	switch n.ColumnChoice {
 	case model.AllColumns:
-		midfix = " ALL COLUMNS"
+		midfix = " ALL COLUMNS "
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
@@ -248,7 +248,7 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:    depth,
 		}
 	case model.PredicateColumns:
-		midfix = " PREDICATE COLUMNS"
+		midfix = " PREDICATE COLUMNS "
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
@@ -299,12 +299,12 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Depth:    depth,
 		}
 
-		midfix = ""
+		midfix = " "
 	}
 
-	midfix = ""
+	midfix = " "
 	if n.IndexFlag {
-		midfix += " INDEX"
+		midfix += "INDEX "
 	}
 
 	tmpRootNode = &sql_ir.SqlRsgIR{
@@ -348,16 +348,16 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Depth:    depth,
 	}
 
-	midfix = ""
+	midfix = " "
 	if len(n.AnalyzeOpts) != 0 {
-		midfix = " WITH"
+		midfix = " WITH "
 		tmpRootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
 			Depth:    depth,
 		}
 		for i, opt := range n.AnalyzeOpts {
-			tmpMidfix := ""
+			tmpMidfix := " "
 			if i != 0 {
 				tmpMidfix = ","
 			}
@@ -372,7 +372,7 @@ func (n *AnalyzeTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				IRType:   sql_ir.TypeUnknown,
 				DataType: sql_ir.DataNone,
 				LNode:    valueNode,
-				Infix:    AnalyzeOptionString[opt.Type],
+				Infix:    " " + AnalyzeOptionString[opt.Type],
 				Depth:    depth,
 			}
 			if i == 0 {
@@ -629,7 +629,7 @@ type LoadStatsStmt struct {
 
 func (n *LoadStatsStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "LOAD STATS " + n.Path
+	prefix := "LOAD STATS '" + n.Path + "'"
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,

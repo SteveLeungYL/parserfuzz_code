@@ -48,7 +48,7 @@ func (n *IndexAdviseStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += "LOCAL "
 	}
 	prefix += "INFILE "
-	prefix += "'./in'"
+	prefix += "'./in' "
 
 	if n.MaxMinutes != UnspecifiedSize {
 		tmpPrefix := " MAX_MINUTES "
@@ -57,11 +57,9 @@ func (n *IndexAdviseStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			DataType: sql_ir.DataNone,
 			IValue:   int64(n.MaxMinutes),
 			Str:      strconv.FormatUint(n.MaxMinutes, 10),
-			Prefix:   tmpPrefix,
-			Infix:    "",
-			Suffix:   "",
 			Depth:    depth + 1,
 		}
+		rootNode.Prefix = tmpPrefix
 		rootNode.LNode = lNode
 	}
 

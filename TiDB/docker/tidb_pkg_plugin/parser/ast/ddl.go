@@ -461,9 +461,7 @@ func (n *DropDatabaseStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		IRType:      sql_ir.TypeIdentifier,
 		DataType:    sql_ir.DataDatabaseName,
 		ContextFlag: sql_ir.ContextUndefine,
-		Prefix:      "",
-		Infix:       "",
-		Suffix:      "",
+		Str:         n.Name,
 		Depth:       depth,
 	}
 	rootNode.LNode = nameNode
@@ -8446,9 +8444,7 @@ func (n *RecoverTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			Str:      strconv.FormatInt(n.JobID, 10),
 			Depth:    depth,
 		}
-		rootNode.Prefix = prefix
 		rootNode.LNode = lNode
-		prefix = ""
 	} else {
 		tableNode := n.Table.LogCurrentNode(depth + 1)
 		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
@@ -8469,6 +8465,7 @@ func (n *RecoverTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			rootNode.RNode = numNode
 		}
 	}
+	rootNode.Prefix = prefix
 	rootNode.IRType = sql_ir.TypeRecoverTableStmt
 	return rootNode
 }
