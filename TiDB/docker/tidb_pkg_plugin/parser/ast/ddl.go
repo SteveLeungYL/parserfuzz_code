@@ -2436,7 +2436,7 @@ func (n *DropTableStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	rootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
-		Prefix:   "",
+		Prefix:   prefix,
 		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
@@ -2866,7 +2866,6 @@ func (n *CreateViewStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	tmpRootNode := &sql_ir.SqlRsgIR{
 		IRType:   sql_ir.TypeUnknown,
 		DataType: sql_ir.DataNone,
-		Prefix:   prefix,
 		Depth:    depth,
 	}
 	for i, col := range n.Cols {
@@ -3900,7 +3899,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataRegionName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -3912,7 +3911,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataRegionName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -3957,7 +3956,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataSchemaName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -3968,7 +3967,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataConstraintName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -3979,7 +3978,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataConstraintName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -3990,7 +3989,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataConstraintName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -4001,7 +4000,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataConstraintName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -4012,7 +4011,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataConstraintName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix
@@ -4023,7 +4022,7 @@ func (n *PlacementOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataPolicyName,
 			ContextFlag: sql_ir.ContextUse,
-			Str:         n.StrValue,
+			Str:         "'" + n.StrValue + "'",
 			Depth:       depth,
 		}
 		rootNode.Prefix = prefix

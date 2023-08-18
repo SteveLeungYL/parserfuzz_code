@@ -112,9 +112,9 @@ func (n *AuthOption) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += n.AuthPlugin
 	}
 	if n.ByAuthString {
-		prefix += " BY " + n.AuthString
+		prefix += " BY '" + n.AuthString + "'"
 	} else if n.HashString != "" {
-		prefix += " AS " + n.HashString
+		prefix += " AS '" + n.AuthString + "'"
 	}
 
 	rootNode := &sql_ir.SqlRsgIR{
@@ -1426,12 +1426,12 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	prefix := "FLUSH "
 	if n.NoWriteToBinLog {
-		prefix += "NO_WRITE_TO_BINLOG "
+		prefix += " NO_WRITE_TO_BINLOG "
 	}
 
 	switch n.Tp {
 	case FlushTables:
-		prefix += "TABLES"
+		prefix += " TABLES "
 
 		tmpRootNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -1467,9 +1467,9 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 		}
 
-		midfix := ""
+		midfix := " "
 		if n.ReadLock {
-			midfix = " WITH READ LOCK"
+			midfix = " WITH READ LOCK "
 		}
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -1483,17 +1483,17 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		midfix = "''"
 
 	case FlushPrivileges:
-		prefix += "PRIVILEGES"
+		prefix += "PRIVILEGES "
 		rootNode.Prefix = prefix
 		prefix = ""
 
 	case FlushStatus:
-		prefix += "STATUS"
+		prefix += "STATUS "
 		rootNode.Prefix = prefix
 		prefix = ""
 
 	case FlushTiDBPlugin:
-		prefix += "TIDB PLUGINS"
+		prefix += "TIDB PLUGINS "
 
 		tmpRootNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -1536,33 +1536,33 @@ func (n *FlushStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				Depth:    depth,
 			}
 
-			prefix = ""
+			prefix = " "
 		}
 	case FlushHosts:
-		prefix += "HOSTS"
+		prefix += "HOSTS "
 		rootNode.Prefix = prefix
 		prefix = ""
 	case FlushLogs:
 		switch n.LogType {
 		case LogTypeDefault:
-			prefix += "LOGS"
+			prefix += "LOGS "
 		case LogTypeBinary:
-			prefix += "BINARY LOGS"
+			prefix += "BINARY LOGS "
 		case LogTypeEngine:
-			prefix += "ENGINE LOGS"
+			prefix += "ENGINE LOGS "
 		case LogTypeError:
-			prefix += "ERROR LOGS"
+			prefix += "ERROR LOGS "
 		case LogTypeGeneral:
-			prefix += "GENERAL LOGS"
+			prefix += "GENERAL LOGS "
 		case LogTypeSlow:
-			prefix += "SLOW LOGS"
+			prefix += "SLOW LOGS "
 		}
 		rootNode.Prefix = prefix
 		prefix = ""
 	case FlushClientErrorsSummary:
-		prefix += "CLIENT_ERRORS_SUMMARY"
+		prefix += " CLIENT_ERRORS_SUMMARY "
 		rootNode.Prefix = prefix
-		prefix = ""
+		prefix = " "
 	default:
 		break
 	}
@@ -1666,7 +1666,7 @@ type KillStmt struct {
 
 func (n *KillStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
-	prefix := "KILL"
+	prefix := "KILL "
 	if n.TiDBExtension {
 		prefix += " TIDB "
 	}
@@ -2192,7 +2192,7 @@ func (n *SetDefaultRoleStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		userNode := user.LogCurrentNode(depth + 1)
 		if i == 0 {
 			tmpRootNode.LNode = userNode
-			tmpRootNode.Infix = midfix
+			tmpRootNode.Infix = tmpMidfix
 		} else { // i > 0
 			tmpRootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
@@ -6340,7 +6340,7 @@ func (n *CreateImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Str:         n.Name,
 		Depth:       depth,
 	}
-	midfix := " FROM " + n.Storage
+	midfix := " FROM '" + n.Storage + "' "
 	if n.ErrorHandling != ErrorHandleError {
 		midfix += " " + n.ErrorHandling.String()
 	}
@@ -6775,12 +6775,12 @@ func (n *ShowImportStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		Str:         n.Name,
 		Depth:       depth,
 	}
-	midfix := ""
+	midfix := " "
 	if n.ErrorsOnly {
-		midfix += " ERRORS"
+		midfix += " ERRORS "
 	}
 	if len(n.TableNames) != 0 {
-		midfix += " TABLE"
+		midfix += " TABLE "
 	}
 
 	tmpRootNode := &sql_ir.SqlRsgIR{

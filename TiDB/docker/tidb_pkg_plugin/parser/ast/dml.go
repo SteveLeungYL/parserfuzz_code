@@ -2368,7 +2368,7 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		}
 
 		if n.Where != nil {
-			midfix += "WHERE "
+			midfix += " WHERE "
 			whereNode := n.Where.LogCurrentNode(depth + 1)
 			whereNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
@@ -2677,8 +2677,8 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
 			LNode:    rootNode,
-			Prefix:   "(",
-			Infix:    ")",
+			Prefix:   " (",
+			Infix:    ") ",
 			Depth:    depth,
 		}
 	}
@@ -2691,6 +2691,7 @@ func (n *SelectStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			DataType: sql_ir.DataNone,
 			LNode:    lNode,
 			RNode:    rootNode,
+			Infix:    " ",
 			Depth:    depth,
 		}
 	}
@@ -3794,20 +3795,20 @@ func (n *FieldsClause) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	if n.Terminated != "\t" || n.Escaped != '\\' {
 		prefix += " FIELDS"
 		if n.Terminated != "\t" {
-			prefix += " TERMINATED BY " + n.Terminated
+			prefix += " TERMINATED BY '" + n.Terminated + "'"
 		}
 		if n.Enclosed != 0 {
 			if n.OptEnclosed {
 				prefix += " OPTIONALLY"
 			}
-			prefix += " ENCLOSED BY " + string(n.Enclosed)
+			prefix += " ENCLOSED BY '" + string(n.Enclosed) + "'"
 		}
 		if n.Escaped != '\\' {
 			prefix += " ESCAPED BY "
 			if n.Escaped == 0 {
 				prefix += "''"
 			} else {
-				prefix += (string(n.Escaped))
+				prefix += "'" + (string(n.Escaped)) + "'"
 			}
 		}
 	}
@@ -4486,7 +4487,7 @@ func (n *DeleteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.LNode = lNode
 	}
 
-	midfix := "DELETE "
+	midfix := " DELETE "
 
 	if n.TableHints != nil && len(n.TableHints) != 0 {
 		tmpRootNode := &sql_ir.SqlRsgIR{
@@ -4538,10 +4539,10 @@ func (n *DeleteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		midfix += " "
 	}
 	if n.Quick {
-		midfix += "QUICK "
+		midfix += " QUICK "
 	}
 	if n.IgnoreErr {
-		midfix += "IGNORE "
+		midfix += " IGNORE "
 	}
 
 	rootNode = &sql_ir.SqlRsgIR{
@@ -4577,7 +4578,7 @@ func (n *DeleteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 
 		} else {
-			midfix = "FROM "
+			midfix = " FROM "
 			rNode = n.Tables.LogCurrentNode(depth + 1)
 			rootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
@@ -4600,7 +4601,7 @@ func (n *DeleteStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			}
 		}
 	} else { // Single-Table Syntax
-		midfix = "FROM"
+		midfix = " FROM "
 		rNode = n.TableRefs.LogCurrentNode(depth + 1)
 
 		rootNode = &sql_ir.SqlRsgIR{
@@ -5508,7 +5509,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	switch n.Tp {
 	case ShowCreateTable:
-		prefix += "CREATE TABLE "
+		prefix += " CREATE TABLE "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
 		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
 		for _, tableNameNode := range tableNameNodeList {
@@ -5521,7 +5522,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowCreateView:
-		prefix += "CREATE VIEW "
+		prefix += " CREATE VIEW "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
 		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
 		for _, tableNameNode := range tableNameNodeList {
@@ -5534,7 +5535,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowCreateDatabase:
-		prefix += "CREATE DATABASE "
+		prefix += " CREATE DATABASE "
 		if n.IfNotExists {
 			prefix += "IF NOT EXISTS "
 		}
@@ -5551,7 +5552,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowCreateSequence:
-		prefix += "CREATE SEQUENCE "
+		prefix += " CREATE SEQUENCE "
 		tableNode := n.Table.LogCurrentNode(depth + 1)
 		tableNameNodeList := sql_ir.GetSubNodeFromParentNodeWithDataType(tableNode, sql_ir.DataTableName)
 		for _, tableNameNode := range tableNameNodeList {
@@ -5565,7 +5566,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	case ShowCreatePlacementPolicy:
 
-		prefix += "CREATE PLACEMENT POLICY "
+		prefix += " CREATE PLACEMENT POLICY "
 		lNode := &sql_ir.SqlRsgIR{
 			IRType:      sql_ir.TypeIdentifier,
 			DataType:    sql_ir.DataPolicyName,
@@ -5580,7 +5581,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 
 	case ShowCreateUser:
 
-		prefix += "CREATE USER "
+		prefix += " CREATE USER "
 		lNode := n.User.LogCurrentNode(depth + 1)
 
 		rootNode.LNode = lNode
@@ -5588,7 +5589,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 	case ShowGrants:
 
-		prefix += "GRANTS"
+		prefix += " GRANTS "
 
 		if n.User != nil {
 			prefix += " FOR "
@@ -5636,7 +5637,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowMasterStatus:
-		prefix += "MASTER STATUS"
+		prefix += " MASTER STATUS "
 		rootNode.Prefix = prefix
 		prefix = ""
 
@@ -5646,7 +5647,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowStatsExtended:
-		prefix += "STATS_EXTENDED"
+		prefix += " STATS_EXTENDED "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5656,7 +5657,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowStatsMeta:
-		prefix += "STATS_META"
+		prefix += " STATS_META "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5666,7 +5667,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowStatsHistograms:
-		prefix += "STATS_HISTOGRAMS "
+		prefix += " STATS_HISTOGRAMS "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5676,7 +5677,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowStatsTopN:
-		prefix += "STATS_TOPN"
+		prefix += " STATS_TOPN "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5686,7 +5687,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix = ""
 
 	case ShowStatsBuckets:
-		prefix += "STATS_BUCKETS"
+		prefix += " STATS_BUCKETS "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5695,7 +5696,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.Prefix = prefix + tmpPrefix
 		prefix = ""
 	case ShowStatsHealthy:
-		prefix += "STATS_HEALTHY"
+		prefix += " STATS_HEALTHY "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5704,7 +5705,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.Prefix = prefix + tmpPrefix
 		prefix = ""
 	case ShowHistogramsInFlight:
-		prefix += "HISTOGRAMS_IN_FLIGHT"
+		prefix += " HISTOGRAMS_IN_FLIGHT "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5713,7 +5714,7 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.Prefix = prefix + tmpPrefix
 		prefix = ""
 	case ShowColumnStatsUsage:
-		prefix += "COLUMN_STATS_USAGE"
+		prefix += " COLUMN_STATS_USAGE "
 
 		tmpPrefix, lNode := restoreShowLikeOrWhereOpt()
 		if lNode != nil {
@@ -5722,12 +5723,12 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode.Prefix = prefix + tmpPrefix
 		prefix = ""
 	case ShowProfiles:
-		prefix += "PROFILES"
+		prefix += " PROFILES "
 		rootNode.Prefix = prefix
 		prefix = ""
 
 	case ShowProfile:
-		prefix += "PROFILE"
+		prefix += " PROFILE "
 		if len(n.ShowProfileTypes) > 0 {
 			for i, tp := range n.ShowProfileTypes {
 				tmpRootNode := &sql_ir.SqlRsgIR{
@@ -5737,23 +5738,23 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				}
 				switch tp {
 				case ProfileTypeCPU:
-					tmpRootNode.Prefix = "CPU"
+					tmpRootNode.Prefix = " CPU "
 				case ProfileTypeMemory:
-					tmpRootNode.Prefix = "MEMORY"
+					tmpRootNode.Prefix = " MEMORY "
 				case ProfileTypeBlockIo:
-					tmpRootNode.Prefix = "BLOCK IO"
+					tmpRootNode.Prefix = " BLOCK IO "
 				case ProfileTypeContextSwitch:
-					tmpRootNode.Prefix = "CONTEXT SWITCHES"
+					tmpRootNode.Prefix = " CONTEXT SWITCHES "
 				case ProfileTypeIpc:
-					tmpRootNode.Prefix = "IPC"
+					tmpRootNode.Prefix = " IPC "
 				case ProfileTypePageFaults:
-					tmpRootNode.Prefix = "PAGE FAULTS"
+					tmpRootNode.Prefix = " PAGE FAULTS "
 				case ProfileTypeSource:
-					tmpRootNode.Prefix = "SOURCE"
+					tmpRootNode.Prefix = " SOURCE "
 				case ProfileTypeSwaps:
-					tmpRootNode.Prefix = "SWAPS"
+					tmpRootNode.Prefix = " SWAPS "
 				case ProfileTypeAll:
-					tmpRootNode.Prefix = "ALL"
+					tmpRootNode.Prefix = " ALL "
 				}
 
 				if i == 0 {
@@ -6108,6 +6109,8 @@ func (n *ShowStmt) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			prefix = ""
 		default:
 			// Do nothing here.
+			rootNode.Prefix = prefix
+			prefix = ""
 		}
 		// the rootNode has been setup correct above. Use a new one if necessary.
 

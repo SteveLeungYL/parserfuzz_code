@@ -445,6 +445,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 	}
 
 	midfix = "( "
+	suffix := " )"
 	switch n.FnName.L {
 	case "convert":
 		rNode = n.Args[0].LogCurrentNode(depth + 1)
@@ -465,6 +466,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			LNode:    rootNode,
 			RNode:    rNode,
 			Infix:    midfix,
+			Suffix:   suffix,
 			Depth:    depth,
 		}
 		midfix = ""
@@ -476,8 +478,9 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
-			LNode:    lNode,
+			LNode:    rootNode,
 			RNode:    rNode,
+			Infix:    midfix,
 			Depth:    depth,
 		}
 
@@ -501,6 +504,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			LNode:    rootNode,
 			RNode:    rNode,
 			Infix:    midfix,
+			Suffix:   suffix,
 			Depth:    depth,
 		}
 
@@ -509,8 +513,9 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		rootNode = &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
 			DataType: sql_ir.DataNone,
-			LNode:    lNode,
+			LNode:    rootNode,
 			RNode:    rNode,
+			Infix:    midfix,
 			Depth:    depth,
 		}
 
@@ -523,6 +528,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			LNode:    rootNode,
 			RNode:    rNode,
 			Infix:    midfix,
+			Suffix:   suffix,
 			Depth:    depth,
 		}
 
@@ -534,6 +540,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			DataType: sql_ir.DataNone,
 			LNode:    rootNode,
 			RNode:    rNode,
+			Infix:    midfix,
 			Depth:    depth,
 		}
 
@@ -546,6 +553,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			LNode:    rootNode,
 			RNode:    rNode,
 			Infix:    midfix,
+			Suffix:   suffix,
 			Depth:    depth,
 		}
 
@@ -557,12 +565,13 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			rootNode = &sql_ir.SqlRsgIR{
 				IRType:   sql_ir.TypeUnknown,
 				DataType: sql_ir.DataNone,
-				LNode:    lNode,
+				LNode:    rootNode,
 				RNode:    rNode,
+				Infix:    midfix,
 				Depth:    depth,
 			}
 
-			midfix += " "
+			midfix = " "
 			fallthrough
 		case 2:
 			if expr, isValue := n.Args[1].(ValueExpr); !isValue || expr.GetValue() != nil {
@@ -587,6 +596,7 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				LNode:    rootNode,
 				RNode:    rNode,
 				Infix:    midfix,
+				Suffix:   suffix,
 				Depth:    depth,
 			}
 			midfix = ""
@@ -616,6 +626,8 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 				Depth:    depth,
 			}
 		}
+		rootNode.Suffix = rootNode.Suffix + ")"
+
 	default:
 		tmpRootNode := &sql_ir.SqlRsgIR{
 			IRType:   sql_ir.TypeUnknown,
@@ -647,6 +659,8 @@ func (n *FuncCallExpr) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 			DataType: sql_ir.DataNone,
 			LNode:    rootNode,
 			RNode:    tmpRootNode,
+			Infix:    " (",
+			Suffix:   ") ",
 			Depth:    depth,
 		}
 	}

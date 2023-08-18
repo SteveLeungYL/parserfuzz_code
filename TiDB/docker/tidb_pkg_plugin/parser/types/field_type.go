@@ -325,7 +325,7 @@ func (ft *FieldType) LogCurrentNode(depth int) *sql_ir.SqlRsgIR {
 		prefix += ")"
 	case mysql.TypeTimestamp, mysql.TypeDatetime, mysql.TypeDuration:
 		precision = ft.decimal
-	case mysql.TypeUnspecified, mysql.TypeFloat, mysql.TypeDouble, mysql.TypeNewDecimal:
+	case mysql.TypeUnspecified, mysql.TypeFloat, mysql.TypeNewDecimal:
 		precision = ft.flen
 		scale = ft.decimal
 	default:
