@@ -50,14 +50,14 @@ import (
 
 %token	<ident>
 
-	
+
 	identifier "identifier"
 	asof       "AS OF"
 
-	
+
 	underscoreCS "UNDERSCORE_CHARSET"
 
-	
+
 	stringLit          "string literal"
 	singleAtIdentifier "identifier with single leading at"
 	doubleAtIdentifier "identifier with double leading at"
@@ -66,12 +66,12 @@ import (
 	andand             "&&"
 	pipes              "||"
 
-	
+
 	odbcDateType      "d"
 	odbcTimeType      "t"
 	odbcTimestampType "ts"
 
-	
+
 	add               "ADD"
 	all               "ALL"
 	alter             "ALTER"
@@ -287,7 +287,7 @@ import (
 	zerofill          "ZEROFILL"
 	natural           "NATURAL"
 
-	
+
 	account               "ACCOUNT"
 	action                "ACTION"
 	advise                "ADVISE"
@@ -627,7 +627,7 @@ import (
 	yearType              "YEAR"
 	wait                  "WAIT"
 
-	
+
 	addDate               "ADDDATE"
 	approxCountDistinct   "APPROX_COUNT_DISTINCT"
 	approxPercentile      "APPROX_PERCENTILE"
@@ -713,7 +713,7 @@ import (
 	voterConstraints      "VOTER_CONSTRAINTS"
 	voters                "VOTERS"
 
-	
+
 	admin                      "ADMIN"
 	batch                      "BATCH"
 	buckets                    "BUCKETS"
@@ -786,19 +786,19 @@ import (
 
 %token	<item>
 
-	
+
 	floatLit "floating-point literal"
 
-	
+
 	decLit "decimal literal"
 
-	
+
 	intLit "integer literal"
 
-	
+
 	hexLit "hexadecimal literal"
 
-	
+
 	bitLit       "bit literal"
 	andnot       "&^"
 	assignmentEq ":="
@@ -2756,7 +2756,7 @@ sql_ir.LogGrammarCoverage("ColumnPosition,ColumnName")
 	}
 
 AlterTableSpecListOpt:
-	
+
 	{
 
 
@@ -3034,7 +3034,7 @@ sql_ir.LogGrammarCoverage("SplitOption,ValuesList")
 	}
 
 SplitSyntaxOption:
-	
+
 	{
 
 
@@ -3193,7 +3193,7 @@ sql_ir.LogGrammarCoverage("AnalyzeTableStmt,AnalyzeOptionListOpt")
 	}
 
 AllColumnsOrPredicateColumnsOpt:
-	
+
 	{
 
 
@@ -4963,7 +4963,7 @@ sql_ir.LogGrammarCoverage("SubPartitionMethod,BitExpr")
 	}
 
 PartitionKeyAlgorithmOpt:
-	
+
 	{
 
 
@@ -5179,7 +5179,7 @@ sql_ir.LogGrammarCoverage("PartitionDefinition,SubPartDefinitionListOpt")
 	}
 
 SubPartDefinitionListOpt:
-	
+
 	{
 
 
@@ -5225,7 +5225,7 @@ sql_ir.LogGrammarCoverage("SubPartDefinition,PartDefOptionList")
 	}
 
 PartDefOptionList:
-	
+
 	{
 
 
@@ -5423,7 +5423,7 @@ AsOpt:
 }
 
 CreateTableSelectOpt:
-	
+
 	{
 
 
@@ -5887,7 +5887,7 @@ sql_ir.LogGrammarCoverage("DropTableStmt,RestrictOrCascadeOpt")
 	}
 
 OptTemporary:
-	
+
 	{
 
 
@@ -7039,7 +7039,7 @@ sql_ir.LogGrammarCoverage("Expression,BoolPri")
 sql_ir.LogGrammarCoverage("Expression,IsOrNotOp")
 
 
-		
+
 		$$ = &ast.IsNullExpr{Expr: $1, Not: !$2.(bool)}
 	}
 |	BoolPri
@@ -7062,7 +7062,7 @@ sql_ir.LogGrammarCoverage("MaxValueOrExpression,BitExpr")
 
 }
 FulltextSearchModifierOpt:
-	
+
 	{
 
 
@@ -10691,7 +10691,7 @@ sql_ir.LogGrammarCoverage("SimpleExpr,Identifier")
 sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
 
 
-		
+
 		tp := $3.GetType()
 		switch $2 {
 		case "d":
@@ -10732,7 +10732,7 @@ sql_ir.LogGrammarCoverage("SimpleExpr,Expression")
 sql_ir.LogGrammarCoverage("SimpleExpr,CastType")
 
 
-		
+
 		tp := $5.(*types.FieldType)
 		defaultFlen, defaultDecimal := mysql.GetDefaultFieldLengthAndDecimalForCast(tp.GetType())
 		if tp.GetFlen() == types.UnspecifiedLength {
@@ -12168,7 +12168,7 @@ sql_ir.LogGrammarCoverage("WhenClause,Expression")
 	}
 
 ElseOpt:
-	
+
 	{
 
 
@@ -13631,7 +13631,7 @@ sql_ir.LogGrammarCoverage("TableRefs,TableRefs")
 sql_ir.LogGrammarCoverage("TableRefs,EscapedTableRef")
 
 
-		
+
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.CrossJoin}
 	}
 
@@ -13647,7 +13647,7 @@ sql_ir.LogGrammarCoverage("EscapedTableRef,Identifier")
 sql_ir.LogGrammarCoverage("EscapedTableRef,TableRef")
 
 
-		
+
 		$$ = $3
 	}
 
@@ -13705,7 +13705,7 @@ sql_ir.LogGrammarCoverage("TableFactor,TableRefs")
 	}
 
 PartitionNameListOpt:
-	
+
 	{
 
 
@@ -13877,7 +13877,7 @@ sql_ir.LogGrammarCoverage("IndexHintListOpt,IndexHintList")
 
 }
 JoinTable:
-	
+
 	TableRef CrossOpt TableRef %prec tableRefPriority
 	{
 sql_ir.LogGrammarCoverage("JoinTable,TableRef")
@@ -14288,7 +14288,7 @@ TableOptimizerHints:
 	}
 
 TableOptimizerHintsOpt:
-	
+
 	{
 
 
@@ -14392,14 +14392,19 @@ sql_ir.LogGrammarCoverage("SubSelect,SetOprStmt")
 	{
 sql_ir.LogGrammarCoverage("SubSelect,SelectStmtWithClause")
 
-
-		rs := $2.(*ast.SelectStmt)
-		endOffset := parser.endOffset(&yyS[yypt])
-		parser.setLastSelectFieldText(rs, endOffset)
-		src := parser.src
-		// See the implementation of yyParse function
-		rs.SetText(parser.lexer.client, src[yyS[yypt-1].offset:yyS[yypt].offset])
-		$$ = &ast.SubqueryExpr{Query: rs}
+		switch rs := $2.(type) {
+		case *ast.SelectStmt:
+			endOffset := parser.endOffset(&yyS[yypt])
+			parser.setLastSelectFieldText(rs, endOffset)
+			src := parser.src
+			// See the implementation of yyParse function
+			rs.SetText(parser.lexer.client, src[yyS[yypt-1].offset:yyS[yypt].offset])
+			$$ = &ast.SubqueryExpr{Query: rs}
+		case *ast.SetOprStmt:
+			src := parser.src
+			rs.SetText(parser.lexer.client, src[yyS[yypt-1].offset:yyS[yypt].offset])
+			$$ = &ast.SubqueryExpr{Query: rs}
+		}
 	}
 |	'(' SubSelect ')'
 	{
@@ -14430,7 +14435,7 @@ sql_ir.LogGrammarCoverage("SubSelect,SubSelect")
 
 // See https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html
 SelectLockOpt:
-	
+
 	{
 
 
@@ -14519,7 +14524,7 @@ sql_ir.LogGrammarCoverage("SelectLockOpt,OfTablesOpt")
 	}
 
 OfTablesOpt:
-	
+
 	{
 
 
@@ -16882,7 +16887,7 @@ sql_ir.LogGrammarCoverage("FlushOption,WithReadLockOpt")
 	}
 
 LogTypeOpt:
-	
+
 	{
 
 
@@ -17999,7 +18004,7 @@ sql_ir.LogGrammarCoverage("TableOption,EncryptionOpt")
 	}
 
 ForceOpt:
-	
+
 	{
 
 
