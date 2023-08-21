@@ -766,6 +766,10 @@ class MysqlClient {
       res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
+      timeout_mutex.lock();
+      timeout_id++;
+      timeout_mutex.unlock();
+
 //#define DEBUG
 #ifdef DEBUG
       cerr << "\n\nDEBUG: from query input: \n"
@@ -802,8 +806,6 @@ class MysqlClient {
     }
 
     // Cancel the Timeout termination process.
-    timeout_mutex.lock();
-    timeout_id++;
     if (is_timeout) {
       res = kTimeout;
 #ifdef DEBUG
@@ -811,7 +813,6 @@ class MysqlClient {
 #endif
     }
     is_timeout = false;
-    timeout_mutex.unlock();
 
     auto check_res = check_server_alive();
     if (!check_res) {
