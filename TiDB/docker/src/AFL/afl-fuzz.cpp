@@ -251,8 +251,8 @@ static string program_input_str; /* String: query used to test sqlite   */
 static string
     program_output_str; /* String: query results output from sqlite   */
 
-int bug_output_id = 0;
-int log_output_id = 0;
+static int logical_bug_output_id = 0;
+static set<string> saved_crash_stack;
 
 // static s32 forksrv_pid, /* PID of the fork server           */
 //    child_pid = -1,     /* PID of the fuzzed program        */
@@ -2807,9 +2807,17 @@ EXP_ST void init_forkserver(char** argv)
 
     string cwd_str = std::filesystem::current_path().string();
     string db_str = cwd_str + "/db_data";
+    string db_log_str = cwd_str + "/db_logs.txt";
 
     char* argv_list[]
-        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()), "-status", strdup(to_string(bind_to_port + 2000).c_str()), "-socket", strdup(socket_path.c_str()), "-path", strdup(db_str.c_str()), NULL };
+        = { "./tidb-with-cov", "-P", strdup(to_string(bind_to_port).c_str()),
+           "-status", strdup(to_string(bind_to_port + 2000).c_str()),
+           "-socket", strdup(socket_path.c_str()),
+           "--log-file", strdup(db_log_str.c_str()),
+           "-L", "error",
+           "-path", strdup(db_str.c_str()),
+           NULL
+        };
 
     execv("./tidb-with-cov", argv_list);
     cerr << "Fatal Error: Should not reach this point. \n\n\n";
@@ -3017,6 +3025,14 @@ static void write_to_testcase(string& input)
   return;
 }
 
+static void cleanup_db_logs() {
+  if (filesystem::exists("./db_logs.txt")) {
+    filesystem::remove_all("./db_logs.txt");
+  }
+
+  restart_tidb(global_use_argv);
+}
+
 /*
  * Restart the CockroachDB persistent server.
  * */
@@ -3043,6 +3059,9 @@ static void restart_tidb(char** argv)
     filesystem::remove_all("./db_data");
   }
   filesystem::copy("./db_data_ori", "./db_data", filesystem::copy_options::recursive | filesystem::copy_options::overwrite_existing);
+  if (filesystem::exists("./tmpFile")) {
+    filesystem::remove_all("./tmpFile");
+  }
 
   forksrv_pid = -1;
   init_forkserver(argv);
@@ -3882,6 +3901,129 @@ static void write_crash_readme(void)
   fclose(f);
 }
 
+bool check_crashing_bug_stack_unique() {
+#define DEBUG
+
+  if (!filesystem::exists("./db_logs.txt")) {
+#ifdef DEBUG
+    cerr << "ERROR: db_logs.txt not existed in the current folder. \n";
+#endif
+    return false;
+  }
+
+  fstream log_file_stream("db_logs.txt", ios::in);
+
+  if (!log_file_stream.is_open()) {
+#ifdef DEBUG
+    cerr << "ERROR: db_logs.txt cannot be opened with fstream. \n";
+#endif
+    return false;
+  }
+
+  string cur_line;
+  // Read data from the file object and put it into a string.
+  while (getline(log_file_stream, cur_line)) {
+    if (findStringIn(cur_line, "[ERROR]") && findStringIn(cur_line, "stack=\"")) {
+      string cur_stack = string_splitter(cur_line, "stack=\"").back();
+      cur_stack = string_splitter(cur_stack, "\"]").front();
+
+#ifdef DEBUG
+      cerr << "Debug: for cur_stack: " << cur_stack << "\n";
+#endif
+      if (saved_crash_stack.count(cur_stack) == 0) {
+        saved_crash_stack.insert(cur_stack);
+        log_file_stream.close();
+#ifdef DEBUG
+        cerr << "IS UNIQUE\n\n\n";
+#endif
+        cleanup_db_logs();
+        return true;
+      } else {
+#ifdef DEBUG
+        cerr << "IS NOT UNIQUE\n\n\n";
+#endif
+        continue;
+      } // if unique or not
+    } // If (... it is error line.
+  } // while loop.
+
+  log_file_stream.close();
+  cleanup_db_logs();
+  return false;
+#undef DEBUG
+
+}
+
+/* Output crashing bugs to the bug reporting folder. */
+void log_crashing_bug(const ALL_COMP_RES& all_comp_res)
+{
+
+  if (!check_crashing_bug_stack_unique()) {
+    return;
+  }
+
+  /* If we're here, we apparently want to save the crash or hang
+     test case, too. */
+  unique_crashes++;
+  string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
+
+  if (!filesystem::exists("../../Bug_Analysis/")) {
+    filesystem::create_directory("../../Bug_Analysis/");
+  }
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples");
+  }
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples/crashes")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples/crashes");
+  }
+
+  string bug_output_dir = "../../Bug_Analysis/bug_samples/crashes/bug:" + to_string(unique_crashes - 1) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+  ofstream outputfile;
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+  stream_output_res(all_comp_res, outputfile);
+  outputfile.close();
+
+#ifdef DEBUG
+  cerr << "\n\n\n\n\nFOUND CRASHING BUG. \n\n\n\n\n";
+#endif
+}
+
+
+/* Output logical bugs to the bug reporting folder. */
+void log_logical_bug(string buggy_query_str)
+{
+  restart_tidb(global_use_argv);
+
+  ofstream outputfile;
+  logical_bug_output_id++;
+  if (!filesystem::exists("../../Bug_Analysis/")) {
+    filesystem::create_directory("../../Bug_Analysis/");
+  }
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples");
+  }
+  if (!filesystem::exists("../../Bug_Analysis/bug_samples/logical_bugs")) {
+    filesystem::create_directory("../../Bug_Analysis/bug_samples/logical_bugs");
+  }
+
+  string bug_output_dir = "../../Bug_Analysis/bug_samples/logical_bugs/bug:" + to_string(logical_bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+  // cerr << "Bug output dir is: " << bug_output_dir << endl;
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+
+  ALL_COMP_RES tmp_all_comp_res;
+  tmp_all_comp_res.cmd_str = buggy_query_str;
+  tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
+  tmp_all_comp_res.res_str = g_cockroach_output;
+  tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
+  stream_output_res(tmp_all_comp_res, outputfile);
+
+#ifdef DEBUG
+  cerr << "\n\n\n\n\nFOUND logical BUG. \n\n\n\n\n";
+#endif
+
+  outputfile.close();
+}
+
 /* Check if the result of an execve() during routine fuzzing is interesting,
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
@@ -4134,8 +4276,6 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault,
 
 #endif /* ^!SIMPLE_FILES */
 
-    unique_crashes++;
-
     last_crash_time = get_cur_time();
     last_crash_execs = total_execs;
 
@@ -4148,30 +4288,7 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault,
     return keeping;
   }
 
-  /* If we're here, we apparently want to save the crash or hang
-     test case, too. */
-
-  string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
-
-  if (!filesystem::exists("../../Bug_Analysis/")) {
-    filesystem::create_directory("../../Bug_Analysis/");
-  }
-  if (!filesystem::exists("../../Bug_Analysis/bug_samples")) {
-    filesystem::create_directory("../../Bug_Analysis/bug_samples");
-  }
-  if (!filesystem::exists("../../Bug_Analysis/bug_samples/crashes")) {
-    filesystem::create_directory("../../Bug_Analysis/bug_samples/crashes");
-  }
-
-  string bug_output_dir = "../../Bug_Analysis/bug_samples/crashes/bug:" + to_string(unique_crashes - 1) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
-  ofstream outputfile;
-  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
-  stream_output_res(all_comp_res, outputfile);
-  outputfile.close();
-
-#ifdef DEBUG
-  cerr << "\n\n\n\n\nFOUND CRASHING BUG. \n\n\n\n\n";
-#endif
+  log_crashing_bug(all_comp_res);
 
   ck_free(fn);
 
@@ -5731,36 +5848,6 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le)
   }
 
   return 0;
-}
-
-/* Output logical bugs to the bug reporting folder. */
-void log_logical_bug(string buggy_query_str)
-{
-  ofstream outputfile;
-  bug_output_id++;
-  if (!filesystem::exists("../../Bug_Analysis/")) {
-    filesystem::create_directory("../../Bug_Analysis/");
-  }
-  if (!filesystem::exists("../../Bug_Analysis/bug_samples")) {
-    filesystem::create_directory("../../Bug_Analysis/bug_samples");
-  }
-
-  string bug_output_dir = "../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
-  // cerr << "Bug output dir is: " << bug_output_dir << endl;
-  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
-
-  ALL_COMP_RES tmp_all_comp_res;
-  tmp_all_comp_res.cmd_str = buggy_query_str;
-  tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
-  tmp_all_comp_res.res_str = g_cockroach_output;
-  tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
-  stream_output_res(tmp_all_comp_res, outputfile);
-
-#ifdef DEBUG
-  cerr << "\n\n\n\n\nFOUND logical BUG. \n\n\n\n\n";
-#endif
-
-  outputfile.close();
 }
 
 string rsg_generate_query_sequence(int stmt_idx)
