@@ -113,7 +113,7 @@ def execute_queries(query: str, hexsha: str):
     
     cur_mysql_root = os.path.join(constants.TIDB_CACHE_ROOT, hexsha)
 
-    mysql_client = f"mysql -h 127.0.0.1 -P {constants.TIDB_SERVER_PORT} -u root --socket={constants.TIDB_SERVER_SOCKET} "
+    mysql_client = f"mysql -h 127.0.0.1 -P {constants.TIDB_SERVER_PORT} -u root -f --socket={constants.TIDB_SERVER_SOCKET} "
 
     # clean_database_query = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; "
     clean_database_query = "DROP DATABASE IF EXISTS test_rsg1; CREATE DATABASE IF NOT EXISTS test_rsg1; "
