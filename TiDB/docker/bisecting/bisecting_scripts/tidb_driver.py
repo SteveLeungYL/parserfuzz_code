@@ -121,6 +121,10 @@ def execute_queries(query: str, hexsha: str):
         Run the passed in query and check whether the query crashes the server.
     """
 
+    if hexsha == "":
+        logger.error("ERROR: Inside execute_queries, getting empty hexsha values. ")
+        return
+
     start_tidb_server(hexsha=hexsha)
 
     if not check_tidb_server_alive() or not check_tidb_server_connection():
