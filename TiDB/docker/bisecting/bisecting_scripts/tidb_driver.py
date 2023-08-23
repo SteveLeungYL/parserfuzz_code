@@ -11,8 +11,8 @@ def get_tidb_binary_sub_dir(cur_dir:str):
     command = "bin"
     return command
 
-def check_tidb_server_alive() -> bool:
-    # may be deprecated
+def check_tidb_server_connection() -> bool:
+    # Check whether the tidb-server connection is ready or not.
     p = subprocess.run("lsof -i -P",
                         shell=True,
                         stdin=subprocess.DEVNULL,
@@ -21,7 +21,22 @@ def check_tidb_server_alive() -> bool:
                         )
 
     res = p.stdout.decode()
+    
     if "tidb-serv" in res:
+        return True
+    else:
+        return False
+
+def check_tidb_server_alive() -> bool:
+    p = subprocess.run("pidof tidb-server",
+                        shell=True,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT
+                        )
+
+    res = p.stdout.decode()
+    if res != "":
         return True
     else:
         return False
@@ -91,7 +106,7 @@ def start_tidb_server(hexsha: str):
     # Do not block the Popen, let it run and return. We will later use `pkill` to kill the TiDB-server process.
 
     trial = 0
-    while (not check_tidb_server_alive()):
+    while (not check_tidb_server_connection()):
         time.sleep(0.1)
         trial += 1
         if trial >= 60:
@@ -108,7 +123,8 @@ def execute_queries(query: str, hexsha: str):
 
     start_tidb_server(hexsha=hexsha)
 
-    if not check_tidb_server_alive():
+    if not check_tidb_server_alive() or not check_tidb_server_connection():
+        stop_tidb_server()
         return constants.RESULT.FAIL_TO_COMPILE
 
     cur_mysql_root = os.path.join(constants.TIDB_CACHE_ROOT, hexsha)
@@ -139,7 +155,7 @@ def execute_queries(query: str, hexsha: str):
     logger.debug(f"Return Code: {status}")
 
     is_potential_crash = False
-    if "ERROR 1105" in output or "ERROR 2013" in output:
+    if "ERROR 1105" in output or "ERROR 2013" in output or "ERROR 8108" in output:
         is_potential_crash = True
     if check_tidb_server_alive() and not is_potential_crash:
         stop_tidb_server()
