@@ -3903,7 +3903,9 @@ static void write_crash_readme(void)
 }
 
 bool check_crashing_bug_stack_unique() {
-#define DEBUG
+//#define DEBUG
+
+  bool res_is_unique = false;
 
   if (!filesystem::exists("./db_logs.txt")) {
 #ifdef DEBUG
@@ -3922,6 +3924,7 @@ bool check_crashing_bug_stack_unique() {
   }
 
   string cur_line;
+  vector<string> all_stack_lines;
   // Read data from the file object and put it into a string.
   while (getline(log_file_stream, cur_line)) {
     if (findStringIn(cur_line, "[ERROR]") && findStringIn(cur_line, "stack=\"")) {
@@ -3929,30 +3932,41 @@ bool check_crashing_bug_stack_unique() {
       cur_stack = string_splitter(cur_stack, "\"]").front();
 
 #ifdef DEBUG
-      cerr << "Debug: for cur_stack: " << cur_stack << "\n";
+      cerr << "Debug: for current whole stack: " << cur_stack << "\n";
 #endif
-      if (saved_crash_stack.count(cur_stack) == 0) {
-        saved_crash_stack.insert(cur_stack);
-        log_file_stream.close();
-#ifdef DEBUG
-        cerr << "IS UNIQUE\n\n\n";
-#endif
-        cleanup_db_logs();
-        return true;
-      } else {
-#ifdef DEBUG
-        cerr << "IS NOT UNIQUE\n\n\n";
-#endif
-        continue;
-      } // if unique or not
+      all_stack_lines.push_back(cur_stack);
     } // If (... it is error line.
   } // while loop.
 
+  // Go through all the stack lines.
+  for (string& cur_stack: all_stack_lines) {
+    vector<string> cur_stack_split = string_splitter(cur_stack, "\\n");
+    for (string& cur_line: cur_stack_split) {
+      if (findStringIn(cur_line, "/home/tidb/go_projects/src/github.com/tidb/tidb/") && !findStringIn(cur_line, "tidb/tidb/server/conn.go")) {
+#ifdef DEBUG
+        cerr << "Debug: capture the top level crashing point: " << cur_line << "\n";
+#endif
+        if (saved_crash_stack.count(cur_stack) == 0) {
+          saved_crash_stack.insert(cur_stack);
+          res_is_unique = true;
+#ifdef DEBUG
+          cerr << "crashing point UNIQUE\n";
+#endif
+        } else {
+#ifdef DEBUG
+          cerr << "crashing point NOT UNIQUE\n";
+#endif
+        }
+        break;
+      }
+    }
+  }
+
   log_file_stream.close();
   cleanup_db_logs();
-  return false;
-#undef DEBUG
+  return res_is_unique;
 
+//#undef DEBUG
 }
 
 /* Output crashing bugs to the bug reporting folder. */
