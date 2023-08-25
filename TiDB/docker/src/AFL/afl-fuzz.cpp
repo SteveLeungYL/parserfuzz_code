@@ -3902,7 +3902,7 @@ static void write_crash_readme(void)
   fclose(f);
 }
 
-bool check_crashing_bug_stack_unique() {
+bool check_crashing_bug_stack_unique(string& stack_str_out) {
 //#define DEBUG
 
   bool res_is_unique = false;
@@ -3949,6 +3949,7 @@ bool check_crashing_bug_stack_unique() {
         if (saved_crash_stack.count(cur_stack) == 0) {
           saved_crash_stack.insert(cur_stack);
           res_is_unique = true;
+          stack_str_out += cur_stack + "\n";
 #ifdef DEBUG
           cerr << "crashing point UNIQUE\n";
 #endif
@@ -3973,7 +3974,8 @@ bool check_crashing_bug_stack_unique() {
 void log_crashing_bug(const ALL_COMP_RES& all_comp_res)
 {
 
-  if (!check_crashing_bug_stack_unique()) {
+  string cur_stack_str;
+  if (!check_crashing_bug_stack_unique(cur_stack_str)) {
     return;
   }
 
@@ -3996,6 +3998,7 @@ void log_crashing_bug(const ALL_COMP_RES& all_comp_res)
   ofstream outputfile;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
   stream_output_res(all_comp_res, outputfile);
+  outputfile << "\n\n--stack_out:\n" << cur_stack_str << "\n";
   outputfile.close();
 
 #ifdef DEBUG

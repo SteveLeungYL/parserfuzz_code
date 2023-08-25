@@ -21,6 +21,8 @@ def read_queries_from_files():
             contents = contents.split("Query")[1]
         if "Result string:" in contents:
             contents = contents.split("Result string:")[0]
+        if "--stack_out:\n" in contents:
+            contents = contents.split("--stack_out:\n")[0]
 
         return contents
 
