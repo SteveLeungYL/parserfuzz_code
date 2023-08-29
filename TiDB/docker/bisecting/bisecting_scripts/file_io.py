@@ -69,6 +69,8 @@ def read_queries_from_files():
             bug_scan_index+=1
             logger.info(f"Currently scanning file: {bug_scan_index}/{total_bug_num}: {cur_file}")
             cur_query = get_contents(cur_file)
+            if cur_query == "":
+                continue
             yield cur_file, cur_query
 
     logger.info("Finished reading all the query files from the bug input folder. ")
