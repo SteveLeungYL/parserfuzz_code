@@ -22,13 +22,19 @@ def read_queries_from_files():
         if "Result string:" in contents:
             contents = contents.split("Result string:")[0]
         if "--stack_out:\n" in contents:
-            contents = contents.split("--stack_out:\n")[0]
+            tmpContents = contents.split("--stack_out:\n")[0]
+            stack = contents.split("--stack_out:\n")[1]
+            if "handleCompareSubquery" in stack or \
+                "ExtractSelectAndNormalizeDigest" in stack or \
+                "buildSelect" in stack or \
+                "scalar_function.go" in stack or \
+                "getRecoverTableByTableName" in stack or \
+                "handleScalarSubquery" in stack:
+                    contents = ""
+            else:
+                contents = tmpContents
 
         return contents
-
-    # def debug_print_queries(queries):
-        # logger.debug("print queries for debug purpose. \n")
-        # logger.debug(queries)
 
     tidb_bug_root = os.path.join(constants.BUG_SAMPLES_PATH)
     cur_parser_bug_root = os.path.join(tidb_bug_root, "parser_crash")
@@ -51,6 +57,8 @@ def read_queries_from_files():
             bug_scan_index+=1
             logger.info(f"Currently scanning file: {bug_scan_index}/{total_bug_num}: {cur_file}")
             cur_query = get_contents(cur_file)
+            if cur_query == "":
+                continue
             yield cur_file, cur_query
 
     if os.path.isdir(cur_crash_bug_root):
