@@ -1568,7 +1568,7 @@ func (u *sqlSymUnion) cursorStmt() tree.CursorStmt {
 stmt_block:
   stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("stmt_block,stmt")
+LogGrammarCoverage("stmt_block,stmt")
 
 
     sqllex.(*lexer).SetStmt($1.stmt())
@@ -1580,112 +1580,112 @@ stmt:
  return helpWith(sqllex, "") }
 | preparable_stmt           // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,preparable_stmt")
+LogGrammarCoverage("stmt,preparable_stmt")
 
 }
 | analyze_stmt              //  : ANALYZE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,analyze_stmt")
+LogGrammarCoverage("stmt,analyze_stmt")
 
 }
 | copy_from_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,copy_from_stmt")
+LogGrammarCoverage("stmt,copy_from_stmt")
 
 }
 | comment_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,comment_stmt")
+LogGrammarCoverage("stmt,comment_stmt")
 
 }
 | execute_stmt              //  : EXECUTE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,execute_stmt")
+LogGrammarCoverage("stmt,execute_stmt")
 
 }
 | deallocate_stmt           //  : DEALLOCATE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,deallocate_stmt")
+LogGrammarCoverage("stmt,deallocate_stmt")
 
 }
 | discard_stmt              //  : DISCARD
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,discard_stmt")
+LogGrammarCoverage("stmt,discard_stmt")
 
 }
 | grant_stmt                //  : GRANT
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,grant_stmt")
+LogGrammarCoverage("stmt,grant_stmt")
 
 }
 | prepare_stmt              //  : PREPARE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,prepare_stmt")
+LogGrammarCoverage("stmt,prepare_stmt")
 
 }
 | revoke_stmt               //  : REVOKE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,revoke_stmt")
+LogGrammarCoverage("stmt,revoke_stmt")
 
 }
 | savepoint_stmt            //  : SAVEPOINT
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,savepoint_stmt")
+LogGrammarCoverage("stmt,savepoint_stmt")
 
 }
 | reassign_owned_by_stmt    //  : REASSIGN OWNED BY
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,reassign_owned_by_stmt")
+LogGrammarCoverage("stmt,reassign_owned_by_stmt")
 
 }
 | drop_owned_by_stmt        //  : DROP OWNED BY
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,drop_owned_by_stmt")
+LogGrammarCoverage("stmt,drop_owned_by_stmt")
 
 }
 | release_stmt              //  : RELEASE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,release_stmt")
+LogGrammarCoverage("stmt,release_stmt")
 
 }
 | refresh_stmt              //  : REFRESH
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,refresh_stmt")
+LogGrammarCoverage("stmt,refresh_stmt")
 
 }
 | nonpreparable_set_stmt    // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,nonpreparable_set_stmt")
+LogGrammarCoverage("stmt,nonpreparable_set_stmt")
 
 }
 | transaction_stmt          // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,transaction_stmt")
+LogGrammarCoverage("stmt,transaction_stmt")
 
 }
 | close_cursor_stmt         //  : CLOSE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,close_cursor_stmt")
+LogGrammarCoverage("stmt,close_cursor_stmt")
 
 }
 | declare_cursor_stmt       //  : DECLARE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,declare_cursor_stmt")
+LogGrammarCoverage("stmt,declare_cursor_stmt")
 
 }
 | fetch_cursor_stmt         //  : FETCH
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,fetch_cursor_stmt")
+LogGrammarCoverage("stmt,fetch_cursor_stmt")
 
 }
 | move_cursor_stmt          //  : MOVE
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,move_cursor_stmt")
+LogGrammarCoverage("stmt,move_cursor_stmt")
 
 }
 | reindex_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("stmt,reindex_stmt")
+LogGrammarCoverage("stmt,reindex_stmt")
 
 }
 | /* EMPTY */
@@ -1701,22 +1701,22 @@ sqllex.(*lexer).LogGrammarCoverage("stmt,reindex_stmt")
 alter_stmt:
   alter_ddl_stmt      // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_stmt,alter_ddl_stmt")
+LogGrammarCoverage("alter_stmt,alter_ddl_stmt")
 
 }
 | alter_role_stmt     //  : ALTER ROLE
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_stmt,alter_role_stmt")
+LogGrammarCoverage("alter_stmt,alter_role_stmt")
 
 }
 | alter_tenant_csetting_stmt  //  : ALTER TENANT
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_stmt,alter_tenant_csetting_stmt")
+LogGrammarCoverage("alter_stmt,alter_tenant_csetting_stmt")
 
 }
 | alter_unsupported_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_stmt,alter_unsupported_stmt")
+LogGrammarCoverage("alter_stmt,alter_unsupported_stmt")
 
 }
 | ALTER error         // SHOW HELP: ALTER
@@ -1725,52 +1725,52 @@ alter_ddl_stmt:
   alter_table_stmt              //  : ALTER TABLE
 | alter_index_stmt              //  : ALTER INDEX
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_index_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_index_stmt")
 
 }
 | alter_view_stmt               //  : ALTER VIEW
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_view_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_view_stmt")
 
 }
 | alter_sequence_stmt           //  : ALTER SEQUENCE
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_sequence_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_sequence_stmt")
 
 }
 | alter_database_stmt           //  : ALTER DATABASE
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_database_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_database_stmt")
 
 }
 | alter_range_stmt              //  : ALTER RANGE
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_range_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_range_stmt")
 
 }
 | alter_partition_stmt          //  : ALTER PARTITION
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_partition_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_partition_stmt")
 
 }
 | alter_schema_stmt             //  : ALTER SCHEMA
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_schema_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_schema_stmt")
 
 }
 | alter_type_stmt               //  : ALTER TYPE
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_type_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_type_stmt")
 
 }
 | alter_default_privileges_stmt //  : ALTER DEFAULT PRIVILEGES
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_default_privileges_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_default_privileges_stmt")
 
 }
 | alter_changefeed_stmt         //  : ALTER CHANGEFEED
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_changefeed_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_changefeed_stmt")
 
 }
 | alter_backup_stmt             //  : ALTER BACKUP
@@ -1822,60 +1822,60 @@ sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_changefeed_stmt")
 //
 // %SeeAlso: WEBDOCS/alter-table.html
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_ddl_stmt,alter_backup_stmt")
+LogGrammarCoverage("alter_ddl_stmt,alter_backup_stmt")
 
 }
 alter_table_stmt:
   alter_onetable_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_onetable_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_onetable_stmt")
 
 }
 | alter_relocate_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_relocate_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_relocate_stmt")
 
 }
 | alter_split_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_split_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_split_stmt")
 
 }
 | alter_unsplit_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_unsplit_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_unsplit_stmt")
 
 }
 | alter_scatter_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_scatter_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_scatter_stmt")
 
 }
 | alter_zone_table_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_zone_table_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_zone_table_stmt")
 
 }
 | alter_rename_table_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_rename_table_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_rename_table_stmt")
 
 }
 | alter_table_set_schema_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_table_set_schema_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_table_set_schema_stmt")
 
 }
 | alter_table_locality_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_table_locality_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_table_locality_stmt")
 
 }
 | alter_table_owner_stmt
 // ALTER TABLE has its error help token here because the ALTER TABLE
 // prefix is spread over multiple non-terminals.
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_stmt,alter_table_owner_stmt")
+LogGrammarCoverage("alter_table_stmt,alter_table_owner_stmt")
 
 }
 | ALTER TABLE error     // SHOW HELP: ALTER TABLE
@@ -1916,14 +1916,14 @@ alter_view_stmt:
   alter_rename_view_stmt
 | alter_view_set_schema_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_stmt,alter_view_set_schema_stmt")
+LogGrammarCoverage("alter_view_stmt,alter_view_set_schema_stmt")
 
 }
 | alter_view_owner_stmt
 // ALTER VIEW has its error help token here because the ALTER VIEW
 // prefix is spread over multiple non-terminals.
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_stmt,alter_view_owner_stmt")
+LogGrammarCoverage("alter_view_stmt,alter_view_owner_stmt")
 
 }
 | ALTER VIEW error // SHOW HELP: ALTER VIEW
@@ -1944,17 +1944,17 @@ alter_sequence_stmt:
   alter_rename_sequence_stmt
 | alter_sequence_options_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_stmt,alter_sequence_options_stmt")
+LogGrammarCoverage("alter_sequence_stmt,alter_sequence_options_stmt")
 
 }
 | alter_sequence_set_schema_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_stmt,alter_sequence_set_schema_stmt")
+LogGrammarCoverage("alter_sequence_stmt,alter_sequence_set_schema_stmt")
 
 }
 | alter_sequence_owner_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_stmt,alter_sequence_owner_stmt")
+LogGrammarCoverage("alter_sequence_stmt,alter_sequence_owner_stmt")
 
 }
 | ALTER SEQUENCE error // SHOW HELP: ALTER SEQUENCE
@@ -1962,17 +1962,17 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_stmt,alter_sequence_owner_stm
 alter_sequence_options_stmt:
   ALTER SEQUENCE sequence_name sequence_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,sequence_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,sequence_option_list")
+LogGrammarCoverage("alter_sequence_options_stmt,error")
+LogGrammarCoverage("alter_sequence_options_stmt,sequence_name")
+LogGrammarCoverage("alter_sequence_options_stmt,sequence_option_list")
 
 
     $$.val = &tree.AlterSequence{Name: $3.unresolvedObjectName(), Options: $4.seqOpts(), IfExists: false}
   }
 | ALTER SEQUENCE IF EXISTS sequence_name sequence_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,sequence_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,sequence_option_list")
+LogGrammarCoverage("alter_sequence_options_stmt,sequence_name")
+LogGrammarCoverage("alter_sequence_options_stmt,sequence_option_list")
 
 
     $$.val = &tree.AlterSequence{Name: $5.unresolvedObjectName(), Options: $6.seqOpts(), IfExists: true}
@@ -1996,69 +1996,69 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_options_stmt,sequence_option_
 alter_database_stmt:
   alter_rename_database_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_rename_database_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_rename_database_stmt")
 
 }
 | alter_zone_database_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_zone_database_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_zone_database_stmt")
 
 }
 | alter_database_owner
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_owner")
+LogGrammarCoverage("alter_database_stmt,alter_database_owner")
 
 }
 | alter_database_to_schema_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_to_schema_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_to_schema_stmt")
 
 }
 | alter_database_add_region_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_add_region_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_add_region_stmt")
 
 }
 | alter_database_drop_region_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_drop_region_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_drop_region_stmt")
 
 }
 | alter_database_survival_goal_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_survival_goal_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_survival_goal_stmt")
 
 }
 | alter_database_primary_region_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_primary_region_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_primary_region_stmt")
 
 }
 | alter_database_placement_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_placement_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_placement_stmt")
 
 }
 | alter_database_set_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_set_stmt")
+LogGrammarCoverage("alter_database_stmt,alter_database_set_stmt")
 
 }
 | alter_database_add_super_region
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_add_super_region")
+LogGrammarCoverage("alter_database_stmt,alter_database_add_super_region")
 
 }
 | alter_database_alter_super_region
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_alter_super_region")
+LogGrammarCoverage("alter_database_stmt,alter_database_alter_super_region")
 
 }
 | alter_database_drop_super_region
 // ALTER DATABASE has its error help token here because the ALTER DATABASE
 // prefix is spread over multiple non-terminals.
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_drop_super_region")
+LogGrammarCoverage("alter_database_stmt,alter_database_drop_super_region")
 
 }
 | ALTER DATABASE error // SHOW HELP: ALTER DATABASE
@@ -2066,9 +2066,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_stmt,alter_database_drop_supe
 alter_database_owner:
   ALTER DATABASE database_name OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_owner,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_owner,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_owner,role_spec")
+LogGrammarCoverage("alter_database_owner,error")
+LogGrammarCoverage("alter_database_owner,database_name")
+LogGrammarCoverage("alter_database_owner,role_spec")
 
 
     $$.val = &tree.AlterDatabaseOwner{Name: tree.Name($3), Owner: $6.roleSpec()}
@@ -2078,8 +2078,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_owner,role_spec")
 alter_database_set_stmt:
   ALTER DATABASE database_name set_or_reset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_set_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_set_stmt,set_or_reset_clause")
+LogGrammarCoverage("alter_database_set_stmt,database_name")
+LogGrammarCoverage("alter_database_set_stmt,set_or_reset_clause")
 
 
     
@@ -2094,8 +2094,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_set_stmt,set_or_reset_clause"
 alter_database_placement_stmt:
   ALTER DATABASE database_name placement_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_placement_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_placement_stmt,placement_clause")
+LogGrammarCoverage("alter_database_placement_stmt,database_name")
+LogGrammarCoverage("alter_database_placement_stmt,placement_clause")
 
 
     
@@ -2108,8 +2108,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_placement_stmt,placement_clau
 alter_database_add_region_stmt:
   ALTER DATABASE database_name ADD REGION region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,region_name")
+LogGrammarCoverage("alter_database_add_region_stmt,database_name")
+LogGrammarCoverage("alter_database_add_region_stmt,region_name")
 
 
     $$.val = &tree.AlterDatabaseAddRegion{
@@ -2119,8 +2119,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,region_name")
   }
 | ALTER DATABASE database_name ADD REGION IF NOT EXISTS region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,region_name")
+LogGrammarCoverage("alter_database_add_region_stmt,database_name")
+LogGrammarCoverage("alter_database_add_region_stmt,region_name")
 
 
     $$.val = &tree.AlterDatabaseAddRegion{
@@ -2133,8 +2133,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_add_region_stmt,region_name")
 alter_database_drop_region_stmt:
   ALTER DATABASE database_name DROP REGION region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,region_name")
+LogGrammarCoverage("alter_database_drop_region_stmt,database_name")
+LogGrammarCoverage("alter_database_drop_region_stmt,region_name")
 
 
     $$.val = &tree.AlterDatabaseDropRegion{
@@ -2144,8 +2144,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,region_name"
   }
 | ALTER DATABASE database_name DROP REGION IF EXISTS region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,region_name")
+LogGrammarCoverage("alter_database_drop_region_stmt,database_name")
+LogGrammarCoverage("alter_database_drop_region_stmt,region_name")
 
 
     $$.val = &tree.AlterDatabaseDropRegion{
@@ -2158,8 +2158,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_region_stmt,region_name"
 alter_database_survival_goal_stmt:
   ALTER DATABASE database_name survival_goal_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_survival_goal_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_survival_goal_stmt,survival_goal_clause")
+LogGrammarCoverage("alter_database_survival_goal_stmt,database_name")
+LogGrammarCoverage("alter_database_survival_goal_stmt,survival_goal_clause")
 
 
     $$.val = &tree.AlterDatabaseSurvivalGoal{
@@ -2171,8 +2171,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_survival_goal_stmt,survival_g
 alter_database_primary_region_stmt:
   ALTER DATABASE database_name primary_region_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,primary_region_clause")
+LogGrammarCoverage("alter_database_primary_region_stmt,database_name")
+LogGrammarCoverage("alter_database_primary_region_stmt,primary_region_clause")
 
 
     $$.val = &tree.AlterDatabasePrimaryRegion{
@@ -2182,8 +2182,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,primary_r
   }
 | ALTER DATABASE database_name SET primary_region_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,primary_region_clause")
+LogGrammarCoverage("alter_database_primary_region_stmt,database_name")
+LogGrammarCoverage("alter_database_primary_region_stmt,primary_region_clause")
 
 
     $$.val = &tree.AlterDatabasePrimaryRegion{
@@ -2195,9 +2195,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_primary_region_stmt,primary_r
 alter_database_add_super_region:
   ALTER DATABASE database_name ADD SUPER REGION name VALUES name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_super_region,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_super_region,name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_add_super_region,name_list")
+LogGrammarCoverage("alter_database_add_super_region,database_name")
+LogGrammarCoverage("alter_database_add_super_region,name")
+LogGrammarCoverage("alter_database_add_super_region,name_list")
 
 
     $$.val = &tree.AlterDatabaseAddSuperRegion{
@@ -2210,8 +2210,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_add_super_region,name_list")
 alter_database_drop_super_region:
   ALTER DATABASE database_name DROP SUPER REGION name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_super_region,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_super_region,name")
+LogGrammarCoverage("alter_database_drop_super_region,database_name")
+LogGrammarCoverage("alter_database_drop_super_region,name")
 
 
     $$.val = &tree.AlterDatabaseDropSuperRegion{
@@ -2223,9 +2223,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_drop_super_region,name")
 alter_database_alter_super_region:
   ALTER DATABASE database_name ALTER SUPER REGION name VALUES name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_alter_super_region,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_alter_super_region,name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_alter_super_region,name_list")
+LogGrammarCoverage("alter_database_alter_super_region,database_name")
+LogGrammarCoverage("alter_database_alter_super_region,name")
+LogGrammarCoverage("alter_database_alter_super_region,name_list")
 
 
     $$.val = &tree.AlterDatabaseAlterSuperRegion{
@@ -2257,12 +2257,12 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_alter_super_region,name_list"
 alter_range_stmt:
   alter_zone_range_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_stmt,alter_zone_range_stmt")
+LogGrammarCoverage("alter_range_stmt,alter_zone_range_stmt")
 
 }
 | alter_range_relocate_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_stmt,alter_range_relocate_stmt")
+LogGrammarCoverage("alter_range_stmt,alter_range_relocate_stmt")
 
 }
 | ALTER RANGE error // SHOW HELP: ALTER RANGE
@@ -2291,34 +2291,34 @@ alter_index_stmt:
   alter_oneindex_stmt
 | alter_relocate_index_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_relocate_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_relocate_index_stmt")
 
 }
 | alter_split_index_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_split_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_split_index_stmt")
 
 }
 | alter_unsplit_index_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_unsplit_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_unsplit_index_stmt")
 
 }
 | alter_scatter_index_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_scatter_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_scatter_index_stmt")
 
 }
 | alter_rename_index_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_rename_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_rename_index_stmt")
 
 }
 | alter_zone_index_stmt
 // ALTER INDEX has its error help token here because the ALTER INDEX
 // prefix is spread over multiple non-terminals.
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_zone_index_stmt")
+LogGrammarCoverage("alter_index_stmt,alter_zone_index_stmt")
 
 }
 | ALTER INDEX error // SHOW HELP: ALTER INDEX
@@ -2326,17 +2326,17 @@ sqllex.(*lexer).LogGrammarCoverage("alter_index_stmt,alter_zone_index_stmt")
 alter_onetable_stmt:
   ALTER TABLE relation_expr alter_table_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,alter_table_cmds")
+LogGrammarCoverage("alter_onetable_stmt,error")
+LogGrammarCoverage("alter_onetable_stmt,relation_expr")
+LogGrammarCoverage("alter_onetable_stmt,alter_table_cmds")
 
 
     $$.val = &tree.AlterTable{Table: $3.unresolvedObjectName(), IfExists: false, Cmds: $4.alterTableCmds()}
   }
 | ALTER TABLE IF EXISTS relation_expr alter_table_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,alter_table_cmds")
+LogGrammarCoverage("alter_onetable_stmt,relation_expr")
+LogGrammarCoverage("alter_onetable_stmt,alter_table_cmds")
 
 
     $$.val = &tree.AlterTable{Table: $5.unresolvedObjectName(), IfExists: true, Cmds: $6.alterTableCmds()}
@@ -2345,16 +2345,16 @@ sqllex.(*lexer).LogGrammarCoverage("alter_onetable_stmt,alter_table_cmds")
 alter_oneindex_stmt:
   ALTER INDEX table_index_name alter_index_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_oneindex_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_oneindex_stmt,alter_index_cmds")
+LogGrammarCoverage("alter_oneindex_stmt,table_index_name")
+LogGrammarCoverage("alter_oneindex_stmt,alter_index_cmds")
 
 
     $$.val = &tree.AlterIndex{Index: $3.tableIndexName(), IfExists: false, Cmds: $4.alterIndexCmds()}
   }
 | ALTER INDEX IF EXISTS table_index_name alter_index_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_oneindex_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_oneindex_stmt,alter_index_cmds")
+LogGrammarCoverage("alter_oneindex_stmt,table_index_name")
+LogGrammarCoverage("alter_oneindex_stmt,alter_index_cmds")
 
 
     $$.val = &tree.AlterIndex{Index: $5.tableIndexName(), IfExists: true, Cmds: $6.alterIndexCmds()}
@@ -2363,8 +2363,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_oneindex_stmt,alter_index_cmds")
 alter_split_stmt:
   ALTER TABLE table_name SPLIT AT select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,select_stmt")
+LogGrammarCoverage("alter_split_stmt,table_name")
+LogGrammarCoverage("alter_split_stmt,select_stmt")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2376,9 +2376,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,select_stmt")
   }
 | ALTER TABLE table_name SPLIT AT select_stmt WITH EXPIRATION a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,a_expr")
+LogGrammarCoverage("alter_split_stmt,table_name")
+LogGrammarCoverage("alter_split_stmt,select_stmt")
+LogGrammarCoverage("alter_split_stmt,a_expr")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2392,17 +2392,17 @@ sqllex.(*lexer).LogGrammarCoverage("alter_split_stmt,a_expr")
 alter_split_index_stmt:
   ALTER INDEX table_index_name SPLIT AT select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,select_stmt")
+LogGrammarCoverage("alter_split_index_stmt,table_index_name")
+LogGrammarCoverage("alter_split_index_stmt,select_stmt")
 
 
     $$.val = &tree.Split{TableOrIndex: $3.tableIndexName(), Rows: $6.slct(), ExpireExpr: tree.Expr(nil)}
   }
 | ALTER INDEX table_index_name SPLIT AT select_stmt WITH EXPIRATION a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,a_expr")
+LogGrammarCoverage("alter_split_index_stmt,table_index_name")
+LogGrammarCoverage("alter_split_index_stmt,select_stmt")
+LogGrammarCoverage("alter_split_index_stmt,a_expr")
 
 
     $$.val = &tree.Split{TableOrIndex: $3.tableIndexName(), Rows: $6.slct(), ExpireExpr: $9.expr()}
@@ -2411,8 +2411,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_split_index_stmt,a_expr")
 alter_unsplit_stmt:
   ALTER TABLE table_name UNSPLIT AT select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_stmt,select_stmt")
+LogGrammarCoverage("alter_unsplit_stmt,table_name")
+LogGrammarCoverage("alter_unsplit_stmt,select_stmt")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2423,7 +2423,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_stmt,select_stmt")
   }
 | ALTER TABLE table_name UNSPLIT ALL
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_stmt,table_name")
+LogGrammarCoverage("alter_unsplit_stmt,table_name")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2436,15 +2436,15 @@ sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_stmt,table_name")
 alter_unsplit_index_stmt:
   ALTER INDEX table_index_name UNSPLIT AT select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_index_stmt,select_stmt")
+LogGrammarCoverage("alter_unsplit_index_stmt,table_index_name")
+LogGrammarCoverage("alter_unsplit_index_stmt,select_stmt")
 
 
     $$.val = &tree.Unsplit{TableOrIndex: $3.tableIndexName(), Rows: $6.slct()}
   }
 | ALTER INDEX table_index_name UNSPLIT ALL
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsplit_index_stmt,table_index_name")
+LogGrammarCoverage("alter_unsplit_index_stmt,table_index_name")
 
 
     $$.val = &tree.Unsplit{TableOrIndex: $3.tableIndexName(), All: true}
@@ -2467,7 +2467,7 @@ relocate_kw:
 relocate_subject:
   relocate_subject_nonlease
 {
-sqllex.(*lexer).LogGrammarCoverage("relocate_subject,relocate_subject_nonlease")
+LogGrammarCoverage("relocate_subject,relocate_subject_nonlease")
 
 }
 | LEASE
@@ -2501,10 +2501,10 @@ relocate_subject_nonlease:
 alter_relocate_stmt:
   ALTER TABLE table_name relocate_kw relocate_subject select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_stmt,relocate_subject")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_stmt,select_stmt")
+LogGrammarCoverage("alter_relocate_stmt,table_name")
+LogGrammarCoverage("alter_relocate_stmt,relocate_kw")
+LogGrammarCoverage("alter_relocate_stmt,relocate_subject")
+LogGrammarCoverage("alter_relocate_stmt,select_stmt")
 
 
     
@@ -2519,10 +2519,10 @@ sqllex.(*lexer).LogGrammarCoverage("alter_relocate_stmt,select_stmt")
 alter_relocate_index_stmt:
   ALTER INDEX table_index_name relocate_kw relocate_subject select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_index_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_index_stmt,relocate_subject")
-sqllex.(*lexer).LogGrammarCoverage("alter_relocate_index_stmt,select_stmt")
+LogGrammarCoverage("alter_relocate_index_stmt,table_index_name")
+LogGrammarCoverage("alter_relocate_index_stmt,relocate_kw")
+LogGrammarCoverage("alter_relocate_index_stmt,relocate_subject")
+LogGrammarCoverage("alter_relocate_index_stmt,select_stmt")
 
 
     
@@ -2546,8 +2546,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_relocate_index_stmt,select_stmt")
 alter_zone_range_stmt:
   ALTER RANGE a_expr set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_range_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_range_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_range_stmt,a_expr")
+LogGrammarCoverage("alter_zone_range_stmt,set_zone_config")
 
 
       var zoneName string
@@ -2570,9 +2570,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_range_stmt,set_zone_config")
 alter_range_relocate_stmt:
   ALTER RANGE relocate_kw LEASE TO a_expr FOR select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
 
 
     $$.val = &tree.RelocateRange{
@@ -2584,9 +2584,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
   }
 | ALTER RANGE a_expr relocate_kw LEASE TO a_expr
     {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
 
 
       $$.val = &tree.RelocateRange{
@@ -2600,11 +2600,11 @@ sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
     }
 | ALTER RANGE relocate_kw relocate_subject_nonlease FROM a_expr TO a_expr FOR select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_subject_nonlease")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_subject_nonlease")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
 
 
     $$.val = &tree.RelocateRange{
@@ -2616,11 +2616,11 @@ sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,select_stmt")
   }
 | ALTER RANGE a_expr relocate_kw relocate_subject_nonlease FROM a_expr TO a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,relocate_subject_nonlease")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_kw")
+LogGrammarCoverage("alter_range_relocate_stmt,relocate_subject_nonlease")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
+LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
 
 
     $$.val = &tree.RelocateRange{
@@ -2636,8 +2636,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_range_relocate_stmt,a_expr")
 set_zone_config:
   CONFIGURE ZONE to_or_eq a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("set_zone_config,to_or_eq")
-sqllex.(*lexer).LogGrammarCoverage("set_zone_config,a_expr")
+LogGrammarCoverage("set_zone_config,to_or_eq")
+LogGrammarCoverage("set_zone_config,a_expr")
 
 
     
@@ -2645,7 +2645,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_zone_config,a_expr")
   }
 | CONFIGURE ZONE USING var_set_list
   {
-sqllex.(*lexer).LogGrammarCoverage("set_zone_config,var_set_list")
+LogGrammarCoverage("set_zone_config,var_set_list")
 
 
     $$.val = &tree.SetZoneConfig{Options: $4.kvOptions()}
@@ -2667,8 +2667,8 @@ sqllex.(*lexer).LogGrammarCoverage("set_zone_config,var_set_list")
 alter_zone_database_stmt:
   ALTER DATABASE database_name set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_database_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_database_stmt,database_name")
+LogGrammarCoverage("alter_zone_database_stmt,set_zone_config")
 
 
      s := $4.setZoneConfig()
@@ -2679,8 +2679,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_database_stmt,set_zone_config")
 alter_zone_table_stmt:
   ALTER TABLE table_name set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_table_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_table_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_table_stmt,table_name")
+LogGrammarCoverage("alter_zone_table_stmt,set_zone_config")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2694,8 +2694,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_table_stmt,set_zone_config")
 alter_zone_index_stmt:
   ALTER INDEX table_index_name set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_index_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_index_stmt,table_index_name")
+LogGrammarCoverage("alter_zone_index_stmt,set_zone_config")
 
 
     s := $4.setZoneConfig()
@@ -2708,9 +2708,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_index_stmt,set_zone_config")
 alter_zone_partition_stmt:
   ALTER PARTITION partition_name OF TABLE table_name set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
+LogGrammarCoverage("alter_zone_partition_stmt,table_name")
+LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
 
 
     name := $6.unresolvedObjectName().ToTableName()
@@ -2723,9 +2723,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
   }
 | ALTER PARTITION partition_name OF INDEX table_index_name set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
+LogGrammarCoverage("alter_zone_partition_stmt,table_index_name")
+LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
 
 
     s := $7.setZoneConfig()
@@ -2737,9 +2737,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
   }
 | ALTER PARTITION partition_name OF INDEX table_name '@' '*' set_zone_config
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
+LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
+LogGrammarCoverage("alter_zone_partition_stmt,table_name")
+LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
 
 
     name := $6.unresolvedObjectName().ToTableName()
@@ -2753,9 +2753,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,set_zone_config")
   }
 | ALTER PARTITION partition_name OF TABLE table_name '@' error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,error")
+LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
+LogGrammarCoverage("alter_zone_partition_stmt,table_name")
+LogGrammarCoverage("alter_zone_partition_stmt,error")
 
 
     err := errors.New("index name should not be specified in ALTER PARTITION ... OF TABLE")
@@ -2764,9 +2764,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,error")
   }
 | ALTER PARTITION partition_name OF TABLE table_name '@' '*' error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,error")
+LogGrammarCoverage("alter_zone_partition_stmt,partition_name")
+LogGrammarCoverage("alter_zone_partition_stmt,table_name")
+LogGrammarCoverage("alter_zone_partition_stmt,error")
 
 
     err := errors.New("index wildcard unsupported in ALTER PARTITION ... OF TABLE")
@@ -2777,32 +2777,32 @@ sqllex.(*lexer).LogGrammarCoverage("alter_zone_partition_stmt,error")
 var_set_list:
   var_name '=' COPY FROM PARENT
   {
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_name")
+LogGrammarCoverage("var_set_list,var_name")
 
 
     $$.val = []tree.KVOption{tree.KVOption{Key: tree.Name(strings.Join($1.strs(), "."))}}
   }
 | var_name '=' var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_name")
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_value")
+LogGrammarCoverage("var_set_list,var_name")
+LogGrammarCoverage("var_set_list,var_value")
 
 
     $$.val = []tree.KVOption{tree.KVOption{Key: tree.Name(strings.Join($1.strs(), ".")), Value: $3.expr()}}
   }
 | var_set_list ',' var_name '=' var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_set_list")
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_name")
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_value")
+LogGrammarCoverage("var_set_list,var_set_list")
+LogGrammarCoverage("var_set_list,var_name")
+LogGrammarCoverage("var_set_list,var_value")
 
 
     $$.val = append($1.kvOptions(), tree.KVOption{Key: tree.Name(strings.Join($3.strs(), ".")), Value: $5.expr()})
   }
 | var_set_list ',' var_name '=' COPY FROM PARENT
   {
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_set_list")
-sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_name")
+LogGrammarCoverage("var_set_list,var_set_list")
+LogGrammarCoverage("var_set_list,var_name")
 
 
     $$.val = append($1.kvOptions(), tree.KVOption{Key: tree.Name(strings.Join($3.strs(), "."))})
@@ -2811,7 +2811,7 @@ sqllex.(*lexer).LogGrammarCoverage("var_set_list,var_name")
 alter_scatter_stmt:
   ALTER TABLE table_name SCATTER
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,table_name")
+LogGrammarCoverage("alter_scatter_stmt,table_name")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2819,9 +2819,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,table_name")
   }
 | ALTER TABLE table_name SCATTER FROM '(' expr_list ')' TO '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,expr_list")
+LogGrammarCoverage("alter_scatter_stmt,table_name")
+LogGrammarCoverage("alter_scatter_stmt,expr_list")
+LogGrammarCoverage("alter_scatter_stmt,expr_list")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -2835,16 +2835,16 @@ sqllex.(*lexer).LogGrammarCoverage("alter_scatter_stmt,expr_list")
 alter_scatter_index_stmt:
   ALTER INDEX table_index_name SCATTER
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_index_stmt,table_index_name")
+LogGrammarCoverage("alter_scatter_index_stmt,table_index_name")
 
 
     $$.val = &tree.Scatter{TableOrIndex: $3.tableIndexName()}
   }
 | ALTER INDEX table_index_name SCATTER FROM '(' expr_list ')' TO '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_index_stmt,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("alter_scatter_index_stmt,expr_list")
+LogGrammarCoverage("alter_scatter_index_stmt,table_index_name")
+LogGrammarCoverage("alter_scatter_index_stmt,expr_list")
+LogGrammarCoverage("alter_scatter_index_stmt,expr_list")
 
 
     $$.val = &tree.Scatter{TableOrIndex: $3.tableIndexName(), From: $7.exprs(), To: $11.exprs()}
@@ -2853,15 +2853,15 @@ sqllex.(*lexer).LogGrammarCoverage("alter_scatter_index_stmt,expr_list")
 alter_table_cmds:
   alter_table_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmds,alter_table_cmd")
+LogGrammarCoverage("alter_table_cmds,alter_table_cmd")
 
 
     $$.val = tree.AlterTableCmds{$1.alterTableCmd()}
   }
 | alter_table_cmds ',' alter_table_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmds,alter_table_cmds")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmds,alter_table_cmd")
+LogGrammarCoverage("alter_table_cmds,alter_table_cmds")
+LogGrammarCoverage("alter_table_cmds,alter_table_cmd")
 
 
     $$.val = append($1.alterTableCmds(), $3.alterTableCmd())
@@ -2871,9 +2871,9 @@ alter_table_cmd:
   // ALTER TABLE <name> RENAME [COLUMN] <name> TO <newname>
   RENAME opt_column column_name TO column_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,column_name")
 
 
     $$.val = &tree.AlterTableRenameColumn{Column: tree.Name($3), NewName: tree.Name($5) }
@@ -2881,8 +2881,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
   // ALTER TABLE <name> RENAME CONSTRAINT <name> TO <newname>
 | RENAME CONSTRAINT column_name TO column_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,column_name")
 
 
     $$.val = &tree.AlterTableRenameConstraint{Constraint: tree.Name($3), NewName: tree.Name($5) }
@@ -2890,7 +2890,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
   // ALTER TABLE <name> ADD <coldef>
 | ADD column_def
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
+LogGrammarCoverage("alter_table_cmd,column_def")
 
 
     $$.val = &tree.AlterTableAddColumn{IfNotExists: false, ColumnDef: $2.colDef()}
@@ -2898,7 +2898,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
   // ALTER TABLE <name> ADD IF NOT EXISTS <coldef>
 | ADD IF NOT EXISTS column_def
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
+LogGrammarCoverage("alter_table_cmd,column_def")
 
 
     $$.val = &tree.AlterTableAddColumn{IfNotExists: true, ColumnDef: $5.colDef()}
@@ -2906,7 +2906,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
   // ALTER TABLE <name> ADD COLUMN <coldef>
 | ADD COLUMN column_def
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
+LogGrammarCoverage("alter_table_cmd,column_def")
 
 
     $$.val = &tree.AlterTableAddColumn{IfNotExists: false, ColumnDef: $3.colDef()}
@@ -2914,7 +2914,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
   // ALTER TABLE <name> ADD COLUMN IF NOT EXISTS <coldef>
 | ADD COLUMN IF NOT EXISTS column_def
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
+LogGrammarCoverage("alter_table_cmd,column_def")
 
 
     $$.val = &tree.AlterTableAddColumn{IfNotExists: true, ColumnDef: $6.colDef()}
@@ -2922,9 +2922,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_def")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> {SET DEFAULT <expr>|DROP DEFAULT}
 | ALTER opt_column column_name alter_column_default
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_default")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,alter_column_default")
 
 
     $$.val = &tree.AlterTableSetDefault{Column: tree.Name($3), Default: $4.expr()}
@@ -2932,9 +2932,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_default")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> {SET ON UPDATE <expr>|DROP ON UPDATE}
 | ALTER opt_column column_name alter_column_on_update
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_on_update")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,alter_column_on_update")
 
 
     $$.val = &tree.AlterTableSetOnUpdate{Column: tree.Name($3), Expr: $4.expr()}
@@ -2942,9 +2942,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_on_update")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> SET {VISIBLE|NOT VISIBLE}
 | ALTER opt_column column_name alter_column_visible
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_visible")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,alter_column_visible")
 
 
     $$.val = &tree.AlterTableSetVisible{Column: tree.Name($3), Visible: $4.bool()}
@@ -2952,8 +2952,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,alter_column_visible")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> DROP NOT NULL
 | ALTER opt_column column_name DROP NOT NULL
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
 
 
     $$.val = &tree.AlterTableDropNotNull{Column: tree.Name($3)}
@@ -2961,8 +2961,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> DROP STORED
 | ALTER opt_column column_name DROP STORED
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
 
 
     $$.val = &tree.AlterTableDropStored{Column: tree.Name($3)}
@@ -2970,17 +2970,17 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
   // ALTER TABLE <name> ALTER [COLUMN] <colname> SET NOT NULL
 | ALTER opt_column column_name SET NOT NULL
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
 
 
     $$.val = &tree.AlterTableSetNotNull{Column: tree.Name($3)}
   }
 | ALTER opt_column column_name ADD error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,error")
 
 
     return unimplemented(sqllex, "alter table alter column add")
@@ -2988,9 +2988,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
   // ALTER TABLE <name> DROP [COLUMN] IF EXISTS <colname> [RESTRICT|CASCADE]
 | DROP opt_column IF EXISTS column_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
 
 
     $$.val = &tree.AlterTableDropColumn{
@@ -3002,9 +3002,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
   // ALTER TABLE <name> DROP [COLUMN] <colname> [RESTRICT|CASCADE]
 | DROP opt_column column_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
 
 
     $$.val = &tree.AlterTableDropColumn{
@@ -3019,12 +3019,12 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
   //     [ USING <expression> ]
 | ALTER opt_column column_name opt_set_data TYPE typename opt_collate opt_alter_column_using
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_column")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_set_data")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,typename")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_collate")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_alter_column_using")
+LogGrammarCoverage("alter_table_cmd,opt_column")
+LogGrammarCoverage("alter_table_cmd,column_name")
+LogGrammarCoverage("alter_table_cmd,opt_set_data")
+LogGrammarCoverage("alter_table_cmd,typename")
+LogGrammarCoverage("alter_table_cmd,opt_collate")
+LogGrammarCoverage("alter_table_cmd,opt_alter_column_using")
 
 
     $$.val = &tree.AlterTableAlterColumnType{
@@ -3037,8 +3037,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_alter_column_using")
   // ALTER TABLE <name> ADD CONSTRAINT ...
 | ADD table_constraint opt_validate_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,table_constraint")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
+LogGrammarCoverage("alter_table_cmd,table_constraint")
+LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
 
 
     $$.val = &tree.AlterTableAddConstraint{
@@ -3049,9 +3049,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
   // ALTER TABLE <name> ADD CONSTRAINT IF NOT EXISTS ...
 | ADD CONSTRAINT IF NOT EXISTS constraint_name constraint_elem opt_validate_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_elem")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
+LogGrammarCoverage("alter_table_cmd,constraint_name")
+LogGrammarCoverage("alter_table_cmd,constraint_elem")
+LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
 
 
     def := $7.constraintDef()
@@ -3064,14 +3064,14 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_validate_behavior")
   }
   // ALTER TABLE <name> ALTER CONSTRAINT ...
 | ALTER CONSTRAINT constraint_name error {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
+LogGrammarCoverage("alter_table_cmd,constraint_name")
+LogGrammarCoverage("alter_table_cmd,error")
 
  return unimplementedWithIssueDetail(sqllex, 31632, "alter constraint") }
   // ALTER TABLE <name> INHERITS ....
 | INHERITS error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
+LogGrammarCoverage("alter_table_cmd,error")
 
 
     
@@ -3080,7 +3080,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
   // ALTER TABLE <name> NO INHERITS ....
 | NO INHERITS error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
+LogGrammarCoverage("alter_table_cmd,error")
 
 
     
@@ -3090,9 +3090,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,error")
   // ALTER TABLE <name> ALTER PRIMARY KEY USING INDEX <name>
 | ALTER PRIMARY KEY USING COLUMNS '(' index_params ')' opt_hash_sharded opt_with_storage_parameter_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,index_params")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_with_storage_parameter_list")
+LogGrammarCoverage("alter_table_cmd,index_params")
+LogGrammarCoverage("alter_table_cmd,opt_hash_sharded")
+LogGrammarCoverage("alter_table_cmd,opt_with_storage_parameter_list")
 
 
     $$.val = &tree.AlterTableAlterPrimaryKey{
@@ -3103,7 +3103,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_with_storage_parameter_l
   }
 | VALIDATE CONSTRAINT constraint_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
+LogGrammarCoverage("alter_table_cmd,constraint_name")
 
 
     $$.val = &tree.AlterTableValidateConstraint{
@@ -3113,8 +3113,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
   // ALTER TABLE <name> DROP CONSTRAINT IF EXISTS <name> [RESTRICT|CASCADE]
 | DROP CONSTRAINT IF EXISTS constraint_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
+LogGrammarCoverage("alter_table_cmd,constraint_name")
+LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
 
 
     $$.val = &tree.AlterTableDropConstraint{
@@ -3126,8 +3126,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
   // ALTER TABLE <name> DROP CONSTRAINT <name> [RESTRICT|CASCADE]
 | DROP CONSTRAINT constraint_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
+LogGrammarCoverage("alter_table_cmd,constraint_name")
+LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
 
 
     $$.val = &tree.AlterTableDropConstraint{
@@ -3139,7 +3139,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,opt_drop_behavior")
   // ALTER TABLE <name> EXPERIMENTAL_AUDIT SET <mode>
 | EXPERIMENTAL_AUDIT SET audit_mode
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,audit_mode")
+LogGrammarCoverage("alter_table_cmd,audit_mode")
 
 
     $$.val = &tree.AlterTableSetAudit{Mode: $3.auditMode()}
@@ -3147,7 +3147,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,audit_mode")
   // ALTER TABLE <name> PARTITION BY ...
 | partition_by_table
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,partition_by_table")
+LogGrammarCoverage("alter_table_cmd,partition_by_table")
 
 
     $$.val = &tree.AlterTablePartitionByTable{
@@ -3157,7 +3157,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,partition_by_table")
   // ALTER TABLE <name> INJECT STATISTICS <json>
 | INJECT STATISTICS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,a_expr")
+LogGrammarCoverage("alter_table_cmd,a_expr")
 
 
     
@@ -3167,7 +3167,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,a_expr")
   }
 | SET '(' storage_parameter_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,storage_parameter_list")
+LogGrammarCoverage("alter_table_cmd,storage_parameter_list")
 
 
     $$.val = &tree.AlterTableSetStorageParams{
@@ -3176,7 +3176,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,storage_parameter_list")
   }
 | RESET '(' storage_parameter_key_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_cmd,storage_parameter_key_list")
+LogGrammarCoverage("alter_table_cmd,storage_parameter_key_list")
 
 
     $$.val = &tree.AlterTableResetStorageParams{
@@ -3195,15 +3195,15 @@ audit_mode:
 alter_index_cmds:
   alter_index_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_cmds,alter_index_cmd")
+LogGrammarCoverage("alter_index_cmds,alter_index_cmd")
 
 
     $$.val = tree.AlterIndexCmds{$1.alterIndexCmd()}
   }
 | alter_index_cmds ',' alter_index_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_cmds,alter_index_cmds")
-sqllex.(*lexer).LogGrammarCoverage("alter_index_cmds,alter_index_cmd")
+LogGrammarCoverage("alter_index_cmds,alter_index_cmds")
+LogGrammarCoverage("alter_index_cmds,alter_index_cmd")
 
 
     $$.val = append($1.alterIndexCmds(), $3.alterIndexCmd())
@@ -3212,7 +3212,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_index_cmds,alter_index_cmd")
 alter_index_cmd:
   partition_by_index
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_index_cmd,partition_by_index")
+LogGrammarCoverage("alter_index_cmd,partition_by_index")
 
 
     $$.val = &tree.AlterIndexPartitionBy{
@@ -3223,7 +3223,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_index_cmd,partition_by_index")
 alter_column_default:
   SET DEFAULT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_column_default,a_expr")
+LogGrammarCoverage("alter_column_default,a_expr")
 
 
     $$.val = $3.expr()
@@ -3238,7 +3238,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_column_default,a_expr")
 alter_column_on_update:
   SET ON UPDATE b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_column_on_update,b_expr")
+LogGrammarCoverage("alter_column_on_update,b_expr")
 
 
     $$.val = $4.expr()
@@ -3267,7 +3267,7 @@ alter_column_visible:
 opt_alter_column_using:
   USING a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_alter_column_using,a_expr")
+LogGrammarCoverage("opt_alter_column_using,a_expr")
 
 
      $$.val = $2.expr()
@@ -3336,8 +3336,8 @@ opt_validate_behavior:
 alter_type_stmt:
   ALTER TYPE type_name ADD VALUE SCONST opt_add_val_placement
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
 
 
     $$.val = &tree.AlterType{
@@ -3351,8 +3351,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
   }
 | ALTER TYPE type_name ADD VALUE IF NOT EXISTS SCONST opt_add_val_placement
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
 
 
     $$.val = &tree.AlterType{
@@ -3366,7 +3366,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,opt_add_val_placement")
   }
 | ALTER TYPE type_name DROP VALUE SCONST
  {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,type_name")
 
 
    $$.val = &tree.AlterType{
@@ -3378,7 +3378,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
  }
 | ALTER TYPE type_name RENAME VALUE SCONST TO SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,type_name")
 
 
     $$.val = &tree.AlterType{
@@ -3391,8 +3391,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
   }
 | ALTER TYPE type_name RENAME TO name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,name")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,name")
 
 
     $$.val = &tree.AlterType{
@@ -3404,8 +3404,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,name")
   }
 | ALTER TYPE type_name SET SCHEMA schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,schema_name")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,schema_name")
 
 
     $$.val = &tree.AlterType{
@@ -3417,8 +3417,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,schema_name")
   }
 | ALTER TYPE type_name OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,role_spec")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,role_spec")
 
 
     $$.val = &tree.AlterType{
@@ -3430,18 +3430,18 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,role_spec")
   }
 | ALTER TYPE type_name RENAME ATTRIBUTE column_name TO column_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,opt_drop_behavior")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,column_name")
+LogGrammarCoverage("alter_type_stmt,column_name")
+LogGrammarCoverage("alter_type_stmt,opt_drop_behavior")
 
 
     return unimplementedWithIssueDetail(sqllex, 48701, "ALTER TYPE ATTRIBUTE")
   }
 | ALTER TYPE type_name alter_attribute_action_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,alter_attribute_action_list")
+LogGrammarCoverage("alter_type_stmt,type_name")
+LogGrammarCoverage("alter_type_stmt,alter_attribute_action_list")
 
 
     return unimplementedWithIssueDetail(sqllex, 48701, "ALTER TYPE ATTRIBUTE")
@@ -3451,7 +3451,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_type_stmt,alter_attribute_action_list"
 opt_add_val_placement:
   BEFORE SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_add_val_placement,error")
+LogGrammarCoverage("opt_add_val_placement,error")
 
 
     $$.val = &tree.AlterTypeAddValuePlacement{
@@ -3487,7 +3487,7 @@ role_spec:
   }
 | unreserved_keyword
   {
-sqllex.(*lexer).LogGrammarCoverage("role_spec,unreserved_keyword")
+LogGrammarCoverage("role_spec,unreserved_keyword")
 
 
     $$.val = tree.RoleSpec{
@@ -3515,15 +3515,15 @@ sqllex.(*lexer).LogGrammarCoverage("role_spec,unreserved_keyword")
 role_spec_list:
   role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("role_spec_list,role_spec")
+LogGrammarCoverage("role_spec_list,role_spec")
 
 
     $$.val = tree.RoleSpecList{$1.roleSpec()}
   }
 | role_spec_list ',' role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("role_spec_list,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("role_spec_list,role_spec")
+LogGrammarCoverage("role_spec_list,role_spec_list")
+LogGrammarCoverage("role_spec_list,role_spec")
 
 
     $$.val = append($1.roleSpecList(), $3.roleSpec())
@@ -3532,43 +3532,43 @@ sqllex.(*lexer).LogGrammarCoverage("role_spec_list,role_spec")
 alter_attribute_action_list:
   alter_attribute_action
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action")
+LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action")
 
 }
 | alter_attribute_action_list ',' alter_attribute_action
 
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action_list")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action")
+LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action_list")
+LogGrammarCoverage("alter_attribute_action_list,alter_attribute_action")
 
 }
 alter_attribute_action:
   ADD ATTRIBUTE column_name type_name opt_collate opt_drop_behavior
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_collate")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
+LogGrammarCoverage("alter_attribute_action,column_name")
+LogGrammarCoverage("alter_attribute_action,type_name")
+LogGrammarCoverage("alter_attribute_action,opt_collate")
+LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 
 }
 | DROP ATTRIBUTE column_name opt_drop_behavior
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
+LogGrammarCoverage("alter_attribute_action,column_name")
+LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 
 }
 | DROP ATTRIBUTE IF EXISTS column_name opt_drop_behavior
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
+LogGrammarCoverage("alter_attribute_action,column_name")
+LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 
 }
 | ALTER ATTRIBUTE column_name TYPE type_name opt_collate opt_drop_behavior
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_collate")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
+LogGrammarCoverage("alter_attribute_action,column_name")
+LogGrammarCoverage("alter_attribute_action,type_name")
+LogGrammarCoverage("alter_attribute_action,opt_collate")
+LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 
 }
 | ALTER ATTRIBUTE column_name SET DATA TYPE type_name opt_collate opt_drop_behavior
@@ -3578,18 +3578,18 @@ sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 // %Text:
 // REFRESH MATERIALIZED VIEW [CONCURRENTLY] view_name [WITH [NO] DATA]
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,column_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,type_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_collate")
-sqllex.(*lexer).LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
+LogGrammarCoverage("alter_attribute_action,column_name")
+LogGrammarCoverage("alter_attribute_action,type_name")
+LogGrammarCoverage("alter_attribute_action,opt_collate")
+LogGrammarCoverage("alter_attribute_action,opt_drop_behavior")
 
 }
 refresh_stmt:
   REFRESH MATERIALIZED VIEW opt_concurrently view_name opt_clear_data
   {
-sqllex.(*lexer).LogGrammarCoverage("refresh_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("refresh_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("refresh_stmt,opt_clear_data")
+LogGrammarCoverage("refresh_stmt,opt_concurrently")
+LogGrammarCoverage("refresh_stmt,view_name")
+LogGrammarCoverage("refresh_stmt,opt_clear_data")
 
 
     $$.val = &tree.RefreshMaterializedView{
@@ -3603,7 +3603,7 @@ sqllex.(*lexer).LogGrammarCoverage("refresh_stmt,opt_clear_data")
 opt_clear_data:
   WITH DATA
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_clear_data,error")
+LogGrammarCoverage("opt_clear_data,error")
 
 
     $$.val = tree.RefreshDataWithData
@@ -3661,11 +3661,11 @@ sqllex.(*lexer).LogGrammarCoverage("opt_clear_data,error")
 backup_stmt:
   BACKUP opt_backup_targets INTO sconst_or_placeholder IN string_or_placeholder_opt_list opt_as_of_clause opt_with_backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_backup_targets")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,sconst_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
+LogGrammarCoverage("backup_stmt,opt_backup_targets")
+LogGrammarCoverage("backup_stmt,sconst_or_placeholder")
+LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_stmt,opt_as_of_clause")
+LogGrammarCoverage("backup_stmt,opt_with_backup_options")
 
 
     $$.val = &tree.Backup{
@@ -3680,10 +3680,10 @@ sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
   }
 | BACKUP opt_backup_targets INTO string_or_placeholder_opt_list opt_as_of_clause opt_with_backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_backup_targets")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
+LogGrammarCoverage("backup_stmt,opt_backup_targets")
+LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_stmt,opt_as_of_clause")
+LogGrammarCoverage("backup_stmt,opt_with_backup_options")
 
 
     $$.val = &tree.Backup{
@@ -3696,10 +3696,10 @@ sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
   }
 | BACKUP opt_backup_targets INTO LATEST IN string_or_placeholder_opt_list opt_as_of_clause opt_with_backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_backup_targets")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
+LogGrammarCoverage("backup_stmt,opt_backup_targets")
+LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_stmt,opt_as_of_clause")
+LogGrammarCoverage("backup_stmt,opt_with_backup_options")
 
 
     $$.val = &tree.Backup{
@@ -3713,11 +3713,11 @@ sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
   }
 | BACKUP opt_backup_targets TO string_or_placeholder_opt_list opt_as_of_clause opt_incremental opt_with_backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_backup_targets")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_incremental")
-sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
+LogGrammarCoverage("backup_stmt,opt_backup_targets")
+LogGrammarCoverage("backup_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_stmt,opt_as_of_clause")
+LogGrammarCoverage("backup_stmt,opt_incremental")
+LogGrammarCoverage("backup_stmt,opt_with_backup_options")
 
 
     $$.val = &tree.Backup{
@@ -3733,16 +3733,16 @@ sqllex.(*lexer).LogGrammarCoverage("backup_stmt,opt_with_backup_options")
 opt_backup_targets:
   /* EMPTY -- full cluster */
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_backup_targets,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_backup_targets,full")
-sqllex.(*lexer).LogGrammarCoverage("opt_backup_targets,cluster")
+LogGrammarCoverage("opt_backup_targets,error")
+LogGrammarCoverage("opt_backup_targets,full")
+LogGrammarCoverage("opt_backup_targets,cluster")
 
 
     $$.val = (*tree.TargetList)(nil)
   }
 | targets
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_backup_targets,targets")
+LogGrammarCoverage("opt_backup_targets,targets")
 
 
     t := $1.targetList()
@@ -3753,14 +3753,14 @@ sqllex.(*lexer).LogGrammarCoverage("opt_backup_targets,targets")
 opt_with_backup_options:
   WITH backup_options_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_backup_options,backup_options_list")
+LogGrammarCoverage("opt_with_backup_options,backup_options_list")
 
 
     $$.val = $2.backupOptions()
   }
 | WITH OPTIONS '(' backup_options_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_backup_options,backup_options_list")
+LogGrammarCoverage("opt_with_backup_options,backup_options_list")
 
 
     $$.val = $4.backupOptions()
@@ -3776,15 +3776,15 @@ backup_options_list:
   // Require at least one option
   backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_options_list,backup_options")
+LogGrammarCoverage("backup_options_list,backup_options")
 
 
     $$.val = $1.backupOptions()
   }
 | backup_options_list ',' backup_options
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_options_list,backup_options_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_options_list,backup_options")
+LogGrammarCoverage("backup_options_list,backup_options_list")
+LogGrammarCoverage("backup_options_list,backup_options")
 
 
     if err := $1.backupOptions().CombineWith($3.backupOptions()); err != nil {
@@ -3796,7 +3796,7 @@ sqllex.(*lexer).LogGrammarCoverage("backup_options_list,backup_options")
 backup_options:
   ENCRYPTION_PASSPHRASE '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_options,string_or_placeholder")
+LogGrammarCoverage("backup_options,string_or_placeholder")
 
 
     $$.val = &tree.BackupOptions{EncryptionPassphrase: $3.expr()}
@@ -3815,14 +3815,14 @@ sqllex.(*lexer).LogGrammarCoverage("backup_options,string_or_placeholder")
   }
 | KMS '=' string_or_placeholder_opt_list
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_options,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_options,string_or_placeholder_opt_list")
 
 
     $$.val = &tree.BackupOptions{EncryptionKMSURI: $3.stringOrPlaceholderOptList()}
   }
 | INCREMENTAL_LOCATION '=' string_or_placeholder_opt_list
   {
-sqllex.(*lexer).LogGrammarCoverage("backup_options,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_options,string_or_placeholder_opt_list")
 
 
   $$.val = &tree.BackupOptions{IncrementalStorage: $3.stringOrPlaceholderOptList()}
@@ -3907,13 +3907,13 @@ create_schedule_for_backup_stmt:
   string_or_placeholder_opt_list opt_with_backup_options
   cron_expr opt_full_backup_clause opt_with_schedule_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,schedule_label_spec")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,opt_backup_targets")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,opt_with_backup_options")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,cron_expr")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,opt_full_backup_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,opt_with_schedule_options")
+LogGrammarCoverage("create_schedule_for_backup_stmt,schedule_label_spec")
+LogGrammarCoverage("create_schedule_for_backup_stmt,opt_backup_targets")
+LogGrammarCoverage("create_schedule_for_backup_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("create_schedule_for_backup_stmt,opt_with_backup_options")
+LogGrammarCoverage("create_schedule_for_backup_stmt,cron_expr")
+LogGrammarCoverage("create_schedule_for_backup_stmt,opt_full_backup_clause")
+LogGrammarCoverage("create_schedule_for_backup_stmt,opt_with_schedule_options")
 
 
   $$.val = &tree.ScheduledBackup{
@@ -3932,7 +3932,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_schedule_for_backup_stmt,opt_with_sch
 sconst_or_placeholder:
   SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("sconst_or_placeholder,error")
+LogGrammarCoverage("sconst_or_placeholder,error")
 
 
     $$.val =  tree.NewStrVal($1)
@@ -3951,7 +3951,7 @@ cron_expr:
   // Can't use string_or_placeholder here due to conflict on NEVER branch above
   // (is NEVER a keyword or a variable?).
   {
-sqllex.(*lexer).LogGrammarCoverage("cron_expr,sconst_or_placeholder")
+LogGrammarCoverage("cron_expr,sconst_or_placeholder")
 
 
     $$.val = $2.expr()
@@ -3960,14 +3960,14 @@ sqllex.(*lexer).LogGrammarCoverage("cron_expr,sconst_or_placeholder")
 schedule_label_spec:
   string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("schedule_label_spec,string_or_placeholder")
+LogGrammarCoverage("schedule_label_spec,string_or_placeholder")
 
 
       $$.val = &tree.ScheduleLabelSpec{Label: $1.expr(), IfNotExists: false}
   }
 | IF NOT EXISTS string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("schedule_label_spec,string_or_placeholder")
+LogGrammarCoverage("schedule_label_spec,string_or_placeholder")
 
 
       $$.val = &tree.ScheduleLabelSpec{Label: $4.expr(), IfNotExists: true}
@@ -3985,7 +3985,7 @@ opt_full_backup_clause:
   // Can't use string_or_placeholder here due to conflict on ALWAYS branch below
   // (is ALWAYS a keyword or a variable?).
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_full_backup_clause,sconst_or_placeholder")
+LogGrammarCoverage("opt_full_backup_clause,sconst_or_placeholder")
 
 
     $$.val = &tree.FullBackupClause{Recurrence: $3.expr()}
@@ -4006,14 +4006,14 @@ sqllex.(*lexer).LogGrammarCoverage("opt_full_backup_clause,sconst_or_placeholder
 opt_with_schedule_options:
   WITH SCHEDULE OPTIONS kv_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_schedule_options,kv_option_list")
+LogGrammarCoverage("opt_with_schedule_options,kv_option_list")
 
 
     $$.val = $4.kvOptions()
   }
 | WITH SCHEDULE OPTIONS '(' kv_option_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_schedule_options,kv_option_list")
+LogGrammarCoverage("opt_with_schedule_options,kv_option_list")
 
 
     $$.val = $5.kvOptions()
@@ -4060,9 +4060,9 @@ sqllex.(*lexer).LogGrammarCoverage("opt_with_schedule_options,kv_option_list")
 restore_stmt:
   RESTORE FROM list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4074,10 +4074,10 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE FROM string_or_placeholder IN list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,string_or_placeholder")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4090,10 +4090,10 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE targets FROM list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,targets")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4105,11 +4105,11 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE targets FROM string_or_placeholder IN list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,targets")
+LogGrammarCoverage("restore_stmt,string_or_placeholder")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4122,9 +4122,9 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE SYSTEM USERS FROM list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4136,10 +4136,10 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE SYSTEM USERS FROM string_or_placeholder IN list_of_string_or_placeholder_opt_list opt_as_of_clause opt_with_restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
+LogGrammarCoverage("restore_stmt,string_or_placeholder")
+LogGrammarCoverage("restore_stmt,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,opt_with_restore_options")
 
 
     $$.val = &tree.Restore{
@@ -4152,9 +4152,9 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_with_restore_options")
   }
 | RESTORE targets FROM REPLICATION STREAM FROM string_or_placeholder_opt_list opt_as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
+LogGrammarCoverage("restore_stmt,targets")
+LogGrammarCoverage("restore_stmt,string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_stmt,opt_as_of_clause")
 
 
    $$.val = &tree.StreamIngestion{
@@ -4168,15 +4168,15 @@ sqllex.(*lexer).LogGrammarCoverage("restore_stmt,opt_as_of_clause")
 string_or_placeholder_opt_list:
   string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_opt_list,error")
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_opt_list,string_or_placeholder")
+LogGrammarCoverage("string_or_placeholder_opt_list,error")
+LogGrammarCoverage("string_or_placeholder_opt_list,string_or_placeholder")
 
 
     $$.val = tree.StringOrPlaceholderOptList{$1.expr()}
   }
 | '(' string_or_placeholder_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_opt_list,string_or_placeholder_list")
+LogGrammarCoverage("string_or_placeholder_opt_list,string_or_placeholder_list")
 
 
     $$.val = tree.StringOrPlaceholderOptList($2.exprs())
@@ -4185,15 +4185,15 @@ sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_opt_list,string_or_pla
 list_of_string_or_placeholder_opt_list:
   string_or_placeholder_opt_list
   {
-sqllex.(*lexer).LogGrammarCoverage("list_of_string_or_placeholder_opt_list,string_or_placeholder_opt_list")
+LogGrammarCoverage("list_of_string_or_placeholder_opt_list,string_or_placeholder_opt_list")
 
 
     $$.val = []tree.StringOrPlaceholderOptList{$1.stringOrPlaceholderOptList()}
   }
 | list_of_string_or_placeholder_opt_list ',' string_or_placeholder_opt_list
   {
-sqllex.(*lexer).LogGrammarCoverage("list_of_string_or_placeholder_opt_list,list_of_string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("list_of_string_or_placeholder_opt_list,string_or_placeholder_opt_list")
+LogGrammarCoverage("list_of_string_or_placeholder_opt_list,list_of_string_or_placeholder_opt_list")
+LogGrammarCoverage("list_of_string_or_placeholder_opt_list,string_or_placeholder_opt_list")
 
 
     $$.val = append($1.listOfStringOrPlaceholderOptList(), $3.stringOrPlaceholderOptList())
@@ -4203,14 +4203,14 @@ sqllex.(*lexer).LogGrammarCoverage("list_of_string_or_placeholder_opt_list,strin
 opt_with_restore_options:
   WITH restore_options_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_restore_options,restore_options_list")
+LogGrammarCoverage("opt_with_restore_options,restore_options_list")
 
 
     $$.val = $2.restoreOptions()
   }
 | WITH OPTIONS '(' restore_options_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_restore_options,restore_options_list")
+LogGrammarCoverage("opt_with_restore_options,restore_options_list")
 
 
     $$.val = $4.restoreOptions()
@@ -4226,15 +4226,15 @@ restore_options_list:
   // Require at least one option
   restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options_list,restore_options")
+LogGrammarCoverage("restore_options_list,restore_options")
 
 
     $$.val = $1.restoreOptions()
   }
 | restore_options_list ',' restore_options
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options_list,restore_options_list")
-sqllex.(*lexer).LogGrammarCoverage("restore_options_list,restore_options")
+LogGrammarCoverage("restore_options_list,restore_options_list")
+LogGrammarCoverage("restore_options_list,restore_options")
 
 
     if err := $1.restoreOptions().CombineWith($3.restoreOptions()); err != nil {
@@ -4246,21 +4246,21 @@ sqllex.(*lexer).LogGrammarCoverage("restore_options_list,restore_options")
 restore_options:
   ENCRYPTION_PASSPHRASE '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
+LogGrammarCoverage("restore_options,string_or_placeholder")
 
 
     $$.val = &tree.RestoreOptions{EncryptionPassphrase: $3.expr()}
   }
 | KMS '=' string_or_placeholder_opt_list
 	{
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_options,string_or_placeholder_opt_list")
 
 
     $$.val = &tree.RestoreOptions{DecryptionKMSURI: $3.stringOrPlaceholderOptList()}
 	}
 | INTO_DB '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
+LogGrammarCoverage("restore_options,string_or_placeholder")
 
 
     $$.val = &tree.RestoreOptions{IntoDB: $3.expr()}
@@ -4303,28 +4303,28 @@ sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
   }
 | DEBUG_PAUSE_ON '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
+LogGrammarCoverage("restore_options,string_or_placeholder")
 
 
     $$.val = &tree.RestoreOptions{DebugPauseOn: $3.expr()}
   }
 | NEW_DB_NAME '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
+LogGrammarCoverage("restore_options,string_or_placeholder")
 
 
     $$.val = &tree.RestoreOptions{NewDBName: $3.expr()}
   }
 | INCREMENTAL_LOCATION '=' string_or_placeholder_opt_list
 	{
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder_opt_list")
+LogGrammarCoverage("restore_options,string_or_placeholder_opt_list")
 
 
 		$$.val = &tree.RestoreOptions{IncrementalStorage: $3.stringOrPlaceholderOptList()}
 	}
 | TENANT '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
+LogGrammarCoverage("restore_options,string_or_placeholder")
 
 
     $$.val = &tree.RestoreOptions{AsTenant: $3.expr()}
@@ -4333,7 +4333,7 @@ sqllex.(*lexer).LogGrammarCoverage("restore_options,string_or_placeholder")
 import_format:
   name
   {
-sqllex.(*lexer).LogGrammarCoverage("import_format,name")
+LogGrammarCoverage("import_format,name")
 
 
     $$ = strings.ToUpper($1)
@@ -4342,21 +4342,21 @@ sqllex.(*lexer).LogGrammarCoverage("import_format,name")
 alter_unsupported_stmt:
   ALTER FUNCTION error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsupported_stmt,error")
+LogGrammarCoverage("alter_unsupported_stmt,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 17511, "alter function")
   }
 | ALTER DOMAIN error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsupported_stmt,error")
+LogGrammarCoverage("alter_unsupported_stmt,error")
 
 
     return unimplemented(sqllex, "alter domain")
   }
 | ALTER AGGREGATE error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_unsupported_stmt,error")
+LogGrammarCoverage("alter_unsupported_stmt,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 74775, "alter aggregate")
@@ -4386,9 +4386,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_unsupported_stmt,error")
 import_stmt:
  IMPORT import_format '(' string_or_placeholder ')' opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     
@@ -4396,19 +4396,19 @@ sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
   }
 | IMPORT import_format string_or_placeholder opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     $$.val = &tree.Import{Bundle: true, FileFormat: $2, Files: tree.Exprs{$3.expr()}, Options: $4.kvOptions()}
   }
 | IMPORT TABLE table_name FROM import_format '(' string_or_placeholder ')' opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,table_name")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     
@@ -4417,10 +4417,10 @@ sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
   }
 | IMPORT TABLE table_name FROM import_format string_or_placeholder opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,table_name")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -4428,11 +4428,11 @@ sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
   }
 | IMPORT INTO table_name '(' insert_column_list ')' import_format DATA '(' string_or_placeholder_list ')' opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,insert_column_list")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder_list")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,table_name")
+LogGrammarCoverage("import_stmt,insert_column_list")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder_list")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -4440,10 +4440,10 @@ sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
   }
 | IMPORT INTO table_name import_format DATA '(' string_or_placeholder_list ')' opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,string_or_placeholder_list")
-sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
+LogGrammarCoverage("import_stmt,table_name")
+LogGrammarCoverage("import_stmt,import_format")
+LogGrammarCoverage("import_stmt,string_or_placeholder_list")
+LogGrammarCoverage("import_stmt,opt_with_options")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -4467,11 +4467,11 @@ sqllex.(*lexer).LogGrammarCoverage("import_stmt,opt_with_options")
 export_stmt:
   EXPORT INTO import_format string_or_placeholder opt_with_options FROM select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("export_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("export_stmt,import_format")
-sqllex.(*lexer).LogGrammarCoverage("export_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("export_stmt,opt_with_options")
-sqllex.(*lexer).LogGrammarCoverage("export_stmt,select_stmt")
+LogGrammarCoverage("export_stmt,error")
+LogGrammarCoverage("export_stmt,import_format")
+LogGrammarCoverage("export_stmt,string_or_placeholder")
+LogGrammarCoverage("export_stmt,opt_with_options")
+LogGrammarCoverage("export_stmt,select_stmt")
 
 
     $$.val = &tree.Export{Query: $7.slct(), FileFormat: $3, File: $4.expr(), Options: $5.kvOptions()}
@@ -4481,8 +4481,8 @@ sqllex.(*lexer).LogGrammarCoverage("export_stmt,select_stmt")
 string_or_placeholder:
   non_reserved_word_or_sconst
   {
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder,error")
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder,non_reserved_word_or_sconst")
+LogGrammarCoverage("string_or_placeholder,error")
+LogGrammarCoverage("string_or_placeholder,non_reserved_word_or_sconst")
 
 
     $$.val = tree.NewStrVal($1)
@@ -4499,15 +4499,15 @@ sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder,non_reserved_word_or_s
 string_or_placeholder_list:
   string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder")
+LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | string_or_placeholder_list ',' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder_list")
-sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder")
+LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder_list")
+LogGrammarCoverage("string_or_placeholder_list,string_or_placeholder")
 
 
     $$.val = append($1.exprs(), $3.expr())
@@ -4516,7 +4516,7 @@ sqllex.(*lexer).LogGrammarCoverage("string_or_placeholder_list,string_or_placeho
 opt_incremental:
   INCREMENTAL FROM string_or_placeholder_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_incremental,string_or_placeholder_list")
+LogGrammarCoverage("opt_incremental,string_or_placeholder_list")
 
 
     $$.val = $3.exprs()
@@ -4531,22 +4531,22 @@ sqllex.(*lexer).LogGrammarCoverage("opt_incremental,string_or_placeholder_list")
 kv_option:
   name '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("kv_option,name")
-sqllex.(*lexer).LogGrammarCoverage("kv_option,string_or_placeholder")
+LogGrammarCoverage("kv_option,name")
+LogGrammarCoverage("kv_option,string_or_placeholder")
 
 
     $$.val = tree.KVOption{Key: tree.Name($1), Value: $3.expr()}
   }
 |  name
   {
-sqllex.(*lexer).LogGrammarCoverage("kv_option,name")
+LogGrammarCoverage("kv_option,name")
 
 
     $$.val = tree.KVOption{Key: tree.Name($1)}
   }
 |  SCONST '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("kv_option,string_or_placeholder")
+LogGrammarCoverage("kv_option,string_or_placeholder")
 
 
     $$.val = tree.KVOption{Key: tree.Name($1), Value: $3.expr()}
@@ -4561,15 +4561,15 @@ sqllex.(*lexer).LogGrammarCoverage("kv_option,string_or_placeholder")
 kv_option_list:
   kv_option
   {
-sqllex.(*lexer).LogGrammarCoverage("kv_option_list,kv_option")
+LogGrammarCoverage("kv_option_list,kv_option")
 
 
     $$.val = []tree.KVOption{$1.kvOption()}
   }
 |  kv_option_list ',' kv_option
   {
-sqllex.(*lexer).LogGrammarCoverage("kv_option_list,kv_option_list")
-sqllex.(*lexer).LogGrammarCoverage("kv_option_list,kv_option")
+LogGrammarCoverage("kv_option_list,kv_option_list")
+LogGrammarCoverage("kv_option_list,kv_option")
 
 
     $$.val = append($1.kvOptions(), $3.kvOption())
@@ -4578,14 +4578,14 @@ sqllex.(*lexer).LogGrammarCoverage("kv_option_list,kv_option")
 opt_with_options:
   WITH kv_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_options,kv_option_list")
+LogGrammarCoverage("opt_with_options,kv_option_list")
 
 
     $$.val = $2.kvOptions()
   }
 | WITH OPTIONS '(' kv_option_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_options,kv_option_list")
+LogGrammarCoverage("opt_with_options,kv_option_list")
 
 
     $$.val = $4.kvOptions()
@@ -4606,10 +4606,10 @@ sqllex.(*lexer).LogGrammarCoverage("opt_with_options,kv_option_list")
 copy_from_stmt:
   COPY table_name opt_column_list FROM STDIN opt_with_copy_options opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,opt_with_copy_options")
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,opt_where_clause")
+LogGrammarCoverage("copy_from_stmt,table_name")
+LogGrammarCoverage("copy_from_stmt,opt_column_list")
+LogGrammarCoverage("copy_from_stmt,opt_with_copy_options")
+LogGrammarCoverage("copy_from_stmt,opt_where_clause")
 
 
     
@@ -4626,9 +4626,9 @@ sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,opt_where_clause")
   }
 | COPY table_name opt_column_list FROM error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,error")
+LogGrammarCoverage("copy_from_stmt,table_name")
+LogGrammarCoverage("copy_from_stmt,opt_column_list")
+LogGrammarCoverage("copy_from_stmt,error")
 
 
     return unimplemented(sqllex, "copy from unsupported format")
@@ -4637,8 +4637,8 @@ sqllex.(*lexer).LogGrammarCoverage("copy_from_stmt,error")
 opt_with_copy_options:
   opt_with copy_options_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_copy_options,opt_with")
-sqllex.(*lexer).LogGrammarCoverage("opt_with_copy_options,copy_options_list")
+LogGrammarCoverage("opt_with_copy_options,opt_with")
+LogGrammarCoverage("opt_with_copy_options,copy_options_list")
 
 
     $$.val = $2.copyOptions()
@@ -4653,15 +4653,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_with_copy_options,copy_options_list")
 copy_options_list:
   copy_options
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options_list,copy_options")
+LogGrammarCoverage("copy_options_list,copy_options")
 
 
     $$.val = $1.copyOptions()
   }
 | copy_options_list copy_options
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options_list,copy_options_list")
-sqllex.(*lexer).LogGrammarCoverage("copy_options_list,copy_options")
+LogGrammarCoverage("copy_options_list,copy_options_list")
+LogGrammarCoverage("copy_options_list,copy_options")
 
 
     if err := $1.copyOptions().CombineWith($2.copyOptions()); err != nil {
@@ -4672,7 +4672,7 @@ sqllex.(*lexer).LogGrammarCoverage("copy_options_list,copy_options")
 copy_options:
   DESTINATION '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,string_or_placeholder")
+LogGrammarCoverage("copy_options,string_or_placeholder")
 
 
     $$.val = &tree.CopyOptions{Destination: $3.expr()}
@@ -4691,35 +4691,35 @@ sqllex.(*lexer).LogGrammarCoverage("copy_options,string_or_placeholder")
   }
 | DELIMITER string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,string_or_placeholder")
+LogGrammarCoverage("copy_options,string_or_placeholder")
 
 
     $$.val = &tree.CopyOptions{Delimiter: $2.expr()}
   }
 | NULL string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,string_or_placeholder")
+LogGrammarCoverage("copy_options,string_or_placeholder")
 
 
     $$.val = &tree.CopyOptions{Null: $2.expr()}
   }
 | OIDS error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "oids")
   }
 | FREEZE error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "freeze")
   }
 | HEADER error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "header")
@@ -4732,35 +4732,35 @@ sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
   }
 | ESCAPE SCONST error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     $$.val = &tree.CopyOptions{Escape: tree.NewStrVal($2)}
   }
 | FORCE QUOTE error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "force quote")
   }
 | FORCE NOT NULL error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "force not null")
   }
 | FORCE NULL error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "force null")
   }
 | ENCODING SCONST error
   {
-sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
+LogGrammarCoverage("copy_options,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 41608, "encoding")
@@ -4772,22 +4772,22 @@ sqllex.(*lexer).LogGrammarCoverage("copy_options,error")
 cancel_stmt:
   cancel_jobs_stmt      //  : CANCEL JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("cancel_stmt,cancel_jobs_stmt")
+LogGrammarCoverage("cancel_stmt,cancel_jobs_stmt")
 
 }
 | cancel_queries_stmt   //  : CANCEL QUERIES
 {
-sqllex.(*lexer).LogGrammarCoverage("cancel_stmt,cancel_queries_stmt")
+LogGrammarCoverage("cancel_stmt,cancel_queries_stmt")
 
 }
 | cancel_sessions_stmt  //  : CANCEL SESSIONS
 {
-sqllex.(*lexer).LogGrammarCoverage("cancel_stmt,cancel_sessions_stmt")
+LogGrammarCoverage("cancel_stmt,cancel_sessions_stmt")
 
 }
 | cancel_all_jobs_stmt  //  : CANCEL ALL JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("cancel_stmt,cancel_all_jobs_stmt")
+LogGrammarCoverage("cancel_stmt,cancel_all_jobs_stmt")
 
 }
 | CANCEL error          // SHOW HELP: CANCEL
@@ -4801,8 +4801,8 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_stmt,cancel_all_jobs_stmt")
 cancel_jobs_stmt:
   CANCEL JOB a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,a_expr")
+LogGrammarCoverage("cancel_jobs_stmt,error")
+LogGrammarCoverage("cancel_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ControlJobs{
@@ -4815,14 +4815,14 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,a_expr")
 | CANCEL JOB error // SHOW HELP: CANCEL JOBS
 | CANCEL JOBS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,select_stmt")
+LogGrammarCoverage("cancel_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ControlJobs{Jobs: $3.slct(), Command: tree.CancelJob}
   }
 | CANCEL JOBS for_schedules_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,for_schedules_clause")
+LogGrammarCoverage("cancel_jobs_stmt,for_schedules_clause")
 
 
     $$.val = &tree.ControlJobsForSchedules{Schedules: $3.slct(), Command: tree.CancelJob}
@@ -4838,8 +4838,8 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_jobs_stmt,for_schedules_clause")
 cancel_queries_stmt:
   CANCEL QUERY a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,a_expr")
+LogGrammarCoverage("cancel_queries_stmt,error")
+LogGrammarCoverage("cancel_queries_stmt,a_expr")
 
 
     $$.val = &tree.CancelQueries{
@@ -4851,7 +4851,7 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,a_expr")
   }
 | CANCEL QUERY IF EXISTS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,a_expr")
+LogGrammarCoverage("cancel_queries_stmt,a_expr")
 
 
     $$.val = &tree.CancelQueries{
@@ -4864,14 +4864,14 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,a_expr")
 | CANCEL QUERY error // SHOW HELP: CANCEL QUERIES
 | CANCEL QUERIES select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,select_stmt")
+LogGrammarCoverage("cancel_queries_stmt,select_stmt")
 
 
     $$.val = &tree.CancelQueries{Queries: $3.slct(), IfExists: false}
   }
 | CANCEL QUERIES IF EXISTS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,select_stmt")
+LogGrammarCoverage("cancel_queries_stmt,select_stmt")
 
 
     $$.val = &tree.CancelQueries{Queries: $5.slct(), IfExists: true}
@@ -4887,8 +4887,8 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_queries_stmt,select_stmt")
 cancel_sessions_stmt:
   CANCEL SESSION a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,a_expr")
+LogGrammarCoverage("cancel_sessions_stmt,error")
+LogGrammarCoverage("cancel_sessions_stmt,a_expr")
 
 
    $$.val = &tree.CancelSessions{
@@ -4900,7 +4900,7 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,a_expr")
   }
 | CANCEL SESSION IF EXISTS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,a_expr")
+LogGrammarCoverage("cancel_sessions_stmt,a_expr")
 
 
    $$.val = &tree.CancelSessions{
@@ -4913,14 +4913,14 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,a_expr")
 | CANCEL SESSION error // SHOW HELP: CANCEL SESSIONS
 | CANCEL SESSIONS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,select_stmt")
+LogGrammarCoverage("cancel_sessions_stmt,select_stmt")
 
 
     $$.val = &tree.CancelSessions{Sessions: $3.slct(), IfExists: false}
   }
 | CANCEL SESSIONS IF EXISTS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,select_stmt")
+LogGrammarCoverage("cancel_sessions_stmt,select_stmt")
 
 
     $$.val = &tree.CancelSessions{Sessions: $5.slct(), IfExists: true}
@@ -4934,8 +4934,8 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_sessions_stmt,select_stmt")
 cancel_all_jobs_stmt:
   CANCEL ALL name JOBS
   {
-sqllex.(*lexer).LogGrammarCoverage("cancel_all_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("cancel_all_jobs_stmt,name")
+LogGrammarCoverage("cancel_all_jobs_stmt,error")
+LogGrammarCoverage("cancel_all_jobs_stmt,name")
 
 
     $$.val = &tree.ControlJobsOfType{Type: $3, Command: tree.CancelJob}
@@ -4945,33 +4945,33 @@ sqllex.(*lexer).LogGrammarCoverage("cancel_all_jobs_stmt,name")
 comment_stmt:
   COMMENT ON DATABASE database_name IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,error")
+LogGrammarCoverage("comment_stmt,database_name")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     $$.val = &tree.CommentOnDatabase{Name: tree.Name($4), Comment: $6.strPtr()}
   }
 | COMMENT ON SCHEMA schema_name IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,schema_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,schema_name")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     $$.val = &tree.CommentOnSchema{Name: tree.Name($4), Comment: $6.strPtr()}
   }
 | COMMENT ON TABLE table_name IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,table_name")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     $$.val = &tree.CommentOnTable{Table: $4.unresolvedObjectName(), Comment: $6.strPtr()}
   }
 | COMMENT ON COLUMN column_path IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,column_path")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,column_path")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     varName, err := $4.unresolvedName().NormalizeVarName()
@@ -4987,8 +4987,8 @@ sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
   }
 | COMMENT ON INDEX table_index_name IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,table_index_name")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     $$.val = &tree.CommentOnIndex{Index: $4.tableIndexName(), Comment: $6.strPtr()}
@@ -4996,19 +4996,19 @@ sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
 
 | COMMENT ON CONSTRAINT constraint_name ON table_name IS comment_text
   {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,comment_text")
+LogGrammarCoverage("comment_stmt,constraint_name")
+LogGrammarCoverage("comment_stmt,table_name")
+LogGrammarCoverage("comment_stmt,comment_text")
 
 
     $$.val = &tree.CommentOnConstraint{Constraint:tree.Name($4), Table: $6.unresolvedObjectName(), Comment: $8.strPtr()}
   }
 | COMMENT ON EXTENSION error {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,error")
+LogGrammarCoverage("comment_stmt,error")
 
  return unimplementedWithIssueDetail(sqllex, 74777, "comment on extension") }
 | COMMENT ON FUNCTION error {
-sqllex.(*lexer).LogGrammarCoverage("comment_stmt,error")
+LogGrammarCoverage("comment_stmt,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "comment on function") }
 
@@ -5037,41 +5037,41 @@ comment_text:
 create_stmt:
   create_role_stmt     //  : CREATE ROLE
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_role_stmt")
+LogGrammarCoverage("create_stmt,create_role_stmt")
 
 }
 | create_ddl_stmt      // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_ddl_stmt")
+LogGrammarCoverage("create_stmt,create_ddl_stmt")
 
 }
 | create_stats_stmt    //  : CREATE STATISTICS
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_stats_stmt")
+LogGrammarCoverage("create_stmt,create_stats_stmt")
 
 }
 | create_schedule_for_backup_stmt   //  : CREATE SCHEDULE FOR BACKUP
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_schedule_for_backup_stmt")
+LogGrammarCoverage("create_stmt,create_schedule_for_backup_stmt")
 
 }
 | create_changefeed_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_changefeed_stmt")
+LogGrammarCoverage("create_stmt,create_changefeed_stmt")
 
 }
 | create_replication_stream_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_replication_stream_stmt")
+LogGrammarCoverage("create_stmt,create_replication_stream_stmt")
 
 }
 | create_extension_stmt  //  : CREATE EXTENSION
 {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_extension_stmt")
+LogGrammarCoverage("create_stmt,create_extension_stmt")
 
 }
 | create_unsupported   {
-sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_unsupported")
+LogGrammarCoverage("create_stmt,create_unsupported")
 
 }
 | CREATE error         // SHOW HELP: CREATE
@@ -5082,29 +5082,29 @@ sqllex.(*lexer).LogGrammarCoverage("create_stmt,create_unsupported")
 create_extension_stmt:
   CREATE EXTENSION IF NOT EXISTS name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,name")
+LogGrammarCoverage("create_extension_stmt,error")
+LogGrammarCoverage("create_extension_stmt,name")
 
 
     $$.val = &tree.CreateExtension{IfNotExists: true, Name: $6}
   }
 | CREATE EXTENSION name {
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,name")
+LogGrammarCoverage("create_extension_stmt,name")
 
 
     $$.val = &tree.CreateExtension{Name: $3}
   }
 | CREATE EXTENSION IF NOT EXISTS name WITH error
   {
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,error")
+LogGrammarCoverage("create_extension_stmt,name")
+LogGrammarCoverage("create_extension_stmt,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 74777, "create extension if not exists with")
   }
 | CREATE EXTENSION name WITH error {
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,error")
+LogGrammarCoverage("create_extension_stmt,name")
+LogGrammarCoverage("create_extension_stmt,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 74777, "create extension with")
@@ -5113,85 +5113,85 @@ sqllex.(*lexer).LogGrammarCoverage("create_extension_stmt,error")
 
 create_unsupported:
   CREATE ACCESS METHOD error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create access method") }
 | CREATE AGGREGATE error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 74775, "create aggregate") }
 | CREATE CAST error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create cast") }
 | CREATE CONSTRAINT TRIGGER error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 28296, "create constraint") }
 | CREATE CONVERSION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create conversion") }
 | CREATE DEFAULT CONVERSION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create def conv") }
 | CREATE FOREIGN TABLE error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create foreign table") }
 | CREATE FOREIGN DATA error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create fdw") }
 | CREATE FUNCTION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "create function") }
 | CREATE OR REPLACE FUNCTION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "create function") }
 | CREATE opt_or_replace opt_trusted opt_procedural LANGUAGE name error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,opt_or_replace")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,opt_trusted")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,opt_procedural")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,name")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,opt_or_replace")
+LogGrammarCoverage("create_unsupported,opt_trusted")
+LogGrammarCoverage("create_unsupported,opt_procedural")
+LogGrammarCoverage("create_unsupported,name")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "create language " + $6) }
 | CREATE OPERATOR error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssue(sqllex, 65017) }
 | CREATE PUBLICATION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create publication") }
 | CREATE opt_or_replace RULE error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,opt_or_replace")
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,opt_or_replace")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create rule") }
 | CREATE SERVER error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create server") }
 | CREATE SUBSCRIPTION error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplemented(sqllex, "create subscription") }
 | CREATE TABLESPACE error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 54113, "create tablespace") }
 | CREATE TEXT error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 7821, "create text") }
 | CREATE TRIGGER error {
-sqllex.(*lexer).LogGrammarCoverage("create_unsupported,error")
+LogGrammarCoverage("create_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 28296, "create trigger") }
 
@@ -5221,122 +5221,122 @@ opt_procedural:
 
 drop_unsupported:
   DROP ACCESS METHOD error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop access method") }
 | DROP AGGREGATE error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 74775, "drop aggregate") }
 | DROP CAST error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop cast") }
 | DROP COLLATION error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop collation") }
 | DROP CONVERSION error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop conversion") }
 | DROP DOMAIN error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 27796, "drop") }
 | DROP EXTENSION IF EXISTS name error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,name")
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,name")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 74777, "drop extension if exists") }
 | DROP EXTENSION name error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,name")
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,name")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 74777, "drop extension") }
 | DROP FOREIGN TABLE error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop foreign table") }
 | DROP FOREIGN DATA error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop fdw") }
 | DROP FUNCTION error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "drop function") }
 | DROP opt_procedural LANGUAGE name error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,opt_procedural")
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,name")
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,opt_procedural")
+LogGrammarCoverage("drop_unsupported,name")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 17511, "drop language " + $4) }
 | DROP OPERATOR error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop operator") }
 | DROP PUBLICATION error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop publication") }
 | DROP RULE error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop rule") }
 | DROP SERVER error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop server") }
 | DROP SUBSCRIPTION error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplemented(sqllex, "drop subscription") }
 | DROP TEXT error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 7821, "drop text") }
 | DROP TRIGGER error {
-sqllex.(*lexer).LogGrammarCoverage("drop_unsupported,error")
+LogGrammarCoverage("drop_unsupported,error")
 
  return unimplementedWithIssueDetail(sqllex, 28296, "drop") }
 
 create_ddl_stmt:
   create_database_stmt //  : CREATE DATABASE
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_database_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_database_stmt")
 
 }
 | create_index_stmt    //  : CREATE INDEX
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_index_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_index_stmt")
 
 }
 | create_schema_stmt   //  : CREATE SCHEMA
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_schema_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_schema_stmt")
 
 }
 | create_table_stmt    //  : CREATE TABLE
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_table_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_table_stmt")
 
 }
 | create_table_as_stmt //  : CREATE TABLE
 // Error case for both CREATE TABLE and CREATE TABLE ... AS in one
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_table_as_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_table_as_stmt")
 
 }
 | CREATE opt_persistence_temp_table TABLE error   // SHOW HELP: CREATE TABLE
 | create_type_stmt     //  : CREATE TYPE
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_type_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_type_stmt")
 
 }
 | create_view_stmt     //  : CREATE VIEW
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_view_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_view_stmt")
 
 }
 | create_sequence_stmt //  : CREATE SEQUENCE
@@ -5348,16 +5348,16 @@ sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_view_stmt")
 //   [ON <colname> [, ...]]
 //   FROM <tablename> [AS OF SYSTEM TIME <expr>]
 {
-sqllex.(*lexer).LogGrammarCoverage("create_ddl_stmt,create_sequence_stmt")
+LogGrammarCoverage("create_ddl_stmt,create_sequence_stmt")
 
 }
 create_stats_stmt:
   CREATE STATISTICS statistics_name opt_stats_columns FROM create_stats_target opt_create_stats_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_stmt,statistics_name")
-sqllex.(*lexer).LogGrammarCoverage("create_stats_stmt,opt_stats_columns")
-sqllex.(*lexer).LogGrammarCoverage("create_stats_stmt,create_stats_target")
-sqllex.(*lexer).LogGrammarCoverage("create_stats_stmt,opt_create_stats_options")
+LogGrammarCoverage("create_stats_stmt,statistics_name")
+LogGrammarCoverage("create_stats_stmt,opt_stats_columns")
+LogGrammarCoverage("create_stats_stmt,create_stats_target")
+LogGrammarCoverage("create_stats_stmt,opt_create_stats_options")
 
 
     $$.val = &tree.CreateStats{
@@ -5372,8 +5372,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_stats_stmt,opt_create_stats_options")
 opt_stats_columns:
   ON name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_stats_columns,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_stats_columns,name_list")
+LogGrammarCoverage("opt_stats_columns,error")
+LogGrammarCoverage("opt_stats_columns,name_list")
 
 
     $$.val = $2.nameList()
@@ -5388,14 +5388,14 @@ sqllex.(*lexer).LogGrammarCoverage("opt_stats_columns,name_list")
 create_stats_target:
   table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_target,table_name")
+LogGrammarCoverage("create_stats_target,table_name")
 
 
     $$.val = $1.unresolvedObjectName()
   }
 | '[' iconst64 ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_target,iconst64")
+LogGrammarCoverage("create_stats_target,iconst64")
 
 
     
@@ -5407,7 +5407,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_stats_target,iconst64")
 opt_create_stats_options:
   WITH OPTIONS create_stats_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_create_stats_options,create_stats_option_list")
+LogGrammarCoverage("opt_create_stats_options,create_stats_option_list")
 
 
     
@@ -5417,7 +5417,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_create_stats_options,create_stats_option
 // statements.
 | as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_create_stats_options,as_of_clause")
+LogGrammarCoverage("opt_create_stats_options,as_of_clause")
 
 
     $$.val = &tree.CreateStatsOptions{
@@ -5434,15 +5434,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_create_stats_options,as_of_clause")
 create_stats_option_list:
   create_stats_option
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_option_list,create_stats_option")
+LogGrammarCoverage("create_stats_option_list,create_stats_option")
 
 
     $$.val = $1.createStatsOptions()
   }
 | create_stats_option_list create_stats_option
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_option_list,create_stats_option_list")
-sqllex.(*lexer).LogGrammarCoverage("create_stats_option_list,create_stats_option")
+LogGrammarCoverage("create_stats_option_list,create_stats_option_list")
+LogGrammarCoverage("create_stats_option_list,create_stats_option")
 
 
     a := $1.createStatsOptions()
@@ -5470,7 +5470,7 @@ create_stats_option:
   }
 | as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_stats_option,as_of_clause")
+LogGrammarCoverage("create_stats_option,as_of_clause")
 
 
     $$.val = &tree.CreateStatsOptions{
@@ -5488,9 +5488,9 @@ sqllex.(*lexer).LogGrammarCoverage("create_stats_option,as_of_clause")
 create_changefeed_stmt:
   CREATE CHANGEFEED FOR changefeed_targets opt_changefeed_sink opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,changefeed_targets")
-sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,opt_changefeed_sink")
-sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
+LogGrammarCoverage("create_changefeed_stmt,changefeed_targets")
+LogGrammarCoverage("create_changefeed_stmt,opt_changefeed_sink")
+LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
 
 
     $$.val = &tree.CreateChangefeed{
@@ -5501,8 +5501,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
   }
 | EXPERIMENTAL CHANGEFEED FOR changefeed_targets opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,changefeed_targets")
-sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
+LogGrammarCoverage("create_changefeed_stmt,changefeed_targets")
+LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
 
 
     
@@ -5515,15 +5515,15 @@ sqllex.(*lexer).LogGrammarCoverage("create_changefeed_stmt,opt_with_options")
 changefeed_targets:
   changefeed_target
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_targets,changefeed_target")
+LogGrammarCoverage("changefeed_targets,changefeed_target")
 
 
     $$.val = tree.ChangefeedTargets{$1.changefeedTarget()}
   }
 | changefeed_targets ',' changefeed_target
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_targets,changefeed_targets")
-sqllex.(*lexer).LogGrammarCoverage("changefeed_targets,changefeed_target")
+LogGrammarCoverage("changefeed_targets,changefeed_targets")
+LogGrammarCoverage("changefeed_targets,changefeed_target")
 
 
     $$.val = append($1.changefeedTargets(), $3.changefeedTarget())
@@ -5532,7 +5532,7 @@ sqllex.(*lexer).LogGrammarCoverage("changefeed_targets,changefeed_target")
 changefeed_target:
   TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
+LogGrammarCoverage("changefeed_target,table_name")
 
 
     $$.val = tree.ChangefeedTarget{
@@ -5541,7 +5541,7 @@ sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
   }
 | table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
+LogGrammarCoverage("changefeed_target,table_name")
 
 
     $$.val = tree.ChangefeedTarget{
@@ -5551,8 +5551,8 @@ sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
 |
   TABLE table_name FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,family_name")
+LogGrammarCoverage("changefeed_target,table_name")
+LogGrammarCoverage("changefeed_target,family_name")
 
 
     $$.val = tree.ChangefeedTarget{
@@ -5563,8 +5563,8 @@ sqllex.(*lexer).LogGrammarCoverage("changefeed_target,family_name")
 |
 table_name FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,table_name")
-sqllex.(*lexer).LogGrammarCoverage("changefeed_target,family_name")
+LogGrammarCoverage("changefeed_target,table_name")
+LogGrammarCoverage("changefeed_target,family_name")
 
 
     $$.val = tree.ChangefeedTarget{
@@ -5578,7 +5578,7 @@ sqllex.(*lexer).LogGrammarCoverage("changefeed_target,family_name")
 opt_changefeed_sink:
   INTO string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_changefeed_sink,string_or_placeholder")
+LogGrammarCoverage("opt_changefeed_sink,string_or_placeholder")
 
 
     $$.val = $2.expr()
@@ -5604,9 +5604,9 @@ sqllex.(*lexer).LogGrammarCoverage("opt_changefeed_sink,string_or_placeholder")
 create_replication_stream_stmt:
   CREATE REPLICATION STREAM FOR targets opt_changefeed_sink opt_with_replication_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_replication_stream_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("create_replication_stream_stmt,opt_changefeed_sink")
-sqllex.(*lexer).LogGrammarCoverage("create_replication_stream_stmt,opt_with_replication_options")
+LogGrammarCoverage("create_replication_stream_stmt,targets")
+LogGrammarCoverage("create_replication_stream_stmt,opt_changefeed_sink")
+LogGrammarCoverage("create_replication_stream_stmt,opt_with_replication_options")
 
 
     $$.val = &tree.ReplicationStream{
@@ -5620,14 +5620,14 @@ sqllex.(*lexer).LogGrammarCoverage("create_replication_stream_stmt,opt_with_repl
 opt_with_replication_options:
   WITH replication_options_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_replication_options,replication_options_list")
+LogGrammarCoverage("opt_with_replication_options,replication_options_list")
 
 
     $$.val = $2.replicationOptions()
   }
 | WITH OPTIONS '(' replication_options_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_replication_options,replication_options_list")
+LogGrammarCoverage("opt_with_replication_options,replication_options_list")
 
 
     $$.val = $4.replicationOptions()
@@ -5643,15 +5643,15 @@ replication_options_list:
   // Require at least one option
   replication_options
   {
-sqllex.(*lexer).LogGrammarCoverage("replication_options_list,replication_options")
+LogGrammarCoverage("replication_options_list,replication_options")
 
 
     $$.val = $1.replicationOptions()
   }
 | replication_options_list ',' replication_options
   {
-sqllex.(*lexer).LogGrammarCoverage("replication_options_list,replication_options_list")
-sqllex.(*lexer).LogGrammarCoverage("replication_options_list,replication_options")
+LogGrammarCoverage("replication_options_list,replication_options_list")
+LogGrammarCoverage("replication_options_list,replication_options")
 
 
     if err := $1.replicationOptions().CombineWith($3.replicationOptions()); err != nil {
@@ -5663,7 +5663,7 @@ sqllex.(*lexer).LogGrammarCoverage("replication_options_list,replication_options
 replication_options:
   CURSOR '=' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("replication_options,a_expr")
+LogGrammarCoverage("replication_options,a_expr")
 
 
     $$.val = &tree.ReplicationOptions{Cursor: $3.expr()}
@@ -5685,13 +5685,13 @@ sqllex.(*lexer).LogGrammarCoverage("replication_options,a_expr")
 delete_stmt:
   opt_with_clause DELETE FROM table_expr_opt_alias_idx opt_using_clause opt_where_clause opt_sort_clause opt_limit_clause returning_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,table_expr_opt_alias_idx")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,opt_using_clause")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,opt_limit_clause")
-sqllex.(*lexer).LogGrammarCoverage("delete_stmt,returning_clause")
+LogGrammarCoverage("delete_stmt,opt_with_clause")
+LogGrammarCoverage("delete_stmt,table_expr_opt_alias_idx")
+LogGrammarCoverage("delete_stmt,opt_using_clause")
+LogGrammarCoverage("delete_stmt,opt_where_clause")
+LogGrammarCoverage("delete_stmt,opt_sort_clause")
+LogGrammarCoverage("delete_stmt,opt_limit_clause")
+LogGrammarCoverage("delete_stmt,returning_clause")
 
 
     $$.val = &tree.Delete{
@@ -5707,9 +5707,9 @@ sqllex.(*lexer).LogGrammarCoverage("delete_stmt,returning_clause")
 
 opt_using_clause:
   USING from_list {
-sqllex.(*lexer).LogGrammarCoverage("opt_using_clause,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("opt_using_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_using_clause,from_list")
+LogGrammarCoverage("opt_using_clause,opt_with_clause")
+LogGrammarCoverage("opt_using_clause,error")
+LogGrammarCoverage("opt_using_clause,from_list")
 
  return unimplementedWithIssueDetail(sqllex, 40963, "delete using") }
 | /* EMPTY */ {
@@ -5750,16 +5750,16 @@ drop_stmt:
   drop_ddl_stmt      // help texts in sub-rule
 | drop_role_stmt     //  : DROP ROLE
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_stmt,drop_role_stmt")
+LogGrammarCoverage("drop_stmt,drop_role_stmt")
 
 }
 | drop_schedule_stmt //  : DROP SCHEDULES
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_stmt,drop_schedule_stmt")
+LogGrammarCoverage("drop_stmt,drop_schedule_stmt")
 
 }
 | drop_unsupported   {
-sqllex.(*lexer).LogGrammarCoverage("drop_stmt,drop_unsupported")
+LogGrammarCoverage("drop_stmt,drop_unsupported")
 
 }
 | DROP error         // SHOW HELP: DROP
@@ -5768,27 +5768,27 @@ drop_ddl_stmt:
   drop_database_stmt //  : DROP DATABASE
 | drop_index_stmt    //  : DROP INDEX
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_index_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_index_stmt")
 
 }
 | drop_table_stmt    //  : DROP TABLE
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_table_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_table_stmt")
 
 }
 | drop_view_stmt     //  : DROP VIEW
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_view_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_view_stmt")
 
 }
 | drop_sequence_stmt //  : DROP SEQUENCE
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_sequence_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_sequence_stmt")
 
 }
 | drop_schema_stmt   //  : DROP SCHEMA
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_schema_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_schema_stmt")
 
 }
 | drop_type_stmt     //  : DROP TYPE
@@ -5798,30 +5798,30 @@ sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_schema_stmt")
 // %Text: DROP [MATERIALIZED] VIEW [IF EXISTS] <tablename> [, ...] [CASCADE | RESTRICT]
 // %SeeAlso: WEBDOCS/drop-index.html
 {
-sqllex.(*lexer).LogGrammarCoverage("drop_ddl_stmt,drop_type_stmt")
+LogGrammarCoverage("drop_ddl_stmt,drop_type_stmt")
 
 }
 drop_view_stmt:
   DROP VIEW table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_view_stmt,table_name_list")
+LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropView{Names: $3.tableNames(), IfExists: false, DropBehavior: $4.dropBehavior()}
   }
 | DROP VIEW IF EXISTS table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_view_stmt,table_name_list")
+LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropView{Names: $5.tableNames(), IfExists: true, DropBehavior: $6.dropBehavior()}
   }
 | DROP MATERIALIZED VIEW table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_view_stmt,table_name_list")
+LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropView{
@@ -5833,8 +5833,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
   }
 | DROP MATERIALIZED VIEW IF EXISTS table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_view_stmt,table_name_list")
+LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropView{
@@ -5853,17 +5853,17 @@ sqllex.(*lexer).LogGrammarCoverage("drop_view_stmt,opt_drop_behavior")
 drop_sequence_stmt:
   DROP SEQUENCE table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_sequence_stmt,error")
+LogGrammarCoverage("drop_sequence_stmt,table_name_list")
+LogGrammarCoverage("drop_sequence_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropSequence{Names: $3.tableNames(), IfExists: false, DropBehavior: $4.dropBehavior()}
   }
 | DROP SEQUENCE IF EXISTS table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_sequence_stmt,table_name_list")
+LogGrammarCoverage("drop_sequence_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropSequence{Names: $5.tableNames(), IfExists: true, DropBehavior: $6.dropBehavior()}
@@ -5877,17 +5877,17 @@ sqllex.(*lexer).LogGrammarCoverage("drop_sequence_stmt,opt_drop_behavior")
 drop_table_stmt:
   DROP TABLE table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_table_stmt,error")
+LogGrammarCoverage("drop_table_stmt,table_name_list")
+LogGrammarCoverage("drop_table_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropTable{Names: $3.tableNames(), IfExists: false, DropBehavior: $4.dropBehavior()}
   }
 | DROP TABLE IF EXISTS table_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_table_stmt,table_name_list")
+LogGrammarCoverage("drop_table_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropTable{Names: $5.tableNames(), IfExists: true, DropBehavior: $6.dropBehavior()}
@@ -5901,10 +5901,10 @@ sqllex.(*lexer).LogGrammarCoverage("drop_table_stmt,opt_drop_behavior")
 drop_index_stmt:
   DROP INDEX opt_concurrently table_index_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,table_index_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_index_stmt,error")
+LogGrammarCoverage("drop_index_stmt,opt_concurrently")
+LogGrammarCoverage("drop_index_stmt,table_index_name_list")
+LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropIndex{
@@ -5916,9 +5916,9 @@ sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
   }
 | DROP INDEX opt_concurrently IF EXISTS table_index_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,table_index_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_index_stmt,opt_concurrently")
+LogGrammarCoverage("drop_index_stmt,table_index_name_list")
+LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropIndex{
@@ -5937,9 +5937,9 @@ sqllex.(*lexer).LogGrammarCoverage("drop_index_stmt,opt_drop_behavior")
 drop_database_stmt:
   DROP DATABASE database_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_database_stmt,error")
+LogGrammarCoverage("drop_database_stmt,database_name")
+LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropDatabase{
@@ -5950,8 +5950,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
   }
 | DROP DATABASE IF EXISTS database_name opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_database_stmt,database_name")
+LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropDatabase{
@@ -5968,9 +5968,9 @@ sqllex.(*lexer).LogGrammarCoverage("drop_database_stmt,opt_drop_behavior")
 drop_type_stmt:
   DROP TYPE type_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,type_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_type_stmt,error")
+LogGrammarCoverage("drop_type_stmt,type_name_list")
+LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropType{
@@ -5981,8 +5981,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
   }
 | DROP TYPE IF EXISTS type_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,type_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_type_stmt,type_name_list")
+LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropType{
@@ -5996,8 +5996,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_type_stmt,opt_drop_behavior")
 target_types:
   type_name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("target_types,error")
-sqllex.(*lexer).LogGrammarCoverage("target_types,type_name_list")
+LogGrammarCoverage("target_types,error")
+LogGrammarCoverage("target_types,type_name_list")
 
 
     $$.val = tree.TargetList{Types: $1.unresolvedObjectNames()}
@@ -6006,15 +6006,15 @@ sqllex.(*lexer).LogGrammarCoverage("target_types,type_name_list")
 type_name_list:
   type_name
   {
-sqllex.(*lexer).LogGrammarCoverage("type_name_list,type_name")
+LogGrammarCoverage("type_name_list,type_name")
 
 
     $$.val = []*tree.UnresolvedObjectName{$1.unresolvedObjectName()}
   }
 | type_name_list ',' type_name
   {
-sqllex.(*lexer).LogGrammarCoverage("type_name_list,type_name_list")
-sqllex.(*lexer).LogGrammarCoverage("type_name_list,type_name")
+LogGrammarCoverage("type_name_list,type_name_list")
+LogGrammarCoverage("type_name_list,type_name")
 
 
     $$.val = append($1.unresolvedObjectNames(), $3.unresolvedObjectName())
@@ -6026,8 +6026,8 @@ sqllex.(*lexer).LogGrammarCoverage("type_name_list,type_name")
 drop_schema_stmt:
   DROP SCHEMA schema_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_schema_stmt,schema_name_list")
+LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropSchema{
@@ -6038,8 +6038,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
   }
 | DROP SCHEMA IF EXISTS schema_name_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_schema_stmt,schema_name_list")
+LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropSchema{
@@ -6057,17 +6057,17 @@ sqllex.(*lexer).LogGrammarCoverage("drop_schema_stmt,opt_drop_behavior")
 drop_role_stmt:
   DROP role_or_group_or_user role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,role_spec_list")
+LogGrammarCoverage("drop_role_stmt,error")
+LogGrammarCoverage("drop_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("drop_role_stmt,role_spec_list")
 
 
     $$.val = &tree.DropRole{Names: $3.roleSpecList(), IfExists: false, IsRole: $2.bool()}
   }
 | DROP role_or_group_or_user IF EXISTS role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,role_spec_list")
+LogGrammarCoverage("drop_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("drop_role_stmt,role_spec_list")
 
 
     $$.val = &tree.DropRole{Names: $5.roleSpecList(), IfExists: true, IsRole: $2.bool()}
@@ -6077,9 +6077,9 @@ sqllex.(*lexer).LogGrammarCoverage("drop_role_stmt,role_spec_list")
 table_name_list:
   table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_name_list,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("table_name_list,error")
-sqllex.(*lexer).LogGrammarCoverage("table_name_list,table_name")
+LogGrammarCoverage("table_name_list,role_or_group_or_user")
+LogGrammarCoverage("table_name_list,error")
+LogGrammarCoverage("table_name_list,table_name")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -6087,8 +6087,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_name_list,table_name")
   }
 | table_name_list ',' table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_name_list,table_name_list")
-sqllex.(*lexer).LogGrammarCoverage("table_name_list,table_name")
+LogGrammarCoverage("table_name_list,table_name_list")
+LogGrammarCoverage("table_name_list,table_name")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -6104,7 +6104,7 @@ sqllex.(*lexer).LogGrammarCoverage("table_name_list,table_name")
 analyze_stmt:
   ANALYZE analyze_target
   {
-sqllex.(*lexer).LogGrammarCoverage("analyze_stmt,analyze_target")
+LogGrammarCoverage("analyze_stmt,analyze_target")
 
 
     $$.val = &tree.Analyze{
@@ -6114,7 +6114,7 @@ sqllex.(*lexer).LogGrammarCoverage("analyze_stmt,analyze_target")
 | ANALYZE error // SHOW HELP: ANALYZE
 | ANALYSE analyze_target
   {
-sqllex.(*lexer).LogGrammarCoverage("analyze_stmt,analyze_target")
+LogGrammarCoverage("analyze_stmt,analyze_target")
 
 
     $$.val = &tree.Analyze{
@@ -6126,8 +6126,8 @@ sqllex.(*lexer).LogGrammarCoverage("analyze_stmt,analyze_target")
 analyze_target:
   table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("analyze_target,error")
-sqllex.(*lexer).LogGrammarCoverage("analyze_target,table_name")
+LogGrammarCoverage("analyze_target,error")
+LogGrammarCoverage("analyze_target,table_name")
 
 
     $$.val = $1.unresolvedObjectName()
@@ -6153,7 +6153,7 @@ sqllex.(*lexer).LogGrammarCoverage("analyze_target,table_name")
 explain_stmt:
   EXPLAIN explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6165,8 +6165,8 @@ sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
 | EXPLAIN error // SHOW HELP: EXPLAIN
 | EXPLAIN '(' explain_option_list ')' explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explain_option_list")
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explain_option_list")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6177,7 +6177,7 @@ sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
   }
 | EXPLAIN ANALYZE explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6188,7 +6188,7 @@ sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
   }
 | EXPLAIN ANALYSE explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6199,8 +6199,8 @@ sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
   }
 | EXPLAIN ANALYZE '(' explain_option_list ')' explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explain_option_list")
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explain_option_list")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6211,8 +6211,8 @@ sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
   }
 | EXPLAIN ANALYSE '(' explain_option_list ')' explainable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explain_option_list")
-sqllex.(*lexer).LogGrammarCoverage("explain_stmt,explainable_stmt")
+LogGrammarCoverage("explain_stmt,explain_option_list")
+LogGrammarCoverage("explain_stmt,explainable_stmt")
 
 
     var err error
@@ -6232,110 +6232,110 @@ explainable_stmt:
 | execute_stmt
 
 {
-sqllex.(*lexer).LogGrammarCoverage("explainable_stmt,execute_stmt")
+LogGrammarCoverage("explainable_stmt,execute_stmt")
 
 }
 preparable_stmt:
   alter_stmt     // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,alter_stmt")
+LogGrammarCoverage("preparable_stmt,alter_stmt")
 
 }
 | backup_stmt    //  : BACKUP
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,backup_stmt")
+LogGrammarCoverage("preparable_stmt,backup_stmt")
 
 }
 | cancel_stmt    // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,cancel_stmt")
+LogGrammarCoverage("preparable_stmt,cancel_stmt")
 
 }
 | create_stmt    // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,create_stmt")
+LogGrammarCoverage("preparable_stmt,create_stmt")
 
 }
 | delete_stmt    //  : DELETE
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,delete_stmt")
+LogGrammarCoverage("preparable_stmt,delete_stmt")
 
 }
 | drop_stmt      // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,drop_stmt")
+LogGrammarCoverage("preparable_stmt,drop_stmt")
 
 }
 | explain_stmt   //  : EXPLAIN
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,explain_stmt")
+LogGrammarCoverage("preparable_stmt,explain_stmt")
 
 }
 | import_stmt    //  : IMPORT
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,import_stmt")
+LogGrammarCoverage("preparable_stmt,import_stmt")
 
 }
 | insert_stmt    //  : INSERT
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,insert_stmt")
+LogGrammarCoverage("preparable_stmt,insert_stmt")
 
 }
 | pause_stmt     // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,pause_stmt")
+LogGrammarCoverage("preparable_stmt,pause_stmt")
 
 }
 | reset_stmt     // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,reset_stmt")
+LogGrammarCoverage("preparable_stmt,reset_stmt")
 
 }
 | restore_stmt   //  : RESTORE
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,restore_stmt")
+LogGrammarCoverage("preparable_stmt,restore_stmt")
 
 }
 | resume_stmt    // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,resume_stmt")
+LogGrammarCoverage("preparable_stmt,resume_stmt")
 
 }
 | export_stmt    //  : EXPORT
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,export_stmt")
+LogGrammarCoverage("preparable_stmt,export_stmt")
 
 }
 | scrub_stmt     // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,scrub_stmt")
+LogGrammarCoverage("preparable_stmt,scrub_stmt")
 
 }
 | select_stmt    // help texts in sub-rule
   {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,select_stmt")
+LogGrammarCoverage("preparable_stmt,select_stmt")
 
 
     $$.val = $1.slct()
   }
 | preparable_set_stmt // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,preparable_set_stmt")
+LogGrammarCoverage("preparable_stmt,preparable_set_stmt")
 
 }
 | show_stmt         // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,show_stmt")
+LogGrammarCoverage("preparable_stmt,show_stmt")
 
 }
 | truncate_stmt     //  : TRUNCATE
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,truncate_stmt")
+LogGrammarCoverage("preparable_stmt,truncate_stmt")
 
 }
 | update_stmt       //  : UPDATE
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,update_stmt")
+LogGrammarCoverage("preparable_stmt,update_stmt")
 
 }
 | upsert_stmt       //  : UPSERT
@@ -6343,60 +6343,60 @@ sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,update_stmt")
 // These are statements that can be used as a data source using the special
 // syntax with brackets. These are a subset of preparable_stmt.
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_stmt,upsert_stmt")
+LogGrammarCoverage("preparable_stmt,upsert_stmt")
 
 }
 row_source_extension_stmt:
   delete_stmt       //  : DELETE
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,delete_stmt")
+LogGrammarCoverage("row_source_extension_stmt,delete_stmt")
 
 }
 | explain_stmt      //  : EXPLAIN
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,explain_stmt")
+LogGrammarCoverage("row_source_extension_stmt,explain_stmt")
 
 }
 | insert_stmt       //  : INSERT
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,insert_stmt")
+LogGrammarCoverage("row_source_extension_stmt,insert_stmt")
 
 }
 | select_stmt       // help texts in sub-rule
   {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,select_stmt")
+LogGrammarCoverage("row_source_extension_stmt,select_stmt")
 
 
     $$.val = $1.slct()
   }
 | show_stmt         // help texts in sub-rule
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,show_stmt")
+LogGrammarCoverage("row_source_extension_stmt,show_stmt")
 
 }
 | update_stmt       //  : UPDATE
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,update_stmt")
+LogGrammarCoverage("row_source_extension_stmt,update_stmt")
 
 }
 | upsert_stmt       //  : UPSERT
 
 {
-sqllex.(*lexer).LogGrammarCoverage("row_source_extension_stmt,upsert_stmt")
+LogGrammarCoverage("row_source_extension_stmt,upsert_stmt")
 
 }
 explain_option_list:
   explain_option_name
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_option_list,explain_option_name")
+LogGrammarCoverage("explain_option_list,explain_option_name")
 
 
     $$.val = []string{$1}
   }
 | explain_option_list ',' explain_option_name
   {
-sqllex.(*lexer).LogGrammarCoverage("explain_option_list,explain_option_list")
-sqllex.(*lexer).LogGrammarCoverage("explain_option_list,explain_option_name")
+LogGrammarCoverage("explain_option_list,explain_option_list")
+LogGrammarCoverage("explain_option_list,explain_option_name")
 
 
     $$.val = append($1.strs(), $3)
@@ -6409,8 +6409,8 @@ sqllex.(*lexer).LogGrammarCoverage("explain_option_list,explain_option_name")
 alter_changefeed_stmt:
   ALTER CHANGEFEED a_expr alter_changefeed_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_stmt,alter_changefeed_cmds")
+LogGrammarCoverage("alter_changefeed_stmt,a_expr")
+LogGrammarCoverage("alter_changefeed_stmt,alter_changefeed_cmds")
 
 
     $$.val = &tree.AlterChangefeed{
@@ -6423,16 +6423,16 @@ sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_stmt,alter_changefeed_cmds"
 alter_changefeed_cmds:
   alter_changefeed_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmds,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmd")
+LogGrammarCoverage("alter_changefeed_cmds,error")
+LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmd")
 
 
     $$.val = tree.AlterChangefeedCmds{$1.alterChangefeedCmd()}
   }
 | alter_changefeed_cmds alter_changefeed_cmd
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmds")
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmd")
+LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmds")
+LogGrammarCoverage("alter_changefeed_cmds,alter_changefeed_cmd")
 
 
     $$.val = append($1.alterChangefeedCmds(), $2.alterChangefeedCmd())
@@ -6442,8 +6442,8 @@ alter_changefeed_cmd:
   // ALTER CHANGEFEED <job_id> ADD [TABLE] ...
   ADD changefeed_targets opt_with_options
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,changefeed_targets")
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,opt_with_options")
+LogGrammarCoverage("alter_changefeed_cmd,changefeed_targets")
+LogGrammarCoverage("alter_changefeed_cmd,opt_with_options")
 
 
     $$.val = &tree.AlterChangefeedAddTarget{
@@ -6454,7 +6454,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,opt_with_options")
   // ALTER CHANGEFEED <job_id> DROP [TABLE] ...
 | DROP changefeed_targets
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,changefeed_targets")
+LogGrammarCoverage("alter_changefeed_cmd,changefeed_targets")
 
 
     $$.val = &tree.AlterChangefeedDropTarget{
@@ -6463,7 +6463,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,changefeed_targets")
   }
 | SET kv_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,kv_option_list")
+LogGrammarCoverage("alter_changefeed_cmd,kv_option_list")
 
 
     $$.val = &tree.AlterChangefeedSetOptions{
@@ -6472,7 +6472,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,kv_option_list")
   }
 | UNSET name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,name_list")
+LogGrammarCoverage("alter_changefeed_cmd,name_list")
 
 
     $$.val = &tree.AlterChangefeedUnsetOptions{
@@ -6494,8 +6494,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_changefeed_cmd,name_list")
 alter_backup_stmt:
   ALTER BACKUP string_or_placeholder alter_backup_cmds
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
+LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
 
 
     $$.val = &tree.AlterBackup {
@@ -6505,9 +6505,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
   }
 | ALTER BACKUP string_or_placeholder IN string_or_placeholder alter_backup_cmds
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
+LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("alter_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
 
 
     $$.val = &tree.AlterBackup {
@@ -6521,16 +6521,16 @@ sqllex.(*lexer).LogGrammarCoverage("alter_backup_stmt,alter_backup_cmds")
 alter_backup_cmds:
 	alter_backup_cmd
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmds,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmds,alter_backup_cmd")
+LogGrammarCoverage("alter_backup_cmds,error")
+LogGrammarCoverage("alter_backup_cmds,alter_backup_cmd")
 
 
     $$.val = tree.AlterBackupCmds{$1.alterBackupCmd()}
 	}
 |	alter_backup_cmds alter_backup_cmd
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmds,alter_backup_cmds")
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmds,alter_backup_cmd")
+LogGrammarCoverage("alter_backup_cmds,alter_backup_cmds")
+LogGrammarCoverage("alter_backup_cmds,alter_backup_cmd")
 
 
     $$.val = append($1.alterBackupCmds(), $2.alterBackupCmd())
@@ -6539,7 +6539,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmds,alter_backup_cmd")
 alter_backup_cmd:
 	ADD backup_kms
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmd,backup_kms")
+LogGrammarCoverage("alter_backup_cmd,backup_kms")
 
 
     $$.val = &tree.AlterBackupKMS{
@@ -6550,8 +6550,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_backup_cmd,backup_kms")
 backup_kms:
 	NEW_KMS '=' string_or_placeholder_opt_list WITH OLD_KMS '=' string_or_placeholder_opt_list
 	{
-sqllex.(*lexer).LogGrammarCoverage("backup_kms,string_or_placeholder_opt_list")
-sqllex.(*lexer).LogGrammarCoverage("backup_kms,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_kms,string_or_placeholder_opt_list")
+LogGrammarCoverage("backup_kms,string_or_placeholder_opt_list")
 
 
     $$.val = tree.BackupKMS{
@@ -6567,9 +6567,9 @@ sqllex.(*lexer).LogGrammarCoverage("backup_kms,string_or_placeholder_opt_list")
 prepare_stmt:
   PREPARE table_alias_name prep_type_clause AS preparable_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,prep_type_clause")
-sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,preparable_stmt")
+LogGrammarCoverage("prepare_stmt,table_alias_name")
+LogGrammarCoverage("prepare_stmt,prep_type_clause")
+LogGrammarCoverage("prepare_stmt,preparable_stmt")
 
 
     $$.val = &tree.Prepare{
@@ -6580,8 +6580,8 @@ sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,preparable_stmt")
   }
 | PREPARE table_alias_name prep_type_clause AS OPT PLAN SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,prep_type_clause")
+LogGrammarCoverage("prepare_stmt,table_alias_name")
+LogGrammarCoverage("prepare_stmt,prep_type_clause")
 
 
     
@@ -6596,8 +6596,8 @@ sqllex.(*lexer).LogGrammarCoverage("prepare_stmt,prep_type_clause")
 prep_type_clause:
   '(' type_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("prep_type_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("prep_type_clause,type_list")
+LogGrammarCoverage("prep_type_clause,error")
+LogGrammarCoverage("prep_type_clause,type_list")
 
 
     $$.val = $2.typeReferences();
@@ -6616,8 +6616,8 @@ sqllex.(*lexer).LogGrammarCoverage("prep_type_clause,type_list")
 execute_stmt:
   EXECUTE table_alias_name execute_param_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("execute_stmt,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("execute_stmt,execute_param_clause")
+LogGrammarCoverage("execute_stmt,table_alias_name")
+LogGrammarCoverage("execute_stmt,execute_param_clause")
 
 
     $$.val = &tree.Execute{
@@ -6627,8 +6627,8 @@ sqllex.(*lexer).LogGrammarCoverage("execute_stmt,execute_param_clause")
   }
 | EXECUTE table_alias_name execute_param_clause DISCARD ROWS
   {
-sqllex.(*lexer).LogGrammarCoverage("execute_stmt,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("execute_stmt,execute_param_clause")
+LogGrammarCoverage("execute_stmt,table_alias_name")
+LogGrammarCoverage("execute_stmt,execute_param_clause")
 
 
     
@@ -6643,8 +6643,8 @@ sqllex.(*lexer).LogGrammarCoverage("execute_stmt,execute_param_clause")
 execute_param_clause:
   '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("execute_param_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("execute_param_clause,expr_list")
+LogGrammarCoverage("execute_param_clause,error")
+LogGrammarCoverage("execute_param_clause,expr_list")
 
 
     $$.val = $2.exprs()
@@ -6663,14 +6663,14 @@ sqllex.(*lexer).LogGrammarCoverage("execute_param_clause,expr_list")
 deallocate_stmt:
   DEALLOCATE name
   {
-sqllex.(*lexer).LogGrammarCoverage("deallocate_stmt,name")
+LogGrammarCoverage("deallocate_stmt,name")
 
 
     $$.val = &tree.Deallocate{Name: tree.Name($2)}
   }
 | DEALLOCATE PREPARE name
   {
-sqllex.(*lexer).LogGrammarCoverage("deallocate_stmt,name")
+LogGrammarCoverage("deallocate_stmt,name")
 
 
     $$.val = &tree.Deallocate{Name: tree.Name($3)}
@@ -6711,47 +6711,47 @@ sqllex.(*lexer).LogGrammarCoverage("deallocate_stmt,name")
 grant_stmt:
   GRANT privileges ON targets TO role_spec_list opt_with_grant_option
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
+LogGrammarCoverage("grant_stmt,error")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,targets")
+LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,opt_with_grant_option")
 
 
     $$.val = &tree.Grant{Privileges: $2.privilegeList(), Grantees: $6.roleSpecList(), Targets: $4.targetList(), WithGrantOption: $7.bool(),}
   }
 | GRANT privilege_list TO role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privilege_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,privilege_list")
+LogGrammarCoverage("grant_stmt,role_spec_list")
 
 
     $$.val = &tree.GrantRole{Roles: $2.nameList(), Members: $4.roleSpecList(), AdminOption: false}
   }
 | GRANT privilege_list TO role_spec_list WITH ADMIN OPTION
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privilege_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,privilege_list")
+LogGrammarCoverage("grant_stmt,role_spec_list")
 
 
     $$.val = &tree.GrantRole{Roles: $2.nameList(), Members: $4.roleSpecList(), AdminOption: true}
   }
 | GRANT privileges ON TYPE target_types TO role_spec_list opt_with_grant_option
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,target_types")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,target_types")
+LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,opt_with_grant_option")
 
 
     $$.val = &tree.Grant{Privileges: $2.privilegeList(), Targets: $5.targetList(), Grantees: $7.roleSpecList(), WithGrantOption: $8.bool(),}
   }
 | GRANT privileges ON SCHEMA schema_name_list TO role_spec_list opt_with_grant_option
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,schema_name_list")
+LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,opt_with_grant_option")
 
 
     $$.val = &tree.Grant{
@@ -6765,20 +6765,20 @@ sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
   }
 | GRANT privileges ON SCHEMA schema_name_list TO role_spec_list WITH error
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,error")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,schema_name_list")
+LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,error")
 
 
     return unimplemented(sqllex, "grant privileges on schema with")
   }
 | GRANT privileges ON ALL TABLES IN SCHEMA schema_name_list TO role_spec_list opt_with_grant_option
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,schema_name_list")
+LogGrammarCoverage("grant_stmt,role_spec_list")
+LogGrammarCoverage("grant_stmt,opt_with_grant_option")
 
 
     $$.val = &tree.Grant{
@@ -6793,8 +6793,8 @@ sqllex.(*lexer).LogGrammarCoverage("grant_stmt,opt_with_grant_option")
   }
 | GRANT privileges ON SEQUENCE error
   {
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("grant_stmt,error")
+LogGrammarCoverage("grant_stmt,privileges")
+LogGrammarCoverage("grant_stmt,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 74780, "grant privileges on sequence")
@@ -6823,62 +6823,62 @@ sqllex.(*lexer).LogGrammarCoverage("grant_stmt,error")
 revoke_stmt:
   REVOKE privileges ON targets FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,error")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,targets")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{Privileges: $2.privilegeList(), Grantees: $6.roleSpecList(), Targets: $4.targetList(), GrantOptionFor: false}
   }
 | REVOKE GRANT OPTION FOR privileges ON targets FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,targets")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,targets")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{Privileges: $5.privilegeList(), Grantees: $9.roleSpecList(), Targets: $7.targetList(), GrantOptionFor: true}
   }
 | REVOKE privilege_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privilege_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privilege_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.RevokeRole{Roles: $2.nameList(), Members: $4.roleSpecList(), AdminOption: false }
   }
 | REVOKE ADMIN OPTION FOR privilege_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privilege_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privilege_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.RevokeRole{Roles: $5.nameList(), Members: $7.roleSpecList(), AdminOption: true }
   }
 | REVOKE privileges ON TYPE target_types FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,target_types")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,target_types")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{Privileges: $2.privilegeList(), Targets: $5.targetList(), Grantees: $7.roleSpecList(), GrantOptionFor: false}
   }
 | REVOKE GRANT OPTION FOR privileges ON TYPE target_types FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,target_types")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,target_types")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{Privileges: $5.privilegeList(), Targets: $8.targetList(), Grantees: $10.roleSpecList(), GrantOptionFor: true}
   }
 | REVOKE privileges ON SCHEMA schema_name_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,schema_name_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{
@@ -6892,9 +6892,9 @@ sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
   }
 | REVOKE GRANT OPTION FOR privileges ON SCHEMA schema_name_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,schema_name_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{
@@ -6908,9 +6908,9 @@ sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
   }
 | REVOKE privileges ON ALL TABLES IN SCHEMA schema_name_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,schema_name_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{
@@ -6925,9 +6925,9 @@ sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
   }
 | REVOKE GRANT OPTION FOR privileges ON ALL TABLES IN SCHEMA schema_name_list FROM role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,schema_name_list")
+LogGrammarCoverage("revoke_stmt,role_spec_list")
 
 
     $$.val = &tree.Revoke{
@@ -6942,8 +6942,8 @@ sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,role_spec_list")
   }
 | REVOKE privileges ON SEQUENCE error
   {
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,error")
+LogGrammarCoverage("revoke_stmt,privileges")
+LogGrammarCoverage("revoke_stmt,error")
 
 
     return unimplemented(sqllex, "revoke privileges on sequence")
@@ -6955,15 +6955,15 @@ sqllex.(*lexer).LogGrammarCoverage("revoke_stmt,error")
 privileges:
   ALL opt_privileges_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("privileges,error")
-sqllex.(*lexer).LogGrammarCoverage("privileges,opt_privileges_clause")
+LogGrammarCoverage("privileges,error")
+LogGrammarCoverage("privileges,opt_privileges_clause")
 
 
     $$.val = privilege.List{privilege.ALL}
   }
 | privilege_list
   {
-sqllex.(*lexer).LogGrammarCoverage("privileges,privilege_list")
+LogGrammarCoverage("privileges,privilege_list")
 
 
      privList, err := privilege.ListFromStrings($1.nameList().ToStrings())
@@ -6976,15 +6976,15 @@ sqllex.(*lexer).LogGrammarCoverage("privileges,privilege_list")
 privilege_list:
   privilege
   {
-sqllex.(*lexer).LogGrammarCoverage("privilege_list,privilege")
+LogGrammarCoverage("privilege_list,privilege")
 
 
     $$.val = tree.NameList{tree.Name($1)}
   }
 | privilege_list ',' privilege
   {
-sqllex.(*lexer).LogGrammarCoverage("privilege_list,privilege_list")
-sqllex.(*lexer).LogGrammarCoverage("privilege_list,privilege")
+LogGrammarCoverage("privilege_list,privilege_list")
+LogGrammarCoverage("privilege_list,privilege")
 
 
     $$.val = append($1.nameList(), tree.Name($3))
@@ -6996,7 +6996,7 @@ sqllex.(*lexer).LogGrammarCoverage("privilege_list,privilege")
 privilege:
   name
 {
-sqllex.(*lexer).LogGrammarCoverage("privilege,name")
+LogGrammarCoverage("privilege,name")
 
 }
 | CREATE
@@ -7015,7 +7015,7 @@ sqllex.(*lexer).LogGrammarCoverage("privilege,name")
 reset_stmt:
   reset_session_stmt  //  : RESET
 {
-sqllex.(*lexer).LogGrammarCoverage("reset_stmt,reset_session_stmt")
+LogGrammarCoverage("reset_stmt,reset_session_stmt")
 
 }
 | reset_csetting_stmt //  : RESET CLUSTER SETTING
@@ -7025,20 +7025,20 @@ sqllex.(*lexer).LogGrammarCoverage("reset_stmt,reset_session_stmt")
 // %Text: RESET [SESSION] <var>
 // %SeeAlso: RESET CLUSTER SETTING, WEBDOCS/set-vars.html
 {
-sqllex.(*lexer).LogGrammarCoverage("reset_stmt,reset_csetting_stmt")
+LogGrammarCoverage("reset_stmt,reset_csetting_stmt")
 
 }
 reset_session_stmt:
   RESET session_var
   {
-sqllex.(*lexer).LogGrammarCoverage("reset_session_stmt,session_var")
+LogGrammarCoverage("reset_session_stmt,session_var")
 
 
     $$.val = &tree.SetVar{Name: $2, Values:tree.Exprs{tree.DefaultVal{}}, Reset: true}
   }
 | RESET SESSION session_var
   {
-sqllex.(*lexer).LogGrammarCoverage("reset_session_stmt,session_var")
+LogGrammarCoverage("reset_session_stmt,session_var")
 
 
     $$.val = &tree.SetVar{Name: $3, Values:tree.Exprs{tree.DefaultVal{}}, Reset: true}
@@ -7058,8 +7058,8 @@ sqllex.(*lexer).LogGrammarCoverage("reset_session_stmt,session_var")
 reset_csetting_stmt:
   RESET CLUSTER SETTING var_name
   {
-sqllex.(*lexer).LogGrammarCoverage("reset_csetting_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("reset_csetting_stmt,var_name")
+LogGrammarCoverage("reset_csetting_stmt,error")
+LogGrammarCoverage("reset_csetting_stmt,var_name")
 
 
     $$.val = &tree.SetClusterSetting{Name: strings.Join($4.strs(), "."), Value:tree.DefaultVal{}}
@@ -7076,8 +7076,8 @@ sqllex.(*lexer).LogGrammarCoverage("reset_csetting_stmt,var_name")
 use_stmt:
   USE var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("use_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("use_stmt,var_value")
+LogGrammarCoverage("use_stmt,error")
+LogGrammarCoverage("use_stmt,var_value")
 
 
     $$.val = &tree.SetVar{Name: "database", Values: tree.Exprs{$2.expr()}}
@@ -7088,11 +7088,11 @@ sqllex.(*lexer).LogGrammarCoverage("use_stmt,var_value")
 nonpreparable_set_stmt:
   set_transaction_stmt //  : SET TRANSACTION
 | set_exprs_internal   {
-sqllex.(*lexer).LogGrammarCoverage("nonpreparable_set_stmt,set_exprs_internal")
+LogGrammarCoverage("nonpreparable_set_stmt,set_exprs_internal")
 
   }
 | SET CONSTRAINTS error {
-sqllex.(*lexer).LogGrammarCoverage("nonpreparable_set_stmt,error")
+LogGrammarCoverage("nonpreparable_set_stmt,error")
 
  return unimplemented(sqllex, "set constraints") }
 
@@ -7100,17 +7100,17 @@ sqllex.(*lexer).LogGrammarCoverage("nonpreparable_set_stmt,error")
 preparable_set_stmt:
   set_session_stmt     //  : SET SESSION
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_set_stmt,set_session_stmt")
+LogGrammarCoverage("preparable_set_stmt,set_session_stmt")
 
 }
 | set_local_stmt       //  : SET LOCAL
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_set_stmt,set_local_stmt")
+LogGrammarCoverage("preparable_set_stmt,set_local_stmt")
 
 }
 | set_csetting_stmt    //  : SET CLUSTER SETTING
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_set_stmt,set_csetting_stmt")
+LogGrammarCoverage("preparable_set_stmt,set_csetting_stmt")
 
 }
 | use_stmt             //  : USE
@@ -7127,18 +7127,18 @@ sqllex.(*lexer).LogGrammarCoverage("preparable_set_stmt,set_csetting_stmt")
 //   - Constraint integrity (NOT NULL, CHECK, FOREIGN KEY, UNIQUE)
 // %SeeAlso: SCRUB TABLE, SCRUB DATABASE
 {
-sqllex.(*lexer).LogGrammarCoverage("preparable_set_stmt,use_stmt")
+LogGrammarCoverage("preparable_set_stmt,use_stmt")
 
 }
 scrub_stmt:
   scrub_table_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("scrub_stmt,scrub_table_stmt")
+LogGrammarCoverage("scrub_stmt,scrub_table_stmt")
 
 }
 | scrub_database_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("scrub_stmt,scrub_database_stmt")
+LogGrammarCoverage("scrub_stmt,scrub_database_stmt")
 
 }
 | EXPERIMENTAL SCRUB error // SHOW HELP: SCRUB
@@ -7157,9 +7157,9 @@ sqllex.(*lexer).LogGrammarCoverage("scrub_stmt,scrub_database_stmt")
 scrub_database_stmt:
   EXPERIMENTAL SCRUB DATABASE database_name opt_as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_database_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("scrub_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("scrub_database_stmt,opt_as_of_clause")
+LogGrammarCoverage("scrub_database_stmt,error")
+LogGrammarCoverage("scrub_database_stmt,database_name")
+LogGrammarCoverage("scrub_database_stmt,opt_as_of_clause")
 
 
     $$.val = &tree.Scrub{Typ: tree.ScrubDatabase, Database: tree.Name($4), AsOf: $5.asOfClause()}
@@ -7183,10 +7183,10 @@ sqllex.(*lexer).LogGrammarCoverage("scrub_database_stmt,opt_as_of_clause")
 scrub_table_stmt:
   EXPERIMENTAL SCRUB TABLE table_name opt_as_of_clause opt_scrub_options_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_table_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("scrub_table_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("scrub_table_stmt,opt_as_of_clause")
-sqllex.(*lexer).LogGrammarCoverage("scrub_table_stmt,opt_scrub_options_clause")
+LogGrammarCoverage("scrub_table_stmt,error")
+LogGrammarCoverage("scrub_table_stmt,table_name")
+LogGrammarCoverage("scrub_table_stmt,opt_as_of_clause")
+LogGrammarCoverage("scrub_table_stmt,opt_scrub_options_clause")
 
 
     $$.val = &tree.Scrub{
@@ -7201,8 +7201,8 @@ sqllex.(*lexer).LogGrammarCoverage("scrub_table_stmt,opt_scrub_options_clause")
 opt_scrub_options_clause:
   WITH OPTIONS scrub_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_scrub_options_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_scrub_options_clause,scrub_option_list")
+LogGrammarCoverage("opt_scrub_options_clause,error")
+LogGrammarCoverage("opt_scrub_options_clause,scrub_option_list")
 
 
     $$.val = $3.scrubOptions()
@@ -7217,15 +7217,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_scrub_options_clause,scrub_option_list")
 scrub_option_list:
   scrub_option
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_option_list,scrub_option")
+LogGrammarCoverage("scrub_option_list,scrub_option")
 
 
     $$.val = tree.ScrubOptions{$1.scrubOption()}
   }
 | scrub_option_list ',' scrub_option
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_option_list,scrub_option_list")
-sqllex.(*lexer).LogGrammarCoverage("scrub_option_list,scrub_option")
+LogGrammarCoverage("scrub_option_list,scrub_option_list")
+LogGrammarCoverage("scrub_option_list,scrub_option")
 
 
     $$.val = append($1.scrubOptions(), $3.scrubOption())
@@ -7240,7 +7240,7 @@ scrub_option:
   }
 | INDEX '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_option,name_list")
+LogGrammarCoverage("scrub_option,name_list")
 
 
     $$.val = &tree.ScrubOptionIndex{IndexNames: $3.nameList()}
@@ -7253,7 +7253,7 @@ sqllex.(*lexer).LogGrammarCoverage("scrub_option,name_list")
   }
 | CONSTRAINT '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("scrub_option,name_list")
+LogGrammarCoverage("scrub_option,name_list")
 
 
     $$.val = &tree.ScrubOptionConstraint{ConstraintNames: $3.nameList()}
@@ -7273,9 +7273,9 @@ sqllex.(*lexer).LogGrammarCoverage("scrub_option,name_list")
 set_csetting_stmt:
   SET CLUSTER SETTING var_name to_or_eq var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("set_csetting_stmt,var_name")
-sqllex.(*lexer).LogGrammarCoverage("set_csetting_stmt,to_or_eq")
-sqllex.(*lexer).LogGrammarCoverage("set_csetting_stmt,var_value")
+LogGrammarCoverage("set_csetting_stmt,var_name")
+LogGrammarCoverage("set_csetting_stmt,to_or_eq")
+LogGrammarCoverage("set_csetting_stmt,var_value")
 
 
     $$.val = &tree.SetClusterSetting{Name: strings.Join($4.strs(), "."), Value: $6.expr()}
@@ -7291,9 +7291,9 @@ sqllex.(*lexer).LogGrammarCoverage("set_csetting_stmt,var_value")
 alter_tenant_csetting_stmt:
   ALTER TENANT d_expr set_or_reset_csetting_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_tenant_csetting_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_tenant_csetting_stmt,d_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_tenant_csetting_stmt,set_or_reset_csetting_stmt")
+LogGrammarCoverage("alter_tenant_csetting_stmt,error")
+LogGrammarCoverage("alter_tenant_csetting_stmt,d_expr")
+LogGrammarCoverage("alter_tenant_csetting_stmt,set_or_reset_csetting_stmt")
 
 
     csettingStmt := $4.stmt().(*tree.SetClusterSetting)
@@ -7304,7 +7304,7 @@ sqllex.(*lexer).LogGrammarCoverage("alter_tenant_csetting_stmt,set_or_reset_cset
   }
 | ALTER TENANT_ALL ALL set_or_reset_csetting_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_tenant_csetting_stmt,set_or_reset_csetting_stmt")
+LogGrammarCoverage("alter_tenant_csetting_stmt,set_or_reset_csetting_stmt")
 
 
     csettingStmt := $4.stmt().(*tree.SetClusterSetting)
@@ -7321,7 +7321,7 @@ set_or_reset_csetting_stmt:
 | set_csetting_stmt
 
 {
-sqllex.(*lexer).LogGrammarCoverage("set_or_reset_csetting_stmt,set_csetting_stmt")
+LogGrammarCoverage("set_or_reset_csetting_stmt,set_csetting_stmt")
 
 }
 to_or_eq:
@@ -7338,7 +7338,7 @@ set_exprs_internal:
   
   SET ROW '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("set_exprs_internal,expr_list")
+LogGrammarCoverage("set_exprs_internal,expr_list")
 
 
     $$.val = &tree.SetVar{Values: $4.exprs()}
@@ -7357,8 +7357,8 @@ sqllex.(*lexer).LogGrammarCoverage("set_exprs_internal,expr_list")
 set_session_stmt:
   SET_TRACING TRACING to_or_eq var_list
 	{
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,to_or_eq")
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,var_list")
+LogGrammarCoverage("set_session_stmt,to_or_eq")
+LogGrammarCoverage("set_session_stmt,var_list")
 
 
     
@@ -7367,8 +7367,8 @@ sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,var_list")
 	}
 | SET_TRACING SESSION TRACING to_or_eq var_list
 	{
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,to_or_eq")
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,var_list")
+LogGrammarCoverage("set_session_stmt,to_or_eq")
+LogGrammarCoverage("set_session_stmt,var_list")
 
 
     
@@ -7377,7 +7377,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,var_list")
 	}
 | SET SESSION set_rest_more
   {
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,set_rest_more")
+LogGrammarCoverage("set_session_stmt,set_rest_more")
 
 
     $$.val = $3.stmt()
@@ -7385,7 +7385,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,set_rest_more")
 | SET SESSION error  // SHOW HELP: SET SESSION
 | SET set_rest_more
   {
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,set_rest_more")
+LogGrammarCoverage("set_session_stmt,set_rest_more")
 
 
     $$.val = $2.stmt()
@@ -7394,7 +7394,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,set_rest_more")
 // Special form for pg compatibility:
 | SET SESSION CHARACTERISTICS AS TRANSACTION transaction_mode_list
   {
-sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,transaction_mode_list")
+LogGrammarCoverage("set_session_stmt,transaction_mode_list")
 
 
     $$.val = &tree.SetSessionCharacteristics{Modes: $6.transactionModes()}
@@ -7411,7 +7411,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_session_stmt,transaction_mode_list")
 set_local_stmt:
   SET LOCAL set_rest
   {
-sqllex.(*lexer).LogGrammarCoverage("set_local_stmt,set_rest")
+LogGrammarCoverage("set_local_stmt,set_rest")
 
 
     ret := $3.setVar()
@@ -7436,8 +7436,8 @@ sqllex.(*lexer).LogGrammarCoverage("set_local_stmt,set_rest")
 set_transaction_stmt:
   SET TRANSACTION transaction_mode_list
   {
-sqllex.(*lexer).LogGrammarCoverage("set_transaction_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
+LogGrammarCoverage("set_transaction_stmt,error")
+LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
 
 
     $$.val = &tree.SetTransaction{Modes: $3.transactionModes()}
@@ -7445,7 +7445,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
 | SET TRANSACTION error // SHOW HELP: SET TRANSACTION
 | SET SESSION TRANSACTION transaction_mode_list
   {
-sqllex.(*lexer).LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
+LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
 
 
     $$.val = &tree.SetTransaction{Modes: $4.transactionModes()}
@@ -7455,10 +7455,10 @@ sqllex.(*lexer).LogGrammarCoverage("set_transaction_stmt,transaction_mode_list")
 generic_set:
   var_name to_or_eq var_list
   {
-sqllex.(*lexer).LogGrammarCoverage("generic_set,error")
-sqllex.(*lexer).LogGrammarCoverage("generic_set,var_name")
-sqllex.(*lexer).LogGrammarCoverage("generic_set,to_or_eq")
-sqllex.(*lexer).LogGrammarCoverage("generic_set,var_list")
+LogGrammarCoverage("generic_set,error")
+LogGrammarCoverage("generic_set,var_name")
+LogGrammarCoverage("generic_set,to_or_eq")
+LogGrammarCoverage("generic_set,var_list")
 
 
     $$.val = &tree.SetVar{Name: strings.Join($1.strs(), "."), Values: $3.exprs()}
@@ -7472,26 +7472,26 @@ set_rest:
 //
 // "SET TIME ZONE value is an alias for SET timezone TO value."
 {
-sqllex.(*lexer).LogGrammarCoverage("set_rest,generic_set")
+LogGrammarCoverage("set_rest,generic_set")
 
 }
 | TIME ZONE zone_value
   {
-sqllex.(*lexer).LogGrammarCoverage("set_rest,zone_value")
+LogGrammarCoverage("set_rest,zone_value")
 
 
     
     $$.val = &tree.SetVar{Name: "timezone", Values: tree.Exprs{$3.expr()}}
   }
 | var_name FROM CURRENT {
-sqllex.(*lexer).LogGrammarCoverage("set_rest,var_name")
+LogGrammarCoverage("set_rest,var_name")
 
  return unimplemented(sqllex, "set from current") }
 // "SET SCHEMA 'value' is an alias for SET search_path TO value. Only
 // one schema can be specified using this syntax."
 | SCHEMA var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("set_rest,var_value")
+LogGrammarCoverage("set_rest,var_value")
 
 
     
@@ -7499,7 +7499,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_rest,var_value")
   }
 | ROLE var_value
 	{
-sqllex.(*lexer).LogGrammarCoverage("set_rest,var_value")
+LogGrammarCoverage("set_rest,var_value")
 
 
 		
@@ -7510,7 +7510,7 @@ set_rest_more:
 // SET syntaxes supported as a clause of other statements:
   set_rest
 {
-sqllex.(*lexer).LogGrammarCoverage("set_rest_more,set_rest")
+LogGrammarCoverage("set_rest_more,set_rest")
 
 }
 | SESSION AUTHORIZATION DEFAULT
@@ -7540,13 +7540,13 @@ sqllex.(*lexer).LogGrammarCoverage("set_rest_more,set_rest")
 // See https://www.postgresql.org/docs/10/static/sql-set.html
 // Also see https://www.postgresql.org/docs/9.6/static/multibyte.html#AEN39236
 {
-sqllex.(*lexer).LogGrammarCoverage("set_rest_more,set_names")
+LogGrammarCoverage("set_rest_more,set_names")
 
 }
 set_names:
   NAMES var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("set_names,var_value")
+LogGrammarCoverage("set_names,var_value")
 
 
     
@@ -7563,15 +7563,15 @@ sqllex.(*lexer).LogGrammarCoverage("set_names,var_value")
 var_name:
   name
   {
-sqllex.(*lexer).LogGrammarCoverage("var_name,name")
+LogGrammarCoverage("var_name,name")
 
 
     $$.val = []string{$1}
   }
 | name attrs
   {
-sqllex.(*lexer).LogGrammarCoverage("var_name,name")
-sqllex.(*lexer).LogGrammarCoverage("var_name,attrs")
+LogGrammarCoverage("var_name,name")
+LogGrammarCoverage("var_name,attrs")
 
 
     $$.val = append([]string{$1}, $2.strs()...)
@@ -7580,15 +7580,15 @@ sqllex.(*lexer).LogGrammarCoverage("var_name,attrs")
 attrs:
   '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("attrs,unrestricted_name")
+LogGrammarCoverage("attrs,unrestricted_name")
 
 
     $$.val = []string{$2}
   }
 | attrs '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("attrs,attrs")
-sqllex.(*lexer).LogGrammarCoverage("attrs,unrestricted_name")
+LogGrammarCoverage("attrs,attrs")
+LogGrammarCoverage("attrs,unrestricted_name")
 
 
     $$.val = append($1.strs(), $3)
@@ -7597,12 +7597,12 @@ sqllex.(*lexer).LogGrammarCoverage("attrs,unrestricted_name")
 var_value:
   a_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("var_value,a_expr")
+LogGrammarCoverage("var_value,a_expr")
 
 }
 | extra_var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("var_value,extra_var_value")
+LogGrammarCoverage("var_value,extra_var_value")
 
 
     $$.val = tree.Expr(&tree.UnresolvedName{NumParts: 1, Parts: tree.NameParts{$1}})
@@ -7627,21 +7627,21 @@ extra_var_value:
 | cockroachdb_extra_reserved_keyword
 
 {
-sqllex.(*lexer).LogGrammarCoverage("extra_var_value,cockroachdb_extra_reserved_keyword")
+LogGrammarCoverage("extra_var_value,cockroachdb_extra_reserved_keyword")
 
 }
 var_list:
   var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("var_list,var_value")
+LogGrammarCoverage("var_list,var_value")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | var_list ',' var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("var_list,var_list")
-sqllex.(*lexer).LogGrammarCoverage("var_list,var_value")
+LogGrammarCoverage("var_list,var_list")
+LogGrammarCoverage("var_list,var_value")
 
 
     $$.val = append($1.exprs(), $3.expr())
@@ -7719,14 +7719,14 @@ zone_value:
   }
 | interval_value
   {
-sqllex.(*lexer).LogGrammarCoverage("zone_value,interval_value")
+LogGrammarCoverage("zone_value,interval_value")
 
 
     $$.val = $1.expr()
   }
 | numeric_only
 {
-sqllex.(*lexer).LogGrammarCoverage("zone_value,numeric_only")
+LogGrammarCoverage("zone_value,numeric_only")
 
 }
 | DEFAULT
@@ -7755,203 +7755,203 @@ sqllex.(*lexer).LogGrammarCoverage("zone_value,numeric_only")
 show_stmt:
   show_backup_stmt           //  : SHOW BACKUP
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_backup_stmt")
+LogGrammarCoverage("show_stmt,show_backup_stmt")
 
 }
 | show_columns_stmt          //  : SHOW COLUMNS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_columns_stmt")
+LogGrammarCoverage("show_stmt,show_columns_stmt")
 
 }
 | show_constraints_stmt      //  : SHOW CONSTRAINTS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_constraints_stmt")
+LogGrammarCoverage("show_stmt,show_constraints_stmt")
 
 }
 | show_create_stmt           //  : SHOW CREATE
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_create_stmt")
+LogGrammarCoverage("show_stmt,show_create_stmt")
 
 }
 | show_create_schedules_stmt //  : SHOW CREATE SCHEDULES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_create_schedules_stmt")
+LogGrammarCoverage("show_stmt,show_create_schedules_stmt")
 
 }
 | show_local_or_tenant_csettings_stmt //  : SHOW CLUSTER SETTING
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_local_or_tenant_csettings_stmt")
+LogGrammarCoverage("show_stmt,show_local_or_tenant_csettings_stmt")
 
 }
 | show_databases_stmt        //  : SHOW DATABASES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_databases_stmt")
+LogGrammarCoverage("show_stmt,show_databases_stmt")
 
 }
 | show_enums_stmt            //  : SHOW ENUMS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_enums_stmt")
+LogGrammarCoverage("show_stmt,show_enums_stmt")
 
 }
 | show_types_stmt            //  : SHOW TYPES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_types_stmt")
+LogGrammarCoverage("show_stmt,show_types_stmt")
 
 }
 | show_fingerprints_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_fingerprints_stmt")
+LogGrammarCoverage("show_stmt,show_fingerprints_stmt")
 
 }
 | show_grants_stmt           //  : SHOW GRANTS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_grants_stmt")
+LogGrammarCoverage("show_stmt,show_grants_stmt")
 
 }
 | show_histogram_stmt        //  : SHOW HISTOGRAM
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_histogram_stmt")
+LogGrammarCoverage("show_stmt,show_histogram_stmt")
 
 }
 | show_indexes_stmt          //  : SHOW INDEXES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_indexes_stmt")
+LogGrammarCoverage("show_stmt,show_indexes_stmt")
 
 }
 | show_partitions_stmt       //  : SHOW PARTITIONS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_partitions_stmt")
+LogGrammarCoverage("show_stmt,show_partitions_stmt")
 
 }
 | show_jobs_stmt             //  : SHOW JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_jobs_stmt")
+LogGrammarCoverage("show_stmt,show_jobs_stmt")
 
 }
 | show_locality_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_locality_stmt")
+LogGrammarCoverage("show_stmt,show_locality_stmt")
 
 }
 | show_schedules_stmt        //  : SHOW SCHEDULES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_schedules_stmt")
+LogGrammarCoverage("show_stmt,show_schedules_stmt")
 
 }
 | show_statements_stmt       //  : SHOW STATEMENTS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_statements_stmt")
+LogGrammarCoverage("show_stmt,show_statements_stmt")
 
 }
 | show_ranges_stmt           //  : SHOW RANGES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_ranges_stmt")
+LogGrammarCoverage("show_stmt,show_ranges_stmt")
 
 }
 | show_range_for_row_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_range_for_row_stmt")
+LogGrammarCoverage("show_stmt,show_range_for_row_stmt")
 
 }
 | show_regions_stmt          //  : SHOW REGIONS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_regions_stmt")
+LogGrammarCoverage("show_stmt,show_regions_stmt")
 
 }
 | show_survival_goal_stmt    // EXTEND_WITH_HELP: SHOW SURVIVAL GOAL
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_survival_goal_stmt")
+LogGrammarCoverage("show_stmt,show_survival_goal_stmt")
 
 }
 | show_roles_stmt            //  : SHOW ROLES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_roles_stmt")
+LogGrammarCoverage("show_stmt,show_roles_stmt")
 
 }
 | show_savepoint_stmt        //  : SHOW SAVEPOINT
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_savepoint_stmt")
+LogGrammarCoverage("show_stmt,show_savepoint_stmt")
 
 }
 | show_schemas_stmt          //  : SHOW SCHEMAS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_schemas_stmt")
+LogGrammarCoverage("show_stmt,show_schemas_stmt")
 
 }
 | show_sequences_stmt        //  : SHOW SEQUENCES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_sequences_stmt")
+LogGrammarCoverage("show_stmt,show_sequences_stmt")
 
 }
 | show_session_stmt          //  : SHOW SESSION
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_session_stmt")
+LogGrammarCoverage("show_stmt,show_session_stmt")
 
 }
 | show_sessions_stmt         //  : SHOW SESSIONS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_sessions_stmt")
+LogGrammarCoverage("show_stmt,show_sessions_stmt")
 
 }
 | show_stats_stmt            //  : SHOW STATISTICS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_stats_stmt")
+LogGrammarCoverage("show_stmt,show_stats_stmt")
 
 }
 | show_syntax_stmt           //  : SHOW SYNTAX
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_syntax_stmt")
+LogGrammarCoverage("show_stmt,show_syntax_stmt")
 
 }
 | show_tables_stmt           //  : SHOW TABLES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_tables_stmt")
+LogGrammarCoverage("show_stmt,show_tables_stmt")
 
 }
 | show_trace_stmt            //  : SHOW TRACE
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_trace_stmt")
+LogGrammarCoverage("show_stmt,show_trace_stmt")
 
 }
 | show_transaction_stmt      //  : SHOW TRANSACTION
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_transaction_stmt")
+LogGrammarCoverage("show_stmt,show_transaction_stmt")
 
 }
 | show_transactions_stmt     //  : SHOW TRANSACTIONS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_transactions_stmt")
+LogGrammarCoverage("show_stmt,show_transactions_stmt")
 
 }
 | show_transfer_stmt         //  : SHOW TRANSFER
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_transfer_stmt")
+LogGrammarCoverage("show_stmt,show_transfer_stmt")
 
 }
 | show_users_stmt            //  : SHOW USERS
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_users_stmt")
+LogGrammarCoverage("show_stmt,show_users_stmt")
 
 }
 | show_zone_stmt             //  : SHOW ZONE CONFIGURATION
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_zone_stmt")
+LogGrammarCoverage("show_stmt,show_zone_stmt")
 
 }
 | SHOW error                 // SHOW HELP: SHOW
 | show_last_query_stats_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_last_query_stats_stmt")
+LogGrammarCoverage("show_stmt,show_last_query_stats_stmt")
 
 }
 | show_full_scans_stmt
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_full_scans_stmt")
+LogGrammarCoverage("show_stmt,show_full_scans_stmt")
 
 }
 | show_default_privileges_stmt //  : SHOW DEFAULT PRIVILEGES
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_default_privileges_stmt")
+LogGrammarCoverage("show_stmt,show_default_privileges_stmt")
 
 }
 | show_completions_stmt
@@ -7961,7 +7961,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_default_privileges_stmt")
 // %Text: CLOSE [ ALL | <name> ]
 // %SeeAlso: DECLARE, FETCH
 {
-sqllex.(*lexer).LogGrammarCoverage("show_stmt,show_completions_stmt")
+LogGrammarCoverage("show_stmt,show_completions_stmt")
 
 }
 close_cursor_stmt:
@@ -7975,7 +7975,7 @@ close_cursor_stmt:
 	}
 | CLOSE cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("close_cursor_stmt,cursor_name")
+LogGrammarCoverage("close_cursor_stmt,cursor_name")
 
 
 	  $$.val = &tree.CloseCursor{
@@ -7993,13 +7993,13 @@ declare_cursor_stmt:
   // the fixed one here.
 	DECLARE cursor_name opt_binary opt_sensitivity opt_scroll CURSOR opt_hold FOR select_stmt
 	{
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,cursor_name")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,opt_binary")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,opt_sensitivity")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,opt_scroll")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,opt_hold")
-sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,select_stmt")
+LogGrammarCoverage("declare_cursor_stmt,error")
+LogGrammarCoverage("declare_cursor_stmt,cursor_name")
+LogGrammarCoverage("declare_cursor_stmt,opt_binary")
+LogGrammarCoverage("declare_cursor_stmt,opt_sensitivity")
+LogGrammarCoverage("declare_cursor_stmt,opt_scroll")
+LogGrammarCoverage("declare_cursor_stmt,opt_hold")
+LogGrammarCoverage("declare_cursor_stmt,select_stmt")
 
 
 	  $$.val = &tree.DeclareCursor{
@@ -8016,7 +8016,7 @@ sqllex.(*lexer).LogGrammarCoverage("declare_cursor_stmt,select_stmt")
 opt_binary:
   BINARY
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_binary,error")
+LogGrammarCoverage("opt_binary,error")
 
 
     $$.val = true
@@ -8095,7 +8095,7 @@ opt_hold:
 fetch_cursor_stmt:
   FETCH cursor_movement_specifier
   {
-sqllex.(*lexer).LogGrammarCoverage("fetch_cursor_stmt,cursor_movement_specifier")
+LogGrammarCoverage("fetch_cursor_stmt,cursor_movement_specifier")
 
 
     $$.val = &tree.FetchCursor{
@@ -8111,8 +8111,8 @@ sqllex.(*lexer).LogGrammarCoverage("fetch_cursor_stmt,cursor_movement_specifier"
 move_cursor_stmt:
   MOVE cursor_movement_specifier
   {
-sqllex.(*lexer).LogGrammarCoverage("move_cursor_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("move_cursor_stmt,cursor_movement_specifier")
+LogGrammarCoverage("move_cursor_stmt,error")
+LogGrammarCoverage("move_cursor_stmt,cursor_movement_specifier")
 
 
     $$.val = &tree.MoveCursor{
@@ -8124,8 +8124,8 @@ sqllex.(*lexer).LogGrammarCoverage("move_cursor_stmt,cursor_movement_specifier")
 cursor_movement_specifier:
   cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,error")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,error")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8135,8 +8135,8 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8146,9 +8146,9 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | next_prior opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,next_prior")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,next_prior")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8158,9 +8158,9 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | forward_backward opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,forward_backward")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,forward_backward")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8170,10 +8170,10 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | opt_forward_backward signed_iconst64 opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_forward_backward")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,opt_forward_backward")
+LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8183,9 +8183,9 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | opt_forward_backward ALL opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_forward_backward")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,opt_forward_backward")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     fetchType := tree.FetchAll
@@ -8200,9 +8200,9 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | ABSOLUTE signed_iconst64 opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8213,9 +8213,9 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | RELATIVE signed_iconst64 opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,signed_iconst64")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8226,8 +8226,8 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | FIRST opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8237,8 +8237,8 @@ sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
   }
 | LAST opt_from_or_in cursor_name
   {
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
-sqllex.(*lexer).LogGrammarCoverage("cursor_movement_specifier,cursor_name")
+LogGrammarCoverage("cursor_movement_specifier,opt_from_or_in")
+LogGrammarCoverage("cursor_movement_specifier,cursor_name")
 
 
     $$.val = tree.CursorStmt{
@@ -8257,7 +8257,7 @@ next_prior:
 
 opt_forward_backward:
   forward_backward {
-sqllex.(*lexer).LogGrammarCoverage("opt_forward_backward,forward_backward")
+LogGrammarCoverage("opt_forward_backward,forward_backward")
 
  $$.val = $1.int64() }
 | /* EMPTY */ {
@@ -8274,7 +8274,7 @@ forward_backward:
 
 opt_from_or_in:
   from_or_in {
-sqllex.(*lexer).LogGrammarCoverage("opt_from_or_in,from_or_in")
+LogGrammarCoverage("opt_from_or_in,from_or_in")
 
  }
 | /* EMPTY */ {
@@ -8292,7 +8292,7 @@ from_or_in:
 reindex_stmt:
   REINDEX TABLE error
   {
-sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
+LogGrammarCoverage("reindex_stmt,error")
 
 
     
@@ -8300,7 +8300,7 @@ sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
   }
 | REINDEX INDEX error
   {
-sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
+LogGrammarCoverage("reindex_stmt,error")
 
 
     
@@ -8308,7 +8308,7 @@ sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
   }
 | REINDEX SCHEMA error
   {
-sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
+LogGrammarCoverage("reindex_stmt,error")
 
 
     
@@ -8316,7 +8316,7 @@ sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
   }
 | REINDEX DATABASE error
   {
-sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
+LogGrammarCoverage("reindex_stmt,error")
 
 
     
@@ -8324,7 +8324,7 @@ sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
   }
 | REINDEX SYSTEM error
   {
-sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
+LogGrammarCoverage("reindex_stmt,error")
 
 
     
@@ -8337,11 +8337,11 @@ sqllex.(*lexer).LogGrammarCoverage("reindex_stmt,error")
 // %SeeAlso: WEBDOCS/show-vars.html
 show_session_stmt:
   SHOW session_var         {
-sqllex.(*lexer).LogGrammarCoverage("show_session_stmt,session_var")
+LogGrammarCoverage("show_session_stmt,session_var")
 
  $$.val = &tree.ShowVar{Name: $2} }
 | SHOW SESSION session_var {
-sqllex.(*lexer).LogGrammarCoverage("show_session_stmt,session_var")
+LogGrammarCoverage("show_session_stmt,session_var")
 
  $$.val = &tree.ShowVar{Name: $3} }
 | SHOW SESSION error // SHOW HELP: SHOW SESSION
@@ -8350,7 +8350,7 @@ session_var:
   IDENT
 | IDENT session_var_parts
   {
-sqllex.(*lexer).LogGrammarCoverage("session_var,session_var_parts")
+LogGrammarCoverage("session_var,session_var_parts")
 
 
     $$ = $1 + "." + strings.Join($2.strs(), ".")
@@ -8392,7 +8392,7 @@ sqllex.(*lexer).LogGrammarCoverage("session_var,session_var_parts")
   }
 | TRACING session_var_parts
   {
-sqllex.(*lexer).LogGrammarCoverage("session_var,session_var_parts")
+LogGrammarCoverage("session_var,session_var_parts")
 
 
     
@@ -8407,14 +8407,14 @@ sqllex.(*lexer).LogGrammarCoverage("session_var,session_var_parts")
 session_var_parts:
   '.' IDENT
   {
-sqllex.(*lexer).LogGrammarCoverage("session_var_parts,error")
+LogGrammarCoverage("session_var_parts,error")
 
 
     $$.val = []string{$2}
   }
 | session_var_parts '.' IDENT
   {
-sqllex.(*lexer).LogGrammarCoverage("session_var_parts,session_var_parts")
+LogGrammarCoverage("session_var_parts,session_var_parts")
 
 
     $$.val = append($1.strs(), $3)
@@ -8433,14 +8433,14 @@ sqllex.(*lexer).LogGrammarCoverage("session_var_parts,session_var_parts")
 show_stats_stmt:
   SHOW STATISTICS FOR TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_stats_stmt,table_name")
+LogGrammarCoverage("show_stats_stmt,table_name")
 
 
     $$.val = &tree.ShowTableStats{Table: $5.unresolvedObjectName()}
   }
 | SHOW STATISTICS USING JSON FOR TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_stats_stmt,table_name")
+LogGrammarCoverage("show_stats_stmt,table_name")
 
 
     
@@ -8458,7 +8458,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_stats_stmt,table_name")
 show_histogram_stmt:
   SHOW HISTOGRAM ICONST
   {
-sqllex.(*lexer).LogGrammarCoverage("show_histogram_stmt,error")
+LogGrammarCoverage("show_histogram_stmt,error")
 
 
     
@@ -8477,8 +8477,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_histogram_stmt,error")
 show_backup_stmt:
   SHOW BACKUPS IN string_or_placeholder
  {
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,error")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
 
 
     $$.val = &tree.ShowBackup{
@@ -8487,10 +8487,10 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
   }
 | SHOW BACKUP show_backup_details FROM string_or_placeholder IN string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,show_backup_details")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,show_backup_details")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8503,9 +8503,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 	}
 | SHOW BACKUP string_or_placeholder IN string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8517,8 +8517,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 	}
 | SHOW BACKUP string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8529,8 +8529,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 	}
 | SHOW BACKUP SCHEMAS string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8541,8 +8541,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 	}
 | SHOW BACKUP FILES string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8553,8 +8553,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 	}
 | SHOW BACKUP RANGES string_or_placeholder opt_with_options
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
+LogGrammarCoverage("show_backup_stmt,string_or_placeholder")
+LogGrammarCoverage("show_backup_stmt,opt_with_options")
 
 
 		$$.val = &tree.ShowBackup{
@@ -8568,8 +8568,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_stmt,opt_with_options")
 show_backup_details:
   /* EMPTY -- default */
   {
-sqllex.(*lexer).LogGrammarCoverage("show_backup_details,error")
-sqllex.(*lexer).LogGrammarCoverage("show_backup_details,default")
+LogGrammarCoverage("show_backup_details,error")
+LogGrammarCoverage("show_backup_details,default")
 
 
     $$.val = tree.BackupDefaultDetails
@@ -8602,7 +8602,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_backup_details,default")
 show_csettings_stmt:
   SHOW CLUSTER SETTING var_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_csettings_stmt,var_name")
+LogGrammarCoverage("show_csettings_stmt,var_name")
 
 
     $$.val = &tree.ShowClusterSetting{Name: strings.Join($4.strs(), ".")}
@@ -8638,14 +8638,14 @@ sqllex.(*lexer).LogGrammarCoverage("show_csettings_stmt,var_name")
 show_local_or_tenant_csettings_stmt:
   show_csettings_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("show_local_or_tenant_csettings_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_local_or_tenant_csettings_stmt,show_csettings_stmt")
+LogGrammarCoverage("show_local_or_tenant_csettings_stmt,error")
+LogGrammarCoverage("show_local_or_tenant_csettings_stmt,show_csettings_stmt")
 
  $$.val = $1.stmt() }
 | show_csettings_stmt FOR TENANT d_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_local_or_tenant_csettings_stmt,show_csettings_stmt")
-sqllex.(*lexer).LogGrammarCoverage("show_local_or_tenant_csettings_stmt,d_expr")
+LogGrammarCoverage("show_local_or_tenant_csettings_stmt,show_csettings_stmt")
+LogGrammarCoverage("show_local_or_tenant_csettings_stmt,d_expr")
 
 
     switch t := $1.stmt().(type) {
@@ -8670,10 +8670,10 @@ sqllex.(*lexer).LogGrammarCoverage("show_local_or_tenant_csettings_stmt,d_expr")
 show_columns_stmt:
   SHOW COLUMNS FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_columns_stmt,show_csettings_stmt")
-sqllex.(*lexer).LogGrammarCoverage("show_columns_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_columns_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_columns_stmt,with_comment")
+LogGrammarCoverage("show_columns_stmt,show_csettings_stmt")
+LogGrammarCoverage("show_columns_stmt,error")
+LogGrammarCoverage("show_columns_stmt,table_name")
+LogGrammarCoverage("show_columns_stmt,with_comment")
 
 
     $$.val = &tree.ShowColumns{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
@@ -8687,29 +8687,29 @@ sqllex.(*lexer).LogGrammarCoverage("show_columns_stmt,with_comment")
 show_partitions_stmt:
   SHOW PARTITIONS FROM TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,table_name")
+LogGrammarCoverage("show_partitions_stmt,error")
+LogGrammarCoverage("show_partitions_stmt,table_name")
 
 
     $$.val = &tree.ShowPartitions{IsTable: true, Table: $5.unresolvedObjectName()}
   }
 | SHOW PARTITIONS FROM DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,database_name")
+LogGrammarCoverage("show_partitions_stmt,database_name")
 
 
     $$.val = &tree.ShowPartitions{IsDB: true, Database: tree.Name($5)}
   }
 | SHOW PARTITIONS FROM INDEX table_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,table_index_name")
+LogGrammarCoverage("show_partitions_stmt,table_index_name")
 
 
     $$.val = &tree.ShowPartitions{IsIndex: true, Index: $5.tableIndexName()}
   }
 | SHOW PARTITIONS FROM INDEX table_name '@' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,table_name")
+LogGrammarCoverage("show_partitions_stmt,table_name")
 
 
     $$.val = &tree.ShowPartitions{IsTable: true, Table: $5.unresolvedObjectName()}
@@ -8723,8 +8723,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_partitions_stmt,table_name")
 show_databases_stmt:
   SHOW DATABASES with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_databases_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_databases_stmt,with_comment")
+LogGrammarCoverage("show_databases_stmt,error")
+LogGrammarCoverage("show_databases_stmt,with_comment")
 
 
     $$.val = &tree.ShowDatabases{WithComment: $3.bool()}
@@ -8736,9 +8736,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_databases_stmt,with_comment")
 // %Text: SHOW DEFAULT PRIVILEGES
 show_default_privileges_stmt:
   SHOW DEFAULT PRIVILEGES opt_for_roles opt_in_schema {
-sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,opt_for_roles")
-sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
+LogGrammarCoverage("show_default_privileges_stmt,error")
+LogGrammarCoverage("show_default_privileges_stmt,opt_for_roles")
+LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
 
 
     $$.val = &tree.ShowDefaultPrivileges{
@@ -8747,7 +8747,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
     }
   }
 | SHOW DEFAULT PRIVILEGES FOR ALL ROLES opt_in_schema {
-sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
+LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
 
 
     $$.val = &tree.ShowDefaultPrivileges{
@@ -8763,15 +8763,15 @@ sqllex.(*lexer).LogGrammarCoverage("show_default_privileges_stmt,opt_in_schema")
 show_enums_stmt:
   SHOW ENUMS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,error")
+LogGrammarCoverage("show_enums_stmt,error")
 
 
     $$.val = &tree.ShowEnums{}
   }
 | SHOW ENUMS FROM name '.' name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,name")
+LogGrammarCoverage("show_enums_stmt,name")
+LogGrammarCoverage("show_enums_stmt,name")
 
 
     $$.val = &tree.ShowEnums{ObjectNamePrefix:tree.ObjectNamePrefix{
@@ -8784,7 +8784,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,name")
   }
 | SHOW ENUMS FROM name
 {
-sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,name")
+LogGrammarCoverage("show_enums_stmt,name")
 
 
     $$.val = &tree.ShowEnums{ObjectNamePrefix:tree.ObjectNamePrefix{
@@ -8803,7 +8803,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_enums_stmt,name")
 show_types_stmt:
   SHOW TYPES
   {
-sqllex.(*lexer).LogGrammarCoverage("show_types_stmt,error")
+LogGrammarCoverage("show_types_stmt,error")
 
 
     $$.val = &tree.ShowTypes{}
@@ -8822,9 +8822,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_types_stmt,error")
 show_grants_stmt:
   SHOW GRANTS opt_on_targets_roles for_grantee_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("show_grants_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_grants_stmt,opt_on_targets_roles")
-sqllex.(*lexer).LogGrammarCoverage("show_grants_stmt,for_grantee_clause")
+LogGrammarCoverage("show_grants_stmt,error")
+LogGrammarCoverage("show_grants_stmt,opt_on_targets_roles")
+LogGrammarCoverage("show_grants_stmt,for_grantee_clause")
 
 
     lst := $3.targetListPtr()
@@ -8843,9 +8843,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_grants_stmt,for_grantee_clause")
 show_indexes_stmt:
   SHOW INDEX FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,error")
+LogGrammarCoverage("show_indexes_stmt,table_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowIndexes{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
@@ -8853,24 +8853,24 @@ sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
 | SHOW INDEX error // SHOW HELP: SHOW INDEXES
 | SHOW INDEX FROM DATABASE database_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,database_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowDatabaseIndexes{Database: tree.Name($5), WithComment: $6.bool()}
   }
 | SHOW INDEXES FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,table_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowIndexes{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
   }
 | SHOW INDEXES FROM DATABASE database_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,database_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowDatabaseIndexes{Database: tree.Name($5), WithComment: $6.bool()}
@@ -8878,16 +8878,16 @@ sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
 | SHOW INDEXES error // SHOW HELP: SHOW INDEXES
 | SHOW KEYS FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,table_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowIndexes{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
   }
 | SHOW KEYS FROM DATABASE database_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
+LogGrammarCoverage("show_indexes_stmt,database_name")
+LogGrammarCoverage("show_indexes_stmt,with_comment")
 
 
     $$.val = &tree.ShowDatabaseIndexes{Database: tree.Name($5), WithComment: $6.bool()}
@@ -8901,9 +8901,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_indexes_stmt,with_comment")
 show_constraints_stmt:
   SHOW CONSTRAINT FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,with_comment")
+LogGrammarCoverage("show_constraints_stmt,error")
+LogGrammarCoverage("show_constraints_stmt,table_name")
+LogGrammarCoverage("show_constraints_stmt,with_comment")
 
 
     $$.val = &tree.ShowConstraints{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
@@ -8911,8 +8911,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,with_comment")
 | SHOW CONSTRAINT error // SHOW HELP: SHOW CONSTRAINTS
 | SHOW CONSTRAINTS FROM table_name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,with_comment")
+LogGrammarCoverage("show_constraints_stmt,table_name")
+LogGrammarCoverage("show_constraints_stmt,with_comment")
 
 
     $$.val = &tree.ShowConstraints{Table: $4.unresolvedObjectName(), WithComment: $5.bool()}
@@ -8926,9 +8926,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_constraints_stmt,with_comment")
 show_statements_stmt:
   SHOW opt_cluster statements_or_queries
   {
-sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,opt_cluster")
-sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,statements_or_queries")
+LogGrammarCoverage("show_statements_stmt,error")
+LogGrammarCoverage("show_statements_stmt,opt_cluster")
+LogGrammarCoverage("show_statements_stmt,statements_or_queries")
 
 
     $$.val = &tree.ShowQueries{All: false, Cluster: $2.bool()}
@@ -8936,8 +8936,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,statements_or_queries")
 | SHOW opt_cluster statements_or_queries error // SHOW HELP: SHOW STATEMENTS
 | SHOW ALL opt_cluster statements_or_queries
   {
-sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,opt_cluster")
-sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,statements_or_queries")
+LogGrammarCoverage("show_statements_stmt,opt_cluster")
+LogGrammarCoverage("show_statements_stmt,statements_or_queries")
 
 
     $$.val = &tree.ShowQueries{All: true, Cluster: $3.bool()}
@@ -8947,9 +8947,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_statements_stmt,statements_or_queries")
 opt_cluster:
   /* EMPTY */
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_cluster,opt_cluster")
-sqllex.(*lexer).LogGrammarCoverage("opt_cluster,statements_or_queries")
-sqllex.(*lexer).LogGrammarCoverage("opt_cluster,error")
+LogGrammarCoverage("opt_cluster,opt_cluster")
+LogGrammarCoverage("opt_cluster,statements_or_queries")
+LogGrammarCoverage("opt_cluster,error")
 
  $$.val = true }
 | CLUSTER
@@ -9004,28 +9004,28 @@ show_jobs_stmt:
 | SHOW CHANGEFEED JOBS error // SHOW HELP: SHOW JOBS
 | SHOW JOBS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,select_stmt")
+LogGrammarCoverage("show_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ShowJobs{Jobs: $3.slct()}
   }
 | SHOW JOBS WHEN COMPLETE select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,select_stmt")
+LogGrammarCoverage("show_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ShowJobs{Jobs: $5.slct(), Block: true}
   }
 | SHOW JOBS for_schedules_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,for_schedules_clause")
+LogGrammarCoverage("show_jobs_stmt,for_schedules_clause")
 
 
     $$.val = &tree.ShowJobs{Schedules: $3.slct()}
   }
 | SHOW CHANGEFEED JOBS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,select_stmt")
+LogGrammarCoverage("show_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ShowChangefeedJobs{Jobs: $4.slct()}
@@ -9033,7 +9033,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,select_stmt")
 | SHOW JOBS select_stmt error // SHOW HELP: SHOW JOBS
 | SHOW JOB a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
+LogGrammarCoverage("show_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ShowJobs{
@@ -9044,7 +9044,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
   }
 | SHOW CHANGEFEED JOB a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
+LogGrammarCoverage("show_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ShowChangefeedJobs{
@@ -9055,7 +9055,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
   }
 | SHOW JOB WHEN COMPLETE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
+LogGrammarCoverage("show_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ShowJobs{
@@ -9077,8 +9077,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_jobs_stmt,a_expr")
 show_schedules_stmt:
   SHOW SCHEDULES opt_schedule_executor_type
   {
-sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_type")
+LogGrammarCoverage("show_schedules_stmt,error")
+LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_type")
 
 
     $$.val = &tree.ShowSchedules{
@@ -9089,8 +9089,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_ty
 | SHOW SCHEDULES opt_schedule_executor_type error // SHOW HELP: SHOW SCHEDULES
 | SHOW schedule_state SCHEDULES opt_schedule_executor_type
   {
-sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,schedule_state")
-sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_type")
+LogGrammarCoverage("show_schedules_stmt,schedule_state")
+LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_type")
 
 
     $$.val = &tree.ShowSchedules{
@@ -9101,7 +9101,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,opt_schedule_executor_ty
 | SHOW schedule_state SCHEDULES opt_schedule_executor_type error // SHOW HELP: SHOW SCHEDULES
 | SHOW SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,a_expr")
+LogGrammarCoverage("show_schedules_stmt,a_expr")
 
 
     $$.val = &tree.ShowSchedules{
@@ -9114,7 +9114,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_schedules_stmt,a_expr")
 schedule_state:
   RUNNING
   {
-sqllex.(*lexer).LogGrammarCoverage("schedule_state,error")
+LogGrammarCoverage("schedule_state,error")
 
 
     $$.val = tree.ActiveSchedules
@@ -9154,7 +9154,7 @@ opt_schedule_executor_type:
 show_trace_stmt:
   SHOW opt_compact TRACE FOR SESSION
   {
-sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
+LogGrammarCoverage("show_trace_stmt,opt_compact")
 
 
     $$.val = &tree.ShowTraceForSession{TraceType: tree.ShowTraceRaw, Compact: $2.bool()}
@@ -9162,7 +9162,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
 | SHOW opt_compact TRACE error // SHOW HELP: SHOW TRACE
 | SHOW opt_compact KV TRACE FOR SESSION
   {
-sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
+LogGrammarCoverage("show_trace_stmt,opt_compact")
 
 
     $$.val = &tree.ShowTraceForSession{TraceType: tree.ShowTraceKV, Compact: $2.bool()}
@@ -9170,7 +9170,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
 | SHOW opt_compact KV error // SHOW HELP: SHOW TRACE
 | SHOW opt_compact EXPERIMENTAL_REPLICA TRACE FOR SESSION
   {
-sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
+LogGrammarCoverage("show_trace_stmt,opt_compact")
 
 
     
@@ -9180,8 +9180,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_trace_stmt,opt_compact")
 
 opt_compact:
   COMPACT {
-sqllex.(*lexer).LogGrammarCoverage("opt_compact,opt_compact")
-sqllex.(*lexer).LogGrammarCoverage("opt_compact,error")
+LogGrammarCoverage("opt_compact,opt_compact")
+LogGrammarCoverage("opt_compact,error")
 
  $$.val = true }
 | /* EMPTY */ {
@@ -9195,7 +9195,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_compact,error")
 show_sessions_stmt:
   SHOW opt_cluster SESSIONS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_sessions_stmt,opt_cluster")
+LogGrammarCoverage("show_sessions_stmt,opt_cluster")
 
 
     $$.val = &tree.ShowSessions{Cluster: $2.bool()}
@@ -9203,7 +9203,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_sessions_stmt,opt_cluster")
 | SHOW opt_cluster SESSIONS error // SHOW HELP: SHOW SESSIONS
 | SHOW ALL opt_cluster SESSIONS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_sessions_stmt,opt_cluster")
+LogGrammarCoverage("show_sessions_stmt,opt_cluster")
 
 
     $$.val = &tree.ShowSessions{All: true, Cluster: $3.bool()}
@@ -9217,11 +9217,11 @@ sqllex.(*lexer).LogGrammarCoverage("show_sessions_stmt,opt_cluster")
 show_tables_stmt:
   SHOW TABLES FROM name '.' name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,opt_cluster")
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
+LogGrammarCoverage("show_tables_stmt,opt_cluster")
+LogGrammarCoverage("show_tables_stmt,error")
+LogGrammarCoverage("show_tables_stmt,name")
+LogGrammarCoverage("show_tables_stmt,name")
+LogGrammarCoverage("show_tables_stmt,with_comment")
 
 
     $$.val = &tree.ShowTables{ObjectNamePrefix:tree.ObjectNamePrefix{
@@ -9234,8 +9234,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
   }
 | SHOW TABLES FROM name with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,name")
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
+LogGrammarCoverage("show_tables_stmt,name")
+LogGrammarCoverage("show_tables_stmt,with_comment")
 
 
     $$.val = &tree.ShowTables{ObjectNamePrefix:tree.ObjectNamePrefix{
@@ -9248,7 +9248,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
   }
 | SHOW TABLES with_comment
   {
-sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
+LogGrammarCoverage("show_tables_stmt,with_comment")
 
 
     $$.val = &tree.ShowTables{WithComment: $3.bool()}
@@ -9261,8 +9261,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_tables_stmt,with_comment")
 show_transactions_stmt:
   SHOW opt_cluster TRANSACTIONS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_transactions_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_transactions_stmt,opt_cluster")
+LogGrammarCoverage("show_transactions_stmt,error")
+LogGrammarCoverage("show_transactions_stmt,opt_cluster")
 
 
     $$.val = &tree.ShowTransactions{Cluster: $2.bool()}
@@ -9270,7 +9270,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_transactions_stmt,opt_cluster")
 | SHOW opt_cluster TRANSACTIONS error // SHOW HELP: SHOW TRANSACTIONS
 | SHOW ALL opt_cluster TRANSACTIONS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_transactions_stmt,opt_cluster")
+LogGrammarCoverage("show_transactions_stmt,opt_cluster")
 
 
     $$.val = &tree.ShowTransactions{All: true, Cluster: $3.bool()}
@@ -9279,8 +9279,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_transactions_stmt,opt_cluster")
 
 with_comment:
   WITH COMMENT {
-sqllex.(*lexer).LogGrammarCoverage("with_comment,opt_cluster")
-sqllex.(*lexer).LogGrammarCoverage("with_comment,error")
+LogGrammarCoverage("with_comment,opt_cluster")
+LogGrammarCoverage("with_comment,error")
 
  $$.val = true }
 | /* EMPTY */  {
@@ -9293,7 +9293,7 @@ sqllex.(*lexer).LogGrammarCoverage("with_comment,error")
 show_schemas_stmt:
   SHOW SCHEMAS FROM name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_schemas_stmt,name")
+LogGrammarCoverage("show_schemas_stmt,name")
 
 
     $$.val = &tree.ShowSchemas{Database: tree.Name($4)}
@@ -9312,8 +9312,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_schemas_stmt,name")
 show_sequences_stmt:
   SHOW SEQUENCES FROM name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_sequences_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_sequences_stmt,name")
+LogGrammarCoverage("show_sequences_stmt,error")
+LogGrammarCoverage("show_sequences_stmt,name")
 
 
     $$.val = &tree.ShowSequences{Database: tree.Name($4)}
@@ -9332,7 +9332,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_sequences_stmt,name")
 show_syntax_stmt:
   SHOW SYNTAX SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("show_syntax_stmt,error")
+LogGrammarCoverage("show_syntax_stmt,error")
 
 
     
@@ -9343,7 +9343,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_syntax_stmt,error")
 show_completions_stmt:
   SHOW COMPLETIONS AT OFFSET ICONST FOR SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("show_completions_stmt,error")
+LogGrammarCoverage("show_completions_stmt,error")
 
 
     
@@ -9356,7 +9356,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_completions_stmt,error")
 show_last_query_stats_stmt:
   SHOW LAST QUERY STATISTICS query_stats_cols
   {
-sqllex.(*lexer).LogGrammarCoverage("show_last_query_stats_stmt,query_stats_cols")
+LogGrammarCoverage("show_last_query_stats_stmt,query_stats_cols")
 
 
    
@@ -9366,7 +9366,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_last_query_stats_stmt,query_stats_cols"
 query_stats_cols:
   RETURNING name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("query_stats_cols,name_list")
+LogGrammarCoverage("query_stats_cols,name_list")
 
 
     $$.val = $2.nameList()
@@ -9399,7 +9399,7 @@ show_savepoint_stmt:
 show_transaction_stmt:
   SHOW TRANSACTION ISOLATION LEVEL
   {
-sqllex.(*lexer).LogGrammarCoverage("show_transaction_stmt,error")
+LogGrammarCoverage("show_transaction_stmt,error")
 
 
     
@@ -9427,7 +9427,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_transaction_stmt,error")
 show_transfer_stmt:
   SHOW TRANSFER STATE WITH SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("show_transfer_stmt,error")
+LogGrammarCoverage("show_transfer_stmt,error")
 
 
      $$.val = &tree.ShowTransferState{TransferKey: tree.NewStrVal($5)}
@@ -9451,15 +9451,15 @@ sqllex.(*lexer).LogGrammarCoverage("show_transfer_stmt,error")
 show_create_stmt:
   SHOW CREATE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
+LogGrammarCoverage("show_create_stmt,error")
+LogGrammarCoverage("show_create_stmt,table_name")
 
 
     $$.val = &tree.ShowCreate{Name: $3.unresolvedObjectName()}
   }
 | SHOW CREATE TABLE table_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
+LogGrammarCoverage("show_create_stmt,table_name")
 
 
     
@@ -9467,7 +9467,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
 	}
 | SHOW CREATE VIEW table_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
+LogGrammarCoverage("show_create_stmt,table_name")
 
 
     
@@ -9475,7 +9475,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
 	}
 | SHOW CREATE SEQUENCE table_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
+LogGrammarCoverage("show_create_stmt,table_name")
 
 
     
@@ -9483,7 +9483,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,table_name")
 	}
 | SHOW CREATE DATABASE db_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,db_name")
+LogGrammarCoverage("show_create_stmt,db_name")
 
 
     
@@ -9518,7 +9518,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_stmt,db_name")
 show_create_schedules_stmt:
   SHOW CREATE ALL SCHEDULES
   {
-sqllex.(*lexer).LogGrammarCoverage("show_create_schedules_stmt,error")
+LogGrammarCoverage("show_create_schedules_stmt,error")
 
 
     $$.val = &tree.ShowCreateSchedules{}
@@ -9526,7 +9526,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_schedules_stmt,error")
 | SHOW CREATE ALL SCHEDULES error // SHOW HELP: SHOW CREATE SCHEDULES
 | SHOW CREATE SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("show_create_schedules_stmt,a_expr")
+LogGrammarCoverage("show_create_schedules_stmt,a_expr")
 
 
     $$.val = &tree.ShowCreateSchedules{ScheduleID: $4.expr()}
@@ -9540,7 +9540,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_create_schedules_stmt,a_expr")
 show_users_stmt:
   SHOW USERS
   {
-sqllex.(*lexer).LogGrammarCoverage("show_users_stmt,error")
+LogGrammarCoverage("show_users_stmt,error")
 
 
     $$.val = &tree.ShowUsers{}
@@ -9554,7 +9554,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_users_stmt,error")
 show_roles_stmt:
   SHOW ROLES
   {
-sqllex.(*lexer).LogGrammarCoverage("show_roles_stmt,error")
+LogGrammarCoverage("show_roles_stmt,error")
 
 
     $$.val = &tree.ShowRoles{}
@@ -9570,26 +9570,26 @@ sqllex.(*lexer).LogGrammarCoverage("show_roles_stmt,error")
 show_zone_stmt:
   SHOW ZONE CONFIGURATION from_with_implicit_for_alias RANGE zone_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,zone_name")
+LogGrammarCoverage("show_zone_stmt,error")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,zone_name")
 
 
     $$.val = &tree.ShowZoneConfig{ZoneSpecifier: tree.ZoneSpecifier{NamedZone: tree.UnrestrictedName($6)}}
   }
 | SHOW ZONE CONFIGURATION from_with_implicit_for_alias DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,database_name")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,database_name")
 
 
     $$.val = &tree.ShowZoneConfig{ZoneSpecifier: tree.ZoneSpecifier{Database: tree.Name($6)}}
   }
 | SHOW ZONE CONFIGURATION from_with_implicit_for_alias TABLE table_name opt_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,opt_partition")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,table_name")
+LogGrammarCoverage("show_zone_stmt,opt_partition")
 
 
     name := $6.unresolvedObjectName().ToTableName()
@@ -9600,9 +9600,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,opt_partition")
   }
 | SHOW ZONE CONFIGURATION from_with_implicit_for_alias PARTITION partition_name OF TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,table_name")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,partition_name")
+LogGrammarCoverage("show_zone_stmt,table_name")
 
 
     name := $9.unresolvedObjectName().ToTableName()
@@ -9613,9 +9613,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,table_name")
   }
 | SHOW ZONE CONFIGURATION from_with_implicit_for_alias INDEX table_index_name opt_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,opt_partition")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,table_index_name")
+LogGrammarCoverage("show_zone_stmt,opt_partition")
 
 
     $$.val = &tree.ShowZoneConfig{ZoneSpecifier: tree.ZoneSpecifier{
@@ -9625,9 +9625,9 @@ sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,opt_partition")
   }
 | SHOW ZONE CONFIGURATION from_with_implicit_for_alias PARTITION partition_name OF INDEX table_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,partition_name")
-sqllex.(*lexer).LogGrammarCoverage("show_zone_stmt,table_index_name")
+LogGrammarCoverage("show_zone_stmt,from_with_implicit_for_alias")
+LogGrammarCoverage("show_zone_stmt,partition_name")
+LogGrammarCoverage("show_zone_stmt,table_index_name")
 
 
     $$.val = &tree.ShowZoneConfig{ZoneSpecifier: tree.ZoneSpecifier{
@@ -9665,8 +9665,8 @@ from_with_implicit_for_alias:
 show_range_for_row_stmt:
   SHOW RANGE FROM TABLE table_name FOR ROW '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,expr_list")
+LogGrammarCoverage("show_range_for_row_stmt,table_name")
+LogGrammarCoverage("show_range_for_row_stmt,expr_list")
 
 
     name := $5.unresolvedObjectName().ToTableName()
@@ -9677,8 +9677,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,expr_list")
   }
 | SHOW RANGE FROM INDEX table_index_name FOR ROW '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,expr_list")
+LogGrammarCoverage("show_range_for_row_stmt,table_index_name")
+LogGrammarCoverage("show_range_for_row_stmt,expr_list")
 
 
     $$.val = &tree.ShowRangeForRow{
@@ -9696,8 +9696,8 @@ sqllex.(*lexer).LogGrammarCoverage("show_range_for_row_stmt,expr_list")
 show_ranges_stmt:
   SHOW RANGES FROM TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,table_name")
+LogGrammarCoverage("show_ranges_stmt,error")
+LogGrammarCoverage("show_ranges_stmt,table_name")
 
 
     name := $5.unresolvedObjectName().ToTableName()
@@ -9705,14 +9705,14 @@ sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,table_name")
   }
 | SHOW RANGES FROM INDEX table_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,table_index_name")
+LogGrammarCoverage("show_ranges_stmt,table_index_name")
 
 
     $$.val = &tree.ShowRanges{TableOrIndex: $5.tableIndexName()}
   }
 | SHOW RANGES FROM DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,database_name")
+LogGrammarCoverage("show_ranges_stmt,database_name")
 
 
     $$.val = &tree.ShowRanges{DatabaseName: tree.Name($5)}
@@ -9727,14 +9727,14 @@ sqllex.(*lexer).LogGrammarCoverage("show_ranges_stmt,database_name")
 show_survival_goal_stmt:
   SHOW SURVIVAL GOAL FROM DATABASE
   {
-sqllex.(*lexer).LogGrammarCoverage("show_survival_goal_stmt,error")
+LogGrammarCoverage("show_survival_goal_stmt,error")
 
 
     $$.val = &tree.ShowSurvivalGoal{}
   }
 | SHOW SURVIVAL GOAL FROM DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_survival_goal_stmt,database_name")
+LogGrammarCoverage("show_survival_goal_stmt,database_name")
 
 
     $$.val = &tree.ShowSurvivalGoal{
@@ -9777,7 +9777,7 @@ show_regions_stmt:
   }
 | SHOW REGIONS FROM DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_regions_stmt,database_name")
+LogGrammarCoverage("show_regions_stmt,database_name")
 
 
     $$.val = &tree.ShowRegions{
@@ -9795,7 +9795,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_regions_stmt,database_name")
   }
 | SHOW SUPER REGIONS FROM DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_regions_stmt,database_name")
+LogGrammarCoverage("show_regions_stmt,database_name")
 
 
     $$.val = &tree.ShowRegions{
@@ -9808,7 +9808,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_regions_stmt,database_name")
 show_locality_stmt:
   SHOW LOCALITY
   {
-sqllex.(*lexer).LogGrammarCoverage("show_locality_stmt,error")
+LogGrammarCoverage("show_locality_stmt,error")
 
 
     $$.val = &tree.ShowVar{Name: "locality"}
@@ -9817,7 +9817,7 @@ sqllex.(*lexer).LogGrammarCoverage("show_locality_stmt,error")
 show_fingerprints_stmt:
   SHOW EXPERIMENTAL_FINGERPRINTS FROM TABLE table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("show_fingerprints_stmt,table_name")
+LogGrammarCoverage("show_fingerprints_stmt,table_name")
 
 
     
@@ -9835,7 +9835,7 @@ show_full_scans_stmt:
 opt_on_targets_roles:
   ON targets_roles
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_on_targets_roles,targets_roles")
+LogGrammarCoverage("opt_on_targets_roles,targets_roles")
 
 
     tmp := $2.targetList()
@@ -9971,14 +9971,14 @@ targets:
   }
 | col_name_keyword
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,col_name_keyword")
+LogGrammarCoverage("targets,col_name_keyword")
 
 
     $$.val = tree.TargetList{Tables: tree.TablePatterns{&tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}}}
   }
 | unreserved_keyword
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,unreserved_keyword")
+LogGrammarCoverage("targets,unreserved_keyword")
 
 
     // This sub-rule is meant to support both ROLE and other keywords
@@ -10020,15 +10020,15 @@ sqllex.(*lexer).LogGrammarCoverage("targets,unreserved_keyword")
   }
 | complex_table_pattern
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,complex_table_pattern")
+LogGrammarCoverage("targets,complex_table_pattern")
 
 
     $$.val = tree.TargetList{Tables: tree.TablePatterns{$1.unresolvedName()}}
   }
 | table_pattern ',' table_pattern_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,table_pattern")
-sqllex.(*lexer).LogGrammarCoverage("targets,table_pattern_list")
+LogGrammarCoverage("targets,table_pattern")
+LogGrammarCoverage("targets,table_pattern_list")
 
 
     remainderPats := $3.tablePatterns()
@@ -10036,7 +10036,7 @@ sqllex.(*lexer).LogGrammarCoverage("targets,table_pattern_list")
   }
 | TABLE table_pattern_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,table_pattern_list")
+LogGrammarCoverage("targets,table_pattern_list")
 
 
     $$.val = tree.TargetList{Tables: $2.tablePatterns()}
@@ -10045,7 +10045,7 @@ sqllex.(*lexer).LogGrammarCoverage("targets,table_pattern_list")
 // and placeholders.
 | TENANT iconst64
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,iconst64")
+LogGrammarCoverage("targets,iconst64")
 
 
     tenID := uint64($2.int64())
@@ -10067,7 +10067,7 @@ sqllex.(*lexer).LogGrammarCoverage("targets,iconst64")
   }
 | DATABASE name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets,name_list")
+LogGrammarCoverage("targets,name_list")
 
 
     $$.val = tree.TargetList{Databases: $2.nameList()}
@@ -10079,21 +10079,21 @@ sqllex.(*lexer).LogGrammarCoverage("targets,name_list")
 targets_roles:
   ROLE role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets_roles,role_spec_list")
+LogGrammarCoverage("targets_roles,role_spec_list")
 
 
      $$.val = tree.TargetList{ForRoles: true, Roles: $2.roleSpecList()}
   }
 | SCHEMA schema_name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets_roles,schema_name_list")
+LogGrammarCoverage("targets_roles,schema_name_list")
 
 
      $$.val = tree.TargetList{Schemas: $2.objectNamePrefixList()}
   }
 | TYPE type_name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("targets_roles,type_name_list")
+LogGrammarCoverage("targets_roles,type_name_list")
 
 
     $$.val = tree.TargetList{Types: $2.unresolvedObjectNames()}
@@ -10101,13 +10101,13 @@ sqllex.(*lexer).LogGrammarCoverage("targets_roles,type_name_list")
 | targets
 
 {
-sqllex.(*lexer).LogGrammarCoverage("targets_roles,targets")
+LogGrammarCoverage("targets_roles,targets")
 
 }
 for_grantee_clause:
   FOR role_spec_list
   {
-sqllex.(*lexer).LogGrammarCoverage("for_grantee_clause,role_spec_list")
+LogGrammarCoverage("for_grantee_clause,role_spec_list")
 
 
     $$.val = $2.roleSpecList()
@@ -10130,17 +10130,17 @@ sqllex.(*lexer).LogGrammarCoverage("for_grantee_clause,role_spec_list")
 pause_stmt:
   pause_jobs_stmt       //  : PAUSE JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("pause_stmt,pause_jobs_stmt")
+LogGrammarCoverage("pause_stmt,pause_jobs_stmt")
 
 }
 | pause_schedules_stmt  //  : PAUSE SCHEDULES
 {
-sqllex.(*lexer).LogGrammarCoverage("pause_stmt,pause_schedules_stmt")
+LogGrammarCoverage("pause_stmt,pause_schedules_stmt")
 
 }
 | pause_all_jobs_stmt  //  : PAUSE ALL JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("pause_stmt,pause_all_jobs_stmt")
+LogGrammarCoverage("pause_stmt,pause_all_jobs_stmt")
 
 }
 | PAUSE error           // SHOW HELP: PAUSE
@@ -10156,12 +10156,12 @@ resume_stmt:
   resume_jobs_stmt       //  : RESUME JOBS
 | resume_schedules_stmt  //  : RESUME SCHEDULES
 {
-sqllex.(*lexer).LogGrammarCoverage("resume_stmt,resume_schedules_stmt")
+LogGrammarCoverage("resume_stmt,resume_schedules_stmt")
 
 }
 | resume_all_jobs_stmt  //  : RESUME ALL JOBS
 {
-sqllex.(*lexer).LogGrammarCoverage("resume_stmt,resume_all_jobs_stmt")
+LogGrammarCoverage("resume_stmt,resume_all_jobs_stmt")
 
 }
 | RESUME error           // SHOW HELP: RESUME
@@ -10173,8 +10173,8 @@ sqllex.(*lexer).LogGrammarCoverage("resume_stmt,resume_all_jobs_stmt")
 resume_all_jobs_stmt:
   RESUME ALL name JOBS
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_all_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("resume_all_jobs_stmt,name")
+LogGrammarCoverage("resume_all_jobs_stmt,error")
+LogGrammarCoverage("resume_all_jobs_stmt,name")
 
 
     $$.val = &tree.ControlJobsOfType{Type: $3, Command: tree.ResumeJob}
@@ -10190,8 +10190,8 @@ sqllex.(*lexer).LogGrammarCoverage("resume_all_jobs_stmt,name")
 pause_jobs_stmt:
   PAUSE JOB a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,a_expr")
+LogGrammarCoverage("pause_jobs_stmt,error")
+LogGrammarCoverage("pause_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ControlJobs{
@@ -10203,8 +10203,8 @@ sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,a_expr")
   }
 | PAUSE JOB a_expr WITH REASON '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,string_or_placeholder")
+LogGrammarCoverage("pause_jobs_stmt,a_expr")
+LogGrammarCoverage("pause_jobs_stmt,string_or_placeholder")
 
 
     $$.val = &tree.ControlJobs{
@@ -10218,22 +10218,22 @@ sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,string_or_placeholder")
 | PAUSE JOB error // SHOW HELP: PAUSE JOBS
 | PAUSE JOBS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,select_stmt")
+LogGrammarCoverage("pause_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ControlJobs{Jobs: $3.slct(), Command: tree.PauseJob}
   }
 | PAUSE JOBS select_stmt WITH REASON '=' string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,string_or_placeholder")
+LogGrammarCoverage("pause_jobs_stmt,select_stmt")
+LogGrammarCoverage("pause_jobs_stmt,string_or_placeholder")
 
 
     $$.val = &tree.ControlJobs{Jobs: $3.slct(), Command: tree.PauseJob, Reason: $7.expr()}
   }
 | PAUSE JOBS for_schedules_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,for_schedules_clause")
+LogGrammarCoverage("pause_jobs_stmt,for_schedules_clause")
 
 
     $$.val = &tree.ControlJobsForSchedules{Schedules: $3.slct(), Command: tree.PauseJob}
@@ -10244,15 +10244,15 @@ sqllex.(*lexer).LogGrammarCoverage("pause_jobs_stmt,for_schedules_clause")
 for_schedules_clause:
   FOR SCHEDULES select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("for_schedules_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("for_schedules_clause,select_stmt")
+LogGrammarCoverage("for_schedules_clause,error")
+LogGrammarCoverage("for_schedules_clause,select_stmt")
 
 
     $$.val = $3.slct()
   }
 | FOR SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("for_schedules_clause,a_expr")
+LogGrammarCoverage("for_schedules_clause,a_expr")
 
 
    $$.val = &tree.Select{
@@ -10270,7 +10270,7 @@ sqllex.(*lexer).LogGrammarCoverage("for_schedules_clause,a_expr")
 pause_schedules_stmt:
   PAUSE SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_schedules_stmt,a_expr")
+LogGrammarCoverage("pause_schedules_stmt,a_expr")
 
 
     $$.val = &tree.ControlSchedules{
@@ -10283,7 +10283,7 @@ sqllex.(*lexer).LogGrammarCoverage("pause_schedules_stmt,a_expr")
 | PAUSE SCHEDULE error // SHOW HELP: PAUSE SCHEDULES
 | PAUSE SCHEDULES select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_schedules_stmt,select_stmt")
+LogGrammarCoverage("pause_schedules_stmt,select_stmt")
 
 
     $$.val = &tree.ControlSchedules{
@@ -10300,8 +10300,8 @@ sqllex.(*lexer).LogGrammarCoverage("pause_schedules_stmt,select_stmt")
 pause_all_jobs_stmt:
   PAUSE ALL name JOBS
   {
-sqllex.(*lexer).LogGrammarCoverage("pause_all_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("pause_all_jobs_stmt,name")
+LogGrammarCoverage("pause_all_jobs_stmt,error")
+LogGrammarCoverage("pause_all_jobs_stmt,name")
 
 
     $$.val = &tree.ControlJobsOfType{Type: $3, Command: tree.PauseJob}
@@ -10316,8 +10316,8 @@ sqllex.(*lexer).LogGrammarCoverage("pause_all_jobs_stmt,name")
 create_schema_stmt:
   CREATE SCHEMA qualifiable_schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
+LogGrammarCoverage("create_schema_stmt,error")
+LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
 
 
     $$.val = &tree.CreateSchema{
@@ -10326,7 +10326,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
   }
 | CREATE SCHEMA IF NOT EXISTS qualifiable_schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
+LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
 
 
     $$.val = &tree.CreateSchema{
@@ -10336,8 +10336,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,qualifiable_schema_name")
   }
 | CREATE SCHEMA opt_schema_name AUTHORIZATION role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,opt_schema_name")
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,role_spec")
+LogGrammarCoverage("create_schema_stmt,opt_schema_name")
+LogGrammarCoverage("create_schema_stmt,role_spec")
 
 
     $$.val = &tree.CreateSchema{
@@ -10347,8 +10347,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,role_spec")
   }
 | CREATE SCHEMA IF NOT EXISTS opt_schema_name AUTHORIZATION role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,opt_schema_name")
-sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,role_spec")
+LogGrammarCoverage("create_schema_stmt,opt_schema_name")
+LogGrammarCoverage("create_schema_stmt,role_spec")
 
 
     $$.val = &tree.CreateSchema{
@@ -10369,9 +10369,9 @@ sqllex.(*lexer).LogGrammarCoverage("create_schema_stmt,role_spec")
 alter_schema_stmt:
   ALTER SCHEMA qualifiable_schema_name RENAME TO schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,qualifiable_schema_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,schema_name")
+LogGrammarCoverage("alter_schema_stmt,error")
+LogGrammarCoverage("alter_schema_stmt,qualifiable_schema_name")
+LogGrammarCoverage("alter_schema_stmt,schema_name")
 
 
     $$.val = &tree.AlterSchema{
@@ -10383,8 +10383,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,schema_name")
   }
 | ALTER SCHEMA qualifiable_schema_name OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,qualifiable_schema_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,role_spec")
+LogGrammarCoverage("alter_schema_stmt,qualifiable_schema_name")
+LogGrammarCoverage("alter_schema_stmt,role_spec")
 
 
     $$.val = &tree.AlterSchema{
@@ -10431,15 +10431,15 @@ sqllex.(*lexer).LogGrammarCoverage("alter_schema_stmt,role_spec")
 create_table_stmt:
   CREATE opt_persistence_temp_table TABLE table_name '(' opt_table_elem_list ')' opt_create_table_inherits opt_partition_by_table opt_table_with opt_create_table_on_commit opt_locality
   {
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_persistence_temp_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_table_elem_list")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_create_table_inherits")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_partition_by_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_table_with")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_create_table_on_commit")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_locality")
+LogGrammarCoverage("create_table_stmt,error")
+LogGrammarCoverage("create_table_stmt,opt_persistence_temp_table")
+LogGrammarCoverage("create_table_stmt,table_name")
+LogGrammarCoverage("create_table_stmt,opt_table_elem_list")
+LogGrammarCoverage("create_table_stmt,opt_create_table_inherits")
+LogGrammarCoverage("create_table_stmt,opt_partition_by_table")
+LogGrammarCoverage("create_table_stmt,opt_table_with")
+LogGrammarCoverage("create_table_stmt,opt_create_table_on_commit")
+LogGrammarCoverage("create_table_stmt,opt_locality")
 
 
     name := $4.unresolvedObjectName().ToTableName()
@@ -10457,14 +10457,14 @@ sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_locality")
   }
 | CREATE opt_persistence_temp_table TABLE IF NOT EXISTS table_name '(' opt_table_elem_list ')' opt_create_table_inherits opt_partition_by_table opt_table_with opt_create_table_on_commit opt_locality
   {
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_persistence_temp_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_table_elem_list")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_create_table_inherits")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_partition_by_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_table_with")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_create_table_on_commit")
-sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_locality")
+LogGrammarCoverage("create_table_stmt,opt_persistence_temp_table")
+LogGrammarCoverage("create_table_stmt,table_name")
+LogGrammarCoverage("create_table_stmt,opt_table_elem_list")
+LogGrammarCoverage("create_table_stmt,opt_create_table_inherits")
+LogGrammarCoverage("create_table_stmt,opt_partition_by_table")
+LogGrammarCoverage("create_table_stmt,opt_table_with")
+LogGrammarCoverage("create_table_stmt,opt_create_table_on_commit")
+LogGrammarCoverage("create_table_stmt,opt_locality")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -10484,7 +10484,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_table_stmt,opt_locality")
 opt_locality:
   locality
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_locality,locality")
+LogGrammarCoverage("opt_locality,locality")
 
 
     $$.val = $1.locality()
@@ -10499,7 +10499,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_locality,locality")
 opt_table_with:
   opt_with_storage_parameter_list
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_table_with,opt_with_storage_parameter_list")
+LogGrammarCoverage("opt_table_with,opt_with_storage_parameter_list")
 
 }
 | WITHOUT OIDS
@@ -10512,7 +10512,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_table_with,opt_with_storage_parameter_li
   }
 | WITH OIDS error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_table_with,error")
+LogGrammarCoverage("opt_table_with,error")
 
 
     return unimplemented(sqllex, "create table with oids")
@@ -10527,7 +10527,7 @@ opt_create_table_inherits:
   }
 | INHERITS error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_create_table_inherits,error")
+LogGrammarCoverage("opt_create_table_inherits,error")
 
 
     
@@ -10542,7 +10542,7 @@ opt_with_storage_parameter_list:
   }
 | WITH '(' storage_parameter_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_storage_parameter_list,storage_parameter_list")
+LogGrammarCoverage("opt_with_storage_parameter_list,storage_parameter_list")
 
 
     $$.val = $3.storageParams()
@@ -10562,14 +10562,14 @@ opt_create_table_on_commit:
   }
 | ON COMMIT DELETE ROWS error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_create_table_on_commit,error")
+LogGrammarCoverage("opt_create_table_on_commit,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 46556, "delete rows")
   }
 | ON COMMIT DROP error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_create_table_on_commit,error")
+LogGrammarCoverage("opt_create_table_on_commit,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 46556, "drop")
@@ -10578,7 +10578,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_create_table_on_commit,error")
 storage_parameter_key:
   name
 {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key,name")
+LogGrammarCoverage("storage_parameter_key,name")
 
 }
 | SCONST
@@ -10589,15 +10589,15 @@ sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key,name")
 storage_parameter_key_list:
   storage_parameter_key
   {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key")
+LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key")
 
 
     $$.val = []tree.Name{tree.Name($1)}
   }
 | storage_parameter_key_list ',' storage_parameter_key
   {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key_list")
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key")
+LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key_list")
+LogGrammarCoverage("storage_parameter_key_list,storage_parameter_key")
 
 
     $$.val = append($1.storageParamKeys(), tree.Name($3))
@@ -10606,8 +10606,8 @@ sqllex.(*lexer).LogGrammarCoverage("storage_parameter_key_list,storage_parameter
 storage_parameter:
   storage_parameter_key '=' var_value
   {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter,storage_parameter_key")
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter,var_value")
+LogGrammarCoverage("storage_parameter,storage_parameter_key")
+LogGrammarCoverage("storage_parameter,var_value")
 
 
     $$.val = tree.StorageParam{Key: tree.Name($1), Value: $3.expr()}
@@ -10616,15 +10616,15 @@ sqllex.(*lexer).LogGrammarCoverage("storage_parameter,var_value")
 storage_parameter_list:
   storage_parameter
   {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_list,storage_parameter")
+LogGrammarCoverage("storage_parameter_list,storage_parameter")
 
 
     $$.val = []tree.StorageParam{$1.storageParam()}
   }
 |  storage_parameter_list ',' storage_parameter
   {
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_list,storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("storage_parameter_list,storage_parameter")
+LogGrammarCoverage("storage_parameter_list,storage_parameter_list")
+LogGrammarCoverage("storage_parameter_list,storage_parameter")
 
 
     $$.val = append($1.storageParams(), $3.storageParam())
@@ -10633,13 +10633,13 @@ sqllex.(*lexer).LogGrammarCoverage("storage_parameter_list,storage_parameter")
 create_table_as_stmt:
   CREATE opt_persistence_temp_table TABLE table_name create_as_opt_col_list opt_table_with AS select_stmt opt_create_as_data opt_create_table_on_commit
   {
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_persistence_temp_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,create_as_opt_col_list")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_table_with")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_create_as_data")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_create_table_on_commit")
+LogGrammarCoverage("create_table_as_stmt,opt_persistence_temp_table")
+LogGrammarCoverage("create_table_as_stmt,table_name")
+LogGrammarCoverage("create_table_as_stmt,create_as_opt_col_list")
+LogGrammarCoverage("create_table_as_stmt,opt_table_with")
+LogGrammarCoverage("create_table_as_stmt,select_stmt")
+LogGrammarCoverage("create_table_as_stmt,opt_create_as_data")
+LogGrammarCoverage("create_table_as_stmt,opt_create_table_on_commit")
 
 
     name := $4.unresolvedObjectName().ToTableName()
@@ -10655,13 +10655,13 @@ sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_create_table_on_com
   }
 | CREATE opt_persistence_temp_table TABLE IF NOT EXISTS table_name create_as_opt_col_list opt_table_with AS select_stmt opt_create_as_data opt_create_table_on_commit
   {
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_persistence_temp_table")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,create_as_opt_col_list")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_table_with")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_create_as_data")
-sqllex.(*lexer).LogGrammarCoverage("create_table_as_stmt,opt_create_table_on_commit")
+LogGrammarCoverage("create_table_as_stmt,opt_persistence_temp_table")
+LogGrammarCoverage("create_table_as_stmt,table_name")
+LogGrammarCoverage("create_table_as_stmt,create_as_opt_col_list")
+LogGrammarCoverage("create_table_as_stmt,opt_table_with")
+LogGrammarCoverage("create_table_as_stmt,select_stmt")
+LogGrammarCoverage("create_table_as_stmt,opt_create_as_data")
+LogGrammarCoverage("create_table_as_stmt,opt_create_table_on_commit")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -10702,7 +10702,7 @@ opt_create_as_data:
 opt_persistence_temp_table:
   opt_temp
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_persistence_temp_table,opt_temp")
+LogGrammarCoverage("opt_persistence_temp_table,opt_temp")
 
 }
 | LOCAL TEMPORARY   {
@@ -10724,7 +10724,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_persistence_temp_table,opt_temp")
 opt_table_elem_list:
   table_elem_list
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_table_elem_list,table_elem_list")
+LogGrammarCoverage("opt_table_elem_list,table_elem_list")
 
 }
 | /* EMPTY */
@@ -10737,15 +10737,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_table_elem_list,table_elem_list")
 table_elem_list:
   table_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("table_elem_list,table_elem")
+LogGrammarCoverage("table_elem_list,table_elem")
 
 
     $$.val = tree.TableDefs{$1.tblDef()}
   }
 | table_elem_list ',' table_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("table_elem_list,table_elem_list")
-sqllex.(*lexer).LogGrammarCoverage("table_elem_list,table_elem")
+LogGrammarCoverage("table_elem_list,table_elem_list")
+LogGrammarCoverage("table_elem_list,table_elem")
 
 
     $$.val = append($1.tblDefs(), $3.tblDef())
@@ -10754,25 +10754,25 @@ sqllex.(*lexer).LogGrammarCoverage("table_elem_list,table_elem")
 table_elem:
   column_def
   {
-sqllex.(*lexer).LogGrammarCoverage("table_elem,column_def")
+LogGrammarCoverage("table_elem,column_def")
 
 
     $$.val = $1.colDef()
   }
 | index_def
 {
-sqllex.(*lexer).LogGrammarCoverage("table_elem,index_def")
+LogGrammarCoverage("table_elem,index_def")
 
 }
 | family_def
 {
-sqllex.(*lexer).LogGrammarCoverage("table_elem,family_def")
+LogGrammarCoverage("table_elem,family_def")
 
 }
 | table_constraint opt_validate_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("table_elem,table_constraint")
-sqllex.(*lexer).LogGrammarCoverage("table_elem,opt_validate_behavior")
+LogGrammarCoverage("table_elem,table_constraint")
+LogGrammarCoverage("table_elem,opt_validate_behavior")
 
 
     def := $1.constraintDef()
@@ -10788,8 +10788,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_elem,opt_validate_behavior")
   }
 | LIKE table_name like_table_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("table_elem,table_name")
-sqllex.(*lexer).LogGrammarCoverage("table_elem,like_table_option_list")
+LogGrammarCoverage("table_elem,table_name")
+LogGrammarCoverage("table_elem,like_table_option_list")
 
 
     $$.val = &tree.LikeTableDef{
@@ -10801,16 +10801,16 @@ sqllex.(*lexer).LogGrammarCoverage("table_elem,like_table_option_list")
 like_table_option_list:
   like_table_option_list INCLUDING like_table_option
   {
-sqllex.(*lexer).LogGrammarCoverage("like_table_option_list,like_table_option_list")
-sqllex.(*lexer).LogGrammarCoverage("like_table_option_list,like_table_option")
+LogGrammarCoverage("like_table_option_list,like_table_option_list")
+LogGrammarCoverage("like_table_option_list,like_table_option")
 
 
     $$.val = append($1.likeTableOptionList(), $3.likeTableOption())
   }
 | like_table_option_list EXCLUDING like_table_option
   {
-sqllex.(*lexer).LogGrammarCoverage("like_table_option_list,like_table_option_list")
-sqllex.(*lexer).LogGrammarCoverage("like_table_option_list,like_table_option")
+LogGrammarCoverage("like_table_option_list,like_table_option_list")
+LogGrammarCoverage("like_table_option_list,like_table_option")
 
 
     opt := $3.likeTableOption()
@@ -10857,7 +10857,7 @@ like_table_option:
 partition:
   PARTITION partition_name
   {
-sqllex.(*lexer).LogGrammarCoverage("partition,partition_name")
+LogGrammarCoverage("partition,partition_name")
 
 
     $$ = $2
@@ -10866,7 +10866,7 @@ sqllex.(*lexer).LogGrammarCoverage("partition,partition_name")
 opt_partition:
   partition
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_partition,partition")
+LogGrammarCoverage("opt_partition,partition")
 
 }
 | /* EMPTY */
@@ -10879,7 +10879,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_partition,partition")
 opt_partition_by:
   partition_by
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_partition_by,partition_by")
+LogGrammarCoverage("opt_partition_by,partition_by")
 
 }
 | /* EMPTY */
@@ -10892,7 +10892,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_partition_by,partition_by")
 partition_by_index:
   partition_by
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by_index,partition_by")
+LogGrammarCoverage("partition_by_index,partition_by")
 
 
     $$.val = &tree.PartitionByIndex{
@@ -10903,7 +10903,7 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by_index,partition_by")
 opt_partition_by_index:
   partition_by
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_partition_by_index,partition_by")
+LogGrammarCoverage("opt_partition_by_index,partition_by")
 
 
     $$.val = &tree.PartitionByIndex{
@@ -10920,7 +10920,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_partition_by_index,partition_by")
 partition_by_table:
   partition_by
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by_table,partition_by")
+LogGrammarCoverage("partition_by_table,partition_by")
 
 
     $$.val = &tree.PartitionByTable{
@@ -10929,7 +10929,7 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by_table,partition_by")
   }
 | PARTITION ALL BY partition_by_inner
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by_table,partition_by_inner")
+LogGrammarCoverage("partition_by_table,partition_by_inner")
 
 
     $$.val = &tree.PartitionByTable{
@@ -10941,7 +10941,7 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by_table,partition_by_inner")
 opt_partition_by_table:
   partition_by_table
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_partition_by_table,partition_by_table")
+LogGrammarCoverage("opt_partition_by_table,partition_by_table")
 
 }
 | /* EMPTY */
@@ -10954,7 +10954,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_partition_by_table,partition_by_table")
 partition_by:
   PARTITION BY partition_by_inner
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by,partition_by_inner")
+LogGrammarCoverage("partition_by,partition_by_inner")
 
 
     $$.val = $3.partitionBy()
@@ -10963,8 +10963,8 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by,partition_by_inner")
 partition_by_inner:
   LIST '(' name_list ')' '(' list_partitions ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,name_list")
-sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,list_partitions")
+LogGrammarCoverage("partition_by_inner,name_list")
+LogGrammarCoverage("partition_by_inner,list_partitions")
 
 
     $$.val = &tree.PartitionBy{
@@ -10974,8 +10974,8 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,list_partitions")
   }
 | RANGE '(' name_list ')' '(' range_partitions ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,name_list")
-sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,range_partitions")
+LogGrammarCoverage("partition_by_inner,name_list")
+LogGrammarCoverage("partition_by_inner,range_partitions")
 
 
     $$.val = &tree.PartitionBy{
@@ -10993,15 +10993,15 @@ sqllex.(*lexer).LogGrammarCoverage("partition_by_inner,range_partitions")
 list_partitions:
   list_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("list_partitions,list_partition")
+LogGrammarCoverage("list_partitions,list_partition")
 
 
     $$.val = []tree.ListPartition{$1.listPartition()}
   }
 | list_partitions ',' list_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("list_partitions,list_partitions")
-sqllex.(*lexer).LogGrammarCoverage("list_partitions,list_partition")
+LogGrammarCoverage("list_partitions,list_partitions")
+LogGrammarCoverage("list_partitions,list_partition")
 
 
     $$.val = append($1.listPartitions(), $3.listPartition())
@@ -11010,9 +11010,9 @@ sqllex.(*lexer).LogGrammarCoverage("list_partitions,list_partition")
 list_partition:
   partition VALUES IN '(' expr_list ')' opt_partition_by
   {
-sqllex.(*lexer).LogGrammarCoverage("list_partition,partition")
-sqllex.(*lexer).LogGrammarCoverage("list_partition,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("list_partition,opt_partition_by")
+LogGrammarCoverage("list_partition,partition")
+LogGrammarCoverage("list_partition,expr_list")
+LogGrammarCoverage("list_partition,opt_partition_by")
 
 
     $$.val = tree.ListPartition{
@@ -11025,15 +11025,15 @@ sqllex.(*lexer).LogGrammarCoverage("list_partition,opt_partition_by")
 range_partitions:
   range_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("range_partitions,range_partition")
+LogGrammarCoverage("range_partitions,range_partition")
 
 
     $$.val = []tree.RangePartition{$1.rangePartition()}
   }
 | range_partitions ',' range_partition
   {
-sqllex.(*lexer).LogGrammarCoverage("range_partitions,range_partitions")
-sqllex.(*lexer).LogGrammarCoverage("range_partitions,range_partition")
+LogGrammarCoverage("range_partitions,range_partitions")
+LogGrammarCoverage("range_partitions,range_partition")
 
 
     $$.val = append($1.rangePartitions(), $3.rangePartition())
@@ -11042,10 +11042,10 @@ sqllex.(*lexer).LogGrammarCoverage("range_partitions,range_partition")
 range_partition:
   partition VALUES FROM '(' expr_list ')' TO '(' expr_list ')' opt_partition_by
   {
-sqllex.(*lexer).LogGrammarCoverage("range_partition,partition")
-sqllex.(*lexer).LogGrammarCoverage("range_partition,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("range_partition,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("range_partition,opt_partition_by")
+LogGrammarCoverage("range_partition,partition")
+LogGrammarCoverage("range_partition,expr_list")
+LogGrammarCoverage("range_partition,expr_list")
+LogGrammarCoverage("range_partition,opt_partition_by")
 
 
     $$.val = tree.RangePartition{
@@ -11062,9 +11062,9 @@ sqllex.(*lexer).LogGrammarCoverage("range_partition,opt_partition_by")
 column_def:
   column_name typename col_qual_list
   {
-sqllex.(*lexer).LogGrammarCoverage("column_def,column_name")
-sqllex.(*lexer).LogGrammarCoverage("column_def,typename")
-sqllex.(*lexer).LogGrammarCoverage("column_def,col_qual_list")
+LogGrammarCoverage("column_def,column_name")
+LogGrammarCoverage("column_def,typename")
+LogGrammarCoverage("column_def,col_qual_list")
 
 
     typ := $2.typeReference()
@@ -11078,8 +11078,8 @@ sqllex.(*lexer).LogGrammarCoverage("column_def,col_qual_list")
 col_qual_list:
   col_qual_list col_qualification
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qual_list,col_qual_list")
-sqllex.(*lexer).LogGrammarCoverage("col_qual_list,col_qualification")
+LogGrammarCoverage("col_qual_list,col_qual_list")
+LogGrammarCoverage("col_qual_list,col_qualification")
 
 
     $$.val = append($1.colQuals(), $2.colQual())
@@ -11094,36 +11094,36 @@ sqllex.(*lexer).LogGrammarCoverage("col_qual_list,col_qualification")
 col_qualification:
   CONSTRAINT constraint_name col_qualification_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,col_qualification_elem")
+LogGrammarCoverage("col_qualification,constraint_name")
+LogGrammarCoverage("col_qualification,col_qualification_elem")
 
 
     $$.val = tree.NamedColumnQualification{Name: tree.Name($2), Qualification: $3.colQualElem()}
   }
 | col_qualification_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,col_qualification_elem")
+LogGrammarCoverage("col_qualification,col_qualification_elem")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: $1.colQualElem()}
   }
 | COLLATE collation_name
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,collation_name")
+LogGrammarCoverage("col_qualification,collation_name")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: tree.ColumnCollation($2)}
   }
 | FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,family_name")
+LogGrammarCoverage("col_qualification,family_name")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: &tree.ColumnFamilyConstraint{Family: tree.Name($2)}}
   }
 | CREATE FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,family_name")
+LogGrammarCoverage("col_qualification,family_name")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: &tree.ColumnFamilyConstraint{Family: tree.Name($3), Create: true}}
@@ -11136,7 +11136,7 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification,family_name")
   }
 | CREATE IF NOT EXISTS FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification,family_name")
+LogGrammarCoverage("col_qualification,family_name")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: &tree.ColumnFamilyConstraint{Family: tree.Name($6), Create: true, IfNotExists: true}}
@@ -11175,7 +11175,7 @@ col_qualification_elem:
   }
 | UNIQUE opt_without_index
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_without_index")
+LogGrammarCoverage("col_qualification_elem,opt_without_index")
 
 
     $$.val = tree.UniqueConstraint{
@@ -11184,7 +11184,7 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_without_index")
   }
 | PRIMARY KEY opt_with_storage_parameter_list
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_with_storage_parameter_list")
+LogGrammarCoverage("col_qualification_elem,opt_with_storage_parameter_list")
 
 
     $$.val = tree.PrimaryKeyConstraint{
@@ -11193,8 +11193,8 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_with_storage_para
   }
 | PRIMARY KEY USING HASH opt_hash_sharded_bucket_count opt_with_storage_parameter_list
 {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_hash_sharded_bucket_count")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_with_storage_parameter_list")
+LogGrammarCoverage("col_qualification_elem,opt_hash_sharded_bucket_count")
+LogGrammarCoverage("col_qualification_elem,opt_with_storage_parameter_list")
 
 
   $$.val = tree.ShardedPrimaryKeyConstraint{
@@ -11205,31 +11205,31 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_with_storage_para
 }
 | CHECK '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,a_expr")
+LogGrammarCoverage("col_qualification_elem,a_expr")
 
 
     $$.val = &tree.ColumnCheckConstraint{Expr: $3.expr()}
   }
 | DEFAULT b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,b_expr")
+LogGrammarCoverage("col_qualification_elem,b_expr")
 
 
     $$.val = &tree.ColumnDefault{Expr: $2.expr()}
   }
 | ON UPDATE b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,b_expr")
+LogGrammarCoverage("col_qualification_elem,b_expr")
 
 
     $$.val = &tree.ColumnOnUpdate{Expr: $3.expr()}
   }
 | REFERENCES table_name opt_name_parens key_match reference_actions
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,table_name")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_name_parens")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,key_match")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,reference_actions")
+LogGrammarCoverage("col_qualification_elem,table_name")
+LogGrammarCoverage("col_qualification_elem,opt_name_parens")
+LogGrammarCoverage("col_qualification_elem,key_match")
+LogGrammarCoverage("col_qualification_elem,reference_actions")
 
 
     name := $2.unresolvedObjectName().ToTableName()
@@ -11242,24 +11242,24 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,reference_actions")
   }
 | generated_as '(' a_expr ')' STORED
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_as")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,a_expr")
+LogGrammarCoverage("col_qualification_elem,generated_as")
+LogGrammarCoverage("col_qualification_elem,a_expr")
 
 
     $$.val = &tree.ColumnComputedDef{Expr: $3.expr(), Virtual: false}
   }
 | generated_as '(' a_expr ')' VIRTUAL
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_as")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,a_expr")
+LogGrammarCoverage("col_qualification_elem,generated_as")
+LogGrammarCoverage("col_qualification_elem,a_expr")
 
 
     $$.val = &tree.ColumnComputedDef{Expr: $3.expr(), Virtual: true}
   }
 | generated_as error
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_as")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,error")
+LogGrammarCoverage("col_qualification_elem,generated_as")
+LogGrammarCoverage("col_qualification_elem,error")
 
 
     sqllex.Error("use AS ( <expr> ) STORED or AS ( <expr> ) VIRTUAL")
@@ -11267,8 +11267,8 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,error")
   }
 | generated_always_as IDENTITY '(' opt_sequence_option_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_always_as")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_sequence_option_list")
+LogGrammarCoverage("col_qualification_elem,generated_always_as")
+LogGrammarCoverage("col_qualification_elem,opt_sequence_option_list")
 
 
     $$.val = &tree.GeneratedAlwaysAsIdentity{
@@ -11277,8 +11277,8 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_sequence_option_l
   }
 | generated_by_default_as IDENTITY '(' opt_sequence_option_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_by_default_as")
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_sequence_option_list")
+LogGrammarCoverage("col_qualification_elem,generated_by_default_as")
+LogGrammarCoverage("col_qualification_elem,opt_sequence_option_list")
 
 
     $$.val = &tree.GeneratedByDefAsIdentity{
@@ -11287,14 +11287,14 @@ sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,opt_sequence_option_l
   }
 | generated_always_as IDENTITY
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_always_as")
+LogGrammarCoverage("col_qualification_elem,generated_always_as")
 
 
     $$.val = &tree.GeneratedAlwaysAsIdentity{}
   }
 | generated_by_default_as IDENTITY
   {
-sqllex.(*lexer).LogGrammarCoverage("col_qualification_elem,generated_by_default_as")
+LogGrammarCoverage("col_qualification_elem,generated_by_default_as")
 
 
     $$.val = &tree.GeneratedByDefAsIdentity{}
@@ -11322,7 +11322,7 @@ generated_as:
 | generated_always_as
 
 {
-sqllex.(*lexer).LogGrammarCoverage("generated_as,generated_always_as")
+LogGrammarCoverage("generated_as,generated_always_as")
 
 }
 generated_always_as:
@@ -11338,13 +11338,13 @@ generated_by_default_as:
 index_def:
   INDEX opt_index_name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_index_name")
-sqllex.(*lexer).LogGrammarCoverage("index_def,index_params")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
+LogGrammarCoverage("index_def,opt_index_name")
+LogGrammarCoverage("index_def,index_params")
+LogGrammarCoverage("index_def,opt_hash_sharded")
+LogGrammarCoverage("index_def,opt_storing")
+LogGrammarCoverage("index_def,opt_partition_by_index")
+LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
+LogGrammarCoverage("index_def,opt_where_clause")
 
 
     $$.val = &tree.IndexTableDef{
@@ -11359,13 +11359,13 @@ sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
   }
 | UNIQUE INDEX opt_index_name '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_index_name")
-sqllex.(*lexer).LogGrammarCoverage("index_def,index_params")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
+LogGrammarCoverage("index_def,opt_index_name")
+LogGrammarCoverage("index_def,index_params")
+LogGrammarCoverage("index_def,opt_hash_sharded")
+LogGrammarCoverage("index_def,opt_storing")
+LogGrammarCoverage("index_def,opt_partition_by_index")
+LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
+LogGrammarCoverage("index_def,opt_where_clause")
 
 
     $$.val = &tree.UniqueConstraintTableDef{
@@ -11382,11 +11382,11 @@ sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
   }
 | INVERTED INDEX opt_name '(' index_params ')' opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_name")
-sqllex.(*lexer).LogGrammarCoverage("index_def,index_params")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
+LogGrammarCoverage("index_def,opt_name")
+LogGrammarCoverage("index_def,index_params")
+LogGrammarCoverage("index_def,opt_partition_by_index")
+LogGrammarCoverage("index_def,opt_with_storage_parameter_list")
+LogGrammarCoverage("index_def,opt_where_clause")
 
 
     $$.val = &tree.IndexTableDef{
@@ -11402,8 +11402,8 @@ sqllex.(*lexer).LogGrammarCoverage("index_def,opt_where_clause")
 family_def:
   FAMILY opt_family_name '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("family_def,opt_family_name")
-sqllex.(*lexer).LogGrammarCoverage("family_def,name_list")
+LogGrammarCoverage("family_def,opt_family_name")
+LogGrammarCoverage("family_def,name_list")
 
 
     $$.val = &tree.FamilyTableDef{
@@ -11418,8 +11418,8 @@ sqllex.(*lexer).LogGrammarCoverage("family_def,name_list")
 table_constraint:
   CONSTRAINT constraint_name constraint_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("table_constraint,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("table_constraint,constraint_elem")
+LogGrammarCoverage("table_constraint,constraint_name")
+LogGrammarCoverage("table_constraint,constraint_elem")
 
 
     $$.val = $3.constraintDef()
@@ -11427,7 +11427,7 @@ sqllex.(*lexer).LogGrammarCoverage("table_constraint,constraint_elem")
   }
 | constraint_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("table_constraint,constraint_elem")
+LogGrammarCoverage("table_constraint,constraint_elem")
 
 
     $$.val = $1.constraintDef()
@@ -11436,8 +11436,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_constraint,constraint_elem")
 constraint_elem:
   CHECK '(' a_expr ')' opt_deferrable
   {
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_deferrable")
+LogGrammarCoverage("constraint_elem,a_expr")
+LogGrammarCoverage("constraint_elem,opt_deferrable")
 
 
     $$.val = &tree.CheckConstraintTableDef{
@@ -11447,12 +11447,12 @@ sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_deferrable")
 | UNIQUE opt_without_index '(' index_params ')'
     opt_storing opt_partition_by_index opt_deferrable opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_without_index")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,index_params")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_deferrable")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_where_clause")
+LogGrammarCoverage("constraint_elem,opt_without_index")
+LogGrammarCoverage("constraint_elem,index_params")
+LogGrammarCoverage("constraint_elem,opt_storing")
+LogGrammarCoverage("constraint_elem,opt_partition_by_index")
+LogGrammarCoverage("constraint_elem,opt_deferrable")
+LogGrammarCoverage("constraint_elem,opt_where_clause")
 
 
     $$.val = &tree.UniqueConstraintTableDef{
@@ -11467,9 +11467,9 @@ sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_where_clause")
   }
 | PRIMARY KEY '(' index_params ')' opt_hash_sharded opt_with_storage_parameter_list
   {
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,index_params")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_with_storage_parameter_list")
+LogGrammarCoverage("constraint_elem,index_params")
+LogGrammarCoverage("constraint_elem,opt_hash_sharded")
+LogGrammarCoverage("constraint_elem,opt_with_storage_parameter_list")
 
 
     $$.val = &tree.UniqueConstraintTableDef{
@@ -11484,12 +11484,12 @@ sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_with_storage_parameter_l
 | FOREIGN KEY '(' name_list ')' REFERENCES table_name
     opt_column_list key_match reference_actions opt_deferrable
   {
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,name_list")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,table_name")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,key_match")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,reference_actions")
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_deferrable")
+LogGrammarCoverage("constraint_elem,name_list")
+LogGrammarCoverage("constraint_elem,table_name")
+LogGrammarCoverage("constraint_elem,opt_column_list")
+LogGrammarCoverage("constraint_elem,key_match")
+LogGrammarCoverage("constraint_elem,reference_actions")
+LogGrammarCoverage("constraint_elem,opt_deferrable")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -11503,7 +11503,7 @@ sqllex.(*lexer).LogGrammarCoverage("constraint_elem,opt_deferrable")
   }
 | EXCLUDE USING error
   {
-sqllex.(*lexer).LogGrammarCoverage("constraint_elem,error")
+LogGrammarCoverage("constraint_elem,error")
 
 
     return unimplementedWithIssueDetail(sqllex, 46657, "add constraint exclude using")
@@ -11513,7 +11513,7 @@ sqllex.(*lexer).LogGrammarCoverage("constraint_elem,error")
 create_as_opt_col_list:
   '(' create_as_table_defs ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_opt_col_list,create_as_table_defs")
+LogGrammarCoverage("create_as_opt_col_list,create_as_table_defs")
 
 
     $$.val = $2.val
@@ -11528,8 +11528,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_opt_col_list,create_as_table_defs"
 create_as_table_defs:
   column_name create_as_col_qual_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,column_name")
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list")
+LogGrammarCoverage("create_as_table_defs,column_name")
+LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list")
 
 
     tableDef, err := tree.NewColumnTableDef(tree.Name($1), nil, false, $2.colQuals())
@@ -11542,9 +11542,9 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list
   }
 | create_as_table_defs ',' column_name create_as_col_qual_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,column_name")
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list")
+LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
+LogGrammarCoverage("create_as_table_defs,column_name")
+LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list")
 
 
     tableDef, err := tree.NewColumnTableDef(tree.Name($3), nil, false, $4.colQuals())
@@ -11558,16 +11558,16 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_col_qual_list
   }
 | create_as_table_defs ',' family_def
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,family_def")
+LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
+LogGrammarCoverage("create_as_table_defs,family_def")
 
 
     $$.val = append($1.tblDefs(), $3.tblDef())
   }
 | create_as_table_defs ',' create_as_constraint_def
 {
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
-sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_constraint_def")
+LogGrammarCoverage("create_as_table_defs,create_as_table_defs")
+LogGrammarCoverage("create_as_table_defs,create_as_constraint_def")
 
 
   var constraintToTableDef tree.TableDef = $3.constraintDef()
@@ -11577,7 +11577,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_table_defs,create_as_constraint_de
 create_as_constraint_def:
   create_as_constraint_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_constraint_def,create_as_constraint_elem")
+LogGrammarCoverage("create_as_constraint_def,create_as_constraint_elem")
 
 
     $$.val = $1.constraintDef()
@@ -11586,8 +11586,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_constraint_def,create_as_constrain
 create_as_constraint_elem:
   PRIMARY KEY '(' create_as_params ')' opt_with_storage_parameter_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_constraint_elem,create_as_params")
-sqllex.(*lexer).LogGrammarCoverage("create_as_constraint_elem,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_as_constraint_elem,create_as_params")
+LogGrammarCoverage("create_as_constraint_elem,opt_with_storage_parameter_list")
 
 
     $$.val = &tree.UniqueConstraintTableDef{
@@ -11602,15 +11602,15 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_constraint_elem,opt_with_storage_p
 create_as_params:
   create_as_param
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_params,create_as_param")
+LogGrammarCoverage("create_as_params,create_as_param")
 
 
     $$.val = tree.IndexElemList{$1.idxElem()}
   }
 | create_as_params ',' create_as_param
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_params,create_as_params")
-sqllex.(*lexer).LogGrammarCoverage("create_as_params,create_as_param")
+LogGrammarCoverage("create_as_params,create_as_params")
+LogGrammarCoverage("create_as_params,create_as_param")
 
 
     $$.val = append($1.idxElems(), $3.idxElem())
@@ -11619,7 +11619,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_params,create_as_param")
 create_as_param:
   column_name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_param,column_name")
+LogGrammarCoverage("create_as_param,column_name")
 
 
     $$.val = tree.IndexElem{Column: tree.Name($1)}
@@ -11628,8 +11628,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_param,column_name")
 create_as_col_qual_list:
   create_as_col_qual_list create_as_col_qualification
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_col_qual_list,create_as_col_qual_list")
-sqllex.(*lexer).LogGrammarCoverage("create_as_col_qual_list,create_as_col_qualification")
+LogGrammarCoverage("create_as_col_qual_list,create_as_col_qual_list")
+LogGrammarCoverage("create_as_col_qual_list,create_as_col_qualification")
 
 
     $$.val = append($1.colQuals(), $2.colQual())
@@ -11644,14 +11644,14 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_col_qual_list,create_as_col_qualif
 create_as_col_qualification:
   create_as_col_qualification_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_col_qualification,create_as_col_qualification_elem")
+LogGrammarCoverage("create_as_col_qualification,create_as_col_qualification_elem")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: $1.colQualElem()}
   }
 | FAMILY family_name
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_col_qualification,family_name")
+LogGrammarCoverage("create_as_col_qualification,family_name")
 
 
     $$.val = tree.NamedColumnQualification{Qualification: &tree.ColumnFamilyConstraint{Family: tree.Name($2)}}
@@ -11660,7 +11660,7 @@ sqllex.(*lexer).LogGrammarCoverage("create_as_col_qualification,family_name")
 create_as_col_qualification_elem:
   PRIMARY KEY opt_with_storage_parameter_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_as_col_qualification_elem,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_as_col_qualification_elem,opt_with_storage_parameter_list")
 
 
     $$.val = tree.PrimaryKeyConstraint{
@@ -11714,8 +11714,8 @@ storing:
 opt_storing:
   storing '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_storing,storing")
-sqllex.(*lexer).LogGrammarCoverage("opt_storing,name_list")
+LogGrammarCoverage("opt_storing,storing")
+LogGrammarCoverage("opt_storing,name_list")
 
 
     $$.val = $3.nameList()
@@ -11730,7 +11730,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_storing,name_list")
 opt_hash_sharded:
   USING HASH opt_hash_sharded_bucket_count
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_hash_sharded,opt_hash_sharded_bucket_count")
+LogGrammarCoverage("opt_hash_sharded,opt_hash_sharded_bucket_count")
 
 
     $$.val = &tree.ShardedIndexDef{
@@ -11747,7 +11747,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_hash_sharded,opt_hash_sharded_bucket_cou
 opt_hash_sharded_bucket_count:
   WITH_LA BUCKET_COUNT '=' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_hash_sharded_bucket_count,a_expr")
+LogGrammarCoverage("opt_hash_sharded_bucket_count,a_expr")
 
 
     $$.val = $4.expr()
@@ -11762,7 +11762,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_hash_sharded_bucket_count,a_expr")
 opt_column_list:
   '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_column_list,name_list")
+LogGrammarCoverage("opt_column_list,name_list")
 
 
     $$.val = $2.nameList()
@@ -11820,30 +11820,30 @@ key_match:
 reference_actions:
   reference_on_update
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_update")
+LogGrammarCoverage("reference_actions,reference_on_update")
 
 
      $$.val = tree.ReferenceActions{Update: $1.referenceAction()}
   }
 | reference_on_delete
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_delete")
+LogGrammarCoverage("reference_actions,reference_on_delete")
 
 
      $$.val = tree.ReferenceActions{Delete: $1.referenceAction()}
   }
 | reference_on_update reference_on_delete
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_update")
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_delete")
+LogGrammarCoverage("reference_actions,reference_on_update")
+LogGrammarCoverage("reference_actions,reference_on_delete")
 
 
     $$.val = tree.ReferenceActions{Update: $1.referenceAction(), Delete: $2.referenceAction()}
   }
 | reference_on_delete reference_on_update
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_delete")
-sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_update")
+LogGrammarCoverage("reference_actions,reference_on_delete")
+LogGrammarCoverage("reference_actions,reference_on_update")
 
 
     $$.val = tree.ReferenceActions{Delete: $1.referenceAction(), Update: $2.referenceAction()}
@@ -11858,7 +11858,7 @@ sqllex.(*lexer).LogGrammarCoverage("reference_actions,reference_on_update")
 reference_on_update:
   ON_LA UPDATE reference_action
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_on_update,reference_action")
+LogGrammarCoverage("reference_on_update,reference_action")
 
 
     $$.val = $3.referenceAction()
@@ -11867,7 +11867,7 @@ sqllex.(*lexer).LogGrammarCoverage("reference_on_update,reference_action")
 reference_on_delete:
   ON_LA DELETE reference_action
   {
-sqllex.(*lexer).LogGrammarCoverage("reference_on_delete,reference_action")
+LogGrammarCoverage("reference_on_delete,reference_action")
 
 
     $$.val = $3.referenceAction()
@@ -11924,9 +11924,9 @@ reference_action:
 create_sequence_stmt:
   CREATE opt_temp SEQUENCE sequence_name opt_sequence_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,sequence_name")
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,opt_sequence_option_list")
+LogGrammarCoverage("create_sequence_stmt,opt_temp")
+LogGrammarCoverage("create_sequence_stmt,sequence_name")
+LogGrammarCoverage("create_sequence_stmt,opt_sequence_option_list")
 
 
     name := $4.unresolvedObjectName().ToTableName()
@@ -11938,9 +11938,9 @@ sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,opt_sequence_option_lis
   }
 | CREATE opt_temp SEQUENCE IF NOT EXISTS sequence_name opt_sequence_option_list
   {
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,sequence_name")
-sqllex.(*lexer).LogGrammarCoverage("create_sequence_stmt,opt_sequence_option_list")
+LogGrammarCoverage("create_sequence_stmt,opt_temp")
+LogGrammarCoverage("create_sequence_stmt,sequence_name")
+LogGrammarCoverage("create_sequence_stmt,opt_sequence_option_list")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -11960,18 +11960,18 @@ opt_sequence_option_list:
 
 sequence_option_list:
   sequence_option_elem                       {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_list,sequence_option_elem")
+LogGrammarCoverage("sequence_option_list,sequence_option_elem")
 
  $$.val = []tree.SequenceOption{$1.seqOpt()} }
 | sequence_option_list sequence_option_elem  {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_list,sequence_option_list")
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_list,sequence_option_elem")
+LogGrammarCoverage("sequence_option_list,sequence_option_list")
+LogGrammarCoverage("sequence_option_list,sequence_option_elem")
 
  $$.val = append($1.seqOpts(), $2.seqOpt()) }
 
 sequence_option_elem:
   AS typename                  {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,typename")
+LogGrammarCoverage("sequence_option_elem,typename")
 
 
                                   // Valid option values must be integer types (ex. int2, bigint)
@@ -11998,7 +11998,7 @@ sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,typename")
 
  $$.val = tree.SequenceOption{Name: tree.SeqOptOwnedBy, ColumnItemVal: nil} }
 | OWNED BY column_path         {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,column_path")
+LogGrammarCoverage("sequence_option_elem,column_path")
 
  varName, err := $3.unresolvedName().NormalizeVarName()
                                      if err != nil {
@@ -12011,22 +12011,22 @@ sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,column_path")
                                      }
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptOwnedBy, ColumnItemVal: columnItem} }
 | CACHE signed_iconst64        {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $2.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptCache, IntVal: &x} }
 | INCREMENT signed_iconst64    {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $2.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptIncrement, IntVal: &x} }
 | INCREMENT BY signed_iconst64 {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $3.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptIncrement, IntVal: &x, OptionalWord: true} }
 | MINVALUE signed_iconst64     {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $2.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptMinValue, IntVal: &x} }
@@ -12034,7 +12034,7 @@ sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  $$.val = tree.SequenceOption{Name: tree.SeqOptMinValue} }
 | MAXVALUE signed_iconst64     {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $2.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptMaxValue, IntVal: &x} }
@@ -12042,12 +12042,12 @@ sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  $$.val = tree.SequenceOption{Name: tree.SeqOptMaxValue} }
 | START signed_iconst64        {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $2.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptStart, IntVal: &x} }
 | START WITH signed_iconst64   {
-sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
+LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 
  x := $3.int64()
                                  $$.val = tree.SequenceOption{Name: tree.SeqOptStart, IntVal: &x, OptionalWord: true} }
@@ -12062,9 +12062,9 @@ sqllex.(*lexer).LogGrammarCoverage("sequence_option_elem,signed_iconst64")
 truncate_stmt:
   TRUNCATE opt_table relation_expr_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("truncate_stmt,opt_table")
-sqllex.(*lexer).LogGrammarCoverage("truncate_stmt,relation_expr_list")
-sqllex.(*lexer).LogGrammarCoverage("truncate_stmt,opt_drop_behavior")
+LogGrammarCoverage("truncate_stmt,opt_table")
+LogGrammarCoverage("truncate_stmt,relation_expr_list")
+LogGrammarCoverage("truncate_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.Truncate{Tables: $3.tableNames(), DropBehavior: $4.dropBehavior()}
@@ -12074,8 +12074,8 @@ sqllex.(*lexer).LogGrammarCoverage("truncate_stmt,opt_drop_behavior")
 password_clause:
   ENCRYPTED PASSWORD string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("password_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("password_clause,string_or_placeholder")
+LogGrammarCoverage("password_clause,error")
+LogGrammarCoverage("password_clause,string_or_placeholder")
 
 
     
@@ -12084,7 +12084,7 @@ sqllex.(*lexer).LogGrammarCoverage("password_clause,string_or_placeholder")
   }
 | PASSWORD string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("password_clause,string_or_placeholder")
+LogGrammarCoverage("password_clause,string_or_placeholder")
 
 
     $$.val = tree.KVOption{Key: tree.Name($1), Value: $2.expr()}
@@ -12103,18 +12103,18 @@ sqllex.(*lexer).LogGrammarCoverage("password_clause,string_or_placeholder")
 create_role_stmt:
   CREATE role_or_group_or_user role_spec opt_role_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,opt_role_options")
+LogGrammarCoverage("create_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("create_role_stmt,role_spec")
+LogGrammarCoverage("create_role_stmt,opt_role_options")
 
 
     $$.val = &tree.CreateRole{Name: $3.roleSpec(), KVOptions: $4.kvOptions(), IsRole: $2.bool()}
   }
 | CREATE role_or_group_or_user IF NOT EXISTS role_spec opt_role_options
   {
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,opt_role_options")
+LogGrammarCoverage("create_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("create_role_stmt,role_spec")
+LogGrammarCoverage("create_role_stmt,opt_role_options")
 
 
     $$.val = &tree.CreateRole{Name: $6.roleSpec(), IfNotExists: true, KVOptions: $7.kvOptions(), IsRole: $2.bool()}
@@ -12131,56 +12131,56 @@ sqllex.(*lexer).LogGrammarCoverage("create_role_stmt,opt_role_options")
 alter_role_stmt:
   ALTER role_or_group_or_user role_spec opt_role_options
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_role_options")
+LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("alter_role_stmt,error")
+LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("alter_role_stmt,role_spec")
+LogGrammarCoverage("alter_role_stmt,opt_role_options")
 
 
   $$.val = &tree.AlterRole{Name: $3.roleSpec(), KVOptions: $4.kvOptions(), IsRole: $2.bool()}
 }
 | ALTER role_or_group_or_user IF EXISTS role_spec opt_role_options
 {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_role_options")
+LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("alter_role_stmt,role_spec")
+LogGrammarCoverage("alter_role_stmt,opt_role_options")
 
 
   $$.val = &tree.AlterRole{Name: $5.roleSpec(), IfExists: true, KVOptions: $6.kvOptions(), IsRole: $2.bool()}
 }
 | ALTER role_or_group_or_user role_spec opt_in_database set_or_reset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_in_database")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
+LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("alter_role_stmt,role_spec")
+LogGrammarCoverage("alter_role_stmt,opt_in_database")
+LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
 
 
     $$.val = &tree.AlterRoleSet{RoleName: $3.roleSpec(), DatabaseName: tree.Name($4), IsRole: $2.bool(), SetOrReset: $5.setVar()}
   }
 | ALTER role_or_group_or_user IF EXISTS role_spec opt_in_database set_or_reset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,role_spec")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_in_database")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
+LogGrammarCoverage("alter_role_stmt,role_or_group_or_user")
+LogGrammarCoverage("alter_role_stmt,role_spec")
+LogGrammarCoverage("alter_role_stmt,opt_in_database")
+LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
 
 
     $$.val = &tree.AlterRoleSet{RoleName: $5.roleSpec(), IfExists: true, DatabaseName: tree.Name($6), IsRole: $2.bool(), SetOrReset: $7.setVar()}
   }
 | ALTER ROLE_ALL ALL opt_in_database set_or_reset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_in_database")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
+LogGrammarCoverage("alter_role_stmt,opt_in_database")
+LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
 
 
     $$.val = &tree.AlterRoleSet{AllRoles: true, DatabaseName: tree.Name($4), IsRole: true, SetOrReset: $5.setVar()}
   }
 | ALTER USER_ALL ALL opt_in_database set_or_reset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,opt_in_database")
-sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
+LogGrammarCoverage("alter_role_stmt,opt_in_database")
+LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
 
 
     $$.val = &tree.AlterRoleSet{AllRoles: true, DatabaseName: tree.Name($4), IsRole: false, SetOrReset: $5.setVar()}
@@ -12190,9 +12190,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_role_stmt,set_or_reset_clause")
 opt_in_database:
   IN DATABASE database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_in_database,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("opt_in_database,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_in_database,database_name")
+LogGrammarCoverage("opt_in_database,role_or_group_or_user")
+LogGrammarCoverage("opt_in_database,error")
+LogGrammarCoverage("opt_in_database,database_name")
 
 
     $$ = $3
@@ -12209,14 +12209,14 @@ sqllex.(*lexer).LogGrammarCoverage("opt_in_database,database_name")
 set_or_reset_clause:
   SET set_rest
   {
-sqllex.(*lexer).LogGrammarCoverage("set_or_reset_clause,set_rest")
+LogGrammarCoverage("set_or_reset_clause,set_rest")
 
 
     $$.val = $2.setVar()
   }
 | SET_TRACING set_rest
   {
-sqllex.(*lexer).LogGrammarCoverage("set_or_reset_clause,set_rest")
+LogGrammarCoverage("set_or_reset_clause,set_rest")
 
 
     
@@ -12232,7 +12232,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_or_reset_clause,set_rest")
   }
 | RESET session_var
   {
-sqllex.(*lexer).LogGrammarCoverage("set_or_reset_clause,session_var")
+LogGrammarCoverage("set_or_reset_clause,session_var")
 
 
     $$.val = &tree.SetVar{Name: $2, Values:tree.Exprs{tree.DefaultVal{}}}
@@ -12268,11 +12268,11 @@ role_or_group_or_user:
 create_view_stmt:
   CREATE opt_temp opt_view_recursive VIEW view_name opt_column_list AS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_view_recursive")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
+LogGrammarCoverage("create_view_stmt,opt_temp")
+LogGrammarCoverage("create_view_stmt,opt_view_recursive")
+LogGrammarCoverage("create_view_stmt,view_name")
+LogGrammarCoverage("create_view_stmt,opt_column_list")
+LogGrammarCoverage("create_view_stmt,select_stmt")
 
 
     name := $5.unresolvedObjectName().ToTableName()
@@ -12289,11 +12289,11 @@ sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
 // with the opt_temp rule.
 | CREATE OR REPLACE opt_temp opt_view_recursive VIEW view_name opt_column_list AS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_view_recursive")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
+LogGrammarCoverage("create_view_stmt,opt_temp")
+LogGrammarCoverage("create_view_stmt,opt_view_recursive")
+LogGrammarCoverage("create_view_stmt,view_name")
+LogGrammarCoverage("create_view_stmt,opt_column_list")
+LogGrammarCoverage("create_view_stmt,select_stmt")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -12308,11 +12308,11 @@ sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
   }
 | CREATE opt_temp opt_view_recursive VIEW IF NOT EXISTS view_name opt_column_list AS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_view_recursive")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
+LogGrammarCoverage("create_view_stmt,opt_temp")
+LogGrammarCoverage("create_view_stmt,opt_view_recursive")
+LogGrammarCoverage("create_view_stmt,view_name")
+LogGrammarCoverage("create_view_stmt,opt_column_list")
+LogGrammarCoverage("create_view_stmt,select_stmt")
 
 
     name := $8.unresolvedObjectName().ToTableName()
@@ -12327,10 +12327,10 @@ sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
   }
 | CREATE MATERIALIZED VIEW view_name opt_column_list AS select_stmt opt_with_data
   {
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_with_data")
+LogGrammarCoverage("create_view_stmt,view_name")
+LogGrammarCoverage("create_view_stmt,opt_column_list")
+LogGrammarCoverage("create_view_stmt,select_stmt")
+LogGrammarCoverage("create_view_stmt,opt_with_data")
 
 
     name := $4.unresolvedObjectName().ToTableName()
@@ -12343,10 +12343,10 @@ sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_with_data")
   }
 | CREATE MATERIALIZED VIEW IF NOT EXISTS view_name opt_column_list AS select_stmt opt_with_data
   {
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,view_name")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,select_stmt")
-sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_with_data")
+LogGrammarCoverage("create_view_stmt,view_name")
+LogGrammarCoverage("create_view_stmt,opt_column_list")
+LogGrammarCoverage("create_view_stmt,select_stmt")
+LogGrammarCoverage("create_view_stmt,opt_with_data")
 
 
     name := $7.unresolvedObjectName().ToTableName()
@@ -12363,10 +12363,10 @@ sqllex.(*lexer).LogGrammarCoverage("create_view_stmt,opt_with_data")
 opt_with_data:
   WITH NO DATA error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_data,opt_temp")
-sqllex.(*lexer).LogGrammarCoverage("opt_with_data,opt_view_recursive")
-sqllex.(*lexer).LogGrammarCoverage("opt_with_data,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_with_data,error")
+LogGrammarCoverage("opt_with_data,opt_temp")
+LogGrammarCoverage("opt_with_data,opt_view_recursive")
+LogGrammarCoverage("opt_with_data,error")
+LogGrammarCoverage("opt_with_data,error")
 
 
     return unimplementedWithIssue(sqllex, 74083)
@@ -12531,27 +12531,27 @@ role_option:
   }
 | password_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("role_option,password_clause")
+LogGrammarCoverage("role_option,password_clause")
 
 }
 | valid_until_clause
 
 {
-sqllex.(*lexer).LogGrammarCoverage("role_option,valid_until_clause")
+LogGrammarCoverage("role_option,valid_until_clause")
 
 }
 role_options:
   role_option
   {
-sqllex.(*lexer).LogGrammarCoverage("role_options,role_option")
+LogGrammarCoverage("role_options,role_option")
 
 
     $$.val = []tree.KVOption{$1.kvOption()}
   }
 | role_options role_option
   {
-sqllex.(*lexer).LogGrammarCoverage("role_options,role_options")
-sqllex.(*lexer).LogGrammarCoverage("role_options,role_option")
+LogGrammarCoverage("role_options,role_options")
+LogGrammarCoverage("role_options,role_option")
 
 
     $$.val = append($1.kvOptions(), $2.kvOption())
@@ -12560,8 +12560,8 @@ sqllex.(*lexer).LogGrammarCoverage("role_options,role_option")
 opt_role_options:
   opt_with role_options
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_role_options,opt_with")
-sqllex.(*lexer).LogGrammarCoverage("opt_role_options,role_options")
+LogGrammarCoverage("opt_role_options,opt_with")
+LogGrammarCoverage("opt_role_options,role_options")
 
 
     $$.val = $2.kvOptions()
@@ -12576,7 +12576,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_role_options,role_options")
 valid_until_clause:
   VALID UNTIL string_or_placeholder
   {
-sqllex.(*lexer).LogGrammarCoverage("valid_until_clause,string_or_placeholder")
+LogGrammarCoverage("valid_until_clause,string_or_placeholder")
 
 
     $$.val = tree.KVOption{Key: tree.Name("valid until"), Value: $3.expr()}
@@ -12604,8 +12604,8 @@ create_type_stmt:
   // Enum types.
   CREATE TYPE type_name AS ENUM '(' opt_enum_val_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
 
 
     $$.val = &tree.CreateType{
@@ -12616,8 +12616,8 @@ sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
   }
 | CREATE TYPE IF NOT EXISTS type_name AS ENUM '(' opt_enum_val_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
 
 
     $$.val = &tree.CreateType{
@@ -12630,38 +12630,38 @@ sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,opt_enum_val_list")
 | CREATE TYPE error // SHOW HELP: CREATE TYPE
   // Record/Composite types.
 | CREATE TYPE type_name AS '(' error      {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,error")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,error")
 
  return unimplementedWithIssue(sqllex, 27792) }
   // Range types.
 | CREATE TYPE type_name AS RANGE error    {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,error")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,error")
 
  return unimplementedWithIssue(sqllex, 27791) }
   // Base (primitive) types.
 | CREATE TYPE type_name '(' error         {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,error")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,error")
 
  return unimplementedWithIssueDetail(sqllex, 27793, "base") }
   // Shell types, gateway to define base types using the previous syntax.
 | CREATE TYPE type_name                   {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,type_name")
 
  return unimplementedWithIssueDetail(sqllex, 27793, "shell") }
   // Domain types.
 | CREATE DOMAIN type_name error           {
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,type_name")
-sqllex.(*lexer).LogGrammarCoverage("create_type_stmt,error")
+LogGrammarCoverage("create_type_stmt,type_name")
+LogGrammarCoverage("create_type_stmt,error")
 
  return unimplementedWithIssueDetail(sqllex, 27796, "create") }
 
 opt_enum_val_list:
   enum_val_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_enum_val_list,enum_val_list")
+LogGrammarCoverage("opt_enum_val_list,enum_val_list")
 
 
     $$.val = $1.enumValueList()
@@ -12682,7 +12682,7 @@ enum_val_list:
   }
 | enum_val_list ',' SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("enum_val_list,enum_val_list")
+LogGrammarCoverage("enum_val_list,enum_val_list")
 
 
     $$.val = append($1.enumValueList(), tree.EnumValue($3))
@@ -12702,17 +12702,17 @@ sqllex.(*lexer).LogGrammarCoverage("enum_val_list,enum_val_list")
 create_index_stmt:
   CREATE opt_unique INDEX opt_concurrently opt_index_name ON table_name opt_index_access_method '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_unique")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_index_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_index_access_method")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_params")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
+LogGrammarCoverage("create_index_stmt,opt_unique")
+LogGrammarCoverage("create_index_stmt,opt_concurrently")
+LogGrammarCoverage("create_index_stmt,opt_index_name")
+LogGrammarCoverage("create_index_stmt,table_name")
+LogGrammarCoverage("create_index_stmt,opt_index_access_method")
+LogGrammarCoverage("create_index_stmt,index_params")
+LogGrammarCoverage("create_index_stmt,opt_hash_sharded")
+LogGrammarCoverage("create_index_stmt,opt_storing")
+LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
+LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_index_stmt,opt_where_clause")
 
 
     table := $7.unresolvedObjectName().ToTableName()
@@ -12732,17 +12732,17 @@ sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
   }
 | CREATE opt_unique INDEX opt_concurrently IF NOT EXISTS index_name ON table_name opt_index_access_method '(' index_params ')' opt_hash_sharded opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_unique")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_index_access_method")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_params")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_hash_sharded")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
+LogGrammarCoverage("create_index_stmt,opt_unique")
+LogGrammarCoverage("create_index_stmt,opt_concurrently")
+LogGrammarCoverage("create_index_stmt,index_name")
+LogGrammarCoverage("create_index_stmt,table_name")
+LogGrammarCoverage("create_index_stmt,opt_index_access_method")
+LogGrammarCoverage("create_index_stmt,index_params")
+LogGrammarCoverage("create_index_stmt,opt_hash_sharded")
+LogGrammarCoverage("create_index_stmt,opt_storing")
+LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
+LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_index_stmt,opt_where_clause")
 
 
     table := $10.unresolvedObjectName().ToTableName()
@@ -12763,15 +12763,15 @@ sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
   }
 | CREATE opt_unique INVERTED INDEX opt_concurrently opt_index_name ON table_name '(' index_params ')' opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_unique")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_index_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_params")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
+LogGrammarCoverage("create_index_stmt,opt_unique")
+LogGrammarCoverage("create_index_stmt,opt_concurrently")
+LogGrammarCoverage("create_index_stmt,opt_index_name")
+LogGrammarCoverage("create_index_stmt,table_name")
+LogGrammarCoverage("create_index_stmt,index_params")
+LogGrammarCoverage("create_index_stmt,opt_storing")
+LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
+LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_index_stmt,opt_where_clause")
 
 
     table := $8.unresolvedObjectName().ToTableName()
@@ -12790,15 +12790,15 @@ sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
   }
 | CREATE opt_unique INVERTED INDEX opt_concurrently IF NOT EXISTS index_name ON table_name '(' index_params ')' opt_storing opt_partition_by_index opt_with_storage_parameter_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_unique")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_concurrently")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,table_name")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,index_params")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_storing")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
-sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
+LogGrammarCoverage("create_index_stmt,opt_unique")
+LogGrammarCoverage("create_index_stmt,opt_concurrently")
+LogGrammarCoverage("create_index_stmt,index_name")
+LogGrammarCoverage("create_index_stmt,table_name")
+LogGrammarCoverage("create_index_stmt,index_params")
+LogGrammarCoverage("create_index_stmt,opt_storing")
+LogGrammarCoverage("create_index_stmt,opt_partition_by_index")
+LogGrammarCoverage("create_index_stmt,opt_with_storage_parameter_list")
+LogGrammarCoverage("create_index_stmt,opt_where_clause")
 
 
     table := $11.unresolvedObjectName().ToTableName()
@@ -12821,9 +12821,9 @@ sqllex.(*lexer).LogGrammarCoverage("create_index_stmt,opt_where_clause")
 opt_index_access_method:
   USING name
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_index_access_method,opt_unique")
-sqllex.(*lexer).LogGrammarCoverage("opt_index_access_method,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_index_access_method,name")
+LogGrammarCoverage("opt_index_access_method,opt_unique")
+LogGrammarCoverage("opt_index_access_method,error")
+LogGrammarCoverage("opt_index_access_method,name")
 
 
     
@@ -12877,15 +12877,15 @@ opt_unique:
 index_params:
   index_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("index_params,index_elem")
+LogGrammarCoverage("index_params,index_elem")
 
 
     $$.val = tree.IndexElemList{$1.idxElem()}
   }
 | index_params ',' index_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("index_params,index_params")
-sqllex.(*lexer).LogGrammarCoverage("index_params,index_elem")
+LogGrammarCoverage("index_params,index_params")
+LogGrammarCoverage("index_params,index_elem")
 
 
     $$.val = append($1.idxElems(), $3.idxElem())
@@ -12897,8 +12897,8 @@ sqllex.(*lexer).LogGrammarCoverage("index_params,index_elem")
 index_elem:
   func_expr_windowless index_elem_options
   {
-sqllex.(*lexer).LogGrammarCoverage("index_elem,func_expr_windowless")
-sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
+LogGrammarCoverage("index_elem,func_expr_windowless")
+LogGrammarCoverage("index_elem,index_elem_options")
 
 
     e := $2.idxElem()
@@ -12907,8 +12907,8 @@ sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
   }
 | '(' a_expr ')' index_elem_options
   {
-sqllex.(*lexer).LogGrammarCoverage("index_elem,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
+LogGrammarCoverage("index_elem,a_expr")
+LogGrammarCoverage("index_elem,index_elem_options")
 
 
     e := $4.idxElem()
@@ -12917,8 +12917,8 @@ sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
   }
 | name index_elem_options
   {
-sqllex.(*lexer).LogGrammarCoverage("index_elem,name")
-sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
+LogGrammarCoverage("index_elem,name")
+LogGrammarCoverage("index_elem,index_elem_options")
 
 
     e := $2.idxElem()
@@ -12929,9 +12929,9 @@ sqllex.(*lexer).LogGrammarCoverage("index_elem,index_elem_options")
 index_elem_options:
   opt_class opt_asc_desc opt_nulls_order
   {
-sqllex.(*lexer).LogGrammarCoverage("index_elem_options,opt_class")
-sqllex.(*lexer).LogGrammarCoverage("index_elem_options,opt_asc_desc")
-sqllex.(*lexer).LogGrammarCoverage("index_elem_options,opt_nulls_order")
+LogGrammarCoverage("index_elem_options,opt_class")
+LogGrammarCoverage("index_elem_options,opt_asc_desc")
+LogGrammarCoverage("index_elem_options,opt_nulls_order")
 
 
     
@@ -12958,7 +12958,7 @@ sqllex.(*lexer).LogGrammarCoverage("index_elem_options,opt_nulls_order")
 
 opt_class:
   name {
-sqllex.(*lexer).LogGrammarCoverage("opt_class,name")
+LogGrammarCoverage("opt_class,name")
 
  $$ = $1 }
 | /* EMPTY */ {
@@ -12967,7 +12967,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_class,name")
 
 opt_collate:
   COLLATE collation_name {
-sqllex.(*lexer).LogGrammarCoverage("opt_collate,collation_name")
+LogGrammarCoverage("opt_collate,collation_name")
 
  $$ = $2 }
 | /* EMPTY */ {
@@ -12997,8 +12997,8 @@ opt_asc_desc:
 alter_database_to_schema_stmt:
   ALTER DATABASE database_name CONVERT TO SCHEMA WITH PARENT database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_database_to_schema_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_database_to_schema_stmt,database_name")
+LogGrammarCoverage("alter_database_to_schema_stmt,database_name")
+LogGrammarCoverage("alter_database_to_schema_stmt,database_name")
 
 
     $$.val = &tree.ReparentDatabase{Name: tree.Name($3), Parent: tree.Name($9)}
@@ -13007,8 +13007,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_database_to_schema_stmt,database_name"
 alter_rename_database_stmt:
   ALTER DATABASE database_name RENAME TO database_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_database_stmt,database_name")
+LogGrammarCoverage("alter_rename_database_stmt,database_name")
+LogGrammarCoverage("alter_rename_database_stmt,database_name")
 
 
     $$.val = &tree.RenameDatabase{Name: tree.Name($3), NewName: tree.Name($6)}
@@ -13017,8 +13017,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_database_stmt,database_name")
 alter_rename_table_stmt:
   ALTER TABLE relation_expr RENAME TO table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,table_name")
+LogGrammarCoverage("alter_rename_table_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_table_stmt,table_name")
 
 
     name := $3.unresolvedObjectName()
@@ -13027,8 +13027,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,table_name")
   }
 | ALTER TABLE IF EXISTS relation_expr RENAME TO table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,table_name")
+LogGrammarCoverage("alter_rename_table_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_table_stmt,table_name")
 
 
     name := $5.unresolvedObjectName()
@@ -13039,8 +13039,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_table_stmt,table_name")
 alter_table_set_schema_stmt:
   ALTER TABLE relation_expr SET SCHEMA schema_name
    {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_table_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
 
 
      $$.val = &tree.AlterTableSetSchema{
@@ -13049,8 +13049,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
    }
 | ALTER TABLE IF EXISTS relation_expr SET SCHEMA schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_table_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
 
 
     $$.val = &tree.AlterTableSetSchema{
@@ -13061,8 +13061,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_set_schema_stmt,schema_name")
 alter_table_locality_stmt:
   ALTER TABLE relation_expr SET locality
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_locality_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_locality_stmt,locality")
+LogGrammarCoverage("alter_table_locality_stmt,relation_expr")
+LogGrammarCoverage("alter_table_locality_stmt,locality")
 
 
     $$.val = &tree.AlterTableLocality{
@@ -13073,8 +13073,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_locality_stmt,locality")
   }
 | ALTER TABLE IF EXISTS relation_expr SET locality
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_locality_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_locality_stmt,locality")
+LogGrammarCoverage("alter_table_locality_stmt,relation_expr")
+LogGrammarCoverage("alter_table_locality_stmt,locality")
 
 
     $$.val = &tree.AlterTableLocality{
@@ -13095,7 +13095,7 @@ locality:
   }
 | LOCALITY REGIONAL BY TABLE IN region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("locality,region_name")
+LogGrammarCoverage("locality,region_name")
 
 
     $$.val = &tree.Locality{
@@ -13121,7 +13121,7 @@ sqllex.(*lexer).LogGrammarCoverage("locality,region_name")
   }
 | LOCALITY REGIONAL IN region_name
   {
-sqllex.(*lexer).LogGrammarCoverage("locality,region_name")
+LogGrammarCoverage("locality,region_name")
 
 
     $$.val = &tree.Locality{
@@ -13155,7 +13155,7 @@ sqllex.(*lexer).LogGrammarCoverage("locality,region_name")
   }
 | LOCALITY REGIONAL BY ROW AS name
   {
-sqllex.(*lexer).LogGrammarCoverage("locality,name")
+LogGrammarCoverage("locality,name")
 
 
     $$.val = &tree.Locality{
@@ -13167,8 +13167,8 @@ sqllex.(*lexer).LogGrammarCoverage("locality,name")
 alter_table_owner_stmt:
   ALTER TABLE relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,role_spec")
+LogGrammarCoverage("alter_table_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_table_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13179,8 +13179,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,role_spec")
   }
 | ALTER TABLE IF EXISTS relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,role_spec")
+LogGrammarCoverage("alter_table_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_table_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13193,8 +13193,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_table_owner_stmt,role_spec")
 alter_view_set_schema_stmt:
 	ALTER VIEW relation_expr SET SCHEMA schema_name
 	 {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 
 
 		 $$.val = &tree.AlterTableSetSchema{
@@ -13203,8 +13203,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 	 }
 | ALTER MATERIALIZED VIEW relation_expr SET SCHEMA schema_name
 	 {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 
 
 		 $$.val = &tree.AlterTableSetSchema{
@@ -13217,8 +13217,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 	 }
 | ALTER VIEW IF EXISTS relation_expr SET SCHEMA schema_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 
 
 		$$.val = &tree.AlterTableSetSchema{
@@ -13227,8 +13227,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 	}
 | ALTER MATERIALIZED VIEW IF EXISTS relation_expr SET SCHEMA schema_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_view_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 
 
 		$$.val = &tree.AlterTableSetSchema{
@@ -13243,8 +13243,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_set_schema_stmt,schema_name")
 alter_view_owner_stmt:
 	ALTER VIEW relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
+LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_view_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13256,8 +13256,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
   }
 | ALTER MATERIALIZED VIEW relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
+LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_view_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13270,8 +13270,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
   }
 | ALTER VIEW IF EXISTS relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
+LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_view_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13283,8 +13283,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
   }
 | ALTER MATERIALIZED VIEW IF EXISTS relation_expr OWNER TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
+LogGrammarCoverage("alter_view_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_view_owner_stmt,role_spec")
 
 
     $$.val = &tree.AlterTableOwner{
@@ -13299,8 +13299,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_view_owner_stmt,role_spec")
 alter_sequence_set_schema_stmt:
 	ALTER SEQUENCE relation_expr SET SCHEMA schema_name
 	 {
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_sequence_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
 
 
 		 $$.val = &tree.AlterTableSetSchema{
@@ -13309,8 +13309,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
 	 }
 | ALTER SEQUENCE IF EXISTS relation_expr SET SCHEMA schema_name
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
+LogGrammarCoverage("alter_sequence_set_schema_stmt,relation_expr")
+LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
 
 
 		$$.val = &tree.AlterTableSetSchema{
@@ -13321,8 +13321,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_set_schema_stmt,schema_name")
 alter_sequence_owner_stmt:
 	ALTER SEQUENCE relation_expr OWNER TO role_spec
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
+LogGrammarCoverage("alter_sequence_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
 
 
 		$$.val = &tree.AlterTableOwner{
@@ -13334,8 +13334,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
 	}
 | ALTER SEQUENCE IF EXISTS relation_expr OWNER TO role_spec
 	{
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
+LogGrammarCoverage("alter_sequence_owner_stmt,relation_expr")
+LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
 
 
 		$$.val = &tree.AlterTableOwner{
@@ -13349,8 +13349,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_sequence_owner_stmt,role_spec")
 alter_rename_view_stmt:
   ALTER VIEW relation_expr RENAME TO view_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
+LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_view_stmt,view_name")
 
 
     name := $3.unresolvedObjectName()
@@ -13359,8 +13359,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
   }
 | ALTER MATERIALIZED VIEW relation_expr RENAME TO view_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
+LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_view_stmt,view_name")
 
 
     name := $4.unresolvedObjectName()
@@ -13375,8 +13375,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
   }
 | ALTER VIEW IF EXISTS relation_expr RENAME TO view_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
+LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_view_stmt,view_name")
 
 
     name := $5.unresolvedObjectName()
@@ -13385,8 +13385,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
   }
 | ALTER MATERIALIZED VIEW IF EXISTS relation_expr RENAME TO view_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
+LogGrammarCoverage("alter_rename_view_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_view_stmt,view_name")
 
 
     name := $6.unresolvedObjectName()
@@ -13403,8 +13403,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_view_stmt,view_name")
 alter_rename_sequence_stmt:
   ALTER SEQUENCE relation_expr RENAME TO sequence_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
+LogGrammarCoverage("alter_rename_sequence_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
 
 
     name := $3.unresolvedObjectName()
@@ -13413,8 +13413,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
   }
 | ALTER SEQUENCE IF EXISTS relation_expr RENAME TO sequence_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
+LogGrammarCoverage("alter_rename_sequence_stmt,relation_expr")
+LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
 
 
     name := $5.unresolvedObjectName()
@@ -13425,16 +13425,16 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_sequence_stmt,sequence_name")
 alter_rename_index_stmt:
   ALTER INDEX table_index_name RENAME TO index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_index_stmt,index_name")
+LogGrammarCoverage("alter_rename_index_stmt,table_index_name")
+LogGrammarCoverage("alter_rename_index_stmt,index_name")
 
 
     $$.val = &tree.RenameIndex{Index: $3.newTableIndexName(), NewName: tree.UnrestrictedName($6), IfExists: false}
   }
 | ALTER INDEX IF EXISTS table_index_name RENAME TO index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_index_stmt,table_index_name")
-sqllex.(*lexer).LogGrammarCoverage("alter_rename_index_stmt,index_name")
+LogGrammarCoverage("alter_rename_index_stmt,table_index_name")
+LogGrammarCoverage("alter_rename_index_stmt,index_name")
 
 
     $$.val = &tree.RenameIndex{Index: $5.newTableIndexName(), NewName: tree.UnrestrictedName($8), IfExists: true}
@@ -13449,9 +13449,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_rename_index_stmt,index_name")
 alter_default_privileges_stmt:
  ALTER DEFAULT PRIVILEGES opt_for_roles opt_in_schemas abbreviated_grant_stmt
  {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_for_roles")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_grant_stmt")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_for_roles")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
+LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_grant_stmt")
 
 
    $$.val = &tree.AlterDefaultPrivileges{
@@ -13463,9 +13463,9 @@ sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_gr
  }
 | ALTER DEFAULT PRIVILEGES opt_for_roles opt_in_schemas abbreviated_revoke_stmt
  {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_for_roles")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_revoke_stmt")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_for_roles")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
+LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_revoke_stmt")
 
 
    $$.val = &tree.AlterDefaultPrivileges{
@@ -13477,8 +13477,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_re
  }
 | ALTER DEFAULT PRIVILEGES FOR ALL ROLES opt_in_schemas abbreviated_grant_stmt
  {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_grant_stmt")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
+LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_grant_stmt")
 
 
    $$.val = &tree.AlterDefaultPrivileges{
@@ -13490,8 +13490,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_gr
  }
 | ALTER DEFAULT PRIVILEGES FOR ALL ROLES opt_in_schemas abbreviated_revoke_stmt
  {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_revoke_stmt")
+LogGrammarCoverage("alter_default_privileges_stmt,opt_in_schemas")
+LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_revoke_stmt")
 
 
    $$.val = &tree.AlterDefaultPrivileges{
@@ -13506,11 +13506,11 @@ sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_stmt,abbreviated_re
 abbreviated_grant_stmt:
   GRANT privileges ON alter_default_privileges_target_object TO role_spec_list opt_with_grant_option
   {
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_grant_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_grant_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_grant_stmt,alter_default_privileges_target_object")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_grant_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_grant_stmt,opt_with_grant_option")
+LogGrammarCoverage("abbreviated_grant_stmt,error")
+LogGrammarCoverage("abbreviated_grant_stmt,privileges")
+LogGrammarCoverage("abbreviated_grant_stmt,alter_default_privileges_target_object")
+LogGrammarCoverage("abbreviated_grant_stmt,role_spec_list")
+LogGrammarCoverage("abbreviated_grant_stmt,opt_with_grant_option")
 
 
     $$.val = tree.AbbreviatedGrant{
@@ -13538,10 +13538,10 @@ opt_with_grant_option:
 abbreviated_revoke_stmt:
   REVOKE privileges ON alter_default_privileges_target_object FROM role_spec_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,alter_default_privileges_target_object")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,opt_drop_behavior")
+LogGrammarCoverage("abbreviated_revoke_stmt,privileges")
+LogGrammarCoverage("abbreviated_revoke_stmt,alter_default_privileges_target_object")
+LogGrammarCoverage("abbreviated_revoke_stmt,role_spec_list")
+LogGrammarCoverage("abbreviated_revoke_stmt,opt_drop_behavior")
 
 
     $$.val = tree.AbbreviatedRevoke{
@@ -13552,10 +13552,10 @@ sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,opt_drop_behavior")
   }
 | REVOKE GRANT OPTION FOR privileges ON alter_default_privileges_target_object FROM role_spec_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,privileges")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,alter_default_privileges_target_object")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("abbreviated_revoke_stmt,opt_drop_behavior")
+LogGrammarCoverage("abbreviated_revoke_stmt,privileges")
+LogGrammarCoverage("abbreviated_revoke_stmt,alter_default_privileges_target_object")
+LogGrammarCoverage("abbreviated_revoke_stmt,role_spec_list")
+LogGrammarCoverage("abbreviated_revoke_stmt,opt_drop_behavior")
 
 
     $$.val = tree.AbbreviatedRevoke{
@@ -13593,14 +13593,14 @@ alter_default_privileges_target_object:
   }
 | FUNCTIONS error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_target_object,error")
+LogGrammarCoverage("alter_default_privileges_target_object,error")
 
 
     return unimplemented(sqllex, "ALTER DEFAULT PRIVILEGES ... ON FUNCTIONS ...")
   }
 | ROUTINES error
   {
-sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_target_object,error")
+LogGrammarCoverage("alter_default_privileges_target_object,error")
 
 
     return unimplemented(sqllex, "ALTER DEFAULT PRIVILEGES ... ON FUNCTIONS ...")
@@ -13609,8 +13609,8 @@ sqllex.(*lexer).LogGrammarCoverage("alter_default_privileges_target_object,error
 opt_for_roles:
  FOR role_or_group_or_user role_spec_list
  {
-sqllex.(*lexer).LogGrammarCoverage("opt_for_roles,role_or_group_or_user")
-sqllex.(*lexer).LogGrammarCoverage("opt_for_roles,role_spec_list")
+LogGrammarCoverage("opt_for_roles,role_or_group_or_user")
+LogGrammarCoverage("opt_for_roles,role_spec_list")
 
 
    $$.val = $3.roleSpecList()
@@ -13624,7 +13624,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_for_roles,role_spec_list")
 opt_in_schema:
  IN SCHEMA schema_name
  {
-sqllex.(*lexer).LogGrammarCoverage("opt_in_schema,schema_name")
+LogGrammarCoverage("opt_in_schema,schema_name")
 
 
    $$ = $3
@@ -13640,7 +13640,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_in_schema,schema_name")
 opt_in_schemas:
  IN SCHEMA schema_name_list
  {
-sqllex.(*lexer).LogGrammarCoverage("opt_in_schemas,schema_name_list")
+LogGrammarCoverage("opt_in_schemas,schema_name_list")
 
 
    $$.val = $3.objectNamePrefixList()
@@ -13675,7 +13675,7 @@ opt_set_data:
 release_stmt:
   RELEASE savepoint_name
   {
-sqllex.(*lexer).LogGrammarCoverage("release_stmt,savepoint_name")
+LogGrammarCoverage("release_stmt,savepoint_name")
 
 
     $$.val = &tree.ReleaseSavepoint{Savepoint: tree.Name($2)}
@@ -13691,8 +13691,8 @@ sqllex.(*lexer).LogGrammarCoverage("release_stmt,savepoint_name")
 resume_jobs_stmt:
   RESUME JOB a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,a_expr")
+LogGrammarCoverage("resume_jobs_stmt,error")
+LogGrammarCoverage("resume_jobs_stmt,a_expr")
 
 
     $$.val = &tree.ControlJobs{
@@ -13705,14 +13705,14 @@ sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,a_expr")
 | RESUME JOB error // SHOW HELP: RESUME JOBS
 | RESUME JOBS select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,select_stmt")
+LogGrammarCoverage("resume_jobs_stmt,select_stmt")
 
 
     $$.val = &tree.ControlJobs{Jobs: $3.slct(), Command: tree.ResumeJob}
   }
 | RESUME JOBS for_schedules_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,for_schedules_clause")
+LogGrammarCoverage("resume_jobs_stmt,for_schedules_clause")
 
 
     $$.val = &tree.ControlJobsForSchedules{Schedules: $3.slct(), Command: tree.ResumeJob}
@@ -13731,8 +13731,8 @@ sqllex.(*lexer).LogGrammarCoverage("resume_jobs_stmt,for_schedules_clause")
 resume_schedules_stmt:
   RESUME SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_schedules_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("resume_schedules_stmt,a_expr")
+LogGrammarCoverage("resume_schedules_stmt,error")
+LogGrammarCoverage("resume_schedules_stmt,a_expr")
 
 
     $$.val = &tree.ControlSchedules{
@@ -13745,7 +13745,7 @@ sqllex.(*lexer).LogGrammarCoverage("resume_schedules_stmt,a_expr")
 | RESUME SCHEDULE error // SHOW HELP: RESUME SCHEDULES
 | RESUME SCHEDULES select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("resume_schedules_stmt,select_stmt")
+LogGrammarCoverage("resume_schedules_stmt,select_stmt")
 
 
     $$.val = &tree.ControlSchedules{
@@ -13767,8 +13767,8 @@ sqllex.(*lexer).LogGrammarCoverage("resume_schedules_stmt,select_stmt")
 drop_schedule_stmt:
   DROP SCHEDULE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_schedule_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_schedule_stmt,a_expr")
+LogGrammarCoverage("drop_schedule_stmt,error")
+LogGrammarCoverage("drop_schedule_stmt,a_expr")
 
 
     $$.val = &tree.ControlSchedules{
@@ -13781,7 +13781,7 @@ sqllex.(*lexer).LogGrammarCoverage("drop_schedule_stmt,a_expr")
 | DROP SCHEDULE error // SHOW HELP: DROP SCHEDULES
 | DROP SCHEDULES select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_schedule_stmt,select_stmt")
+LogGrammarCoverage("drop_schedule_stmt,select_stmt")
 
 
     $$.val = &tree.ControlSchedules{
@@ -13798,8 +13798,8 @@ sqllex.(*lexer).LogGrammarCoverage("drop_schedule_stmt,select_stmt")
 savepoint_stmt:
   SAVEPOINT name
   {
-sqllex.(*lexer).LogGrammarCoverage("savepoint_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("savepoint_stmt,name")
+LogGrammarCoverage("savepoint_stmt,error")
+LogGrammarCoverage("savepoint_stmt,name")
 
 
     $$.val = &tree.Savepoint{Name: tree.Name($2)}
@@ -13811,12 +13811,12 @@ transaction_stmt:
   begin_stmt    //  : BEGIN
 | commit_stmt   //  : COMMIT
 {
-sqllex.(*lexer).LogGrammarCoverage("transaction_stmt,commit_stmt")
+LogGrammarCoverage("transaction_stmt,commit_stmt")
 
 }
 | rollback_stmt //  : ROLLBACK
 {
-sqllex.(*lexer).LogGrammarCoverage("transaction_stmt,rollback_stmt")
+LogGrammarCoverage("transaction_stmt,rollback_stmt")
 
 }
 | abort_stmt    
@@ -13833,14 +13833,14 @@ sqllex.(*lexer).LogGrammarCoverage("transaction_stmt,rollback_stmt")
 //
 // %SeeAlso: COMMIT, ROLLBACK, WEBDOCS/begin-transaction.html
 {
-sqllex.(*lexer).LogGrammarCoverage("transaction_stmt,abort_stmt")
+LogGrammarCoverage("transaction_stmt,abort_stmt")
 
 }
 begin_stmt:
   BEGIN opt_transaction begin_transaction
   {
-sqllex.(*lexer).LogGrammarCoverage("begin_stmt,opt_transaction")
-sqllex.(*lexer).LogGrammarCoverage("begin_stmt,begin_transaction")
+LogGrammarCoverage("begin_stmt,opt_transaction")
+LogGrammarCoverage("begin_stmt,begin_transaction")
 
 
     $$.val = $3.stmt()
@@ -13848,7 +13848,7 @@ sqllex.(*lexer).LogGrammarCoverage("begin_stmt,begin_transaction")
 | BEGIN error // SHOW HELP: BEGIN
 | START TRANSACTION begin_transaction
   {
-sqllex.(*lexer).LogGrammarCoverage("begin_stmt,begin_transaction")
+LogGrammarCoverage("begin_stmt,begin_transaction")
 
 
     $$.val = $3.stmt()
@@ -13864,8 +13864,8 @@ sqllex.(*lexer).LogGrammarCoverage("begin_stmt,begin_transaction")
 commit_stmt:
   COMMIT opt_transaction
   {
-sqllex.(*lexer).LogGrammarCoverage("commit_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("commit_stmt,opt_transaction")
+LogGrammarCoverage("commit_stmt,error")
+LogGrammarCoverage("commit_stmt,opt_transaction")
 
 
     $$.val = &tree.CommitTransaction{}
@@ -13873,7 +13873,7 @@ sqllex.(*lexer).LogGrammarCoverage("commit_stmt,opt_transaction")
 | COMMIT error // SHOW HELP: COMMIT
 | END opt_transaction
   {
-sqllex.(*lexer).LogGrammarCoverage("commit_stmt,opt_transaction")
+LogGrammarCoverage("commit_stmt,opt_transaction")
 
 
     $$.val = &tree.CommitTransaction{}
@@ -13883,8 +13883,8 @@ sqllex.(*lexer).LogGrammarCoverage("commit_stmt,opt_transaction")
 abort_stmt:
   ABORT opt_abort_mod
   {
-sqllex.(*lexer).LogGrammarCoverage("abort_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("abort_stmt,opt_abort_mod")
+LogGrammarCoverage("abort_stmt,error")
+LogGrammarCoverage("abort_stmt,opt_abort_mod")
 
 
     $$.val = &tree.RollbackTransaction{}
@@ -13910,15 +13910,15 @@ opt_abort_mod:
 rollback_stmt:
   ROLLBACK opt_transaction
   {
-sqllex.(*lexer).LogGrammarCoverage("rollback_stmt,opt_transaction")
+LogGrammarCoverage("rollback_stmt,opt_transaction")
 
 
      $$.val = &tree.RollbackTransaction{}
   }
 | ROLLBACK opt_transaction TO savepoint_name
   {
-sqllex.(*lexer).LogGrammarCoverage("rollback_stmt,opt_transaction")
-sqllex.(*lexer).LogGrammarCoverage("rollback_stmt,savepoint_name")
+LogGrammarCoverage("rollback_stmt,opt_transaction")
+LogGrammarCoverage("rollback_stmt,savepoint_name")
 
 
      $$.val = &tree.RollbackToSavepoint{Savepoint: tree.Name($4)}
@@ -13927,7 +13927,7 @@ sqllex.(*lexer).LogGrammarCoverage("rollback_stmt,savepoint_name")
 
 opt_transaction:
   TRANSACTION {
-sqllex.(*lexer).LogGrammarCoverage("opt_transaction,error")
+LogGrammarCoverage("opt_transaction,error")
 
 }
 | /* EMPTY */ {
@@ -13937,14 +13937,14 @@ sqllex.(*lexer).LogGrammarCoverage("opt_transaction,error")
 savepoint_name:
   SAVEPOINT name
   {
-sqllex.(*lexer).LogGrammarCoverage("savepoint_name,name")
+LogGrammarCoverage("savepoint_name,name")
 
 
     $$ = $2
   }
 | name
   {
-sqllex.(*lexer).LogGrammarCoverage("savepoint_name,name")
+LogGrammarCoverage("savepoint_name,name")
 
 
     $$ = $1
@@ -13953,7 +13953,7 @@ sqllex.(*lexer).LogGrammarCoverage("savepoint_name,name")
 begin_transaction:
   transaction_mode_list
   {
-sqllex.(*lexer).LogGrammarCoverage("begin_transaction,transaction_mode_list")
+LogGrammarCoverage("begin_transaction,transaction_mode_list")
 
 
     $$.val = &tree.BeginTransaction{Modes: $1.transactionModes()}
@@ -13968,16 +13968,16 @@ sqllex.(*lexer).LogGrammarCoverage("begin_transaction,transaction_mode_list")
 transaction_mode_list:
   transaction_mode
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode_list,transaction_mode")
+LogGrammarCoverage("transaction_mode_list,transaction_mode")
 
 
     $$.val = $1.transactionModes()
   }
 | transaction_mode_list opt_comma transaction_mode
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode_list,transaction_mode_list")
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode_list,opt_comma")
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode_list,transaction_mode")
+LogGrammarCoverage("transaction_mode_list,transaction_mode_list")
+LogGrammarCoverage("transaction_mode_list,opt_comma")
+LogGrammarCoverage("transaction_mode_list,transaction_mode")
 
 
     a := $1.transactionModes()
@@ -14003,7 +14003,7 @@ opt_comma:
 transaction_mode:
   transaction_iso_level
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_iso_level")
+LogGrammarCoverage("transaction_mode,transaction_iso_level")
 
 
     
@@ -14011,28 +14011,28 @@ sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_iso_level")
   }
 | transaction_user_priority
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_user_priority")
+LogGrammarCoverage("transaction_mode,transaction_user_priority")
 
 
     $$.val = tree.TransactionModes{UserPriority: $1.userPriority()}
   }
 | transaction_read_mode
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_read_mode")
+LogGrammarCoverage("transaction_mode,transaction_read_mode")
 
 
     $$.val = tree.TransactionModes{ReadWriteMode: $1.readWriteMode()}
   }
 | as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode,as_of_clause")
+LogGrammarCoverage("transaction_mode,as_of_clause")
 
 
     $$.val = tree.TransactionModes{AsOf: $1.asOfClause()}
   }
 | transaction_deferrable_mode
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_deferrable_mode")
+LogGrammarCoverage("transaction_mode,transaction_deferrable_mode")
 
 
     $$.val = tree.TransactionModes{Deferrable: $1.deferrableMode()}
@@ -14041,7 +14041,7 @@ sqllex.(*lexer).LogGrammarCoverage("transaction_mode,transaction_deferrable_mode
 transaction_user_priority:
   PRIORITY user_priority
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_user_priority,user_priority")
+LogGrammarCoverage("transaction_user_priority,user_priority")
 
 
     $$.val = $2.userPriority()
@@ -14050,7 +14050,7 @@ sqllex.(*lexer).LogGrammarCoverage("transaction_user_priority,user_priority")
 transaction_iso_level:
   ISOLATION LEVEL iso_level
   {
-sqllex.(*lexer).LogGrammarCoverage("transaction_iso_level,iso_level")
+LogGrammarCoverage("transaction_iso_level,iso_level")
 
 
     $$.val = $3.isoLevel()
@@ -14091,18 +14091,18 @@ transaction_deferrable_mode:
 create_database_stmt:
   CREATE DATABASE database_name opt_with opt_template_clause opt_encoding_clause opt_lc_collate_clause opt_lc_ctype_clause opt_connection_limit opt_primary_region_clause opt_regions_list opt_survival_goal_clause opt_placement_clause opt_owner_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_with")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_template_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_encoding_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_lc_collate_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_lc_ctype_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_connection_limit")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_primary_region_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_regions_list")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_survival_goal_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_placement_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_owner_clause")
+LogGrammarCoverage("create_database_stmt,database_name")
+LogGrammarCoverage("create_database_stmt,opt_with")
+LogGrammarCoverage("create_database_stmt,opt_template_clause")
+LogGrammarCoverage("create_database_stmt,opt_encoding_clause")
+LogGrammarCoverage("create_database_stmt,opt_lc_collate_clause")
+LogGrammarCoverage("create_database_stmt,opt_lc_ctype_clause")
+LogGrammarCoverage("create_database_stmt,opt_connection_limit")
+LogGrammarCoverage("create_database_stmt,opt_primary_region_clause")
+LogGrammarCoverage("create_database_stmt,opt_regions_list")
+LogGrammarCoverage("create_database_stmt,opt_survival_goal_clause")
+LogGrammarCoverage("create_database_stmt,opt_placement_clause")
+LogGrammarCoverage("create_database_stmt,opt_owner_clause")
 
 
     $$.val = &tree.CreateDatabase{
@@ -14121,17 +14121,17 @@ sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_owner_clause")
   }
 | CREATE DATABASE IF NOT EXISTS database_name opt_with opt_template_clause opt_encoding_clause opt_lc_collate_clause opt_lc_ctype_clause opt_connection_limit opt_primary_region_clause opt_regions_list opt_survival_goal_clause opt_placement_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,database_name")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_with")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_template_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_encoding_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_lc_collate_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_lc_ctype_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_connection_limit")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_primary_region_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_regions_list")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_survival_goal_clause")
-sqllex.(*lexer).LogGrammarCoverage("create_database_stmt,opt_placement_clause")
+LogGrammarCoverage("create_database_stmt,database_name")
+LogGrammarCoverage("create_database_stmt,opt_with")
+LogGrammarCoverage("create_database_stmt,opt_template_clause")
+LogGrammarCoverage("create_database_stmt,opt_encoding_clause")
+LogGrammarCoverage("create_database_stmt,opt_lc_collate_clause")
+LogGrammarCoverage("create_database_stmt,opt_lc_ctype_clause")
+LogGrammarCoverage("create_database_stmt,opt_connection_limit")
+LogGrammarCoverage("create_database_stmt,opt_primary_region_clause")
+LogGrammarCoverage("create_database_stmt,opt_regions_list")
+LogGrammarCoverage("create_database_stmt,opt_survival_goal_clause")
+LogGrammarCoverage("create_database_stmt,opt_placement_clause")
 
 
     $$.val = &tree.CreateDatabase{
@@ -14161,8 +14161,8 @@ opt_primary_region_clause:
 
 primary_region_clause:
   PRIMARY REGION opt_equal region_name {
-sqllex.(*lexer).LogGrammarCoverage("primary_region_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("primary_region_clause,region_name")
+LogGrammarCoverage("primary_region_clause,opt_equal")
+LogGrammarCoverage("primary_region_clause,region_name")
 
 
     $$ = $4
@@ -14171,7 +14171,7 @@ sqllex.(*lexer).LogGrammarCoverage("primary_region_clause,region_name")
 opt_placement_clause:
   placement_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_placement_clause,placement_clause")
+LogGrammarCoverage("opt_placement_clause,placement_clause")
 
 }
 | /* EMPTY */
@@ -14200,9 +14200,9 @@ placement_clause:
 opt_regions_list:
   region_or_regions opt_equal region_name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_regions_list,region_or_regions")
-sqllex.(*lexer).LogGrammarCoverage("opt_regions_list,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_regions_list,region_name_list")
+LogGrammarCoverage("opt_regions_list,region_or_regions")
+LogGrammarCoverage("opt_regions_list,opt_equal")
+LogGrammarCoverage("opt_regions_list,region_name_list")
 
 
     $$.val = $3.nameList()
@@ -14229,21 +14229,21 @@ region_or_regions:
 survival_goal_clause:
   SURVIVE opt_equal REGION FAILURE
   {
-sqllex.(*lexer).LogGrammarCoverage("survival_goal_clause,opt_equal")
+LogGrammarCoverage("survival_goal_clause,opt_equal")
 
 
     $$.val = tree.SurvivalGoalRegionFailure
   }
 | SURVIVE opt_equal ZONE FAILURE
   {
-sqllex.(*lexer).LogGrammarCoverage("survival_goal_clause,opt_equal")
+LogGrammarCoverage("survival_goal_clause,opt_equal")
 
 
     $$.val = tree.SurvivalGoalZoneFailure
   }
 | SURVIVE opt_equal AVAILABILITY ZONE FAILURE
   {
-sqllex.(*lexer).LogGrammarCoverage("survival_goal_clause,opt_equal")
+LogGrammarCoverage("survival_goal_clause,opt_equal")
 
 
     
@@ -14254,7 +14254,7 @@ sqllex.(*lexer).LogGrammarCoverage("survival_goal_clause,opt_equal")
 opt_survival_goal_clause:
   survival_goal_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_survival_goal_clause,survival_goal_clause")
+LogGrammarCoverage("opt_survival_goal_clause,survival_goal_clause")
 
 }
 | /* EMPTY */
@@ -14267,8 +14267,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_survival_goal_clause,survival_goal_claus
 opt_template_clause:
   TEMPLATE opt_equal non_reserved_word_or_sconst
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_template_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_template_clause,non_reserved_word_or_sconst")
+LogGrammarCoverage("opt_template_clause,opt_equal")
+LogGrammarCoverage("opt_template_clause,non_reserved_word_or_sconst")
 
 
     $$ = $3
@@ -14283,8 +14283,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_template_clause,non_reserved_word_or_sco
 opt_encoding_clause:
   ENCODING opt_equal non_reserved_word_or_sconst
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_encoding_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_encoding_clause,non_reserved_word_or_sconst")
+LogGrammarCoverage("opt_encoding_clause,opt_equal")
+LogGrammarCoverage("opt_encoding_clause,non_reserved_word_or_sconst")
 
 
     $$ = $3
@@ -14299,8 +14299,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_encoding_clause,non_reserved_word_or_sco
 opt_lc_collate_clause:
   LC_COLLATE opt_equal non_reserved_word_or_sconst
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_lc_collate_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_lc_collate_clause,non_reserved_word_or_sconst")
+LogGrammarCoverage("opt_lc_collate_clause,opt_equal")
+LogGrammarCoverage("opt_lc_collate_clause,non_reserved_word_or_sconst")
 
 
     $$ = $3
@@ -14315,8 +14315,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_lc_collate_clause,non_reserved_word_or_s
 opt_lc_ctype_clause:
   LC_CTYPE opt_equal non_reserved_word_or_sconst
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_lc_ctype_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_lc_ctype_clause,non_reserved_word_or_sconst")
+LogGrammarCoverage("opt_lc_ctype_clause,opt_equal")
+LogGrammarCoverage("opt_lc_ctype_clause,non_reserved_word_or_sconst")
 
 
     $$ = $3
@@ -14331,8 +14331,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_lc_ctype_clause,non_reserved_word_or_sco
 opt_connection_limit:
   CONNECTION LIMIT opt_equal signed_iconst
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_connection_limit,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_connection_limit,signed_iconst")
+LogGrammarCoverage("opt_connection_limit,opt_equal")
+LogGrammarCoverage("opt_connection_limit,signed_iconst")
 
 
     ret, err := $4.numVal().AsInt32()
@@ -14351,8 +14351,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_connection_limit,signed_iconst")
 opt_owner_clause:
   OWNER opt_equal role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_owner_clause,opt_equal")
-sqllex.(*lexer).LogGrammarCoverage("opt_owner_clause,role_spec")
+LogGrammarCoverage("opt_owner_clause,opt_equal")
+LogGrammarCoverage("opt_owner_clause,role_spec")
 
 
     $$ = $3
@@ -14388,10 +14388,10 @@ opt_equal:
 insert_stmt:
   opt_with_clause INSERT INTO insert_target insert_rest returning_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,insert_target")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,insert_rest")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,returning_clause")
+LogGrammarCoverage("insert_stmt,opt_with_clause")
+LogGrammarCoverage("insert_stmt,insert_target")
+LogGrammarCoverage("insert_stmt,insert_rest")
+LogGrammarCoverage("insert_stmt,returning_clause")
 
 
     $$.val = $5.stmt()
@@ -14401,11 +14401,11 @@ sqllex.(*lexer).LogGrammarCoverage("insert_stmt,returning_clause")
   }
 | opt_with_clause INSERT INTO insert_target insert_rest on_conflict returning_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,insert_target")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,insert_rest")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,on_conflict")
-sqllex.(*lexer).LogGrammarCoverage("insert_stmt,returning_clause")
+LogGrammarCoverage("insert_stmt,opt_with_clause")
+LogGrammarCoverage("insert_stmt,insert_target")
+LogGrammarCoverage("insert_stmt,insert_rest")
+LogGrammarCoverage("insert_stmt,on_conflict")
+LogGrammarCoverage("insert_stmt,returning_clause")
 
 
     $$.val = $5.stmt()
@@ -14426,12 +14426,12 @@ sqllex.(*lexer).LogGrammarCoverage("insert_stmt,returning_clause")
 upsert_stmt:
   opt_with_clause UPSERT INTO insert_target insert_rest returning_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,insert_target")
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,insert_rest")
-sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,returning_clause")
+LogGrammarCoverage("upsert_stmt,opt_with_clause")
+LogGrammarCoverage("upsert_stmt,error")
+LogGrammarCoverage("upsert_stmt,opt_with_clause")
+LogGrammarCoverage("upsert_stmt,insert_target")
+LogGrammarCoverage("upsert_stmt,insert_rest")
+LogGrammarCoverage("upsert_stmt,returning_clause")
 
 
     $$.val = $5.stmt()
@@ -14445,9 +14445,9 @@ sqllex.(*lexer).LogGrammarCoverage("upsert_stmt,returning_clause")
 insert_target:
   table_name
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_target,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("insert_target,error")
-sqllex.(*lexer).LogGrammarCoverage("insert_target,table_name")
+LogGrammarCoverage("insert_target,opt_with_clause")
+LogGrammarCoverage("insert_target,error")
+LogGrammarCoverage("insert_target,table_name")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -14459,8 +14459,8 @@ sqllex.(*lexer).LogGrammarCoverage("insert_target,table_name")
 // divergence from other places. So just require AS for now.
 | table_name AS table_alias_name
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_target,table_name")
-sqllex.(*lexer).LogGrammarCoverage("insert_target,table_alias_name")
+LogGrammarCoverage("insert_target,table_name")
+LogGrammarCoverage("insert_target,table_alias_name")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -14468,7 +14468,7 @@ sqllex.(*lexer).LogGrammarCoverage("insert_target,table_alias_name")
   }
 | numeric_table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_target,numeric_table_ref")
+LogGrammarCoverage("insert_target,numeric_table_ref")
 
 
     $$.val = $1.tblExpr()
@@ -14477,15 +14477,15 @@ sqllex.(*lexer).LogGrammarCoverage("insert_target,numeric_table_ref")
 insert_rest:
   select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_rest,select_stmt")
+LogGrammarCoverage("insert_rest,select_stmt")
 
 
     $$.val = &tree.Insert{Rows: $1.slct()}
   }
 | '(' insert_column_list ')' select_stmt
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_rest,insert_column_list")
-sqllex.(*lexer).LogGrammarCoverage("insert_rest,select_stmt")
+LogGrammarCoverage("insert_rest,insert_column_list")
+LogGrammarCoverage("insert_rest,select_stmt")
 
 
     $$.val = &tree.Insert{Columns: $2.nameList(), Rows: $4.slct()}
@@ -14500,15 +14500,15 @@ sqllex.(*lexer).LogGrammarCoverage("insert_rest,select_stmt")
 insert_column_list:
   insert_column_item
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_column_list,insert_column_item")
+LogGrammarCoverage("insert_column_list,insert_column_item")
 
 
     $$.val = tree.NameList{tree.Name($1)}
   }
 | insert_column_list ',' insert_column_item
   {
-sqllex.(*lexer).LogGrammarCoverage("insert_column_list,insert_column_list")
-sqllex.(*lexer).LogGrammarCoverage("insert_column_list,insert_column_item")
+LogGrammarCoverage("insert_column_list,insert_column_list")
+LogGrammarCoverage("insert_column_list,insert_column_item")
 
 
     $$.val = append($1.nameList(), tree.Name($3))
@@ -14531,12 +14531,12 @@ sqllex.(*lexer).LogGrammarCoverage("insert_column_list,insert_column_item")
 insert_column_item:
   column_name
 {
-sqllex.(*lexer).LogGrammarCoverage("insert_column_item,column_name")
+LogGrammarCoverage("insert_column_item,column_name")
 
 }
 | column_name '.' error {
-sqllex.(*lexer).LogGrammarCoverage("insert_column_item,column_name")
-sqllex.(*lexer).LogGrammarCoverage("insert_column_item,error")
+LogGrammarCoverage("insert_column_item,column_name")
+LogGrammarCoverage("insert_column_item,error")
 
  return unimplementedWithIssue(sqllex, 27792) }
 
@@ -14552,8 +14552,8 @@ on_conflict:
   }
 | ON CONFLICT '(' name_list ')' opt_where_clause DO NOTHING
   {
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,name_list")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
+LogGrammarCoverage("on_conflict,name_list")
+LogGrammarCoverage("on_conflict,opt_where_clause")
 
 
     $$.val = &tree.OnConflict{
@@ -14564,10 +14564,10 @@ sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
   }
 | ON CONFLICT '(' name_list ')' opt_where_clause DO UPDATE SET set_clause_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,name_list")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,set_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
+LogGrammarCoverage("on_conflict,name_list")
+LogGrammarCoverage("on_conflict,opt_where_clause")
+LogGrammarCoverage("on_conflict,set_clause_list")
+LogGrammarCoverage("on_conflict,opt_where_clause")
 
 
     $$.val = &tree.OnConflict{
@@ -14579,7 +14579,7 @@ sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
   }
 | ON CONFLICT ON CONSTRAINT constraint_name DO NOTHING
   {
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,constraint_name")
+LogGrammarCoverage("on_conflict,constraint_name")
 
 
     $$.val = &tree.OnConflict{
@@ -14589,9 +14589,9 @@ sqllex.(*lexer).LogGrammarCoverage("on_conflict,constraint_name")
   }
 | ON CONFLICT ON CONSTRAINT constraint_name DO UPDATE SET set_clause_list opt_where_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,constraint_name")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,set_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
+LogGrammarCoverage("on_conflict,constraint_name")
+LogGrammarCoverage("on_conflict,set_clause_list")
+LogGrammarCoverage("on_conflict,opt_where_clause")
 
 
     $$.val = &tree.OnConflict{
@@ -14604,7 +14604,7 @@ sqllex.(*lexer).LogGrammarCoverage("on_conflict,opt_where_clause")
 returning_clause:
   RETURNING target_list
   {
-sqllex.(*lexer).LogGrammarCoverage("returning_clause,target_list")
+LogGrammarCoverage("returning_clause,target_list")
 
 
     ret := tree.ReturningExprs($2.selExprs())
@@ -14637,14 +14637,14 @@ update_stmt:
   opt_with_clause UPDATE table_expr_opt_alias_idx
     SET set_clause_list opt_from_list opt_where_clause opt_sort_clause opt_limit_clause returning_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,table_expr_opt_alias_idx")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,set_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,opt_from_list")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,opt_limit_clause")
-sqllex.(*lexer).LogGrammarCoverage("update_stmt,returning_clause")
+LogGrammarCoverage("update_stmt,opt_with_clause")
+LogGrammarCoverage("update_stmt,table_expr_opt_alias_idx")
+LogGrammarCoverage("update_stmt,set_clause_list")
+LogGrammarCoverage("update_stmt,opt_from_list")
+LogGrammarCoverage("update_stmt,opt_where_clause")
+LogGrammarCoverage("update_stmt,opt_sort_clause")
+LogGrammarCoverage("update_stmt,opt_limit_clause")
+LogGrammarCoverage("update_stmt,returning_clause")
 
 
     $$.val = &tree.Update{
@@ -14662,9 +14662,9 @@ sqllex.(*lexer).LogGrammarCoverage("update_stmt,returning_clause")
 
 opt_from_list:
   FROM from_list {
-sqllex.(*lexer).LogGrammarCoverage("opt_from_list,opt_with_clause")
-sqllex.(*lexer).LogGrammarCoverage("opt_from_list,error")
-sqllex.(*lexer).LogGrammarCoverage("opt_from_list,from_list")
+LogGrammarCoverage("opt_from_list,opt_with_clause")
+LogGrammarCoverage("opt_from_list,error")
+LogGrammarCoverage("opt_from_list,from_list")
 
 
     $$.val = $2.tblExprs()
@@ -14678,15 +14678,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_from_list,from_list")
 set_clause_list:
   set_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("set_clause_list,set_clause")
+LogGrammarCoverage("set_clause_list,set_clause")
 
 
     $$.val = tree.UpdateExprs{$1.updateExpr()}
   }
 | set_clause_list ',' set_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("set_clause_list,set_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("set_clause_list,set_clause")
+LogGrammarCoverage("set_clause_list,set_clause_list")
+LogGrammarCoverage("set_clause_list,set_clause")
 
 
     $$.val = append($1.updateExprs(), $3.updateExpr())
@@ -14698,35 +14698,35 @@ sqllex.(*lexer).LogGrammarCoverage("set_clause_list,set_clause")
 set_clause:
   single_set_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("set_clause,single_set_clause")
+LogGrammarCoverage("set_clause,single_set_clause")
 
 }
 | multiple_set_clause
 
 {
-sqllex.(*lexer).LogGrammarCoverage("set_clause,multiple_set_clause")
+LogGrammarCoverage("set_clause,multiple_set_clause")
 
 }
 single_set_clause:
   column_name '=' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("single_set_clause,column_name")
-sqllex.(*lexer).LogGrammarCoverage("single_set_clause,a_expr")
+LogGrammarCoverage("single_set_clause,column_name")
+LogGrammarCoverage("single_set_clause,a_expr")
 
 
     $$.val = &tree.UpdateExpr{Names: tree.NameList{tree.Name($1)}, Expr: $3.expr()}
   }
 | column_name '.' error {
-sqllex.(*lexer).LogGrammarCoverage("single_set_clause,column_name")
-sqllex.(*lexer).LogGrammarCoverage("single_set_clause,error")
+LogGrammarCoverage("single_set_clause,column_name")
+LogGrammarCoverage("single_set_clause,error")
 
  return unimplementedWithIssue(sqllex, 27792) }
 
 multiple_set_clause:
   '(' insert_column_list ')' '=' in_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("multiple_set_clause,insert_column_list")
-sqllex.(*lexer).LogGrammarCoverage("multiple_set_clause,in_expr")
+LogGrammarCoverage("multiple_set_clause,insert_column_list")
+LogGrammarCoverage("multiple_set_clause,in_expr")
 
 
     $$.val = &tree.UpdateExpr{Tuple: true, Names: $2.nameList(), Expr: $5.expr()}
@@ -14740,8 +14740,8 @@ sqllex.(*lexer).LogGrammarCoverage("multiple_set_clause,in_expr")
 reassign_owned_by_stmt:
   REASSIGN OWNED BY role_spec_list TO role_spec
   {
-sqllex.(*lexer).LogGrammarCoverage("reassign_owned_by_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("reassign_owned_by_stmt,role_spec")
+LogGrammarCoverage("reassign_owned_by_stmt,role_spec_list")
+LogGrammarCoverage("reassign_owned_by_stmt,role_spec")
 
 
     $$.val = &tree.ReassignOwnedBy{
@@ -14759,9 +14759,9 @@ sqllex.(*lexer).LogGrammarCoverage("reassign_owned_by_stmt,role_spec")
 drop_owned_by_stmt:
   DROP OWNED BY role_spec_list opt_drop_behavior
   {
-sqllex.(*lexer).LogGrammarCoverage("drop_owned_by_stmt,error")
-sqllex.(*lexer).LogGrammarCoverage("drop_owned_by_stmt,role_spec_list")
-sqllex.(*lexer).LogGrammarCoverage("drop_owned_by_stmt,opt_drop_behavior")
+LogGrammarCoverage("drop_owned_by_stmt,error")
+LogGrammarCoverage("drop_owned_by_stmt,role_spec_list")
+LogGrammarCoverage("drop_owned_by_stmt,opt_drop_behavior")
 
 
     $$.val = &tree.DropOwnedBy{
@@ -14811,7 +14811,7 @@ select_stmt:
   select_no_parens %prec UMINUS
 | select_with_parens %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("select_stmt,select_with_parens")
+LogGrammarCoverage("select_stmt,select_with_parens")
 
 
     $$.val = &tree.Select{Select: $1.selectStmt()}
@@ -14820,14 +14820,14 @@ sqllex.(*lexer).LogGrammarCoverage("select_stmt,select_with_parens")
 select_with_parens:
   '(' select_no_parens ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("select_with_parens,select_no_parens")
+LogGrammarCoverage("select_with_parens,select_no_parens")
 
 
     $$.val = &tree.ParenSelect{Select: $2.slct()}
   }
 | '(' select_with_parens ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("select_with_parens,select_with_parens")
+LogGrammarCoverage("select_with_parens,select_with_parens")
 
 
     $$.val = &tree.ParenSelect{Select: &tree.Select{Select: $2.selectStmt()}}
@@ -14845,74 +14845,74 @@ sqllex.(*lexer).LogGrammarCoverage("select_with_parens,select_with_parens")
 select_no_parens:
   simple_select
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,simple_select")
+LogGrammarCoverage("select_no_parens,simple_select")
 
 
     $$.val = &tree.Select{Select: $1.selectStmt()}
   }
 | select_clause sort_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,sort_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,sort_clause")
 
 
     $$.val = &tree.Select{Select: $1.selectStmt(), OrderBy: $2.orderBy()}
   }
 | select_clause opt_sort_clause for_locking_clause opt_select_limit
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,for_locking_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_select_limit")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,opt_sort_clause")
+LogGrammarCoverage("select_no_parens,for_locking_clause")
+LogGrammarCoverage("select_no_parens,opt_select_limit")
 
 
     $$.val = &tree.Select{Select: $1.selectStmt(), OrderBy: $2.orderBy(), Limit: $4.limit(), Locking: $3.lockingClause()}
   }
 | select_clause opt_sort_clause select_limit opt_for_locking_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_limit")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_for_locking_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,opt_sort_clause")
+LogGrammarCoverage("select_no_parens,select_limit")
+LogGrammarCoverage("select_no_parens,opt_for_locking_clause")
 
 
     $$.val = &tree.Select{Select: $1.selectStmt(), OrderBy: $2.orderBy(), Limit: $3.limit(), Locking: $4.lockingClause()}
   }
 | with_clause select_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,with_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,with_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
 
 
     $$.val = &tree.Select{With: $1.with(), Select: $2.selectStmt()}
   }
 | with_clause select_clause sort_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,with_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,sort_clause")
+LogGrammarCoverage("select_no_parens,with_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,sort_clause")
 
 
     $$.val = &tree.Select{With: $1.with(), Select: $2.selectStmt(), OrderBy: $3.orderBy()}
   }
 | with_clause select_clause opt_sort_clause for_locking_clause opt_select_limit
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,with_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,for_locking_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_select_limit")
+LogGrammarCoverage("select_no_parens,with_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,opt_sort_clause")
+LogGrammarCoverage("select_no_parens,for_locking_clause")
+LogGrammarCoverage("select_no_parens,opt_select_limit")
 
 
     $$.val = &tree.Select{With: $1.with(), Select: $2.selectStmt(), OrderBy: $3.orderBy(), Limit: $5.limit(), Locking: $4.lockingClause()}
   }
 | with_clause select_clause opt_sort_clause select_limit opt_for_locking_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,with_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,select_limit")
-sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_for_locking_clause")
+LogGrammarCoverage("select_no_parens,with_clause")
+LogGrammarCoverage("select_no_parens,select_clause")
+LogGrammarCoverage("select_no_parens,opt_sort_clause")
+LogGrammarCoverage("select_no_parens,select_limit")
+LogGrammarCoverage("select_no_parens,opt_for_locking_clause")
 
 
     $$.val = &tree.Select{With: $1.with(), Select: $2.selectStmt(), OrderBy: $3.orderBy(), Limit: $4.limit(), Locking: $5.lockingClause()}
@@ -14920,7 +14920,7 @@ sqllex.(*lexer).LogGrammarCoverage("select_no_parens,opt_for_locking_clause")
 
 for_locking_clause:
   for_locking_items {
-sqllex.(*lexer).LogGrammarCoverage("for_locking_clause,for_locking_items")
+LogGrammarCoverage("for_locking_clause,for_locking_items")
 
  $$.val = $1.lockingClause() }
 | FOR READ ONLY     {
@@ -14929,7 +14929,7 @@ sqllex.(*lexer).LogGrammarCoverage("for_locking_clause,for_locking_items")
 
 opt_for_locking_clause:
   for_locking_clause {
-sqllex.(*lexer).LogGrammarCoverage("opt_for_locking_clause,for_locking_clause")
+LogGrammarCoverage("opt_for_locking_clause,for_locking_clause")
 
  $$.val = $1.lockingClause() }
 | /* EMPTY */        {
@@ -14939,15 +14939,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_for_locking_clause,for_locking_clause")
 for_locking_items:
   for_locking_item
   {
-sqllex.(*lexer).LogGrammarCoverage("for_locking_items,for_locking_item")
+LogGrammarCoverage("for_locking_items,for_locking_item")
 
 
     $$.val = tree.LockingClause{$1.lockingItem()}
   }
 | for_locking_items for_locking_item
   {
-sqllex.(*lexer).LogGrammarCoverage("for_locking_items,for_locking_items")
-sqllex.(*lexer).LogGrammarCoverage("for_locking_items,for_locking_item")
+LogGrammarCoverage("for_locking_items,for_locking_items")
+LogGrammarCoverage("for_locking_items,for_locking_item")
 
 
     $$.val = append($1.lockingClause(), $2.lockingItem())
@@ -14956,9 +14956,9 @@ sqllex.(*lexer).LogGrammarCoverage("for_locking_items,for_locking_item")
 for_locking_item:
   for_locking_strength opt_locked_rels opt_nowait_or_skip
   {
-sqllex.(*lexer).LogGrammarCoverage("for_locking_item,for_locking_strength")
-sqllex.(*lexer).LogGrammarCoverage("for_locking_item,opt_locked_rels")
-sqllex.(*lexer).LogGrammarCoverage("for_locking_item,opt_nowait_or_skip")
+LogGrammarCoverage("for_locking_item,for_locking_strength")
+LogGrammarCoverage("for_locking_item,opt_locked_rels")
+LogGrammarCoverage("for_locking_item,opt_nowait_or_skip")
 
 
     $$.val = &tree.LockingItem{
@@ -14987,7 +14987,7 @@ opt_locked_rels:
 
  $$.val = tree.TableNames{} }
 | OF table_name_list {
-sqllex.(*lexer).LogGrammarCoverage("opt_locked_rels,table_name_list")
+LogGrammarCoverage("opt_locked_rels,table_name_list")
 
  $$.val = $2.tableNames() }
 
@@ -15008,7 +15008,7 @@ select_clause:
   '(' error // SHOW HELP: <SELECTCLAUSE>
 | simple_select
 {
-sqllex.(*lexer).LogGrammarCoverage("select_clause,simple_select")
+LogGrammarCoverage("select_clause,simple_select")
 
 }
 | select_with_parens
@@ -15044,23 +15044,23 @@ sqllex.(*lexer).LogGrammarCoverage("select_clause,simple_select")
 //   VALUES ( <exprs...> ) [ , ... ]
 //   SELECT ... [ { INTERSECT | UNION | EXCEPT } [ ALL | DISTINCT ] <selectclause> ]
 {
-sqllex.(*lexer).LogGrammarCoverage("select_clause,select_with_parens")
+LogGrammarCoverage("select_clause,select_with_parens")
 
 }
 simple_select:
   simple_select_clause //  : SELECT
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_select,simple_select_clause")
+LogGrammarCoverage("simple_select,simple_select_clause")
 
 }
 | values_clause        //  : VALUES
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_select,values_clause")
+LogGrammarCoverage("simple_select,values_clause")
 
 }
 | table_clause         //  : TABLE
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_select,table_clause")
+LogGrammarCoverage("simple_select,table_clause")
 
 }
 | set_operation
@@ -15081,7 +15081,7 @@ sqllex.(*lexer).LogGrammarCoverage("simple_select,table_clause")
 //        [ OFFSET <expr> [ ROW | ROWS ] ]
 // %SeeAlso: WEBDOCS/select-clause.html
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_select,set_operation")
+LogGrammarCoverage("simple_select,set_operation")
 
 }
 simple_select_clause:
@@ -15089,13 +15089,13 @@ simple_select_clause:
     from_clause opt_where_clause
     group_clause having_clause window_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,opt_all_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,target_list")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,from_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,group_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,having_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
+LogGrammarCoverage("simple_select_clause,opt_all_clause")
+LogGrammarCoverage("simple_select_clause,target_list")
+LogGrammarCoverage("simple_select_clause,from_clause")
+LogGrammarCoverage("simple_select_clause,opt_where_clause")
+LogGrammarCoverage("simple_select_clause,group_clause")
+LogGrammarCoverage("simple_select_clause,having_clause")
+LogGrammarCoverage("simple_select_clause,window_clause")
 
 
     $$.val = &tree.SelectClause{
@@ -15111,13 +15111,13 @@ sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
     from_clause opt_where_clause
     group_clause having_clause window_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,distinct_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,target_list")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,from_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,group_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,having_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
+LogGrammarCoverage("simple_select_clause,distinct_clause")
+LogGrammarCoverage("simple_select_clause,target_list")
+LogGrammarCoverage("simple_select_clause,from_clause")
+LogGrammarCoverage("simple_select_clause,opt_where_clause")
+LogGrammarCoverage("simple_select_clause,group_clause")
+LogGrammarCoverage("simple_select_clause,having_clause")
+LogGrammarCoverage("simple_select_clause,window_clause")
 
 
     $$.val = &tree.SelectClause{
@@ -15134,13 +15134,13 @@ sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
     from_clause opt_where_clause
     group_clause having_clause window_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,distinct_on_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,target_list")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,from_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,opt_where_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,group_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,having_clause")
-sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
+LogGrammarCoverage("simple_select_clause,distinct_on_clause")
+LogGrammarCoverage("simple_select_clause,target_list")
+LogGrammarCoverage("simple_select_clause,from_clause")
+LogGrammarCoverage("simple_select_clause,opt_where_clause")
+LogGrammarCoverage("simple_select_clause,group_clause")
+LogGrammarCoverage("simple_select_clause,having_clause")
+LogGrammarCoverage("simple_select_clause,window_clause")
 
 
     $$.val = &tree.SelectClause{
@@ -15159,10 +15159,10 @@ sqllex.(*lexer).LogGrammarCoverage("simple_select_clause,window_clause")
 set_operation:
   select_clause UNION all_or_distinct select_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("set_operation,error")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,all_or_distinct")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,error")
+LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,all_or_distinct")
+LogGrammarCoverage("set_operation,select_clause")
 
 
     $$.val = &tree.UnionClause{
@@ -15174,9 +15174,9 @@ sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
   }
 | select_clause INTERSECT all_or_distinct select_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,all_or_distinct")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,all_or_distinct")
+LogGrammarCoverage("set_operation,select_clause")
 
 
     $$.val = &tree.UnionClause{
@@ -15188,9 +15188,9 @@ sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
   }
 | select_clause EXCEPT all_or_distinct select_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,all_or_distinct")
-sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,select_clause")
+LogGrammarCoverage("set_operation,all_or_distinct")
+LogGrammarCoverage("set_operation,select_clause")
 
 
     $$.val = &tree.UnionClause{
@@ -15208,7 +15208,7 @@ sqllex.(*lexer).LogGrammarCoverage("set_operation,select_clause")
 table_clause:
   TABLE table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("table_clause,table_ref")
+LogGrammarCoverage("table_clause,table_ref")
 
 
     $$.val = &tree.SelectClause{
@@ -15230,15 +15230,15 @@ sqllex.(*lexer).LogGrammarCoverage("table_clause,table_ref")
 with_clause:
   WITH cte_list
   {
-sqllex.(*lexer).LogGrammarCoverage("with_clause,error")
-sqllex.(*lexer).LogGrammarCoverage("with_clause,cte_list")
+LogGrammarCoverage("with_clause,error")
+LogGrammarCoverage("with_clause,cte_list")
 
 
     $$.val = &tree.With{CTEList: $2.ctes()}
   }
 | WITH_LA cte_list
   {
-sqllex.(*lexer).LogGrammarCoverage("with_clause,cte_list")
+LogGrammarCoverage("with_clause,cte_list")
 
 
     
@@ -15246,7 +15246,7 @@ sqllex.(*lexer).LogGrammarCoverage("with_clause,cte_list")
   }
 | WITH RECURSIVE cte_list
   {
-sqllex.(*lexer).LogGrammarCoverage("with_clause,cte_list")
+LogGrammarCoverage("with_clause,cte_list")
 
 
     $$.val = &tree.With{Recursive: true, CTEList: $3.ctes()}
@@ -15255,15 +15255,15 @@ sqllex.(*lexer).LogGrammarCoverage("with_clause,cte_list")
 cte_list:
   common_table_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cte_list,common_table_expr")
+LogGrammarCoverage("cte_list,common_table_expr")
 
 
     $$.val = []*tree.CTE{$1.cte()}
   }
 | cte_list ',' common_table_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("cte_list,cte_list")
-sqllex.(*lexer).LogGrammarCoverage("cte_list,common_table_expr")
+LogGrammarCoverage("cte_list,cte_list")
+LogGrammarCoverage("cte_list,common_table_expr")
 
 
     $$.val = append($1.ctes(), $3.cte())
@@ -15286,9 +15286,9 @@ materialize_clause:
 common_table_expr:
   table_alias_name opt_column_list AS '(' preparable_stmt ')'
     {
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,preparable_stmt")
+LogGrammarCoverage("common_table_expr,table_alias_name")
+LogGrammarCoverage("common_table_expr,opt_column_list")
+LogGrammarCoverage("common_table_expr,preparable_stmt")
 
 
       $$.val = &tree.CTE{
@@ -15301,10 +15301,10 @@ sqllex.(*lexer).LogGrammarCoverage("common_table_expr,preparable_stmt")
     }
 | table_alias_name opt_column_list AS materialize_clause '(' preparable_stmt ')'
     {
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,opt_column_list")
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,materialize_clause")
-sqllex.(*lexer).LogGrammarCoverage("common_table_expr,preparable_stmt")
+LogGrammarCoverage("common_table_expr,table_alias_name")
+LogGrammarCoverage("common_table_expr,opt_column_list")
+LogGrammarCoverage("common_table_expr,materialize_clause")
+LogGrammarCoverage("common_table_expr,preparable_stmt")
 
 
       $$.val = &tree.CTE{
@@ -15328,7 +15328,7 @@ opt_with:
 opt_with_clause:
   with_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_with_clause,with_clause")
+LogGrammarCoverage("opt_with_clause,with_clause")
 
 
     $$.val = $1.with()
@@ -15379,7 +15379,7 @@ distinct_clause:
 distinct_on_clause:
   DISTINCT ON '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("distinct_on_clause,expr_list")
+LogGrammarCoverage("distinct_on_clause,expr_list")
 
 
     $$.val = tree.DistinctOn($4.exprs())
@@ -15404,7 +15404,7 @@ opt_privileges_clause:
 opt_sort_clause:
   sort_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_sort_clause,sort_clause")
+LogGrammarCoverage("opt_sort_clause,sort_clause")
 
 
     $$.val = $1.orderBy()
@@ -15419,7 +15419,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_sort_clause,sort_clause")
 sort_clause:
   ORDER BY sortby_list
   {
-sqllex.(*lexer).LogGrammarCoverage("sort_clause,sortby_list")
+LogGrammarCoverage("sort_clause,sortby_list")
 
 
     $$.val = tree.OrderBy($3.orders())
@@ -15428,15 +15428,15 @@ sqllex.(*lexer).LogGrammarCoverage("sort_clause,sortby_list")
 single_sort_clause:
   ORDER BY sortby
   {
-sqllex.(*lexer).LogGrammarCoverage("single_sort_clause,sortby")
+LogGrammarCoverage("single_sort_clause,sortby")
 
 
     $$.val = tree.OrderBy([]*tree.Order{$3.order()})
   }
 | ORDER BY sortby ',' sortby_list
   {
-sqllex.(*lexer).LogGrammarCoverage("single_sort_clause,sortby")
-sqllex.(*lexer).LogGrammarCoverage("single_sort_clause,sortby_list")
+LogGrammarCoverage("single_sort_clause,sortby")
+LogGrammarCoverage("single_sort_clause,sortby_list")
 
 
     sqllex.Error("multiple ORDER BY clauses are not supported in this function")
@@ -15446,15 +15446,15 @@ sqllex.(*lexer).LogGrammarCoverage("single_sort_clause,sortby_list")
 sortby_list:
   sortby
   {
-sqllex.(*lexer).LogGrammarCoverage("sortby_list,sortby")
+LogGrammarCoverage("sortby_list,sortby")
 
 
     $$.val = []*tree.Order{$1.order()}
   }
 | sortby_list ',' sortby
   {
-sqllex.(*lexer).LogGrammarCoverage("sortby_list,sortby_list")
-sqllex.(*lexer).LogGrammarCoverage("sortby_list,sortby")
+LogGrammarCoverage("sortby_list,sortby_list")
+LogGrammarCoverage("sortby_list,sortby")
 
 
     $$.val = append($1.orders(), $3.order())
@@ -15463,9 +15463,9 @@ sqllex.(*lexer).LogGrammarCoverage("sortby_list,sortby")
 sortby:
   a_expr opt_asc_desc opt_nulls_order
   {
-sqllex.(*lexer).LogGrammarCoverage("sortby,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("sortby,opt_asc_desc")
-sqllex.(*lexer).LogGrammarCoverage("sortby,opt_nulls_order")
+LogGrammarCoverage("sortby,a_expr")
+LogGrammarCoverage("sortby,opt_asc_desc")
+LogGrammarCoverage("sortby,opt_nulls_order")
 
 
     
@@ -15480,8 +15480,8 @@ sqllex.(*lexer).LogGrammarCoverage("sortby,opt_nulls_order")
   }
 | PRIMARY KEY table_name opt_asc_desc
   {
-sqllex.(*lexer).LogGrammarCoverage("sortby,table_name")
-sqllex.(*lexer).LogGrammarCoverage("sortby,opt_asc_desc")
+LogGrammarCoverage("sortby,table_name")
+LogGrammarCoverage("sortby,opt_asc_desc")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -15489,9 +15489,9 @@ sqllex.(*lexer).LogGrammarCoverage("sortby,opt_asc_desc")
   }
 | INDEX table_name '@' index_name opt_asc_desc
   {
-sqllex.(*lexer).LogGrammarCoverage("sortby,table_name")
-sqllex.(*lexer).LogGrammarCoverage("sortby,index_name")
-sqllex.(*lexer).LogGrammarCoverage("sortby,opt_asc_desc")
+LogGrammarCoverage("sortby,table_name")
+LogGrammarCoverage("sortby,index_name")
+LogGrammarCoverage("sortby,opt_asc_desc")
 
 
     name := $2.unresolvedObjectName().ToTableName()
@@ -15526,8 +15526,8 @@ opt_nulls_order:
 select_limit:
   limit_clause offset_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_limit,limit_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_limit,offset_clause")
+LogGrammarCoverage("select_limit,limit_clause")
+LogGrammarCoverage("select_limit,offset_clause")
 
 
     if $1.limit() == nil {
@@ -15539,8 +15539,8 @@ sqllex.(*lexer).LogGrammarCoverage("select_limit,offset_clause")
   }
 | offset_clause limit_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("select_limit,offset_clause")
-sqllex.(*lexer).LogGrammarCoverage("select_limit,limit_clause")
+LogGrammarCoverage("select_limit,offset_clause")
+LogGrammarCoverage("select_limit,limit_clause")
 
 
     $$.val = $1.limit()
@@ -15551,18 +15551,18 @@ sqllex.(*lexer).LogGrammarCoverage("select_limit,limit_clause")
   }
 | limit_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("select_limit,limit_clause")
+LogGrammarCoverage("select_limit,limit_clause")
 
 }
 | offset_clause
 
 {
-sqllex.(*lexer).LogGrammarCoverage("select_limit,offset_clause")
+LogGrammarCoverage("select_limit,offset_clause")
 
 }
 opt_select_limit:
   select_limit {
-sqllex.(*lexer).LogGrammarCoverage("opt_select_limit,select_limit")
+LogGrammarCoverage("opt_select_limit,select_limit")
 
  $$.val = $1.limit() }
 | /* EMPTY */  {
@@ -15572,7 +15572,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_select_limit,select_limit")
 opt_limit_clause:
   limit_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_limit_clause,limit_clause")
+LogGrammarCoverage("opt_limit_clause,limit_clause")
 
 }
 | /* EMPTY */ {
@@ -15588,7 +15588,7 @@ limit_clause:
   }
 | LIMIT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,a_expr")
+LogGrammarCoverage("limit_clause,a_expr")
 
 
     if $2.expr() == nil {
@@ -15605,17 +15605,17 @@ sqllex.(*lexer).LogGrammarCoverage("limit_clause,a_expr")
 // we can see the ONLY token in the lookahead slot.
 | FETCH first_or_next select_fetch_first_value row_or_rows ONLY
   {
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,first_or_next")
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,select_fetch_first_value")
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,row_or_rows")
+LogGrammarCoverage("limit_clause,first_or_next")
+LogGrammarCoverage("limit_clause,select_fetch_first_value")
+LogGrammarCoverage("limit_clause,row_or_rows")
 
 
     $$.val = &tree.Limit{Count: $3.expr()}
   }
 | FETCH first_or_next row_or_rows ONLY
 	{
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,first_or_next")
-sqllex.(*lexer).LogGrammarCoverage("limit_clause,row_or_rows")
+LogGrammarCoverage("limit_clause,first_or_next")
+LogGrammarCoverage("limit_clause,row_or_rows")
 
 
     $$.val = &tree.Limit{
@@ -15626,7 +15626,7 @@ sqllex.(*lexer).LogGrammarCoverage("limit_clause,row_or_rows")
 offset_clause:
   OFFSET a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("offset_clause,a_expr")
+LogGrammarCoverage("offset_clause,a_expr")
 
 
     $$.val = &tree.Limit{Offset: $2.expr()}
@@ -15636,8 +15636,8 @@ sqllex.(*lexer).LogGrammarCoverage("offset_clause,a_expr")
   // syntax. c_expr is the best we can do.
 | OFFSET select_fetch_first_value row_or_rows
   {
-sqllex.(*lexer).LogGrammarCoverage("offset_clause,select_fetch_first_value")
-sqllex.(*lexer).LogGrammarCoverage("offset_clause,row_or_rows")
+LogGrammarCoverage("offset_clause,select_fetch_first_value")
+LogGrammarCoverage("offset_clause,row_or_rows")
 
 
     $$.val = &tree.Limit{Offset: $2.expr()}
@@ -15657,19 +15657,19 @@ sqllex.(*lexer).LogGrammarCoverage("offset_clause,row_or_rows")
 select_fetch_first_value:
   c_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("select_fetch_first_value,c_expr")
+LogGrammarCoverage("select_fetch_first_value,c_expr")
 
 }
 | only_signed_iconst
 {
-sqllex.(*lexer).LogGrammarCoverage("select_fetch_first_value,only_signed_iconst")
+LogGrammarCoverage("select_fetch_first_value,only_signed_iconst")
 
 }
 | only_signed_fconst
 
 // noise words
 {
-sqllex.(*lexer).LogGrammarCoverage("select_fetch_first_value,only_signed_fconst")
+LogGrammarCoverage("select_fetch_first_value,only_signed_fconst")
 
 }
 row_or_rows:
@@ -15704,7 +15704,7 @@ first_or_next:
 group_clause:
   GROUP BY group_by_list
   {
-sqllex.(*lexer).LogGrammarCoverage("group_clause,group_by_list")
+LogGrammarCoverage("group_clause,group_by_list")
 
 
     $$.val = tree.GroupBy($3.exprs())
@@ -15718,12 +15718,12 @@ sqllex.(*lexer).LogGrammarCoverage("group_clause,group_by_list")
 
 group_by_list:
   group_by_item {
-sqllex.(*lexer).LogGrammarCoverage("group_by_list,group_by_item")
+LogGrammarCoverage("group_by_list,group_by_item")
 
  $$.val = tree.Exprs{$1.expr()} }
 | group_by_list ',' group_by_item {
-sqllex.(*lexer).LogGrammarCoverage("group_by_list,group_by_list")
-sqllex.(*lexer).LogGrammarCoverage("group_by_list,group_by_item")
+LogGrammarCoverage("group_by_list,group_by_list")
+LogGrammarCoverage("group_by_list,group_by_item")
 
  $$.val = append($1.exprs(), $3.expr()) }
 
@@ -15732,26 +15732,26 @@ sqllex.(*lexer).LogGrammarCoverage("group_by_list,group_by_item")
 // rather than reducing the conflicting unreserved_keyword rule.
 group_by_item:
   a_expr {
-sqllex.(*lexer).LogGrammarCoverage("group_by_item,a_expr")
+LogGrammarCoverage("group_by_item,a_expr")
 
  $$.val = $1.expr() }
 | ROLLUP '(' error {
-sqllex.(*lexer).LogGrammarCoverage("group_by_item,error")
+LogGrammarCoverage("group_by_item,error")
 
  return unimplementedWithIssueDetail(sqllex, 46280, "rollup") }
 | CUBE '(' error {
-sqllex.(*lexer).LogGrammarCoverage("group_by_item,error")
+LogGrammarCoverage("group_by_item,error")
 
  return unimplementedWithIssueDetail(sqllex, 46280, "cube") }
 | GROUPING SETS error {
-sqllex.(*lexer).LogGrammarCoverage("group_by_item,error")
+LogGrammarCoverage("group_by_item,error")
 
  return unimplementedWithIssueDetail(sqllex, 46280, "grouping sets") }
 
 having_clause:
   HAVING a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("having_clause,a_expr")
+LogGrammarCoverage("having_clause,a_expr")
 
 
     $$.val = $2.expr()
@@ -15779,7 +15779,7 @@ sqllex.(*lexer).LogGrammarCoverage("having_clause,a_expr")
 values_clause:
   VALUES '(' expr_list ')' %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("values_clause,expr_list")
+LogGrammarCoverage("values_clause,expr_list")
 
 
     $$.val = &tree.ValuesClause{Rows: []tree.Exprs{$3.exprs()}}
@@ -15787,8 +15787,8 @@ sqllex.(*lexer).LogGrammarCoverage("values_clause,expr_list")
 | VALUES error // SHOW HELP: VALUES
 | values_clause ',' '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("values_clause,values_clause")
-sqllex.(*lexer).LogGrammarCoverage("values_clause,expr_list")
+LogGrammarCoverage("values_clause,values_clause")
+LogGrammarCoverage("values_clause,expr_list")
 
 
     valNode := $1.selectStmt().(*tree.ValuesClause)
@@ -15803,8 +15803,8 @@ sqllex.(*lexer).LogGrammarCoverage("values_clause,expr_list")
 from_clause:
   FROM from_list opt_as_of_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("from_clause,from_list")
-sqllex.(*lexer).LogGrammarCoverage("from_clause,opt_as_of_clause")
+LogGrammarCoverage("from_clause,from_list")
+LogGrammarCoverage("from_clause,opt_as_of_clause")
 
 
     $$.val = tree.From{Tables: $2.tblExprs(), AsOf: $3.asOfClause()}
@@ -15820,15 +15820,15 @@ sqllex.(*lexer).LogGrammarCoverage("from_clause,opt_as_of_clause")
 from_list:
   table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("from_list,table_ref")
+LogGrammarCoverage("from_list,table_ref")
 
 
     $$.val = tree.TableExprs{$1.tblExpr()}
   }
 | from_list ',' table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("from_list,from_list")
-sqllex.(*lexer).LogGrammarCoverage("from_list,table_ref")
+LogGrammarCoverage("from_list,from_list")
+LogGrammarCoverage("from_list,table_ref")
 
 
     $$.val = append($1.tblExprs(), $3.tblExpr())
@@ -15837,14 +15837,14 @@ sqllex.(*lexer).LogGrammarCoverage("from_list,table_ref")
 index_flags_param:
   FORCE_INDEX '=' index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param,index_name")
+LogGrammarCoverage("index_flags_param,index_name")
 
 
      $$.val = &tree.IndexFlags{Index: tree.UnrestrictedName($3)}
   }
 | FORCE_INDEX '=' '[' iconst64 ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param,iconst64")
+LogGrammarCoverage("index_flags_param,iconst64")
 
 
     
@@ -15903,7 +15903,7 @@ sqllex.(*lexer).LogGrammarCoverage("index_flags_param,iconst64")
 |
   FORCE_ZIGZAG '=' index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param,index_name")
+LogGrammarCoverage("index_flags_param,index_name")
 
 
      $$.val = &tree.IndexFlags{ZigzagIndexes: []tree.UnrestrictedName{tree.UnrestrictedName($3)}}
@@ -15911,7 +15911,7 @@ sqllex.(*lexer).LogGrammarCoverage("index_flags_param,index_name")
 |
   FORCE_ZIGZAG '=' '[' iconst64 ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param,iconst64")
+LogGrammarCoverage("index_flags_param,iconst64")
 
 
     
@@ -15921,7 +15921,7 @@ sqllex.(*lexer).LogGrammarCoverage("index_flags_param,iconst64")
 index_flags_param_list:
   index_flags_param
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param_list,index_flags_param")
+LogGrammarCoverage("index_flags_param_list,index_flags_param")
 
 
     $$.val = $1.indexFlags()
@@ -15929,8 +15929,8 @@ sqllex.(*lexer).LogGrammarCoverage("index_flags_param_list,index_flags_param")
 |
   index_flags_param_list ',' index_flags_param
   {
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param_list,index_flags_param_list")
-sqllex.(*lexer).LogGrammarCoverage("index_flags_param_list,index_flags_param")
+LogGrammarCoverage("index_flags_param_list,index_flags_param_list")
+LogGrammarCoverage("index_flags_param_list,index_flags_param")
 
 
     a := $1.indexFlags()
@@ -15944,21 +15944,21 @@ sqllex.(*lexer).LogGrammarCoverage("index_flags_param_list,index_flags_param")
 opt_index_flags:
   '@' index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_index_flags,index_name")
+LogGrammarCoverage("opt_index_flags,index_name")
 
 
     $$.val = &tree.IndexFlags{Index: tree.UnrestrictedName($2)}
   }
 | '@' '[' iconst64 ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_index_flags,iconst64")
+LogGrammarCoverage("opt_index_flags,iconst64")
 
 
     $$.val = &tree.IndexFlags{IndexID: tree.IndexID($3.int64())}
   }
 | '@' '{' index_flags_param_list '}'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_index_flags,index_flags_param_list")
+LogGrammarCoverage("opt_index_flags,index_flags_param_list")
 
 
     flags := $3.indexFlags()
@@ -16005,10 +16005,10 @@ sqllex.(*lexer).LogGrammarCoverage("opt_index_flags,index_flags_param_list")
 table_ref:
   numeric_table_ref opt_index_flags opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,numeric_table_ref")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_index_flags")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,numeric_table_ref")
+LogGrammarCoverage("table_ref,opt_index_flags")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     
@@ -16021,10 +16021,10 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
   }
 | relation_expr opt_index_flags opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,relation_expr")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_index_flags")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,relation_expr")
+LogGrammarCoverage("table_ref,opt_index_flags")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -16037,9 +16037,9 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
   }
 | select_with_parens opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,select_with_parens")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,select_with_parens")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     $$.val = &tree.AliasedTableExpr{
@@ -16050,9 +16050,9 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
   }
 | LATERAL select_with_parens opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,select_with_parens")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,select_with_parens")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     $$.val = &tree.AliasedTableExpr{
@@ -16064,25 +16064,25 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
   }
 | joined_table
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,joined_table")
+LogGrammarCoverage("table_ref,joined_table")
 
 
     $$.val = $1.tblExpr()
   }
 | '(' joined_table ')' opt_ordinality alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,joined_table")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,alias_clause")
+LogGrammarCoverage("table_ref,joined_table")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,alias_clause")
 
 
     $$.val = &tree.AliasedTableExpr{Expr: &tree.ParenTableExpr{Expr: $2.tblExpr()}, Ordinality: $4.bool(), As: $5.aliasClause()}
   }
 | func_table opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,func_table")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,func_table")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     f := $1.tblExpr()
@@ -16096,9 +16096,9 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
   }
 | LATERAL func_table opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,func_table")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,func_table")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     f := $2.tblExpr()
@@ -16125,9 +16125,9 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
 //   investigate further in the docs.
 | '[' row_source_extension_stmt ']' opt_ordinality opt_alias_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("table_ref,row_source_extension_stmt")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_ordinality")
-sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
+LogGrammarCoverage("table_ref,row_source_extension_stmt")
+LogGrammarCoverage("table_ref,opt_ordinality")
+LogGrammarCoverage("table_ref,opt_alias_clause")
 
 
     $$.val = &tree.AliasedTableExpr{Expr: &tree.StatementSource{ Statement: $2.stmt() }, Ordinality: $4.bool(), As: $5.aliasClause() }
@@ -16136,9 +16136,9 @@ sqllex.(*lexer).LogGrammarCoverage("table_ref,opt_alias_clause")
 numeric_table_ref:
   '[' iconst64 opt_tableref_col_list alias_clause ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("numeric_table_ref,iconst64")
-sqllex.(*lexer).LogGrammarCoverage("numeric_table_ref,opt_tableref_col_list")
-sqllex.(*lexer).LogGrammarCoverage("numeric_table_ref,alias_clause")
+LogGrammarCoverage("numeric_table_ref,iconst64")
+LogGrammarCoverage("numeric_table_ref,opt_tableref_col_list")
+LogGrammarCoverage("numeric_table_ref,alias_clause")
 
 
     
@@ -16152,14 +16152,14 @@ sqllex.(*lexer).LogGrammarCoverage("numeric_table_ref,alias_clause")
 func_table:
   func_expr_windowless
   {
-sqllex.(*lexer).LogGrammarCoverage("func_table,func_expr_windowless")
+LogGrammarCoverage("func_table,func_expr_windowless")
 
 
     $$.val = &tree.RowsFromExpr{Items: tree.Exprs{$1.expr()}}
   }
 | ROWS FROM '(' rowsfrom_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_table,rowsfrom_list")
+LogGrammarCoverage("func_table,rowsfrom_list")
 
 
     $$.val = &tree.RowsFromExpr{Items: $4.exprs()}
@@ -16168,21 +16168,21 @@ sqllex.(*lexer).LogGrammarCoverage("func_table,rowsfrom_list")
 rowsfrom_list:
   rowsfrom_item
   {
-sqllex.(*lexer).LogGrammarCoverage("rowsfrom_list,rowsfrom_item")
+LogGrammarCoverage("rowsfrom_list,rowsfrom_item")
 
  $$.val = tree.Exprs{$1.expr()} }
 | rowsfrom_list ',' rowsfrom_item
   {
-sqllex.(*lexer).LogGrammarCoverage("rowsfrom_list,rowsfrom_list")
-sqllex.(*lexer).LogGrammarCoverage("rowsfrom_list,rowsfrom_item")
+LogGrammarCoverage("rowsfrom_list,rowsfrom_list")
+LogGrammarCoverage("rowsfrom_list,rowsfrom_item")
 
  $$.val = append($1.exprs(), $3.expr()) }
 
 rowsfrom_item:
   func_expr_windowless opt_col_def_list
   {
-sqllex.(*lexer).LogGrammarCoverage("rowsfrom_item,func_expr_windowless")
-sqllex.(*lexer).LogGrammarCoverage("rowsfrom_item,opt_col_def_list")
+LogGrammarCoverage("rowsfrom_item,func_expr_windowless")
+LogGrammarCoverage("rowsfrom_item,opt_col_def_list")
 
 
     $$.val = $1.expr()
@@ -16195,7 +16195,7 @@ opt_col_def_list:
  }
 | AS '(' error
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_col_def_list,error")
+LogGrammarCoverage("opt_col_def_list,error")
 
  return unimplemented(sqllex, "ROWS FROM with col_def_list") }
 
@@ -16207,22 +16207,22 @@ opt_tableref_col_list:
 
  $$.val = []tree.ColumnID{} }
 | '(' tableref_col_list ')' {
-sqllex.(*lexer).LogGrammarCoverage("opt_tableref_col_list,tableref_col_list")
+LogGrammarCoverage("opt_tableref_col_list,tableref_col_list")
 
  $$.val = $2.tableRefCols() }
 
 tableref_col_list:
   iconst64
   {
-sqllex.(*lexer).LogGrammarCoverage("tableref_col_list,iconst64")
+LogGrammarCoverage("tableref_col_list,iconst64")
 
 
     $$.val = []tree.ColumnID{tree.ColumnID($1.int64())}
   }
 | tableref_col_list ',' iconst64
   {
-sqllex.(*lexer).LogGrammarCoverage("tableref_col_list,tableref_col_list")
-sqllex.(*lexer).LogGrammarCoverage("tableref_col_list,iconst64")
+LogGrammarCoverage("tableref_col_list,tableref_col_list")
+LogGrammarCoverage("tableref_col_list,iconst64")
 
 
     $$.val = append($1.tableRefCols(), tree.ColumnID($3.int64()))
@@ -16259,54 +16259,54 @@ opt_ordinality:
 joined_table:
   '(' joined_table ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,joined_table")
+LogGrammarCoverage("joined_table,joined_table")
 
 
     $$.val = &tree.ParenTableExpr{Expr: $2.tblExpr()}
   }
 | table_ref CROSS opt_join_hint JOIN table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,opt_join_hint")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,opt_join_hint")
+LogGrammarCoverage("joined_table,table_ref")
 
 
     $$.val = &tree.JoinTableExpr{JoinType: tree.AstCross, Left: $1.tblExpr(), Right: $5.tblExpr(), Hint: $3}
   }
 | table_ref join_type opt_join_hint JOIN table_ref join_qual
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,join_type")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,opt_join_hint")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,join_qual")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,join_type")
+LogGrammarCoverage("joined_table,opt_join_hint")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,join_qual")
 
 
     $$.val = &tree.JoinTableExpr{JoinType: $2, Left: $1.tblExpr(), Right: $5.tblExpr(), Cond: $6.joinCond(), Hint: $3}
   }
 | table_ref JOIN table_ref join_qual
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,join_qual")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,join_qual")
 
 
     $$.val = &tree.JoinTableExpr{Left: $1.tblExpr(), Right: $3.tblExpr(), Cond: $4.joinCond()}
   }
 | table_ref NATURAL join_type opt_join_hint JOIN table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,join_type")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,opt_join_hint")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,join_type")
+LogGrammarCoverage("joined_table,opt_join_hint")
+LogGrammarCoverage("joined_table,table_ref")
 
 
     $$.val = &tree.JoinTableExpr{JoinType: $3, Left: $1.tblExpr(), Right: $6.tblExpr(), Cond: tree.NaturalJoinCond{}, Hint: $4}
   }
 | table_ref NATURAL JOIN table_ref
   {
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
-sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,table_ref")
+LogGrammarCoverage("joined_table,table_ref")
 
 
     $$.val = &tree.JoinTableExpr{Left: $1.tblExpr(), Right: $4.tblExpr(), Cond: tree.NaturalJoinCond{}}
@@ -16315,16 +16315,16 @@ sqllex.(*lexer).LogGrammarCoverage("joined_table,table_ref")
 alias_clause:
   AS table_alias_name opt_column_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alias_clause,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("alias_clause,opt_column_list")
+LogGrammarCoverage("alias_clause,table_alias_name")
+LogGrammarCoverage("alias_clause,opt_column_list")
 
 
     $$.val = tree.AliasClause{Alias: tree.Name($2), Cols: $3.nameList()}
   }
 | table_alias_name opt_column_list
   {
-sqllex.(*lexer).LogGrammarCoverage("alias_clause,table_alias_name")
-sqllex.(*lexer).LogGrammarCoverage("alias_clause,opt_column_list")
+LogGrammarCoverage("alias_clause,table_alias_name")
+LogGrammarCoverage("alias_clause,opt_column_list")
 
 
     $$.val = tree.AliasClause{Alias: tree.Name($1), Cols: $2.nameList()}
@@ -16333,7 +16333,7 @@ sqllex.(*lexer).LogGrammarCoverage("alias_clause,opt_column_list")
 opt_alias_clause:
   alias_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_alias_clause,alias_clause")
+LogGrammarCoverage("opt_alias_clause,alias_clause")
 
 }
 | /* EMPTY */
@@ -16346,7 +16346,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_alias_clause,alias_clause")
 as_of_clause:
   AS_LA OF SYSTEM TIME a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("as_of_clause,a_expr")
+LogGrammarCoverage("as_of_clause,a_expr")
 
 
     $$.val = tree.AsOfClause{Expr: $5.expr()}
@@ -16355,7 +16355,7 @@ sqllex.(*lexer).LogGrammarCoverage("as_of_clause,a_expr")
 opt_as_of_clause:
   as_of_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_as_of_clause,as_of_clause")
+LogGrammarCoverage("opt_as_of_clause,as_of_clause")
 
 }
 | /* EMPTY */
@@ -16368,21 +16368,21 @@ sqllex.(*lexer).LogGrammarCoverage("opt_as_of_clause,as_of_clause")
 join_type:
   FULL join_outer
   {
-sqllex.(*lexer).LogGrammarCoverage("join_type,join_outer")
+LogGrammarCoverage("join_type,join_outer")
 
 
     $$ = tree.AstFull
   }
 | LEFT join_outer
   {
-sqllex.(*lexer).LogGrammarCoverage("join_type,join_outer")
+LogGrammarCoverage("join_type,join_outer")
 
 
     $$ = tree.AstLeft
   }
 | RIGHT join_outer
   {
-sqllex.(*lexer).LogGrammarCoverage("join_type,join_outer")
+LogGrammarCoverage("join_type,join_outer")
 
 
     $$ = tree.AstRight
@@ -16465,14 +16465,14 @@ opt_join_hint:
 join_qual:
   USING '(' name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("join_qual,name_list")
+LogGrammarCoverage("join_qual,name_list")
 
 
     $$.val = &tree.UsingJoinCond{Cols: $3.nameList()}
   }
 | ON a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("join_qual,a_expr")
+LogGrammarCoverage("join_qual,a_expr")
 
 
     $$.val = &tree.OnJoinCond{Expr: $2.expr()}
@@ -16480,26 +16480,26 @@ sqllex.(*lexer).LogGrammarCoverage("join_qual,a_expr")
 
 relation_expr:
   table_name              {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr,table_name")
+LogGrammarCoverage("relation_expr,table_name")
 
  $$.val = $1.unresolvedObjectName() }
 | table_name '*'          {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr,table_name")
+LogGrammarCoverage("relation_expr,table_name")
 
  $$.val = $1.unresolvedObjectName() }
 | ONLY table_name         {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr,table_name")
+LogGrammarCoverage("relation_expr,table_name")
 
  $$.val = $2.unresolvedObjectName() }
 | ONLY '(' table_name ')' {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr,table_name")
+LogGrammarCoverage("relation_expr,table_name")
 
  $$.val = $3.unresolvedObjectName() }
 
 relation_expr_list:
   relation_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr_list,relation_expr")
+LogGrammarCoverage("relation_expr_list,relation_expr")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -16507,8 +16507,8 @@ sqllex.(*lexer).LogGrammarCoverage("relation_expr_list,relation_expr")
   }
 | relation_expr_list ',' relation_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("relation_expr_list,relation_expr_list")
-sqllex.(*lexer).LogGrammarCoverage("relation_expr_list,relation_expr")
+LogGrammarCoverage("relation_expr_list,relation_expr_list")
+LogGrammarCoverage("relation_expr_list,relation_expr")
 
 
     name := $3.unresolvedObjectName().ToTableName()
@@ -16525,15 +16525,15 @@ sqllex.(*lexer).LogGrammarCoverage("relation_expr_list,relation_expr")
 table_expr_opt_alias_idx:
   table_name_opt_idx %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
+LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
 
 
      $$.val = $1.tblExpr()
   }
 | table_name_opt_idx table_alias_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
+LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
+LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
 
 
      alias := $1.tblExpr().(*tree.AliasedTableExpr)
@@ -16542,8 +16542,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
   }
 | table_name_opt_idx AS table_alias_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
+LogGrammarCoverage("table_expr_opt_alias_idx,table_name_opt_idx")
+LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
 
 
      alias := $1.tblExpr().(*tree.AliasedTableExpr)
@@ -16552,8 +16552,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,table_alias_name")
   }
 | numeric_table_ref opt_index_flags
   {
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,numeric_table_ref")
-sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,opt_index_flags")
+LogGrammarCoverage("table_expr_opt_alias_idx,numeric_table_ref")
+LogGrammarCoverage("table_expr_opt_alias_idx,opt_index_flags")
 
 
     
@@ -16566,10 +16566,10 @@ sqllex.(*lexer).LogGrammarCoverage("table_expr_opt_alias_idx,opt_index_flags")
 table_name_opt_idx:
   opt_only table_name opt_index_flags opt_descendant
   {
-sqllex.(*lexer).LogGrammarCoverage("table_name_opt_idx,opt_only")
-sqllex.(*lexer).LogGrammarCoverage("table_name_opt_idx,table_name")
-sqllex.(*lexer).LogGrammarCoverage("table_name_opt_idx,opt_index_flags")
-sqllex.(*lexer).LogGrammarCoverage("table_name_opt_idx,opt_descendant")
+LogGrammarCoverage("table_name_opt_idx,opt_only")
+LogGrammarCoverage("table_name_opt_idx,table_name")
+LogGrammarCoverage("table_name_opt_idx,opt_index_flags")
+LogGrammarCoverage("table_name_opt_idx,opt_descendant")
 
 
     name := $2.unresolvedObjectName().ToTableName()
@@ -16610,7 +16610,7 @@ opt_descendant:
 where_clause:
   WHERE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("where_clause,a_expr")
+LogGrammarCoverage("where_clause,a_expr")
 
 
     $$.val = $2.expr()
@@ -16619,7 +16619,7 @@ sqllex.(*lexer).LogGrammarCoverage("where_clause,a_expr")
 opt_where_clause:
   where_clause
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_where_clause,where_clause")
+LogGrammarCoverage("opt_where_clause,where_clause")
 
 }
 | /* EMPTY */
@@ -16638,8 +16638,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_where_clause,where_clause")
 typename:
   simple_typename opt_array_bounds
   {
-sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
-sqllex.(*lexer).LogGrammarCoverage("typename,opt_array_bounds")
+LogGrammarCoverage("typename,simple_typename")
+LogGrammarCoverage("typename,opt_array_bounds")
 
 
     if bounds := $2.int32s(); bounds != nil {
@@ -16655,7 +16655,7 @@ sqllex.(*lexer).LogGrammarCoverage("typename,opt_array_bounds")
   // SQL standard syntax, currently only one-dimensional
   // Undocumented but support for potential Postgres compat
 | simple_typename ARRAY '[' ICONST ']' {
-sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
+LogGrammarCoverage("typename,simple_typename")
 
 
     
@@ -16666,12 +16666,12 @@ sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
     }
   }
 | simple_typename ARRAY '[' ICONST ']' '[' error {
-sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
-sqllex.(*lexer).LogGrammarCoverage("typename,error")
+LogGrammarCoverage("typename,simple_typename")
+LogGrammarCoverage("typename,error")
 
  return unimplementedWithIssue(sqllex, 32552) }
 | simple_typename ARRAY {
-sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
+LogGrammarCoverage("typename,simple_typename")
 
 
     var err error
@@ -16684,7 +16684,7 @@ sqllex.(*lexer).LogGrammarCoverage("typename,simple_typename")
 cast_target:
   typename
   {
-sqllex.(*lexer).LogGrammarCoverage("cast_target,typename")
+LogGrammarCoverage("cast_target,typename")
 
 
     $$.val = $1.typeReference()
@@ -16697,7 +16697,7 @@ opt_array_bounds:
 
  $$.val = []int32{-1} }
 | '[' ']' '[' error {
-sqllex.(*lexer).LogGrammarCoverage("opt_array_bounds,error")
+LogGrammarCoverage("opt_array_bounds,error")
 
  return unimplementedWithIssue(sqllex, 32552) }
 | '[' ICONST ']'
@@ -16712,7 +16712,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_array_bounds,error")
     $$.val = []int32{bound}
   }
 | '[' ICONST ']' '[' error {
-sqllex.(*lexer).LogGrammarCoverage("opt_array_bounds,error")
+LogGrammarCoverage("opt_array_bounds,error")
 
  return unimplementedWithIssue(sqllex, 32552) }
 | /* EMPTY */ {
@@ -16728,14 +16728,14 @@ general_type_name:
 // complex_type_name mirrors the rule for complex_db_object_name, but uses
 // general_type_name rather than db_object_name_component to avoid conflicts.
 {
-sqllex.(*lexer).LogGrammarCoverage("general_type_name,type_function_name_no_crdb_extra")
+LogGrammarCoverage("general_type_name,type_function_name_no_crdb_extra")
 
 }
 complex_type_name:
   general_type_name '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_type_name,general_type_name")
-sqllex.(*lexer).LogGrammarCoverage("complex_type_name,unrestricted_name")
+LogGrammarCoverage("complex_type_name,general_type_name")
+LogGrammarCoverage("complex_type_name,unrestricted_name")
 
 
     aIdx := sqllex.(*lexer).NewAnnotation()
@@ -16745,9 +16745,9 @@ sqllex.(*lexer).LogGrammarCoverage("complex_type_name,unrestricted_name")
   }
 | general_type_name '.' unrestricted_name '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_type_name,general_type_name")
-sqllex.(*lexer).LogGrammarCoverage("complex_type_name,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("complex_type_name,unrestricted_name")
+LogGrammarCoverage("complex_type_name,general_type_name")
+LogGrammarCoverage("complex_type_name,unrestricted_name")
+LogGrammarCoverage("complex_type_name,unrestricted_name")
 
 
     aIdx := sqllex.(*lexer).NewAnnotation()
@@ -16759,7 +16759,7 @@ sqllex.(*lexer).LogGrammarCoverage("complex_type_name,unrestricted_name")
 simple_typename:
   general_type_name
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,general_type_name")
+LogGrammarCoverage("simple_typename,general_type_name")
 
 
     
@@ -16802,7 +16802,7 @@ sqllex.(*lexer).LogGrammarCoverage("simple_typename,general_type_name")
   }
 | '@' iconst32
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,iconst32")
+LogGrammarCoverage("simple_typename,iconst32")
 
 
     id := $2.int32()
@@ -16810,37 +16810,37 @@ sqllex.(*lexer).LogGrammarCoverage("simple_typename,iconst32")
   }
 | complex_type_name
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,complex_type_name")
+LogGrammarCoverage("simple_typename,complex_type_name")
 
 
     $$.val = $1.typeReference()
   }
 | const_typename
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,const_typename")
+LogGrammarCoverage("simple_typename,const_typename")
 
 }
 | bit_with_length
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,bit_with_length")
+LogGrammarCoverage("simple_typename,bit_with_length")
 
 }
 | character_with_length
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,character_with_length")
+LogGrammarCoverage("simple_typename,character_with_length")
 
 }
 | interval_type
 {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,interval_type")
+LogGrammarCoverage("simple_typename,interval_type")
 
 }
 | POINT error {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,error")
+LogGrammarCoverage("simple_typename,error")
 
  return unimplementedWithIssueDetail(sqllex, 21286, "point") } // needed or else it generates a syntax error.
 | POLYGON error {
-sqllex.(*lexer).LogGrammarCoverage("simple_typename,error")
+LogGrammarCoverage("simple_typename,error")
 
  return unimplementedWithIssueDetail(sqllex, 21286, "polygon") } // needed or else it generates a syntax error.
 
@@ -16954,22 +16954,22 @@ const_geo:
  $$.val = types.Box2D }
 | GEOMETRY '(' geo_shape_type ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_geo,geo_shape_type")
+LogGrammarCoverage("const_geo,geo_shape_type")
 
 
     $$.val = types.MakeGeometry($3.geoShapeType(), 0)
   }
 | GEOGRAPHY '(' geo_shape_type ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_geo,geo_shape_type")
+LogGrammarCoverage("const_geo,geo_shape_type")
 
 
     $$.val = types.MakeGeography($3.geoShapeType(), 0)
   }
 | GEOMETRY '(' geo_shape_type ',' signed_iconst ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_geo,geo_shape_type")
-sqllex.(*lexer).LogGrammarCoverage("const_geo,signed_iconst")
+LogGrammarCoverage("const_geo,geo_shape_type")
+LogGrammarCoverage("const_geo,signed_iconst")
 
 
     val, err := $5.numVal().AsInt32()
@@ -16980,8 +16980,8 @@ sqllex.(*lexer).LogGrammarCoverage("const_geo,signed_iconst")
   }
 | GEOGRAPHY '(' geo_shape_type ',' signed_iconst ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_geo,geo_shape_type")
-sqllex.(*lexer).LogGrammarCoverage("const_geo,signed_iconst")
+LogGrammarCoverage("const_geo,geo_shape_type")
+LogGrammarCoverage("const_geo,signed_iconst")
 
 
     val, err := $5.numVal().AsInt32()
@@ -17003,34 +17003,34 @@ sqllex.(*lexer).LogGrammarCoverage("const_geo,signed_iconst")
 const_typename:
   numeric
 {
-sqllex.(*lexer).LogGrammarCoverage("const_typename,numeric")
+LogGrammarCoverage("const_typename,numeric")
 
 }
 | bit_without_length
 {
-sqllex.(*lexer).LogGrammarCoverage("const_typename,bit_without_length")
+LogGrammarCoverage("const_typename,bit_without_length")
 
 }
 | character_without_length
 {
-sqllex.(*lexer).LogGrammarCoverage("const_typename,character_without_length")
+LogGrammarCoverage("const_typename,character_without_length")
 
 }
 | const_datetime
 {
-sqllex.(*lexer).LogGrammarCoverage("const_typename,const_datetime")
+LogGrammarCoverage("const_typename,const_datetime")
 
 }
 | const_geo
 
 {
-sqllex.(*lexer).LogGrammarCoverage("const_typename,const_geo")
+LogGrammarCoverage("const_typename,const_geo")
 
 }
 opt_numeric_modifiers:
   '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_numeric_modifiers,iconst32")
+LogGrammarCoverage("opt_numeric_modifiers,iconst32")
 
 
     dec, err := newDecimal($2.int32(), 0)
@@ -17041,8 +17041,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_numeric_modifiers,iconst32")
   }
 | '(' iconst32 ',' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_numeric_modifiers,iconst32")
-sqllex.(*lexer).LogGrammarCoverage("opt_numeric_modifiers,iconst32")
+LogGrammarCoverage("opt_numeric_modifiers,iconst32")
+LogGrammarCoverage("opt_numeric_modifiers,iconst32")
 
 
     dec, err := newDecimal($2.int32(), $4.int32())
@@ -17092,7 +17092,7 @@ numeric:
   }
 | FLOAT opt_float
   {
-sqllex.(*lexer).LogGrammarCoverage("numeric,opt_float")
+LogGrammarCoverage("numeric,opt_float")
 
 
     $$.val = $2.colType()
@@ -17105,7 +17105,7 @@ sqllex.(*lexer).LogGrammarCoverage("numeric,opt_float")
   }
 | DECIMAL opt_numeric_modifiers
   {
-sqllex.(*lexer).LogGrammarCoverage("numeric,opt_numeric_modifiers")
+LogGrammarCoverage("numeric,opt_numeric_modifiers")
 
 
     typ := $2.colType()
@@ -17116,7 +17116,7 @@ sqllex.(*lexer).LogGrammarCoverage("numeric,opt_numeric_modifiers")
   }
 | DEC opt_numeric_modifiers
   {
-sqllex.(*lexer).LogGrammarCoverage("numeric,opt_numeric_modifiers")
+LogGrammarCoverage("numeric,opt_numeric_modifiers")
 
 
     typ := $2.colType()
@@ -17127,7 +17127,7 @@ sqllex.(*lexer).LogGrammarCoverage("numeric,opt_numeric_modifiers")
   }
 | NUMERIC opt_numeric_modifiers
   {
-sqllex.(*lexer).LogGrammarCoverage("numeric,opt_numeric_modifiers")
+LogGrammarCoverage("numeric,opt_numeric_modifiers")
 
 
     typ := $2.colType()
@@ -17169,8 +17169,8 @@ opt_float:
 bit_with_length:
   BIT opt_varying '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("bit_with_length,opt_varying")
-sqllex.(*lexer).LogGrammarCoverage("bit_with_length,iconst32")
+LogGrammarCoverage("bit_with_length,opt_varying")
+LogGrammarCoverage("bit_with_length,iconst32")
 
 
     bit, err := newBitType($4.int32(), $2.bool())
@@ -17179,7 +17179,7 @@ sqllex.(*lexer).LogGrammarCoverage("bit_with_length,iconst32")
   }
 | VARBIT '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("bit_with_length,iconst32")
+LogGrammarCoverage("bit_with_length,iconst32")
 
 
     bit, err := newBitType($3.int32(), true)
@@ -17210,8 +17210,8 @@ bit_without_length:
 character_with_length:
   character_base '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("character_with_length,character_base")
-sqllex.(*lexer).LogGrammarCoverage("character_with_length,iconst32")
+LogGrammarCoverage("character_with_length,character_base")
+LogGrammarCoverage("character_with_length,iconst32")
 
 
     colTyp := *$1.colType()
@@ -17226,7 +17226,7 @@ sqllex.(*lexer).LogGrammarCoverage("character_with_length,iconst32")
 character_without_length:
   character_base
   {
-sqllex.(*lexer).LogGrammarCoverage("character_without_length,character_base")
+LogGrammarCoverage("character_without_length,character_base")
 
 
     $$.val = $1.colType()
@@ -17235,14 +17235,14 @@ sqllex.(*lexer).LogGrammarCoverage("character_without_length,character_base")
 character_base:
   char_aliases
   {
-sqllex.(*lexer).LogGrammarCoverage("character_base,char_aliases")
+LogGrammarCoverage("character_base,char_aliases")
 
 
     $$.val = types.MakeChar(1)
   }
 | char_aliases VARYING
   {
-sqllex.(*lexer).LogGrammarCoverage("character_base,char_aliases")
+LogGrammarCoverage("character_base,char_aliases")
 
 
     $$.val = types.VarChar
@@ -17288,7 +17288,7 @@ const_datetime:
   }
 | TIME opt_timezone
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
+LogGrammarCoverage("const_datetime,opt_timezone")
 
 
     if $2.bool() {
@@ -17299,8 +17299,8 @@ sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
   }
 | TIME '(' iconst32 ')' opt_timezone
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,iconst32")
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
+LogGrammarCoverage("const_datetime,iconst32")
+LogGrammarCoverage("const_datetime,opt_timezone")
 
 
     prec := $3.int32()
@@ -17319,7 +17319,7 @@ sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
  $$.val = types.TimeTZ }
 | TIMETZ '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,iconst32")
+LogGrammarCoverage("const_datetime,iconst32")
 
 
     prec := $3.int32()
@@ -17331,7 +17331,7 @@ sqllex.(*lexer).LogGrammarCoverage("const_datetime,iconst32")
   }
 | TIMESTAMP opt_timezone
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
+LogGrammarCoverage("const_datetime,opt_timezone")
 
 
     if $2.bool() {
@@ -17342,8 +17342,8 @@ sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
   }
 | TIMESTAMP '(' iconst32 ')' opt_timezone
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,iconst32")
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
+LogGrammarCoverage("const_datetime,iconst32")
+LogGrammarCoverage("const_datetime,opt_timezone")
 
 
     prec := $3.int32()
@@ -17365,7 +17365,7 @@ sqllex.(*lexer).LogGrammarCoverage("const_datetime,opt_timezone")
   }
 | TIMESTAMPTZ '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("const_datetime,iconst32")
+LogGrammarCoverage("const_datetime,iconst32")
 
 
     prec := $3.int32()
@@ -17396,14 +17396,14 @@ interval_type:
   }
 | INTERVAL interval_qualifier
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_type,interval_qualifier")
+LogGrammarCoverage("interval_type,interval_qualifier")
 
 
     $$.val = types.MakeInterval($2.intervalTypeMetadata())
   }
 | INTERVAL '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_type,iconst32")
+LogGrammarCoverage("interval_type,iconst32")
 
 
     prec := $3.int32()
@@ -17467,7 +17467,7 @@ interval_qualifier:
   }
 | interval_second
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
+LogGrammarCoverage("interval_qualifier,interval_second")
 
 
     $$.val = $1.intervalTypeMetadata()
@@ -17509,7 +17509,7 @@ sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
   }
 | DAY TO interval_second %prec TO
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
+LogGrammarCoverage("interval_qualifier,interval_second")
 
 
     ret := $3.intervalTypeMetadata()
@@ -17529,7 +17529,7 @@ sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
   }
 | HOUR TO interval_second %prec TO
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
+LogGrammarCoverage("interval_qualifier,interval_second")
 
 
     ret := $3.intervalTypeMetadata()
@@ -17538,7 +17538,7 @@ sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
   }
 | MINUTE TO interval_second %prec TO
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
+LogGrammarCoverage("interval_qualifier,interval_second")
 
 
     $$.val = $3.intervalTypeMetadata()
@@ -17550,7 +17550,7 @@ sqllex.(*lexer).LogGrammarCoverage("interval_qualifier,interval_second")
 opt_interval_qualifier:
   interval_qualifier
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_interval_qualifier,interval_qualifier")
+LogGrammarCoverage("opt_interval_qualifier,interval_qualifier")
 
 }
 | /* EMPTY */
@@ -17573,7 +17573,7 @@ interval_second:
   }
 | SECOND '(' iconst32 ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_second,iconst32")
+LogGrammarCoverage("interval_second,iconst32")
 
 
     prec := $3.int32()
@@ -17612,37 +17612,37 @@ sqllex.(*lexer).LogGrammarCoverage("interval_second,iconst32")
 a_expr:
   c_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,c_expr")
+LogGrammarCoverage("a_expr,c_expr")
 
 }
 | a_expr TYPECAST cast_target
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,cast_target")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,cast_target")
 
 
     $$.val = &tree.CastExpr{Expr: $1.expr(), Type: $3.typeReference(), SyntaxMode: tree.CastShort}
   }
 | a_expr TYPEANNOTATE typename
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,typename")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,typename")
 
 
     $$.val = &tree.AnnotateTypeExpr{Expr: $1.expr(), Type: $3.typeReference(), SyntaxMode: tree.AnnotateShort}
   }
 | a_expr COLLATE collation_name
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,collation_name")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,collation_name")
 
 
     $$.val = &tree.CollateExpr{Expr: $1.expr(), Locale: $3}
   }
 | a_expr AT TIME ZONE a_expr %prec AT
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("timezone"), Exprs: tree.Exprs{$5.expr(), $1.expr()}}
@@ -17656,7 +17656,7 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   // b_expr and to the all_op list below.
 | '+' a_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     // Unary plus is a no-op. Desugar immediately.
@@ -17664,292 +17664,292 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   }
 | '-' a_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = unaryNegation($2.expr())
   }
 | '~' a_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.UnaryExpr{Operator: tree.MakeUnaryOperator(tree.UnaryComplement), Expr: $2.expr()}
   }
 | SQRT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.UnaryExpr{Operator: tree.MakeUnaryOperator(tree.UnarySqrt), Expr: $2.expr()}
   }
 | CBRT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.UnaryExpr{Operator: tree.MakeUnaryOperator(tree.UnaryCbrt), Expr: $2.expr()}
   }
 | a_expr '+' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Plus), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '-' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Minus), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '*' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Mult), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '/' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Div), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr FLOORDIV a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.FloorDiv), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '%' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Mod), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '^' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Pow), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '#' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitxor), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '&' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitand), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '|' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitor), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '<' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.LT), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '>' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.GT), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '?' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.JSONExists), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr JSON_SOME_EXISTS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.JSONSomeExists), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr JSON_ALL_EXISTS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.JSONAllExists), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr CONTAINS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.Contains), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr CONTAINED_BY a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.ContainedBy), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr '=' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.EQ), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr CONCAT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Concat), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr LSHIFT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.LShift), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr RSHIFT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.RShift), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr FETCHVAL a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.JSONFetchVal), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr FETCHTEXT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.JSONFetchText), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr FETCHVAL_PATH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.JSONFetchValPath), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr FETCHTEXT_PATH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.JSONFetchTextPath), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr REMOVE_PATH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("json_remove_path"), Exprs: tree.Exprs{$1.expr(), $3.expr()}}
   }
 | a_expr INET_CONTAINED_BY_OR_EQUALS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("inet_contained_by_or_equals"), Exprs: tree.Exprs{$1.expr(), $3.expr()}}
   }
 | a_expr AND_AND a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.Overlaps), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr INET_CONTAINS_OR_EQUALS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("inet_contains_or_equals"), Exprs: tree.Exprs{$1.expr(), $3.expr()}}
   }
 | a_expr LESS_EQUALS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.LE), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr GREATER_EQUALS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.GE), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr NOT_EQUALS a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NE), Left: $1.expr(), Right: $3.expr()}
   }
 | qual_op a_expr %prec CBRT
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,qual_op")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,qual_op")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     var retCode int
@@ -17960,9 +17960,9 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   }
 | a_expr qual_op a_expr %prec CBRT
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,qual_op")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,qual_op")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     {
@@ -17975,171 +17975,171 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   }
 | a_expr AND a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.AndExpr{Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr OR a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.OrExpr{Left: $1.expr(), Right: $3.expr()}
   }
 | NOT a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.NotExpr{Expr: $2.expr()}
   }
 | NOT_LA a_expr %prec NOT
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.NotExpr{Expr: $2.expr()}
   }
 | a_expr LIKE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.Like), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr LIKE a_expr ESCAPE a_expr %prec ESCAPE
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("like_escape"), Exprs: tree.Exprs{$1.expr(), $3.expr(), $5.expr()}}
   }
 | a_expr NOT_LA LIKE a_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotLike), Left: $1.expr(), Right: $4.expr()}
   }
 | a_expr NOT_LA LIKE a_expr ESCAPE a_expr %prec ESCAPE
  {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
    $$.val = &tree.FuncExpr{Func: tree.WrapFunction("not_like_escape"), Exprs: tree.Exprs{$1.expr(), $4.expr(), $6.expr()}}
  }
 | a_expr ILIKE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.ILike), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr ILIKE a_expr ESCAPE a_expr %prec ESCAPE
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("ilike_escape"), Exprs: tree.Exprs{$1.expr(), $3.expr(), $5.expr()}}
   }
 | a_expr NOT_LA ILIKE a_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotILike), Left: $1.expr(), Right: $4.expr()}
   }
 | a_expr NOT_LA ILIKE a_expr ESCAPE a_expr %prec ESCAPE
  {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
    $$.val = &tree.FuncExpr{Func: tree.WrapFunction("not_ilike_escape"), Exprs: tree.Exprs{$1.expr(), $4.expr(), $6.expr()}}
  }
 | a_expr SIMILAR TO a_expr %prec SIMILAR
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.SimilarTo), Left: $1.expr(), Right: $4.expr()}
   }
 | a_expr SIMILAR TO a_expr ESCAPE a_expr %prec ESCAPE
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("similar_to_escape"), Exprs: tree.Exprs{$1.expr(), $4.expr(), $6.expr()}}
   }
 | a_expr NOT_LA SIMILAR TO a_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotSimilarTo), Left: $1.expr(), Right: $5.expr()}
   }
 | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec ESCAPE
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("not_similar_to_escape"), Exprs: tree.Exprs{$1.expr(), $5.expr(), $7.expr()}}
   }
 | a_expr '~' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.RegMatch), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr NOT_REGMATCH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotRegMatch), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr REGIMATCH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.RegIMatch), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr NOT_REGIMATCH a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotRegIMatch), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr IS NAN %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{
@@ -18150,7 +18150,7 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   }
 | a_expr IS NOT NAN %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{
@@ -18161,171 +18161,171 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
   }
 | a_expr IS NULL %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.IsNullExpr{Expr: $1.expr()}
   }
 | a_expr ISNULL %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.IsNullExpr{Expr: $1.expr()}
   }
 | a_expr IS NOT NULL %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.IsNotNullExpr{Expr: $1.expr()}
   }
 | a_expr NOTNULL %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.IsNotNullExpr{Expr: $1.expr()}
   }
 | row OVERLAPS row {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,row")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,row")
+LogGrammarCoverage("a_expr,row")
+LogGrammarCoverage("a_expr,row")
 
  return unimplemented(sqllex, "overlaps") }
 | a_expr IS TRUE %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsNotDistinctFrom), Left: $1.expr(), Right: tree.MakeDBool(true)}
   }
 | a_expr IS NOT TRUE %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsDistinctFrom), Left: $1.expr(), Right: tree.MakeDBool(true)}
   }
 | a_expr IS FALSE %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsNotDistinctFrom), Left: $1.expr(), Right: tree.MakeDBool(false)}
   }
 | a_expr IS NOT FALSE %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsDistinctFrom), Left: $1.expr(), Right: tree.MakeDBool(false)}
   }
 | a_expr IS UNKNOWN %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsNotDistinctFrom), Left: $1.expr(), Right: tree.DNull}
   }
 | a_expr IS NOT UNKNOWN %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsDistinctFrom), Left: $1.expr(), Right: tree.DNull}
   }
 | a_expr IS DISTINCT FROM a_expr %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsDistinctFrom), Left: $1.expr(), Right: $5.expr()}
   }
 | a_expr IS NOT DISTINCT FROM a_expr %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsNotDistinctFrom), Left: $1.expr(), Right: $6.expr()}
   }
 | a_expr IS OF '(' type_list ')' %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,type_list")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,type_list")
 
 
     $$.val = &tree.IsOfTypeExpr{Expr: $1.expr(), Types: $5.typeReferences()}
   }
 | a_expr IS NOT OF '(' type_list ')' %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,type_list")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,type_list")
 
 
     $$.val = &tree.IsOfTypeExpr{Not: true, Expr: $1.expr(), Types: $6.typeReferences()}
   }
 | a_expr BETWEEN opt_asymmetric b_expr AND a_expr %prec BETWEEN
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,opt_asymmetric")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,opt_asymmetric")
+LogGrammarCoverage("a_expr,b_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.RangeCond{Left: $1.expr(), From: $4.expr(), To: $6.expr()}
   }
 | a_expr NOT_LA BETWEEN opt_asymmetric b_expr AND a_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,opt_asymmetric")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,opt_asymmetric")
+LogGrammarCoverage("a_expr,b_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.RangeCond{Not: true, Left: $1.expr(), From: $5.expr(), To: $7.expr()}
   }
 | a_expr BETWEEN SYMMETRIC b_expr AND a_expr %prec BETWEEN
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,b_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.RangeCond{Symmetric: true, Left: $1.expr(), From: $4.expr(), To: $6.expr()}
   }
 | a_expr NOT_LA BETWEEN SYMMETRIC b_expr AND a_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,b_expr")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     $$.val = &tree.RangeCond{Not: true, Symmetric: true, Left: $1.expr(), From: $5.expr(), To: $7.expr()}
   }
 | a_expr IN in_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,in_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,in_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.In), Left: $1.expr(), Right: $3.expr()}
   }
 | a_expr NOT_LA IN in_expr %prec NOT_LA
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,in_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,in_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NotIn), Left: $1.expr(), Right: $4.expr()}
   }
 | a_expr subquery_op sub_type a_expr %prec CONCAT
   {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,subquery_op")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,sub_type")
-sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,a_expr")
+LogGrammarCoverage("a_expr,subquery_op")
+LogGrammarCoverage("a_expr,sub_type")
+LogGrammarCoverage("a_expr,a_expr")
 
 
     op := $3.cmpOp()
@@ -18352,7 +18352,7 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,a_expr")
 // The UNIQUE predicate is a standard SQL feature but not yet implemented
 // in PostgreSQL (as of 10.5).
 | UNIQUE '(' error {
-sqllex.(*lexer).LogGrammarCoverage("a_expr,error")
+LogGrammarCoverage("a_expr,error")
 
  return unimplemented(sqllex, "UNIQUE predicate") }
 
@@ -18366,202 +18366,202 @@ sqllex.(*lexer).LogGrammarCoverage("a_expr,error")
 b_expr:
   c_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,c_expr")
+LogGrammarCoverage("b_expr,c_expr")
 
 }
 | b_expr TYPECAST cast_target
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,cast_target")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,cast_target")
 
 
     $$.val = &tree.CastExpr{Expr: $1.expr(), Type: $3.typeReference(), SyntaxMode: tree.CastShort}
   }
 | b_expr TYPEANNOTATE typename
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,typename")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,typename")
 
 
     $$.val = &tree.AnnotateTypeExpr{Expr: $1.expr(), Type: $3.typeReference(), SyntaxMode: tree.AnnotateShort}
   }
 | '+' b_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = $2.expr()
   }
 | '-' b_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = unaryNegation($2.expr())
   }
 | '~' b_expr %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.UnaryExpr{Operator: tree.MakeUnaryOperator(tree.UnaryComplement), Expr: $2.expr()}
   }
 | b_expr '+' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Plus), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '-' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Minus), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '*' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Mult), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '/' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Div), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr FLOORDIV b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.FloorDiv), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '%' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Mod), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '^' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Pow), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '#' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitxor), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '&' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitand), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '|' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Bitor), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '<' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.LT), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '>' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.GT), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr '=' b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.EQ), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr CONCAT b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.Concat), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr LSHIFT b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.LShift), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr RSHIFT b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.BinaryExpr{Operator: treebin.MakeBinaryOperator(treebin.RShift), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr LESS_EQUALS b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.LE), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr GREATER_EQUALS b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.GE), Left: $1.expr(), Right: $3.expr()}
   }
 | b_expr NOT_EQUALS b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.NE), Left: $1.expr(), Right: $3.expr()}
   }
 | qual_op b_expr %prec CBRT
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,qual_op")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,qual_op")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     var retCode int
@@ -18572,9 +18572,9 @@ sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
   }
 | b_expr qual_op b_expr %prec CBRT
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,qual_op")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,qual_op")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     {
@@ -18587,32 +18587,32 @@ sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
   }
 | b_expr IS DISTINCT FROM b_expr %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsDistinctFrom), Left: $1.expr(), Right: $5.expr()}
   }
 | b_expr IS NOT DISTINCT FROM b_expr %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,b_expr")
 
 
     $$.val = &tree.ComparisonExpr{Operator: treecmp.MakeComparisonOperator(treecmp.IsNotDistinctFrom), Left: $1.expr(), Right: $6.expr()}
   }
 | b_expr IS OF '(' type_list ')' %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,type_list")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,type_list")
 
 
     $$.val = &tree.IsOfTypeExpr{Expr: $1.expr(), Types: $5.typeReferences()}
   }
 | b_expr IS NOT OF '(' type_list ')' %prec IS
   {
-sqllex.(*lexer).LogGrammarCoverage("b_expr,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("b_expr,type_list")
+LogGrammarCoverage("b_expr,b_expr")
+LogGrammarCoverage("b_expr,type_list")
 
 
     $$.val = &tree.IsOfTypeExpr{Not: true, Expr: $1.expr(), Types: $6.typeReferences()}
@@ -18628,13 +18628,13 @@ sqllex.(*lexer).LogGrammarCoverage("b_expr,type_list")
 c_expr:
   d_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("c_expr,d_expr")
+LogGrammarCoverage("c_expr,d_expr")
 
 }
 | d_expr array_subscripts
   {
-sqllex.(*lexer).LogGrammarCoverage("c_expr,d_expr")
-sqllex.(*lexer).LogGrammarCoverage("c_expr,array_subscripts")
+LogGrammarCoverage("c_expr,d_expr")
+LogGrammarCoverage("c_expr,array_subscripts")
 
 
     $$.val = &tree.IndirectionExpr{
@@ -18644,12 +18644,12 @@ sqllex.(*lexer).LogGrammarCoverage("c_expr,array_subscripts")
   }
 | case_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("c_expr,case_expr")
+LogGrammarCoverage("c_expr,case_expr")
 
 }
 | EXISTS select_with_parens
   {
-sqllex.(*lexer).LogGrammarCoverage("c_expr,select_with_parens")
+LogGrammarCoverage("c_expr,select_with_parens")
 
 
     $$.val = &tree.Subquery{Select: $2.selectStmt(), Exists: true}
@@ -18719,21 +18719,21 @@ d_expr:
     $$.val = d
   }
 | func_name '(' expr_list opt_sort_clause ')' SCONST {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,func_name")
-sqllex.(*lexer).LogGrammarCoverage("d_expr,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("d_expr,opt_sort_clause")
+LogGrammarCoverage("d_expr,func_name")
+LogGrammarCoverage("d_expr,expr_list")
+LogGrammarCoverage("d_expr,opt_sort_clause")
 
  return unimplemented(sqllex, $1.unresolvedName().String() + "(...) SCONST") }
 | typed_literal
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,typed_literal")
+LogGrammarCoverage("d_expr,typed_literal")
 
 
     $$.val = $1.expr()
   }
 | interval_value
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,interval_value")
+LogGrammarCoverage("d_expr,interval_value")
 
 
     $$.val = $1.expr()
@@ -18758,14 +18758,14 @@ sqllex.(*lexer).LogGrammarCoverage("d_expr,interval_value")
   }
 | column_path_with_star
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,column_path_with_star")
+LogGrammarCoverage("d_expr,column_path_with_star")
 
 
     $$.val = tree.Expr($1.unresolvedName())
   }
 | '@' iconst64
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,iconst64")
+LogGrammarCoverage("d_expr,iconst64")
 
 
     colNum := $2.int64()
@@ -18786,22 +18786,22 @@ sqllex.(*lexer).LogGrammarCoverage("d_expr,iconst64")
 // TODO(knz/jordan): extend this for compound types. See explanation above.
 | '(' a_expr ')' '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,a_expr")
+LogGrammarCoverage("d_expr,a_expr")
 
 
     $$.val = &tree.TupleStar{Expr: $2.expr()}
   }
 | '(' a_expr ')' '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("d_expr,unrestricted_name")
+LogGrammarCoverage("d_expr,a_expr")
+LogGrammarCoverage("d_expr,unrestricted_name")
 
 
     $$.val = &tree.ColumnAccessExpr{Expr: $2.expr(), ColName: tree.Name($5) }
   }
 | '(' a_expr ')' '.' '@' ICONST
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,a_expr")
+LogGrammarCoverage("d_expr,a_expr")
 
 
     idx, err := $6.numVal().AsInt32()
@@ -18814,91 +18814,91 @@ sqllex.(*lexer).LogGrammarCoverage("d_expr,a_expr")
   }
 | '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,a_expr")
+LogGrammarCoverage("d_expr,a_expr")
 
 
     $$.val = &tree.ParenExpr{Expr: $2.expr()}
   }
 | func_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,func_expr")
+LogGrammarCoverage("d_expr,func_expr")
 
 }
 | select_with_parens %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,select_with_parens")
+LogGrammarCoverage("d_expr,select_with_parens")
 
 
     $$.val = &tree.Subquery{Select: $1.selectStmt()}
   }
 | labeled_row
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,labeled_row")
+LogGrammarCoverage("d_expr,labeled_row")
 
 
     $$.val = $1.tuple()
   }
 | ARRAY select_with_parens %prec UMINUS
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,select_with_parens")
+LogGrammarCoverage("d_expr,select_with_parens")
 
 
     $$.val = &tree.ArrayFlatten{Subquery: &tree.Subquery{Select: $2.selectStmt()}}
   }
 | ARRAY row
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,row")
+LogGrammarCoverage("d_expr,row")
 
 
     $$.val = &tree.Array{Exprs: $2.tuple().Exprs}
   }
 | ARRAY array_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,array_expr")
+LogGrammarCoverage("d_expr,array_expr")
 
 
     $$.val = $2.expr()
   }
 | GROUPING '(' expr_list ')' {
-sqllex.(*lexer).LogGrammarCoverage("d_expr,expr_list")
+LogGrammarCoverage("d_expr,expr_list")
 
  return unimplemented(sqllex, "d_expr grouping") }
 
 func_application:
   func_name '(' ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,func_name")
 
 
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName()}
   }
 | func_name '(' expr_list opt_sort_clause ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("func_application,opt_sort_clause")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,expr_list")
+LogGrammarCoverage("func_application,opt_sort_clause")
 
 
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Exprs: $3.exprs(), OrderBy: $4.orderBy(), AggType: tree.GeneralAgg}
   }
 | func_name '(' VARIADIC a_expr opt_sort_clause ')' {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_application,opt_sort_clause")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,a_expr")
+LogGrammarCoverage("func_application,opt_sort_clause")
 
  return unimplemented(sqllex, "variadic") }
 | func_name '(' expr_list ',' VARIADIC a_expr opt_sort_clause ')' {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("func_application,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_application,opt_sort_clause")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,expr_list")
+LogGrammarCoverage("func_application,a_expr")
+LogGrammarCoverage("func_application,opt_sort_clause")
 
  return unimplemented(sqllex, "variadic") }
 | func_name '(' ALL expr_list opt_sort_clause ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("func_application,opt_sort_clause")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,expr_list")
+LogGrammarCoverage("func_application,opt_sort_clause")
 
 
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Type: tree.AllFuncType, Exprs: $4.exprs(), OrderBy: $5.orderBy(), AggType: tree.GeneralAgg}
@@ -18907,22 +18907,22 @@ sqllex.(*lexer).LogGrammarCoverage("func_application,opt_sort_clause")
 // allow ordering to be specified below.
 | func_name '(' DISTINCT expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,expr_list")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,expr_list")
 
 
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Type: tree.DistinctFuncType, Exprs: $4.exprs()}
   }
 | func_name '(' '*' ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,func_name")
 
 
     $$.val = &tree.FuncExpr{Func: $1.resolvableFuncRefFromName(), Exprs: tree.Exprs{tree.StarExpr()}}
   }
 | func_name '(' error {
-sqllex.(*lexer).LogGrammarCoverage("func_application,func_name")
-sqllex.(*lexer).LogGrammarCoverage("func_application,error")
+LogGrammarCoverage("func_application,func_name")
+LogGrammarCoverage("func_application,error")
 
  return helpWithFunction(sqllex, $1.resolvableFuncRefFromName()) }
 
@@ -18934,7 +18934,7 @@ typed_literal:
   // we will have conflicts between this rule and the one below.
   func_name_no_crdb_extra SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("typed_literal,func_name_no_crdb_extra")
+LogGrammarCoverage("typed_literal,func_name_no_crdb_extra")
 
 
     name := $1.unresolvedName()
@@ -18990,7 +18990,7 @@ sqllex.(*lexer).LogGrammarCoverage("typed_literal,func_name_no_crdb_extra")
   }
 | const_typename SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("typed_literal,const_typename")
+LogGrammarCoverage("typed_literal,const_typename")
 
 
     $$.val = &tree.CastExpr{Expr: tree.NewStrVal($2), Type: $1.colType(), SyntaxMode: tree.CastPrepend}
@@ -19006,10 +19006,10 @@ sqllex.(*lexer).LogGrammarCoverage("typed_literal,const_typename")
 func_expr:
   func_application within_group_clause filter_clause over_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr,func_application")
-sqllex.(*lexer).LogGrammarCoverage("func_expr,within_group_clause")
-sqllex.(*lexer).LogGrammarCoverage("func_expr,filter_clause")
-sqllex.(*lexer).LogGrammarCoverage("func_expr,over_clause")
+LogGrammarCoverage("func_expr,func_application")
+LogGrammarCoverage("func_expr,within_group_clause")
+LogGrammarCoverage("func_expr,filter_clause")
+LogGrammarCoverage("func_expr,over_clause")
 
 
     f := $1.expr().(*tree.FuncExpr)
@@ -19024,7 +19024,7 @@ sqllex.(*lexer).LogGrammarCoverage("func_expr,over_clause")
   }
 | func_expr_common_subexpr
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr,func_expr_common_subexpr")
+LogGrammarCoverage("func_expr,func_expr_common_subexpr")
 
 
     $$.val = $1.expr()
@@ -19036,11 +19036,11 @@ sqllex.(*lexer).LogGrammarCoverage("func_expr,func_expr_common_subexpr")
 // (e.g. in CREATE INDEX).
 func_expr_windowless:
   func_application {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_windowless,func_application")
+LogGrammarCoverage("func_expr_windowless,func_application")
 
  $$.val = $1.expr() }
 | func_expr_common_subexpr {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_windowless,func_expr_common_subexpr")
+LogGrammarCoverage("func_expr_windowless,func_expr_common_subexpr")
 
  $$.val = $1.expr() }
 
@@ -19048,7 +19048,7 @@ sqllex.(*lexer).LogGrammarCoverage("func_expr_windowless,func_expr_common_subexp
 func_expr_common_subexpr:
   COLLATION FOR '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("pg_collation_for"), Exprs: tree.Exprs{$4.expr()}}
@@ -19125,80 +19125,80 @@ sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
   }
 | CAST '(' a_expr AS cast_target ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,cast_target")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,cast_target")
 
 
     $$.val = &tree.CastExpr{Expr: $3.expr(), Type: $5.typeReference(), SyntaxMode: tree.CastExplicit}
   }
 | ANNOTATE_TYPE '(' a_expr ',' typename ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,typename")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,typename")
 
 
     $$.val = &tree.AnnotateTypeExpr{Expr: $3.expr(), Type: $5.typeReference(), SyntaxMode: tree.AnnotateExplicit}
   }
 | IF '(' a_expr ',' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.IfExpr{Cond: $3.expr(), True: $5.expr(), Else: $7.expr()}
   }
 | IFERROR '(' a_expr ',' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.IfErrExpr{Cond: $3.expr(), Else: $5.expr(), ErrCode: $7.expr()}
   }
 | IFERROR '(' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.IfErrExpr{Cond: $3.expr(), Else: $5.expr()}
   }
 | ISERROR '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.IfErrExpr{Cond: $3.expr()}
   }
 | ISERROR '(' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.IfErrExpr{Cond: $3.expr(), ErrCode: $5.expr()}
   }
 | NULLIF '(' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.NullIfExpr{Expr1: $3.expr(), Expr2: $5.expr()}
   }
 | IFNULL '(' a_expr ',' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
+LogGrammarCoverage("func_expr_common_subexpr,a_expr")
 
 
     $$.val = &tree.CoalesceExpr{Name: "IFNULL", Exprs: tree.Exprs{$3.expr(), $5.expr()}}
   }
 | COALESCE '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,expr_list")
+LogGrammarCoverage("func_expr_common_subexpr,expr_list")
 
 
     $$.val = &tree.CoalesceExpr{Name: "COALESCE", Exprs: $3.exprs()}
@@ -19206,7 +19206,7 @@ sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,expr_list")
 | special_function
 
 {
-sqllex.(*lexer).LogGrammarCoverage("func_expr_common_subexpr,special_function")
+LogGrammarCoverage("func_expr_common_subexpr,special_function")
 
 }
 special_function:
@@ -19217,7 +19217,7 @@ special_function:
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1)}
   }
 | CURRENT_DATE '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | CURRENT_SCHEMA '(' ')'
@@ -19227,7 +19227,7 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1)}
   }
 | CURRENT_SCHEMA '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | CURRENT_TIMESTAMP '(' ')'
@@ -19238,13 +19238,13 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
   }
 | CURRENT_TIMESTAMP '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,a_expr")
+LogGrammarCoverage("special_function,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: tree.Exprs{$3.expr()}}
   }
 | CURRENT_TIMESTAMP '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | CURRENT_TIME '(' ')'
@@ -19255,13 +19255,13 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
   }
 | CURRENT_TIME '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,a_expr")
+LogGrammarCoverage("special_function,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: tree.Exprs{$3.expr()}}
   }
 | CURRENT_TIME '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | LOCALTIMESTAMP '(' ')'
@@ -19272,13 +19272,13 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
   }
 | LOCALTIMESTAMP '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,a_expr")
+LogGrammarCoverage("special_function,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: tree.Exprs{$3.expr()}}
   }
 | LOCALTIMESTAMP '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | LOCALTIME '(' ')'
@@ -19289,13 +19289,13 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
   }
 | LOCALTIME '(' a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,a_expr")
+LogGrammarCoverage("special_function,a_expr")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: tree.Exprs{$3.expr()}}
   }
 | LOCALTIME '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | CURRENT_USER '(' ')'
@@ -19305,7 +19305,7 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1)}
   }
 | CURRENT_USER '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | SESSION_USER '(' ')'
@@ -19315,113 +19315,113 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1)}
   }
 | SESSION_USER '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | EXTRACT '(' extract_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,extract_list")
+LogGrammarCoverage("special_function,extract_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | EXTRACT '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | EXTRACT_DURATION '(' extract_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,extract_list")
+LogGrammarCoverage("special_function,extract_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | EXTRACT_DURATION '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | OVERLAY '(' overlay_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,overlay_list")
+LogGrammarCoverage("special_function,overlay_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | OVERLAY '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | POSITION '(' position_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,position_list")
+LogGrammarCoverage("special_function,position_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("strpos"), Exprs: $3.exprs()}
   }
 | SUBSTRING '(' substr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,substr_list")
+LogGrammarCoverage("special_function,substr_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | SUBSTRING '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | TREAT '(' a_expr AS typename ')' {
-sqllex.(*lexer).LogGrammarCoverage("special_function,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("special_function,typename")
+LogGrammarCoverage("special_function,a_expr")
+LogGrammarCoverage("special_function,typename")
 
  return unimplemented(sqllex, "treat") }
 | TRIM '(' BOTH trim_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,trim_list")
+LogGrammarCoverage("special_function,trim_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("btrim"), Exprs: $4.exprs()}
   }
 | TRIM '(' LEADING trim_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,trim_list")
+LogGrammarCoverage("special_function,trim_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("ltrim"), Exprs: $4.exprs()}
   }
 | TRIM '(' TRAILING trim_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,trim_list")
+LogGrammarCoverage("special_function,trim_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("rtrim"), Exprs: $4.exprs()}
   }
 | TRIM '(' trim_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,trim_list")
+LogGrammarCoverage("special_function,trim_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction("btrim"), Exprs: $3.exprs()}
   }
 | GREATEST '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,expr_list")
+LogGrammarCoverage("special_function,expr_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | GREATEST '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 | LEAST '(' expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("special_function,expr_list")
+LogGrammarCoverage("special_function,expr_list")
 
 
     $$.val = &tree.FuncExpr{Func: tree.WrapFunction($1), Exprs: $3.exprs()}
   }
 | LEAST '(' error {
-sqllex.(*lexer).LogGrammarCoverage("special_function,error")
+LogGrammarCoverage("special_function,error")
 
  return helpWithFunctionByName(sqllex, $1) }
 
@@ -19430,7 +19430,7 @@ sqllex.(*lexer).LogGrammarCoverage("special_function,error")
 within_group_clause:
   WITHIN GROUP '(' single_sort_clause ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("within_group_clause,single_sort_clause")
+LogGrammarCoverage("within_group_clause,single_sort_clause")
 
 
     $$.val = &tree.FuncExpr{OrderBy: $4.orderBy(), AggType: tree.OrderedSetAgg}
@@ -19445,7 +19445,7 @@ sqllex.(*lexer).LogGrammarCoverage("within_group_clause,single_sort_clause")
 filter_clause:
   FILTER '(' WHERE a_expr ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("filter_clause,a_expr")
+LogGrammarCoverage("filter_clause,a_expr")
 
 
     $$.val = $4.expr()
@@ -19461,7 +19461,7 @@ sqllex.(*lexer).LogGrammarCoverage("filter_clause,a_expr")
 window_clause:
   WINDOW window_definition_list
   {
-sqllex.(*lexer).LogGrammarCoverage("window_clause,window_definition_list")
+LogGrammarCoverage("window_clause,window_definition_list")
 
 
     $$.val = $2.window()
@@ -19476,15 +19476,15 @@ sqllex.(*lexer).LogGrammarCoverage("window_clause,window_definition_list")
 window_definition_list:
   window_definition
   {
-sqllex.(*lexer).LogGrammarCoverage("window_definition_list,window_definition")
+LogGrammarCoverage("window_definition_list,window_definition")
 
 
     $$.val = tree.Window{$1.windowDef()}
   }
 | window_definition_list ',' window_definition
   {
-sqllex.(*lexer).LogGrammarCoverage("window_definition_list,window_definition_list")
-sqllex.(*lexer).LogGrammarCoverage("window_definition_list,window_definition")
+LogGrammarCoverage("window_definition_list,window_definition_list")
+LogGrammarCoverage("window_definition_list,window_definition")
 
 
     $$.val = append($1.window(), $3.windowDef())
@@ -19493,8 +19493,8 @@ sqllex.(*lexer).LogGrammarCoverage("window_definition_list,window_definition")
 window_definition:
   window_name AS window_specification
   {
-sqllex.(*lexer).LogGrammarCoverage("window_definition,window_name")
-sqllex.(*lexer).LogGrammarCoverage("window_definition,window_specification")
+LogGrammarCoverage("window_definition,window_name")
+LogGrammarCoverage("window_definition,window_specification")
 
 
     n := $3.windowDef()
@@ -19505,14 +19505,14 @@ sqllex.(*lexer).LogGrammarCoverage("window_definition,window_specification")
 over_clause:
   OVER window_specification
   {
-sqllex.(*lexer).LogGrammarCoverage("over_clause,window_specification")
+LogGrammarCoverage("over_clause,window_specification")
 
 
     $$.val = $2.windowDef()
   }
 | OVER window_name
   {
-sqllex.(*lexer).LogGrammarCoverage("over_clause,window_name")
+LogGrammarCoverage("over_clause,window_name")
 
 
     $$.val = &tree.WindowDef{Name: tree.Name($2)}
@@ -19528,10 +19528,10 @@ window_specification:
   '(' opt_existing_window_name opt_partition_clause
     opt_sort_clause opt_frame_clause ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("window_specification,opt_existing_window_name")
-sqllex.(*lexer).LogGrammarCoverage("window_specification,opt_partition_clause")
-sqllex.(*lexer).LogGrammarCoverage("window_specification,opt_sort_clause")
-sqllex.(*lexer).LogGrammarCoverage("window_specification,opt_frame_clause")
+LogGrammarCoverage("window_specification,opt_existing_window_name")
+LogGrammarCoverage("window_specification,opt_partition_clause")
+LogGrammarCoverage("window_specification,opt_sort_clause")
+LogGrammarCoverage("window_specification,opt_frame_clause")
 
 
     $$.val = &tree.WindowDef{
@@ -19553,7 +19553,7 @@ sqllex.(*lexer).LogGrammarCoverage("window_specification,opt_frame_clause")
 opt_existing_window_name:
   name
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_existing_window_name,name")
+LogGrammarCoverage("opt_existing_window_name,name")
 
 }
 | /* EMPTY */ %prec CONCAT
@@ -19566,7 +19566,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_existing_window_name,name")
 opt_partition_clause:
   PARTITION BY expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_partition_clause,expr_list")
+LogGrammarCoverage("opt_partition_clause,expr_list")
 
 
     $$.val = $3.exprs()
@@ -19581,8 +19581,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_partition_clause,expr_list")
 opt_frame_clause:
   RANGE frame_extent opt_frame_exclusion
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,frame_extent")
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
+LogGrammarCoverage("opt_frame_clause,frame_extent")
+LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
 
 
     $$.val = &tree.WindowFrame{
@@ -19593,8 +19593,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
   }
 | ROWS frame_extent opt_frame_exclusion
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,frame_extent")
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
+LogGrammarCoverage("opt_frame_clause,frame_extent")
+LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
 
 
     $$.val = &tree.WindowFrame{
@@ -19605,8 +19605,8 @@ sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
   }
 | GROUPS frame_extent opt_frame_exclusion
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,frame_extent")
-sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
+LogGrammarCoverage("opt_frame_clause,frame_extent")
+LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
 
 
     $$.val = &tree.WindowFrame{
@@ -19625,7 +19625,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_frame_clause,opt_frame_exclusion")
 frame_extent:
   frame_bound
   {
-sqllex.(*lexer).LogGrammarCoverage("frame_extent,frame_bound")
+LogGrammarCoverage("frame_extent,frame_bound")
 
 
     startBound := $1.windowFrameBound()
@@ -19641,8 +19641,8 @@ sqllex.(*lexer).LogGrammarCoverage("frame_extent,frame_bound")
   }
 | BETWEEN frame_bound AND frame_bound
   {
-sqllex.(*lexer).LogGrammarCoverage("frame_extent,frame_bound")
-sqllex.(*lexer).LogGrammarCoverage("frame_extent,frame_bound")
+LogGrammarCoverage("frame_extent,frame_bound")
+LogGrammarCoverage("frame_extent,frame_bound")
 
 
     startBound := $2.windowFrameBound()
@@ -19691,7 +19691,7 @@ frame_bound:
   }
 | a_expr PRECEDING
   {
-sqllex.(*lexer).LogGrammarCoverage("frame_bound,a_expr")
+LogGrammarCoverage("frame_bound,a_expr")
 
 
     $$.val = &tree.WindowFrameBound{
@@ -19701,7 +19701,7 @@ sqllex.(*lexer).LogGrammarCoverage("frame_bound,a_expr")
   }
 | a_expr FOLLOWING
   {
-sqllex.(*lexer).LogGrammarCoverage("frame_bound,a_expr")
+LogGrammarCoverage("frame_bound,a_expr")
 
 
     $$.val = &tree.WindowFrameBound{
@@ -19753,14 +19753,14 @@ opt_frame_exclusion:
 row:
   ROW '(' opt_expr_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("row,opt_expr_list")
+LogGrammarCoverage("row,opt_expr_list")
 
 
     $$.val = &tree.Tuple{Exprs: $3.exprs(), Row: true}
   }
 | expr_tuple_unambiguous
   {
-sqllex.(*lexer).LogGrammarCoverage("row,expr_tuple_unambiguous")
+LogGrammarCoverage("row,expr_tuple_unambiguous")
 
 
     $$.val = $1.tuple()
@@ -19769,13 +19769,13 @@ sqllex.(*lexer).LogGrammarCoverage("row,expr_tuple_unambiguous")
 labeled_row:
   row
 {
-sqllex.(*lexer).LogGrammarCoverage("labeled_row,row")
+LogGrammarCoverage("labeled_row,row")
 
 }
 | '(' row AS name_list ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("labeled_row,row")
-sqllex.(*lexer).LogGrammarCoverage("labeled_row,name_list")
+LogGrammarCoverage("labeled_row,row")
+LogGrammarCoverage("labeled_row,name_list")
 
 
     t := $2.tuple()
@@ -19929,13 +19929,13 @@ all_op:
 operator_op:
   all_op
 {
-sqllex.(*lexer).LogGrammarCoverage("operator_op,all_op")
+LogGrammarCoverage("operator_op,all_op")
 
 }
 | name '.' all_op
   {
-sqllex.(*lexer).LogGrammarCoverage("operator_op,name")
-sqllex.(*lexer).LogGrammarCoverage("operator_op,all_op")
+LogGrammarCoverage("operator_op,name")
+LogGrammarCoverage("operator_op,all_op")
 
 
     // Only support operators on pg_catalog.
@@ -19954,7 +19954,7 @@ sqllex.(*lexer).LogGrammarCoverage("operator_op,all_op")
 qual_op:
   OPERATOR '(' operator_op ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("qual_op,operator_op")
+LogGrammarCoverage("qual_op,operator_op")
 
 
     $$ = $3
@@ -19963,12 +19963,12 @@ sqllex.(*lexer).LogGrammarCoverage("qual_op,operator_op")
 subquery_op:
   all_op
 {
-sqllex.(*lexer).LogGrammarCoverage("subquery_op,all_op")
+LogGrammarCoverage("subquery_op,all_op")
 
 }
 | qual_op
 {
-sqllex.(*lexer).LogGrammarCoverage("subquery_op,qual_op")
+LogGrammarCoverage("subquery_op,qual_op")
 
 }
 | LIKE         {
@@ -20012,7 +20012,7 @@ expr_tuple1_ambiguous:
   }
 | '(' tuple1_ambiguous_values ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("expr_tuple1_ambiguous,tuple1_ambiguous_values")
+LogGrammarCoverage("expr_tuple1_ambiguous,tuple1_ambiguous_values")
 
 
     $$.val = &tree.Tuple{Exprs: $2.exprs()}
@@ -20021,22 +20021,22 @@ sqllex.(*lexer).LogGrammarCoverage("expr_tuple1_ambiguous,tuple1_ambiguous_value
 tuple1_ambiguous_values:
   a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
+LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | a_expr ','
   {
-sqllex.(*lexer).LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
+LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | a_expr ',' expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("tuple1_ambiguous_values,expr_list")
+LogGrammarCoverage("tuple1_ambiguous_values,a_expr")
+LogGrammarCoverage("tuple1_ambiguous_values,expr_list")
 
 
      $$.val = append(tree.Exprs{$1.expr()}, $3.exprs()...)
@@ -20056,7 +20056,7 @@ expr_tuple_unambiguous:
   }
 | '(' tuple1_unambiguous_values ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("expr_tuple_unambiguous,tuple1_unambiguous_values")
+LogGrammarCoverage("expr_tuple_unambiguous,tuple1_unambiguous_values")
 
 
     $$.val = &tree.Tuple{Exprs: $2.exprs()}
@@ -20065,15 +20065,15 @@ sqllex.(*lexer).LogGrammarCoverage("expr_tuple_unambiguous,tuple1_unambiguous_va
 tuple1_unambiguous_values:
   a_expr ','
   {
-sqllex.(*lexer).LogGrammarCoverage("tuple1_unambiguous_values,a_expr")
+LogGrammarCoverage("tuple1_unambiguous_values,a_expr")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | a_expr ',' expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("tuple1_unambiguous_values,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("tuple1_unambiguous_values,expr_list")
+LogGrammarCoverage("tuple1_unambiguous_values,a_expr")
+LogGrammarCoverage("tuple1_unambiguous_values,expr_list")
 
 
      $$.val = append(tree.Exprs{$1.expr()}, $3.exprs()...)
@@ -20082,7 +20082,7 @@ sqllex.(*lexer).LogGrammarCoverage("tuple1_unambiguous_values,expr_list")
 opt_expr_list:
   expr_list
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_expr_list,expr_list")
+LogGrammarCoverage("opt_expr_list,expr_list")
 
 }
 | /* EMPTY */
@@ -20095,15 +20095,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_expr_list,expr_list")
 expr_list:
   a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("expr_list,a_expr")
+LogGrammarCoverage("expr_list,a_expr")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | expr_list ',' a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("expr_list,expr_list")
-sqllex.(*lexer).LogGrammarCoverage("expr_list,a_expr")
+LogGrammarCoverage("expr_list,expr_list")
+LogGrammarCoverage("expr_list,a_expr")
 
 
     $$.val = append($1.exprs(), $3.expr())
@@ -20112,15 +20112,15 @@ sqllex.(*lexer).LogGrammarCoverage("expr_list,a_expr")
 type_list:
   typename
   {
-sqllex.(*lexer).LogGrammarCoverage("type_list,typename")
+LogGrammarCoverage("type_list,typename")
 
 
     $$.val = []tree.ResolvableTypeReference{$1.typeReference()}
   }
 | type_list ',' typename
   {
-sqllex.(*lexer).LogGrammarCoverage("type_list,type_list")
-sqllex.(*lexer).LogGrammarCoverage("type_list,typename")
+LogGrammarCoverage("type_list,type_list")
+LogGrammarCoverage("type_list,typename")
 
 
     $$.val = append($1.typeReferences(), $3.typeReference())
@@ -20129,14 +20129,14 @@ sqllex.(*lexer).LogGrammarCoverage("type_list,typename")
 array_expr:
   '[' opt_expr_list ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("array_expr,opt_expr_list")
+LogGrammarCoverage("array_expr,opt_expr_list")
 
 
     $$.val = &tree.Array{Exprs: $2.exprs()}
   }
 | '[' array_expr_list ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("array_expr,array_expr_list")
+LogGrammarCoverage("array_expr,array_expr_list")
 
 
     $$.val = &tree.Array{Exprs: $2.exprs()}
@@ -20145,15 +20145,15 @@ sqllex.(*lexer).LogGrammarCoverage("array_expr,array_expr_list")
 array_expr_list:
   array_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("array_expr_list,array_expr")
+LogGrammarCoverage("array_expr_list,array_expr")
 
 
     $$.val = tree.Exprs{$1.expr()}
   }
 | array_expr_list ',' array_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("array_expr_list,array_expr_list")
-sqllex.(*lexer).LogGrammarCoverage("array_expr_list,array_expr")
+LogGrammarCoverage("array_expr_list,array_expr_list")
+LogGrammarCoverage("array_expr_list,array_expr")
 
 
     $$.val = append($1.exprs(), $3.expr())
@@ -20162,15 +20162,15 @@ sqllex.(*lexer).LogGrammarCoverage("array_expr_list,array_expr")
 extract_list:
   extract_arg FROM a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("extract_list,extract_arg")
-sqllex.(*lexer).LogGrammarCoverage("extract_list,a_expr")
+LogGrammarCoverage("extract_list,extract_arg")
+LogGrammarCoverage("extract_list,a_expr")
 
 
     $$.val = tree.Exprs{tree.NewStrVal(strings.ToLower($1)), $3.expr()}
   }
 | expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("extract_list,expr_list")
+LogGrammarCoverage("extract_list,expr_list")
 
 
     $$.val = $1.exprs()
@@ -20220,26 +20220,26 @@ extract_arg:
 overlay_list:
   a_expr overlay_placing substr_from substr_for
   {
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,overlay_placing")
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,substr_from")
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,substr_for")
+LogGrammarCoverage("overlay_list,a_expr")
+LogGrammarCoverage("overlay_list,overlay_placing")
+LogGrammarCoverage("overlay_list,substr_from")
+LogGrammarCoverage("overlay_list,substr_for")
 
 
     $$.val = tree.Exprs{$1.expr(), $2.expr(), $3.expr(), $4.expr()}
   }
 | a_expr overlay_placing substr_from
   {
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,overlay_placing")
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,substr_from")
+LogGrammarCoverage("overlay_list,a_expr")
+LogGrammarCoverage("overlay_list,overlay_placing")
+LogGrammarCoverage("overlay_list,substr_from")
 
 
     $$.val = tree.Exprs{$1.expr(), $2.expr(), $3.expr()}
   }
 | expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("overlay_list,expr_list")
+LogGrammarCoverage("overlay_list,expr_list")
 
 
     $$.val = $1.exprs()
@@ -20248,7 +20248,7 @@ sqllex.(*lexer).LogGrammarCoverage("overlay_list,expr_list")
 overlay_placing:
   PLACING a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("overlay_placing,a_expr")
+LogGrammarCoverage("overlay_placing,a_expr")
 
 
     $$.val = $2.expr()
@@ -20258,8 +20258,8 @@ sqllex.(*lexer).LogGrammarCoverage("overlay_placing,a_expr")
 position_list:
   b_expr IN b_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("position_list,b_expr")
-sqllex.(*lexer).LogGrammarCoverage("position_list,b_expr")
+LogGrammarCoverage("position_list,b_expr")
+LogGrammarCoverage("position_list,b_expr")
 
 
     $$.val = tree.Exprs{$3.expr(), $1.expr()}
@@ -20285,41 +20285,41 @@ sqllex.(*lexer).LogGrammarCoverage("position_list,b_expr")
 substr_list:
   a_expr substr_from substr_for
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_from")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_for")
+LogGrammarCoverage("substr_list,a_expr")
+LogGrammarCoverage("substr_list,substr_from")
+LogGrammarCoverage("substr_list,substr_for")
 
 
     $$.val = tree.Exprs{$1.expr(), $2.expr(), $3.expr()}
   }
 | a_expr substr_for substr_from
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_for")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_from")
+LogGrammarCoverage("substr_list,a_expr")
+LogGrammarCoverage("substr_list,substr_for")
+LogGrammarCoverage("substr_list,substr_from")
 
 
     $$.val = tree.Exprs{$1.expr(), $3.expr(), $2.expr()}
   }
 | a_expr substr_from
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_from")
+LogGrammarCoverage("substr_list,a_expr")
+LogGrammarCoverage("substr_list,substr_from")
 
 
     $$.val = tree.Exprs{$1.expr(), $2.expr()}
   }
 | a_expr substr_for
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("substr_list,substr_for")
+LogGrammarCoverage("substr_list,a_expr")
+LogGrammarCoverage("substr_list,substr_for")
 
 
     $$.val = tree.Exprs{$1.expr(), tree.NewDInt(1), $2.expr()}
   }
 | opt_expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_list,opt_expr_list")
+LogGrammarCoverage("substr_list,opt_expr_list")
 
 
     $$.val = $1.exprs()
@@ -20328,7 +20328,7 @@ sqllex.(*lexer).LogGrammarCoverage("substr_list,opt_expr_list")
 substr_from:
   FROM a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_from,a_expr")
+LogGrammarCoverage("substr_from,a_expr")
 
 
     $$.val = $2.expr()
@@ -20337,7 +20337,7 @@ sqllex.(*lexer).LogGrammarCoverage("substr_from,a_expr")
 substr_for:
   FOR a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("substr_for,a_expr")
+LogGrammarCoverage("substr_for,a_expr")
 
 
     $$.val = $2.expr()
@@ -20346,22 +20346,22 @@ sqllex.(*lexer).LogGrammarCoverage("substr_for,a_expr")
 trim_list:
   a_expr FROM expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("trim_list,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("trim_list,expr_list")
+LogGrammarCoverage("trim_list,a_expr")
+LogGrammarCoverage("trim_list,expr_list")
 
 
     $$.val = append($3.exprs(), $1.expr())
   }
 | FROM expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("trim_list,expr_list")
+LogGrammarCoverage("trim_list,expr_list")
 
 
     $$.val = $2.exprs()
   }
 | expr_list
   {
-sqllex.(*lexer).LogGrammarCoverage("trim_list,expr_list")
+LogGrammarCoverage("trim_list,expr_list")
 
 
     $$.val = $1.exprs()
@@ -20370,7 +20370,7 @@ sqllex.(*lexer).LogGrammarCoverage("trim_list,expr_list")
 in_expr:
   select_with_parens
   {
-sqllex.(*lexer).LogGrammarCoverage("in_expr,select_with_parens")
+LogGrammarCoverage("in_expr,select_with_parens")
 
 
     $$.val = &tree.Subquery{Select: $1.selectStmt()}
@@ -20383,15 +20383,15 @@ sqllex.(*lexer).LogGrammarCoverage("in_expr,select_with_parens")
 // - Implicit argument
 //      CASE a WHEN b THEN c ... ELSE d END
 {
-sqllex.(*lexer).LogGrammarCoverage("in_expr,expr_tuple1_ambiguous")
+LogGrammarCoverage("in_expr,expr_tuple1_ambiguous")
 
 }
 case_expr:
   CASE case_arg when_clause_list case_default END
   {
-sqllex.(*lexer).LogGrammarCoverage("case_expr,case_arg")
-sqllex.(*lexer).LogGrammarCoverage("case_expr,when_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("case_expr,case_default")
+LogGrammarCoverage("case_expr,case_arg")
+LogGrammarCoverage("case_expr,when_clause_list")
+LogGrammarCoverage("case_expr,case_default")
 
 
     $$.val = &tree.CaseExpr{Expr: $2.expr(), Whens: $3.whens(), Else: $4.expr()}
@@ -20401,15 +20401,15 @@ when_clause_list:
   // There must be at least one
   when_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("when_clause_list,when_clause")
+LogGrammarCoverage("when_clause_list,when_clause")
 
 
     $$.val = []*tree.When{$1.when()}
   }
 | when_clause_list when_clause
   {
-sqllex.(*lexer).LogGrammarCoverage("when_clause_list,when_clause_list")
-sqllex.(*lexer).LogGrammarCoverage("when_clause_list,when_clause")
+LogGrammarCoverage("when_clause_list,when_clause_list")
+LogGrammarCoverage("when_clause_list,when_clause")
 
 
     $$.val = append($1.whens(), $2.when())
@@ -20418,8 +20418,8 @@ sqllex.(*lexer).LogGrammarCoverage("when_clause_list,when_clause")
 when_clause:
   WHEN a_expr THEN a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("when_clause,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("when_clause,a_expr")
+LogGrammarCoverage("when_clause,a_expr")
+LogGrammarCoverage("when_clause,a_expr")
 
 
     $$.val = &tree.When{Cond: $2.expr(), Val: $4.expr()}
@@ -20428,7 +20428,7 @@ sqllex.(*lexer).LogGrammarCoverage("when_clause,a_expr")
 case_default:
   ELSE a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("case_default,a_expr")
+LogGrammarCoverage("case_default,a_expr")
 
 
     $$.val = $2.expr()
@@ -20443,7 +20443,7 @@ sqllex.(*lexer).LogGrammarCoverage("case_default,a_expr")
 case_arg:
   a_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("case_arg,a_expr")
+LogGrammarCoverage("case_arg,a_expr")
 
 }
 | /* EMPTY */
@@ -20456,15 +20456,15 @@ sqllex.(*lexer).LogGrammarCoverage("case_arg,a_expr")
 array_subscript:
   '[' a_expr ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("array_subscript,a_expr")
+LogGrammarCoverage("array_subscript,a_expr")
 
 
     $$.val = &tree.ArraySubscript{Begin: $2.expr()}
   }
 | '[' opt_slice_bound ':' opt_slice_bound ']'
   {
-sqllex.(*lexer).LogGrammarCoverage("array_subscript,opt_slice_bound")
-sqllex.(*lexer).LogGrammarCoverage("array_subscript,opt_slice_bound")
+LogGrammarCoverage("array_subscript,opt_slice_bound")
+LogGrammarCoverage("array_subscript,opt_slice_bound")
 
 
     $$.val = &tree.ArraySubscript{Begin: $2.expr(), End: $4.expr(), Slice: true}
@@ -20473,7 +20473,7 @@ sqllex.(*lexer).LogGrammarCoverage("array_subscript,opt_slice_bound")
 opt_slice_bound:
   a_expr
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_slice_bound,a_expr")
+LogGrammarCoverage("opt_slice_bound,a_expr")
 
 }
 | /*EMPTY*/
@@ -20486,15 +20486,15 @@ sqllex.(*lexer).LogGrammarCoverage("opt_slice_bound,a_expr")
 array_subscripts:
   array_subscript
   {
-sqllex.(*lexer).LogGrammarCoverage("array_subscripts,array_subscript")
+LogGrammarCoverage("array_subscripts,array_subscript")
 
 
     $$.val = tree.ArraySubscripts{$1.arraySubscript()}
   }
 | array_subscripts array_subscript
   {
-sqllex.(*lexer).LogGrammarCoverage("array_subscripts,array_subscripts")
-sqllex.(*lexer).LogGrammarCoverage("array_subscripts,array_subscript")
+LogGrammarCoverage("array_subscripts,array_subscripts")
+LogGrammarCoverage("array_subscripts,array_subscript")
 
 
     $$.val = append($1.arraySubscripts(), $2.arraySubscript())
@@ -20511,15 +20511,15 @@ opt_asymmetric:
 target_list:
   target_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("target_list,target_elem")
+LogGrammarCoverage("target_list,target_elem")
 
 
     $$.val = tree.SelectExprs{$1.selExpr()}
   }
 | target_list ',' target_elem
   {
-sqllex.(*lexer).LogGrammarCoverage("target_list,target_list")
-sqllex.(*lexer).LogGrammarCoverage("target_list,target_elem")
+LogGrammarCoverage("target_list,target_list")
+LogGrammarCoverage("target_list,target_elem")
 
 
     $$.val = append($1.selExprs(), $3.selExpr())
@@ -20528,8 +20528,8 @@ sqllex.(*lexer).LogGrammarCoverage("target_list,target_elem")
 target_elem:
   a_expr AS target_name
   {
-sqllex.(*lexer).LogGrammarCoverage("target_elem,a_expr")
-sqllex.(*lexer).LogGrammarCoverage("target_elem,target_name")
+LogGrammarCoverage("target_elem,a_expr")
+LogGrammarCoverage("target_elem,target_name")
 
 
     $$.val = tree.SelectExpr{Expr: $1.expr(), As: tree.UnrestrictedName($3)}
@@ -20541,14 +20541,14 @@ sqllex.(*lexer).LogGrammarCoverage("target_elem,target_name")
   // IDENT a precedence higher than POSTFIXOP.
 | a_expr IDENT
   {
-sqllex.(*lexer).LogGrammarCoverage("target_elem,a_expr")
+LogGrammarCoverage("target_elem,a_expr")
 
 
     $$.val = tree.SelectExpr{Expr: $1.expr(), As: tree.UnrestrictedName($2)}
   }
 | a_expr
   {
-sqllex.(*lexer).LogGrammarCoverage("target_elem,a_expr")
+LogGrammarCoverage("target_elem,a_expr")
 
 
     $$.val = tree.SelectExpr{Expr: $1.expr()}
@@ -20565,15 +20565,15 @@ sqllex.(*lexer).LogGrammarCoverage("target_elem,a_expr")
 table_index_name_list:
   table_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_index_name_list,table_index_name")
+LogGrammarCoverage("table_index_name_list,table_index_name")
 
 
     $$.val = tree.TableIndexNames{$1.newTableIndexName()}
   }
 | table_index_name_list ',' table_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_index_name_list,table_index_name_list")
-sqllex.(*lexer).LogGrammarCoverage("table_index_name_list,table_index_name")
+LogGrammarCoverage("table_index_name_list,table_index_name_list")
+LogGrammarCoverage("table_index_name_list,table_index_name")
 
 
     $$.val = append($1.newTableIndexNames(), $3.newTableIndexName())
@@ -20582,15 +20582,15 @@ sqllex.(*lexer).LogGrammarCoverage("table_index_name_list,table_index_name")
 table_pattern_list:
   table_pattern
   {
-sqllex.(*lexer).LogGrammarCoverage("table_pattern_list,table_pattern")
+LogGrammarCoverage("table_pattern_list,table_pattern")
 
 
     $$.val = tree.TablePatterns{$1.unresolvedName()}
   }
 | table_pattern_list ',' table_pattern
   {
-sqllex.(*lexer).LogGrammarCoverage("table_pattern_list,table_pattern_list")
-sqllex.(*lexer).LogGrammarCoverage("table_pattern_list,table_pattern")
+LogGrammarCoverage("table_pattern_list,table_pattern_list")
+LogGrammarCoverage("table_pattern_list,table_pattern")
 
 
     $$.val = append($1.tablePatterns(), $3.unresolvedName())
@@ -20612,8 +20612,8 @@ sqllex.(*lexer).LogGrammarCoverage("table_pattern_list,table_pattern")
 table_index_name:
   table_name '@' index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_index_name,table_name")
-sqllex.(*lexer).LogGrammarCoverage("table_index_name,index_name")
+LogGrammarCoverage("table_index_name,table_name")
+LogGrammarCoverage("table_index_name,index_name")
 
 
     name := $1.unresolvedObjectName().ToTableName()
@@ -20624,7 +20624,7 @@ sqllex.(*lexer).LogGrammarCoverage("table_index_name,index_name")
   }
 | standalone_index_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_index_name,standalone_index_name")
+LogGrammarCoverage("table_index_name,standalone_index_name")
 
 
     // Treat it as a table name, then pluck out the ObjectName.
@@ -20650,7 +20650,7 @@ sqllex.(*lexer).LogGrammarCoverage("table_index_name,standalone_index_name")
 table_pattern:
   simple_db_object_name
   {
-sqllex.(*lexer).LogGrammarCoverage("table_pattern,simple_db_object_name")
+LogGrammarCoverage("table_pattern,simple_db_object_name")
 
 
      $$.val = $1.unresolvedObjectName().ToUnresolvedName()
@@ -20660,28 +20660,28 @@ sqllex.(*lexer).LogGrammarCoverage("table_pattern,simple_db_object_name")
 // complex_table_pattern is the part of table_pattern which recognizes
 // every pattern not composed of a single identifier.
 {
-sqllex.(*lexer).LogGrammarCoverage("table_pattern,complex_table_pattern")
+LogGrammarCoverage("table_pattern,complex_table_pattern")
 
 }
 complex_table_pattern:
   complex_db_object_name
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_table_pattern,complex_db_object_name")
+LogGrammarCoverage("complex_table_pattern,complex_db_object_name")
 
 
      $$.val = $1.unresolvedObjectName().ToUnresolvedName()
   }
 | db_object_name_component '.' unrestricted_name '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_table_pattern,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("complex_table_pattern,unrestricted_name")
+LogGrammarCoverage("complex_table_pattern,db_object_name_component")
+LogGrammarCoverage("complex_table_pattern,unrestricted_name")
 
 
      $$.val = &tree.UnresolvedName{Star: true, NumParts: 3, Parts: tree.NameParts{"", $3, $1}}
   }
 | db_object_name_component '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_table_pattern,db_object_name_component")
+LogGrammarCoverage("complex_table_pattern,db_object_name_component")
 
 
      $$.val = &tree.UnresolvedName{Star: true, NumParts: 2, Parts: tree.NameParts{"", $1}}
@@ -20696,15 +20696,15 @@ sqllex.(*lexer).LogGrammarCoverage("complex_table_pattern,db_object_name_compone
 name_list:
   name
   {
-sqllex.(*lexer).LogGrammarCoverage("name_list,name")
+LogGrammarCoverage("name_list,name")
 
 
     $$.val = tree.NameList{tree.Name($1)}
   }
 | name_list ',' name
   {
-sqllex.(*lexer).LogGrammarCoverage("name_list,name_list")
-sqllex.(*lexer).LogGrammarCoverage("name_list,name")
+LogGrammarCoverage("name_list,name_list")
+LogGrammarCoverage("name_list,name")
 
 
     $$.val = append($1.nameList(), tree.Name($3))
@@ -20714,13 +20714,13 @@ sqllex.(*lexer).LogGrammarCoverage("name_list,name")
 numeric_only:
   signed_iconst
 {
-sqllex.(*lexer).LogGrammarCoverage("numeric_only,signed_iconst")
+LogGrammarCoverage("numeric_only,signed_iconst")
 
 }
 | signed_fconst
 
 {
-sqllex.(*lexer).LogGrammarCoverage("numeric_only,signed_fconst")
+LogGrammarCoverage("numeric_only,signed_fconst")
 
 }
 signed_iconst:
@@ -20731,7 +20731,7 @@ signed_iconst:
 | only_signed_iconst
 
 {
-sqllex.(*lexer).LogGrammarCoverage("signed_iconst,only_signed_iconst")
+LogGrammarCoverage("signed_iconst,only_signed_iconst")
 
 }
 only_signed_iconst:
@@ -20758,7 +20758,7 @@ signed_fconst:
 | only_signed_fconst
 
 {
-sqllex.(*lexer).LogGrammarCoverage("signed_fconst,only_signed_fconst")
+LogGrammarCoverage("signed_fconst,only_signed_fconst")
 
 }
 only_signed_fconst:
@@ -20794,7 +20794,7 @@ iconst32:
 signed_iconst64:
   signed_iconst
   {
-sqllex.(*lexer).LogGrammarCoverage("signed_iconst64,signed_iconst")
+LogGrammarCoverage("signed_iconst64,signed_iconst")
 
 
     val, err := $1.numVal().AsInt64()
@@ -20816,7 +20816,7 @@ iconst64:
 interval_value:
   INTERVAL SCONST opt_interval_qualifier
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_value,opt_interval_qualifier")
+LogGrammarCoverage("interval_value,opt_interval_qualifier")
 
 
     var t *types.T
@@ -20836,7 +20836,7 @@ sqllex.(*lexer).LogGrammarCoverage("interval_value,opt_interval_qualifier")
   }
 | INTERVAL '(' iconst32 ')' SCONST
   {
-sqllex.(*lexer).LogGrammarCoverage("interval_value,iconst32")
+LogGrammarCoverage("interval_value,iconst32")
 
 
     prec := $3.int32()
@@ -20889,114 +20889,114 @@ sqllex.(*lexer).LogGrammarCoverage("interval_value,iconst32")
 collation_name:        unrestricted_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("collation_name,unrestricted_name")
+LogGrammarCoverage("collation_name,unrestricted_name")
 
 }
 partition_name:        unrestricted_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("partition_name,unrestricted_name")
+LogGrammarCoverage("partition_name,unrestricted_name")
 
 }
 index_name:            unrestricted_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("index_name,unrestricted_name")
+LogGrammarCoverage("index_name,unrestricted_name")
 
 }
 opt_index_name:        opt_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_index_name,opt_name")
+LogGrammarCoverage("opt_index_name,opt_name")
 
 }
 zone_name:             unrestricted_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("zone_name,unrestricted_name")
+LogGrammarCoverage("zone_name,unrestricted_name")
 
 }
 target_name:           unrestricted_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("target_name,unrestricted_name")
+LogGrammarCoverage("target_name,unrestricted_name")
 
 }
 constraint_name:       name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("constraint_name,name")
+LogGrammarCoverage("constraint_name,name")
 
 }
 database_name:         name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("database_name,name")
+LogGrammarCoverage("database_name,name")
 
 }
 column_name:           name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("column_name,name")
+LogGrammarCoverage("column_name,name")
 
 }
 family_name:           name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("family_name,name")
+LogGrammarCoverage("family_name,name")
 
 }
 opt_family_name:       opt_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_family_name,opt_name")
+LogGrammarCoverage("opt_family_name,opt_name")
 
 }
 table_alias_name:      name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("table_alias_name,name")
+LogGrammarCoverage("table_alias_name,name")
 
 }
 statistics_name:       name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("statistics_name,name")
+LogGrammarCoverage("statistics_name,name")
 
 }
 window_name:           name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("window_name,name")
+LogGrammarCoverage("window_name,name")
 
 }
 view_name:             table_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("view_name,table_name")
+LogGrammarCoverage("view_name,table_name")
 
 }
 type_name:             db_object_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("type_name,db_object_name")
+LogGrammarCoverage("type_name,db_object_name")
 
 }
 sequence_name:         db_object_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("sequence_name,db_object_name")
+LogGrammarCoverage("sequence_name,db_object_name")
 
 }
 region_name:           name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("region_name,name")
+LogGrammarCoverage("region_name,name")
 
 }
 region_name_list:      name_list
   {
-sqllex.(*lexer).LogGrammarCoverage("region_name_list,name_list")
+LogGrammarCoverage("region_name_list,name_list")
 
 
     $$.val = $1.nameList()
@@ -21005,21 +21005,21 @@ sqllex.(*lexer).LogGrammarCoverage("region_name_list,name_list")
 schema_name:           name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("schema_name,name")
+LogGrammarCoverage("schema_name,name")
 
 }
 qualifiable_schema_name:
 	name
 	{
-sqllex.(*lexer).LogGrammarCoverage("qualifiable_schema_name,name")
+LogGrammarCoverage("qualifiable_schema_name,name")
 
 
 		$$.val = tree.ObjectNamePrefix{SchemaName: tree.Name($1), ExplicitSchema: true}
 	}
 | name '.' name
 	{
-sqllex.(*lexer).LogGrammarCoverage("qualifiable_schema_name,name")
-sqllex.(*lexer).LogGrammarCoverage("qualifiable_schema_name,name")
+LogGrammarCoverage("qualifiable_schema_name,name")
+LogGrammarCoverage("qualifiable_schema_name,name")
 
 
 		$$.val = tree.ObjectNamePrefix{CatalogName: tree.Name($1), SchemaName: tree.Name($3), ExplicitCatalog: true, ExplicitSchema: true}
@@ -21028,15 +21028,15 @@ sqllex.(*lexer).LogGrammarCoverage("qualifiable_schema_name,name")
 schema_name_list:
   qualifiable_schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("schema_name_list,qualifiable_schema_name")
+LogGrammarCoverage("schema_name_list,qualifiable_schema_name")
 
 
     $$.val = tree.ObjectNamePrefixList{$1.objectNamePrefix()}
   }
 | schema_name_list ',' qualifiable_schema_name
   {
-sqllex.(*lexer).LogGrammarCoverage("schema_name_list,schema_name_list")
-sqllex.(*lexer).LogGrammarCoverage("schema_name_list,qualifiable_schema_name")
+LogGrammarCoverage("schema_name_list,schema_name_list")
+LogGrammarCoverage("schema_name_list,qualifiable_schema_name")
 
 
     $$.val = append($1.objectNamePrefixList(), $3.objectNamePrefix())
@@ -21046,7 +21046,7 @@ sqllex.(*lexer).LogGrammarCoverage("schema_name_list,qualifiable_schema_name")
 opt_schema_name:
 	qualifiable_schema_name
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_schema_name,qualifiable_schema_name")
+LogGrammarCoverage("opt_schema_name,qualifiable_schema_name")
 
 }
 | /* EMPTY */
@@ -21059,25 +21059,25 @@ sqllex.(*lexer).LogGrammarCoverage("opt_schema_name,qualifiable_schema_name")
 table_name:            db_object_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("table_name,db_object_name")
+LogGrammarCoverage("table_name,db_object_name")
 
 }
 db_name:               db_object_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("db_name,db_object_name")
+LogGrammarCoverage("db_name,db_object_name")
 
 }
 standalone_index_name: db_object_name
 
 {
-sqllex.(*lexer).LogGrammarCoverage("standalone_index_name,db_object_name")
+LogGrammarCoverage("standalone_index_name,db_object_name")
 
 }
 explain_option_name:   non_reserved_word
 
 {
-sqllex.(*lexer).LogGrammarCoverage("explain_option_name,non_reserved_word")
+LogGrammarCoverage("explain_option_name,non_reserved_word")
 
 }
 cursor_name:           name
@@ -21094,13 +21094,13 @@ cursor_name:           name
 // in `select a.b.c.d from t` *always* designates a column `z` in a
 // table `y`, regardless of the meaning of what's before.
 {
-sqllex.(*lexer).LogGrammarCoverage("cursor_name,name")
+LogGrammarCoverage("cursor_name,name")
 
 }
 column_path:
   name
   {
-sqllex.(*lexer).LogGrammarCoverage("column_path,name")
+LogGrammarCoverage("column_path,name")
 
 
       $$.val = &tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}
@@ -21108,33 +21108,33 @@ sqllex.(*lexer).LogGrammarCoverage("column_path,name")
 | prefixed_column_path
 
 {
-sqllex.(*lexer).LogGrammarCoverage("column_path,prefixed_column_path")
+LogGrammarCoverage("column_path,prefixed_column_path")
 
 }
 prefixed_column_path:
   db_object_name_component '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,db_object_name_component")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
 
 
       $$.val = &tree.UnresolvedName{NumParts:2, Parts: tree.NameParts{$3,$1}}
   }
 | db_object_name_component '.' unrestricted_name '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,db_object_name_component")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
 
 
       $$.val = &tree.UnresolvedName{NumParts:3, Parts: tree.NameParts{$5,$3,$1}}
   }
 | db_object_name_component '.' unrestricted_name '.' unrestricted_name '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,db_object_name_component")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
+LogGrammarCoverage("prefixed_column_path,unrestricted_name")
 
 
       $$.val = &tree.UnresolvedName{NumParts:4, Parts: tree.NameParts{$7,$5,$3,$1}}
@@ -21150,29 +21150,29 @@ sqllex.(*lexer).LogGrammarCoverage("prefixed_column_path,unrestricted_name")
 column_path_with_star:
   column_path
 {
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,column_path")
+LogGrammarCoverage("column_path_with_star,column_path")
 
 }
 | db_object_name_component '.' unrestricted_name '.' unrestricted_name '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,unrestricted_name")
+LogGrammarCoverage("column_path_with_star,db_object_name_component")
+LogGrammarCoverage("column_path_with_star,unrestricted_name")
+LogGrammarCoverage("column_path_with_star,unrestricted_name")
 
 
     $$.val = &tree.UnresolvedName{Star:true, NumParts:4, Parts: tree.NameParts{"",$5,$3,$1}}
   }
 | db_object_name_component '.' unrestricted_name '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,unrestricted_name")
+LogGrammarCoverage("column_path_with_star,db_object_name_component")
+LogGrammarCoverage("column_path_with_star,unrestricted_name")
 
 
     $$.val = &tree.UnresolvedName{Star:true, NumParts:3, Parts: tree.NameParts{"",$3,$1}}
   }
 | db_object_name_component '.' '*'
   {
-sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,db_object_name_component")
+LogGrammarCoverage("column_path_with_star,db_object_name_component")
 
 
     $$.val = &tree.UnresolvedName{Star:true, NumParts:2, Parts: tree.NameParts{"",$1}}
@@ -21188,7 +21188,7 @@ sqllex.(*lexer).LogGrammarCoverage("column_path_with_star,db_object_name_compone
 func_name:
   type_function_name
   {
-sqllex.(*lexer).LogGrammarCoverage("func_name,type_function_name")
+LogGrammarCoverage("func_name,type_function_name")
 
 
     $$.val = &tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}
@@ -21198,13 +21198,13 @@ sqllex.(*lexer).LogGrammarCoverage("func_name,type_function_name")
 // func_name_no_crdb_extra is the same rule as func_name, but does not
 // contain some CRDB specific keywords like FAMILY.
 {
-sqllex.(*lexer).LogGrammarCoverage("func_name,prefixed_column_path")
+LogGrammarCoverage("func_name,prefixed_column_path")
 
 }
 func_name_no_crdb_extra:
   type_function_name_no_crdb_extra
   {
-sqllex.(*lexer).LogGrammarCoverage("func_name_no_crdb_extra,type_function_name_no_crdb_extra")
+LogGrammarCoverage("func_name_no_crdb_extra,type_function_name_no_crdb_extra")
 
 
     $$.val = &tree.UnresolvedName{NumParts:1, Parts: tree.NameParts{$1}}
@@ -21217,13 +21217,13 @@ sqllex.(*lexer).LogGrammarCoverage("func_name_no_crdb_extra,type_function_name_n
 // <schema>.<table>
 // <catalog/db>.<schema>.<table>
 {
-sqllex.(*lexer).LogGrammarCoverage("func_name_no_crdb_extra,prefixed_column_path")
+LogGrammarCoverage("func_name_no_crdb_extra,prefixed_column_path")
 
 }
 db_object_name:
   simple_db_object_name
 {
-sqllex.(*lexer).LogGrammarCoverage("db_object_name,simple_db_object_name")
+LogGrammarCoverage("db_object_name,simple_db_object_name")
 
 }
 | complex_db_object_name
@@ -21231,13 +21231,13 @@ sqllex.(*lexer).LogGrammarCoverage("db_object_name,simple_db_object_name")
 // simple_db_object_name is the part of db_object_name that recognizes
 // simple identifiers.
 {
-sqllex.(*lexer).LogGrammarCoverage("db_object_name,complex_db_object_name")
+LogGrammarCoverage("db_object_name,complex_db_object_name")
 
 }
 simple_db_object_name:
   db_object_name_component
   {
-sqllex.(*lexer).LogGrammarCoverage("simple_db_object_name,db_object_name_component")
+LogGrammarCoverage("simple_db_object_name,db_object_name_component")
 
 
     aIdx := sqllex.(*lexer).NewAnnotation()
@@ -21253,8 +21253,8 @@ sqllex.(*lexer).LogGrammarCoverage("simple_db_object_name,db_object_name_compone
 complex_db_object_name:
   db_object_name_component '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,unrestricted_name")
+LogGrammarCoverage("complex_db_object_name,db_object_name_component")
+LogGrammarCoverage("complex_db_object_name,unrestricted_name")
 
 
     aIdx := sqllex.(*lexer).NewAnnotation()
@@ -21264,9 +21264,9 @@ sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,unrestricted_name")
   }
 | db_object_name_component '.' unrestricted_name '.' unrestricted_name
   {
-sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,db_object_name_component")
-sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,unrestricted_name")
-sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,unrestricted_name")
+LogGrammarCoverage("complex_db_object_name,db_object_name_component")
+LogGrammarCoverage("complex_db_object_name,unrestricted_name")
+LogGrammarCoverage("complex_db_object_name,unrestricted_name")
 
 
     aIdx := sqllex.(*lexer).NewAnnotation()
@@ -21282,19 +21282,19 @@ sqllex.(*lexer).LogGrammarCoverage("complex_db_object_name,unrestricted_name")
 db_object_name_component:
   name
 {
-sqllex.(*lexer).LogGrammarCoverage("db_object_name_component,name")
+LogGrammarCoverage("db_object_name_component,name")
 
 }
 | type_func_name_crdb_extra_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("db_object_name_component,type_func_name_crdb_extra_keyword")
+LogGrammarCoverage("db_object_name_component,type_func_name_crdb_extra_keyword")
 
 }
 | cockroachdb_extra_reserved_keyword
 
 // General name --- names that can be column, table, etc names.
 {
-sqllex.(*lexer).LogGrammarCoverage("db_object_name_component,cockroachdb_extra_reserved_keyword")
+LogGrammarCoverage("db_object_name_component,cockroachdb_extra_reserved_keyword")
 
 }
 name:
@@ -21304,19 +21304,19 @@ name:
 }
 | unreserved_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("name,unreserved_keyword")
+LogGrammarCoverage("name,unreserved_keyword")
 
 }
 | col_name_keyword
 
 {
-sqllex.(*lexer).LogGrammarCoverage("name,col_name_keyword")
+LogGrammarCoverage("name,col_name_keyword")
 
 }
 opt_name:
   name
 {
-sqllex.(*lexer).LogGrammarCoverage("opt_name,name")
+LogGrammarCoverage("opt_name,name")
 
 }
 | /* EMPTY */
@@ -21329,7 +21329,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_name,name")
 opt_name_parens:
   '(' name ')'
   {
-sqllex.(*lexer).LogGrammarCoverage("opt_name_parens,name")
+LogGrammarCoverage("opt_name_parens,name")
 
 
     $$ = $2
@@ -21347,7 +21347,7 @@ sqllex.(*lexer).LogGrammarCoverage("opt_name_parens,name")
 non_reserved_word_or_sconst:
   non_reserved_word
 {
-sqllex.(*lexer).LogGrammarCoverage("non_reserved_word_or_sconst,non_reserved_word")
+LogGrammarCoverage("non_reserved_word_or_sconst,non_reserved_word")
 
 }
 | SCONST
@@ -21363,14 +21363,14 @@ type_function_name:
 }
 | unreserved_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("type_function_name,unreserved_keyword")
+LogGrammarCoverage("type_function_name,unreserved_keyword")
 
 }
 | type_func_name_keyword
 
 // Type/function identifier without CRDB extra reserved keywords.
 {
-sqllex.(*lexer).LogGrammarCoverage("type_function_name,type_func_name_keyword")
+LogGrammarCoverage("type_function_name,type_func_name_keyword")
 
 }
 type_function_name_no_crdb_extra:
@@ -21380,14 +21380,14 @@ type_function_name_no_crdb_extra:
 }
 | unreserved_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("type_function_name_no_crdb_extra,unreserved_keyword")
+LogGrammarCoverage("type_function_name_no_crdb_extra,unreserved_keyword")
 
 }
 | type_func_name_no_crdb_extra_keyword
 
 // Any not-fully-reserved word --- these names can be, eg, variable names.
 {
-sqllex.(*lexer).LogGrammarCoverage("type_function_name_no_crdb_extra,type_func_name_no_crdb_extra_keyword")
+LogGrammarCoverage("type_function_name_no_crdb_extra,type_func_name_no_crdb_extra_keyword")
 
 }
 non_reserved_word:
@@ -21397,12 +21397,12 @@ non_reserved_word:
 }
 | unreserved_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("non_reserved_word,unreserved_keyword")
+LogGrammarCoverage("non_reserved_word,unreserved_keyword")
 
 }
 | col_name_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("non_reserved_word,col_name_keyword")
+LogGrammarCoverage("non_reserved_word,col_name_keyword")
 
 }
 | type_func_name_keyword
@@ -21411,7 +21411,7 @@ sqllex.(*lexer).LogGrammarCoverage("non_reserved_word,col_name_keyword")
 // reserved keywords, like in "AS" clauses. This presently includes *all*
 // Postgres keywords.
 {
-sqllex.(*lexer).LogGrammarCoverage("non_reserved_word,type_func_name_keyword")
+LogGrammarCoverage("non_reserved_word,type_func_name_keyword")
 
 }
 unrestricted_name:
@@ -21421,17 +21421,17 @@ unrestricted_name:
 }
 | unreserved_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("unrestricted_name,unreserved_keyword")
+LogGrammarCoverage("unrestricted_name,unreserved_keyword")
 
 }
 | col_name_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("unrestricted_name,col_name_keyword")
+LogGrammarCoverage("unrestricted_name,col_name_keyword")
 
 }
 | type_func_name_keyword
 {
-sqllex.(*lexer).LogGrammarCoverage("unrestricted_name,type_func_name_keyword")
+LogGrammarCoverage("unrestricted_name,type_func_name_keyword")
 
 }
 | reserved_keyword
@@ -21445,7 +21445,7 @@ sqllex.(*lexer).LogGrammarCoverage("unrestricted_name,type_func_name_keyword")
 //
 // "Unreserved" keywords --- available for use as any kind of name.
 {
-sqllex.(*lexer).LogGrammarCoverage("unrestricted_name,reserved_keyword")
+LogGrammarCoverage("unrestricted_name,reserved_keyword")
 
 }
 unreserved_keyword:

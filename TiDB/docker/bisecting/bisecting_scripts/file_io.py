@@ -29,6 +29,7 @@ def read_queries_from_files():
                 "buildSelect" in stack or \
                 "scalar_function.go" in stack or \
                 "getRecoverTableByTableName" in stack or \
+                "expression_rewriter.go" in stack or \
                 "handleScalarSubquery" in stack:
                     contents = ""
             else:
