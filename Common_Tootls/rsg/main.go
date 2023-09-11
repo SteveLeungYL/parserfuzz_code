@@ -115,6 +115,8 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 		tc.depth = 12
 	} else if dbmsName == "cockroachdb" {
 		tc.depth = 1
+	} else if dbmsName == "tidb" {
+		tc.depth = 1
 	}
 
 	var s = ""
