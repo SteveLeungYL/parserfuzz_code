@@ -1,1 +1,0 @@
-SELECT * FROM v0 WHERE v1 = 123

@@ -7,18 +7,18 @@
 #include <cstring>
 #include <algorithm>
 
-using namespace std;
+#include <../rsg/rsg.h>
 
-IRWrapper ir_wrapper_2;
+using namespace std;
 
 void trim_string(string &res){
     int count = 0;
     int idx = 0;
     bool expect_space = false;
     for(int i = 0; i < res.size(); i++){
-        if(res[i] == ';' && i != res.size() - 1){
-            res[i+1] = '\n';
-        }
+//        if(res[i] == ';' && i != res.size() - 1){
+//            res[i+1] = '\n';
+//        }
         if(res[i] == ' '){
             if(expect_space == false){
                 continue;
@@ -96,51 +96,43 @@ uint64_t fucking_hash ( const void * key, int len )
 	h ^= h >> r;
 
 	return h;
-} 
-
-vector<string> get_all_files_in_dir( const char * dir_name  )
-{
-        vector<string> file_list;
-         if( NULL == dir_name  )
-         {
-               cout<<" dir_name is null ! "<<endl;
-                 return file_list;
-                  
-         }
-          
-          struct stat s;
-           lstat( dir_name , &s  );
-            if( ! S_ISDIR( s.st_mode  )  )
-            {
-                  cout<<"dir_name is not a valid directory !"<<endl;
-                    return file_list;
-                     
-            }
-             
-             struct dirent * filename;    // return value for readdir()
-               DIR * dir;                   // return value for opendir()
-                dir = opendir( dir_name  );
-                 if( NULL == dir  )
-                 {
-                       cout<<"Can not open dir "<<dir_name<<endl;
-                         return file_list;
-                          
-                 }
-                  cout<<"Successfully opened the dir !"<<endl;
-                   
-                   while( ( filename = readdir(dir)  ) != NULL  )
-                   {
-                         if( strcmp( filename->d_name , "."  ) == 0 || 
-                                    strcmp( filename->d_name , ".." ) == 0    )
-                                continue;
-                           cout<<filename->d_name <<endl;
-                                   file_list.push_back(string(filename->d_name));
-                                    
-                   }
-                       return file_list;
-                       
 }
 
+vector<string> get_all_files_in_dir(const char *dir_name) {
+        vector<string> file_list;
+        if (NULL == dir_name) {
+                cout << " dir_name is null ! " << endl;
+                return file_list;
+        }
+
+        struct stat s;
+        lstat(dir_name, &s);
+        if (!S_ISDIR(s.st_mode)) {
+                cout << "dir_name is not a valid directory !" << endl;
+                return file_list;
+        }
+
+        struct dirent *filename; // return value for readdir()
+        DIR *dir;                // return value for opendir()
+        dir = opendir(dir_name);
+        if (NULL == dir) {
+                cout << "Can not open dir " << dir_name << endl;
+                return file_list;
+        }
+        cout << "Successfully opened the dir !" << endl;
+
+        while ((filename = readdir(dir)) != NULL) {
+                if (strcmp(filename->d_name, ".") == 0 ||
+                    strcmp(filename->d_name, "..") == 0)
+            continue;
+                cout << filename->d_name << endl;
+                file_list.push_back(string(filename->d_name));
+        }
+
+        closedir(dir);
+
+        return file_list;
+}
 
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle) {
@@ -166,26 +158,23 @@ bool is_str_empty(string input_str) {
   return true; // Empty
 }
 
-// from http://www.cplusplus.com/forum/beginner/114790/
-vector<string> string_splitter(const std::string &s, const char delimiter) {
+// From
+// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+vector<string> string_splitter(const string &in, string delimiter) {
 
-  size_t start = 0;
-  size_t end = s.find_first_of(delimiter);
+  vector<string> ret;
+  string s = in;
 
-  vector<string> output;
-
-  while (end <= string::npos) {
-
-    output.emplace_back(s.substr(start, end - start));
-
-    if (end == string::npos)
-      break;
-
-    start = end + 1;
-    end = s.find_first_of(delimiter, start);
+  size_t pos = 0;
+  string token;
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+    token = s.substr(0, pos);
+    ret.push_back(token);
+    s.erase(0, pos + delimiter.length());
   }
+  ret.push_back(s);
 
-  return output;
+  return ret;
 }
 
 int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
@@ -194,7 +183,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
   vector<IR*> v_ir_root;
   IR* ir_root;
 
-  vector<string> v_cmd_str = string_splitter(cmd_str, ';');
+  vector<string> v_cmd_str = string_splitter(cmd_str, ";");
   for (string cur_cmd_str : v_cmd_str) {
 
     if(is_str_empty(cur_cmd_str)) continue;
@@ -205,12 +194,8 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     int ret = run_parser(cur_cmd_str, ir_vec_single);
 
     if (ret != 0 || ir_vec_single.size() == 0) {
-      // cerr << "String parsing failed: " << cur_cmd_str << "\n\n\n";
-      // for (IR* ir_root : v_ir_root) {
-      //   ir_root->deep_drop();
-      // }
-      // v_ir_root.clear();
-      // return 1;
+//      cerr << "String parsing failed: " << cur_cmd_str << "\n\n\n";
+      rsg_exec_failed();
       continue;
     }
 
@@ -238,7 +223,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
       // continue;
     }
 
-    IR* cur_stmt = ir_wrapper_2.get_first_stmt_from_root(cur_ir_root)->deep_copy();
+    IR* cur_stmt = IRWrapper::get_first_stmt_from_root(cur_ir_root)->deep_copy();
     v_ir_root.push_back(cur_stmt);
 
     // cerr << "Just run throught the run_parser, getting: \n";
@@ -248,7 +233,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     cur_ir_root->deep_drop();
   }
 
-  ir_root = ir_wrapper_2.reconstruct_ir_with_stmt_vec(v_ir_root);
+  ir_root = IRWrapper::reconstruct_ir_with_stmt_vec(v_ir_root);
 
   if (!ir_root) {
     // cerr << "IR reconstruct failed in run_parser_multi_stmt. \n";
@@ -264,7 +249,7 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
   // cerr << get_string_by_ir_type(ir_root->type_);
   // cerr << "\n\n\n";
 
-  ir_vec_all_stmt = ir_wrapper_2.get_all_ir_node(ir_root);
+  ir_vec_all_stmt = IRWrapper::get_all_ir_node(ir_root);
 
   if (ir_vec_all_stmt.size() > 0) {
 

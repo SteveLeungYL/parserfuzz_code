@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cp -r sql ../mariadb-server
-cp -r unittest ../mariadb-server

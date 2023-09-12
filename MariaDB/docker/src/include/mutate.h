@@ -3,7 +3,6 @@
 
 
 #include "ast.h"
-#include "sql/sql_ir_define.h"
 #include "utils.h"
 #include "../oracle/mysql_oracle.h"
 #include "../include/ir_wrapper.h"
@@ -97,7 +96,7 @@ public:
 
     string get_a_string() ; //DONE
     unsigned long get_a_val() ; //DONE
-    IR* get_ir_from_library(IRTYPE);//DONE
+//    IR* get_ir_from_library(IRTYPE);//DONE
     IR* generate_ir_by_type(IRTYPE) ; //Done
 
     string get_data_by_type(DATATYPE) ;
@@ -105,6 +104,8 @@ public:
 
     void reset_data_library();
     void reset_data_library_single_stmt();
+    void rollback_data_library();
+    void backup_data_library();
 
     string parse_data(string &) ;//DONE
 
@@ -247,15 +248,28 @@ public:
     static vector<string> v_constraint_name;                   // All constraint names defined in the current SQL.
     static vector<string> v_foreign_table_name;                // All foreign table names defined inthe current SQL.
     static vector<string> v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
+    static vector<string> v_table_with_partition_name;
 
-    static vector<string> v_database_name_follow_single;       // All used database name follow in the query. Either test_sqlright1 or mysql. 
+    static vector<string> v_database_name_follow_single;       // All used database name follow in the query. Either test_sqlright1 or mysql.
+
+    static map<string, vector<string>> m_tables_backup;               // Table name to column name mapping.
+    static map<string, vector<string>> m_table2index_backup;          // Table name to index mapping.
+    static vector<string> v_table_names_backup;                       // All saved table names
+    static vector<string> v_statistics_name_backup;                   // All statistic names defined in the current stmt.
+    static vector<string> v_sequence_name_backup;                     // All sequence names defined in the current SQL.
+    static vector<string> v_view_name_backup;                         // All saved view names.
+    static vector<string> v_constraint_name_backup;                   // All constraint names defined in the current SQL.
+    static vector<string> v_foreign_table_name_backup;                // All foreign table names defined inthe current SQL.
+    static vector<string> v_table_with_partition_name_backup;
+    static vector<int> v_int_literals_backup;
+    static vector<double> v_float_literals_backup;
+    static vector<string> v_string_literals_backup;
 
     // map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
     static vector<string> v_sys_column_name;
     static vector<string> v_sys_catalogs_name;
 
     static vector<string> v_aggregate_func;
-    static vector<string> v_table_with_partition_name;
 
     static vector<string> v_saved_reloption_str;
 

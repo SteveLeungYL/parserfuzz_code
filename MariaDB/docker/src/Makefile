@@ -1,9 +1,9 @@
-SUB_DIRS := oracle src AFL
+SUB_DIRS := oracle rsg src AFL
 
-PARSER_SRCS := parser/parser_entry.cc.o
-LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
+PARSER_SRCS := parser/*.o parser/grammar/*.o parser/grammar_IR_constructor/*.o
+LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS) $(wildcard rsg/*.cpp) $(wildcard rsg/*.so)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
-DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cc
+DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
@@ -12,12 +12,11 @@ MYSQL_INCLUDE_PATH = /usr/include/mysql
 MYSQL_LIB_PATH = 
 
 export CC = g++
-export DEBUG =
+export DEBUG = -g
 export OPT = -O3
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lmysqlclient
-
-include parser/link_depend.make
+export PARSER_FLAGS = -I/usr/local/include/antlr4-runtime -pthread
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS) $(PARSER_FLAGS)
+LDFLAGS = -ldl -lmysqlclient -L/usr/local/lib/ -Wl,-R/usr/local/lib -lantlr4-runtime -lpthread
 
 all: afl-fuzz test-parser
 

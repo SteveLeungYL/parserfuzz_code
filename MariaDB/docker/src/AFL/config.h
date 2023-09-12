@@ -28,7 +28,7 @@
 
 /* Version string: */
 
-#define VERSION             "2.56b"
+#define FUZZER_VERSION             "2.56b"
 
 /******************************************************
  *                                                    *

@@ -15,8 +15,8 @@ RUN apt -y upgrade \
 && apt -y install cmake  \
 && apt -y install build-essential  \
 && apt -y install aptitude \
-&& apt -y install gcc-multilib \
-&& apt -y install g++-multilib \
+&& aptitude -y install gcc-9  \
+&& aptitude -y install g++-9  \
 && apt -y install clang \
 && apt -y install xinetd  \
 && apt -y install libreadline-dev  \
@@ -61,8 +61,8 @@ USER cockroach
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
 # Download the original Go library. Set it up. 
-RUN wget https://go.dev/dl/go1.19.linux-amd64.tar.gz
-RUN tar -xf go1.19.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.19.linux-arm64.tar.gz
+RUN tar -xf go1.19.linux-arm64.tar.gz
 USER root
 RUN cp -r go /usr/local/
 USER cockroach
@@ -105,6 +105,7 @@ WORKDIR /home/cockroach/CockroachDB_pkg_plugin/parser_translate
 RUN python3 include_cov_log_to_parser.py && python3 rewrite_parser_code_to_include_log_func.py /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parse.go
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/parser_translate/assets/cockroach_sql_inst_modi.y /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y
 
+
 # Compile the Cockroach befroe generating the parser shared library. 
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # WIll fail because of the instrumentation.
@@ -112,7 +113,7 @@ RUN make buildshort; exit 0
 
 # Fix a proj problem that could crash our build process. 
 USER cockroach
-WORKDIR /home/cockroach/go_projects/native/x86_64-linux-gnu/proj/
+WORKDIR /home/cockroach/go_projects/native/aarch64-linux-gnu/proj/
 # Enable -fPIC
 RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN make clean && make -j $(nproc)
@@ -217,8 +218,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov /home/cockroach/go_projects/src/git
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-#RUN go mod vendor
-RUN go mod tidy && go test -c -mod=mod -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=release -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
+RUN go mod tidy && go test -c -mod=mod -tags ' gss make aarch64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=aarch64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 
@@ -272,3 +272,4 @@ RUN cp /home/cockroach/CockroachDB_pkg_plugin/cockroach_sql_modi.y /home/cockroa
 # Final entry
 USER root
 WORKDIR /home/cockroach/fuzzing/fuzz_root
+
