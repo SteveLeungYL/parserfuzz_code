@@ -7,26 +7,28 @@ import subprocess
 
 
 def checkout_and_clean_mysql_repo(hexsha: str):
-    checkout_cmd = f"git checkout {hexsha} --force && git clean -xdf"
+    checkout_cmd = f"git checkout {hexsha} --force && git clean -xdf && git clean -xffd && git submodule foreach --recursive git clean -xffd"
     utils.execute_command(checkout_cmd, cwd=constants.MYSQL_SRC)
 
     logger.debug(f"Checkout commit completed: {hexsha}")
 
 def compile_mysql_source(hexsha: str):
     BLD_PATH = os.path.join(constants.MYSQL_SRC, "bld")
-    boost_setup_command = "ln -s /home/mysql/boost_versions /home/mysql/mysql-server/boost"
-    utils.execute_command(boost_setup_command, cwd=BLD_PATH)
 
-    run_cmake = "CC=gcc-6 CXX=g++-6 cmake .. -DWITH_BOOST=../boost -DWITH_DEBUG=1"
+    run_cmake = "cmake .. -DMYSQL_MAINTAINER_MODE=OFF -DWITH_ASAN=ON -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_ASAN=ON"
     _, stderr, _ = utils.execute_command(run_cmake, cwd=BLD_PATH)
-    if "GCC" in stderr and "or newer" in stderr:
-        run_cmake = "rm -rf ./* && CC=gcc-9 CXX=g++-9 cmake .. -DWITH_BOOST=../boost -DWITH_DEBUG=1"
-        utils.execute_command(run_cmake, cwd=BLD_PATH)
 
-    run_make = "make -j$(nproc)"
+    run_make = "make install -j$(nproc)"
     utils.execute_command(run_make, cwd=BLD_PATH)
 
-    compiled_program_path = os.path.join(BLD_PATH, "bin/mysqld")
+    if os.path.exists(os.path.join(BLD_PATH, "sql/mysqld")) and not os.path.exists(os.path.join(BLD_PATH, "sql/mariadb")):
+        # in some early version, mariadb server does not have mariadb binary, but instead named mysql. 
+        shutil.copy2(os.path.join(BLD_PATH, "sql/mysqld"), os.path.join(BLD_PATH, "sql/mariadb"))
+    if os.path.exists(os.path.join(BLD_PATH, "client/mysql")) and not os.path.exists(os.path.join(BLD_PATH, "client/mariadb")):
+        # in some early version, mariadb server does not have mariadb binary, but instead named mysql. 
+        shutil.copy2(os.path.join(BLD_PATH, "client/mysql"), os.path.join(BLD_PATH, "client/mariadb"))
+
+    compiled_program_path = os.path.join(BLD_PATH, "sql/mariadb")
     if os.path.isfile(compiled_program_path):
         is_success = True
     else:
@@ -66,81 +68,48 @@ def strip_all_binary(cur_file_folder: str):
 
 def copy_binaries (hexsha: str):
 
-    strip_all_binary("/home/mysql/mysql-server/bld")
 
     # Setup the output folder. 
     cur_output_dir = os.path.join(constants.MYSQL_ROOT, hexsha)
     utils.execute_command("mkdir -p %s" % (cur_output_dir), cwd = constants.MYSQL_ROOT)
 
-
-    if os.path.isfile("/home/mysql/mysql-server/bld/scripts/mysql_install_db"):
-        # This is the old version of the code. Need several more folders to be copied. 
-        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
-        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysql"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
-
-        if os.path.isdir("/home/mysql/mysql-server/bld/bin"):
-            shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/scripts"):
-            shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/extra"):
-            shutil.copytree("/home/mysql/mysql-server/bld/extra", os.path.join(cur_output_dir, "extra"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/support-files"):
-            shutil.copytree("/home/mysql/mysql-server/bld/support-files", os.path.join(cur_output_dir, "support-files"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/share"):
-            shutil.copytree("/home/mysql/mysql-server/bld/share", os.path.join(cur_output_dir, "share"))
-
-        if os.path.isdir("/home/mysql/mysql-server/bld/data_all"):
-            shutil.copytree("/home/mysql/mysql-server/bld/data_all", os.path.join(cur_output_dir, "data_all"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
-            shutil.copytree("/home/mysql/mysql-server/bld/library_output_directory", os.path.join(cur_output_dir, "library_output_directory"))
-
-        return True
-
-    elif os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
-        cur_output_bin = os.path.join(cur_output_dir, "bin")
-        # utils.execute_command("mkdir -p %s" % (cur_output_bin), cwd = cur_output_dir)
-
-        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysqld"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysqld", cwd=cur_output_dir)
-        if os.path.isfile("/home/mysql/mysql-server/bld/bin/mysql"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/bin/mysql", cwd=cur_output_dir)
-        if os.path.isdir("/home/mysql/mysql-server/bld/bin"):
-            shutil.copytree("/home/mysql/mysql-server/bld/bin", os.path.join(cur_output_dir, "bin"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/scripts"):
-            shutil.copytree("/home/mysql/mysql-server/bld/scripts", os.path.join(cur_output_dir, "scripts"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
-            for lib_file in os.listdir("/home/mysql/mysql-server/bld/library_output_directory"):
-                if "libprotobuf-lite" in lib_file:
-                    shutil.copy(os.path.join("/home/mysql/mysql-server/bld/library_output_directory", lib_file), os.path.join(cur_output_bin, lib_file))
-
-        # Slightly older version, such as MySQL 5.7. Copy a few more folders in advanced. 
-        if os.path.isfile("/home/mysql/mysql-server/bld/sql/mysqld"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/sql/mysqld", cwd=cur_output_bin)
-        if os.path.isfile("/home/mysql/mysql-server/bld/client/mysql"):
-            utils.execute_command("strip /home/mysql/mysql-server/bld/client/mysql", cwd=cur_output_bin)
-        if os.path.isdir("/home/mysql/mysql-server/bld/sql"):
-            shutil.copytree("/home/mysql/mysql-server/bld/sql", os.path.join(cur_output_bin, "sql"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/client"):
-            shutil.copytree("/home/mysql/mysql-server/bld/client", os.path.join(cur_output_bin, "client"))
-        
-        if os.path.isdir("/home/mysql/mysql-server/bld/data_all"):
-            shutil.copytree("/home/mysql/mysql-server/bld/data_all", os.path.join(cur_output_dir, "data_all"))
-        if os.path.isdir("/home/mysql/mysql-server/bld/library_output_directory"):
-            shutil.copytree("/home/mysql/mysql-server/bld/library_output_directory", os.path.join(cur_output_dir, "library_output_directory"))
-
-        return True
-
+    if os.path.isfile("/home/mysql/mariadb/bld/sql/mariadbd"):
+        target_dir = os.path.join(cur_output_dir, "sql")
+        os.mkdir(target_dir)
+        shutil.copy2("/home/mysql/mariadb/bld/sql/mariadbd", os.path.join(target_dir, "mariadbd"))
     else:
-        logger.error("The mysqld output file not found. Compilation Failed?")
+        logger.error("The mariadbd output file not found. Compilation Failed?")
         return False
+    if os.path.isfile("/home/mysql/mariadb/bld/client/mariadb"):
+        target_dir = os.path.join(cur_output_dir, "client")
+        os.mkdir(target_dir)
+        shutil.copy2("/home/mysql/mariadb/bld/client/mariadb", os.path.join(target_dir, "mariadb"))
+    else:
+        logger.error("The mariadb output file not found. Compilation Failed?")
+        return False
+
+    if os.path.isdir("/home/mysql/mariadb/bld/share"):
+        target_dir = os.path.join(cur_output_dir, "share")
+        shutil.copytree("/home/mysql/mariadb/bld/share", target_dir)
+    else:
+        logger.warning("The share directory not found. New version? ")
+
+    if os.path.isdir("/home/mysql/mariadb/bld/data_all"):
+        target_dir = os.path.join(cur_output_dir, "data_all")
+        shutil.copytree("/home/mysql/mariadb/bld/data_all", target_dir)
+        if os.path.isdir(os.path.join(target_dir, "data_0")):
+            # Delete the tmp tree for space optimization.
+            shutil.rmtree(os.path.join(target_dir, "data_0"))
+    else:
+        logger.error("The data_all not found. Compilation Failed?")
+        return False
+
+    strip_all_binary(cur_output_dir)
 
 def generate_mysql_data_dir():
     cur_dir = os.path.join(constants.MYSQL_SRC, "bld")
     if not os.path.isdir(cur_dir):
         return
-    cur_bin_dir = os.path.join(cur_dir, "bin")
 
     cur_data_dir = os.path.join(cur_dir, "data")
     if os.path.isdir(cur_data_dir):
@@ -150,23 +119,13 @@ def generate_mysql_data_dir():
 
     if os.path.isfile(os.path.join(cur_dir, "scripts/mysql_install_db")):
         # The third scenario, has (bin, extra, scripts, share, support-files)
-        command = "chmod +x ./scripts/mysql_install_db && ./scripts/mysql_install_db --user=mysql --basedir=./ --datadir=./data"
-        utils.execute_command(command, cwd=cur_dir)
-        if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
-            return False
-
-    elif os.path.isdir(os.path.join(cur_bin_dir, "client")):
-        # The second scenario, has (client, scripts and sql)
-        command = "./bin/sql/mysqld --initialize-insecure --user=mysql --datadir=./data"
+        command = "chmod +x ./scripts/mysql_install_db && ./scripts/mysql_install_db --user=mysql --datadir=./data"
         utils.execute_command(command, cwd=cur_dir)
         if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
             return False
     else:
-        # The first scenario, all binaries directly in bin dir.
-        command = "./bin/mysqld --initialize-insecure --user=mysql --datadir=./data"
-        utils.execute_command(command, cwd=cur_dir)
-        if not os.path.isdir(os.path.join(cur_data_dir, "mysql")):
-            return False
+        logger.error("The scripts/mysql_install_db does not initialize the database correctly. Compilation Failed?")
+        return False
 
     cur_data_all_dir = os.path.join(cur_dir, "data_all")
     if os.path.isdir(cur_data_all_dir):
@@ -187,10 +146,8 @@ def setup_mysql_commit(hexsha: str):
     if os.path.isdir(constants.MYSQL_ROOT):
         cur_output_dir = os.path.join(constants.MYSQL_ROOT, hexsha)
         if os.path.isdir(cur_output_dir):
-            cur_output_binary = os.path.join(cur_output_dir, "bin/mysql")
-            old_cur_output_binary = os.path.join(cur_output_dir, "bin/client/mysql")
-            old_cur_output_binary_2 = os.path.join(cur_output_dir, "bin/bin/mysql")
-            if os.path.isfile(cur_output_binary) or os.path.isfile(old_cur_output_binary) or os.path.isfile(old_cur_output_binary_2):
+            cur_output_binary = os.path.join(cur_output_dir, "sql/mariadbd")
+            if os.path.isfile(cur_output_binary):
                 # The precompiled version existed, skip compilation. 
                 logger.debug("MySQL Version: %s existed. Skip compilation. " % (hexsha))
                 is_success = True
@@ -202,15 +159,15 @@ def setup_mysql_commit(hexsha: str):
         print("FATEL ERROR: cannot find the output dir. ")
 
 
-    logger.debug("Checkout and clean up MySQL root dir.")
+    logger.debug("Checkout and clean up MariaDB root dir.")
     checkout_and_clean_mysql_repo(hexsha)
     utils.execute_command("mkdir -p bld", cwd=constants.MYSQL_SRC)
 
-    logger.debug("Compile MySQL root dir.")
+    logger.debug("Compile MariaDB root dir.")
     is_success = compile_mysql_source(hexsha)
 
     if not is_success:
-        logger.warning("Failed to compile MySQL with commit %s directly." % (hexsha))
+        logger.warning("Failed to compile MariaDB with commit %s directly." % (hexsha))
         return False
 
     # Generate the MySQL data folder. 

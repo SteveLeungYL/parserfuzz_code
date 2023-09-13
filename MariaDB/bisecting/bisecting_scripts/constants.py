@@ -2,8 +2,8 @@ from enum import Enum
 import os
 
 BISECTING_SCRIPTS_ROOT = "/home/mysql/bisecting_scripts"
-MYSQL_ROOT = "/home/mysql/mysql_binary"
-MYSQL_SRC = "/home/mysql/mysql-server"
+MYSQL_ROOT = "/home/mysql/mariadb_binary"
+MYSQL_SRC = "/home/mysql/mariadb"
 
 BUG_SAMPLES_PATH = os.path.join(BISECTING_SCRIPTS_ROOT, "bug_samples")
 LOG_OUTPUT_FILE = os.path.join(BISECTING_SCRIPTS_ROOT, "logs.txt")
@@ -12,7 +12,7 @@ FAILED_COMPILE_COMMITS = os.path.join(BISECTING_SCRIPTS_ROOT, "FAILED_COMPILE_CO
 UNIQUE_BUG_JSON = os.path.join(BISECTING_SCRIPTS_ROOT, "unique_bug.json")
 MYSQL_SORTED_COMMITS = os.path.join( BISECTING_SCRIPTS_ROOT, "assets/sorted_commits.json")
 
-MYSQL_SERVER_SOCKET = "/tmp/mysql_0.sock"
+MYSQL_SERVER_SOCKET = "/tmp/mariadb_0.sock"
 MYSQL_SERVER_PORT = "8000"
 
 class RESULT(Enum):

@@ -31,7 +31,7 @@ def read_queries_from_files():
     for index, sample_file_name in enumerate(sample_files):
         logger.debug(f"Got sample - {index}: {sample_file_name}")
         cur_query = get_contents(sample_file_name)
-        debug_print_queries(cur_query)
+        # debug_print_queries(cur_query)
         yield str(sample_file_name.stem), cur_query
 
     logger.info("Finished reading all the query files from the bug input folder. ")
