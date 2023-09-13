@@ -79,7 +79,7 @@ RUN mkdir bld
 WORKDIR /home/mysql/mariadb/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DBUILD_CONFIG=Debug -DMYSQL_MAINTAINER_MODE=OFF -DWITH_ASAN=ON -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_ASAN=ON && make install -j$(nproc)
+RUN cmake .. -DMYSQL_MAINTAINER_MODE=OFF -DWITH_ASAN=ON -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_ASAN=ON && make install -j$(nproc)
 
 # Recover the original compiler.
 ENV CC=gcc-9
