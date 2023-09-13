@@ -2,7 +2,7 @@
 *.swp
 *.pyc
 __pycache__
-venv 
+venv
 
 SQLite/AFL/afl-fuzz
 SQLite/fuzz_root/fuzz_root*
@@ -61,3 +61,6 @@ TiDB/docker/tidb_pkg_plugin/rsg/tidb_parser.y
 TiDB/docker/tidb_pkg_plugin/rsg/yacc/lex.go
 TiDB/docker/tidb_pkg_plugin/rsg/yacc/node.go
 TiDB/docker/tidb_pkg_plugin/rsg/yacc/parse.go
+
+MariaDB/docker/AFLTriage/
+MySQL/docker/AFLTriage/

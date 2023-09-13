@@ -125,7 +125,7 @@ pub fn expand_filepath_templates(args: &[&str], value: &str) -> Vec<String> {
 
     expanded_args.push(format!("--port={}", 7000 + cur_mysqld_idx).to_string());
     expanded_args.push(format!("--socket=/tmp/mysql_{}.sock", cur_mysqld_idx).to_string());
-    expanded_args.push(format!("--datadir=/home/mysql/mysql-server/bld/data_all/data_{}", cur_mysqld_idx).to_string());
+    expanded_args.push(format!("--datadir=/home/mysql/data_all/data_{}", cur_mysqld_idx).to_string());
 
     expanded_args
 }

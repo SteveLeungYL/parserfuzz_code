@@ -113,7 +113,7 @@ pub fn execute_capture_output_timeout<S: AsRef<OsStr>>(
 
         std::thread::sleep(Duration::from_secs(3));
         while !check_mysql_server_online() {
-            // Server is still up? Wait for a couple seconds.
+            // Server is still not up? Wait for a couple seconds.
             // log::info!("Info: For command: {:?}, DBMS server is still waiting to wake up. ", command);
             std::thread::sleep(Duration::from_secs(3));
         }
