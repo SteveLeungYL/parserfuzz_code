@@ -175,7 +175,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     cur_pane = cur_window.attached_pane
     cur_pane.send_keys(mysql_command)
 
-    all_mysql_server_tmux_window.append([cur_window, mysql_command])
+    all_mysql_server_tmux_window.append([cur_window, mysql_command, cur_mysql_data_dir_str])
 
     time.sleep(1)
 
@@ -187,7 +187,7 @@ while True:
     time.sleep(10)
 
     # Go through all the created window, check whether the mysqld process is still active.
-    for cur_window, mysql_command in all_mysql_server_tmux_window:
+    for cur_window, mysql_command, cur_mysql_data_dir_str in all_mysql_server_tmux_window:
         is_crash = False
 
         cur_pane = cur_window.attached_pane
@@ -206,5 +206,8 @@ while True:
         os.remove("./mysqld_background_pid")
 
         if is_crash:
+            if os.path.isdir(cur_mysql_data_dir_str):
+                shutil.rmtree(cur_mysql_data_dir_str)
+            shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
             cur_pane.send_keys(mysql_command)
 
