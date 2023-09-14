@@ -30,6 +30,8 @@ def read_queries_from_files():
                 "scalar_function.go" in stack or \
                 "getRecoverTableByTableName" in stack or \
                 "expression_rewriter.go" in stack or \
+                "TryToGetChildProp" in stack or \
+                "IsPartialModeAgg" in stack or \
                 "handleScalarSubquery" in stack:
                     contents = ""
             else:
