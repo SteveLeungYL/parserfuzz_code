@@ -79,7 +79,7 @@ RUN mkdir bld
 WORKDIR /home/mysql/mariadb/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DMYSQL_MAINTAINER_MODE=OFF -DWITH_ASAN=ON -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_ASAN=ON && make install -j$(nproc)
+RUN cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd) -DWITH_ASAN=ON && make install -j$(nproc)
 
 # Recover the original compiler.
 ENV CC=gcc-9
@@ -190,7 +190,7 @@ RUN chown -R mysql:mysql /tmp
 # set up MySQL database
 USER mysql
 WORKDIR /home/mysql/mariadb/bld/
-RUN mkdir -p ./data_all/ori_data && cp ./1/share/mariadb_test_db.sql scripts/ && ./scripts/mysql_install_db  --user=mysql --datadir=data_all/ori_data
+RUN mkdir -p ./data_all/ori_data && cp ./1/share/mariadb_test_db.sql scripts/ || ./scripts/mysql_install_db  --user=mysql --datadir=data_all/ori_data
 # Further setup the database info
 USER mysql
 WORKDIR /home/mysql/scripts
