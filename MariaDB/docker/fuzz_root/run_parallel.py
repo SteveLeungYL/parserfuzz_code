@@ -203,7 +203,7 @@ while True:
             else:
                 is_crash = True
 
-        os.remove("./mysqld_background_pid")
+        os.remove("./mariadbd_background_pid")
 
         if is_crash:
             if os.path.isdir(cur_mysql_data_dir_str):
