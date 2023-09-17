@@ -35,7 +35,7 @@ Copy finished. Now executing the following script:
 
 ```bash
 cd /home/mysql/AFLTriage/target/debug
-./afltriage -i ./crash -o outputs -t 60000 --stdin --debug --client_command '/home/mysql/mariadb/bld/client/mariadb -f -u root -N --socket=/tmp/mariadb_0.sock ' /home/mysql/mariadb/bld/sql/mariadbd
+./afltriage -i ./crash -o outputs -t 60000 --stdin --debug --client_command '/home/mysql/mariadb/bld/client/mariadb -f -u mysql -N --socket=/tmp/mysql_0.sock ' /home/mysql/mariadb/bld/sql/mariadbd
 ```
 """)
 
