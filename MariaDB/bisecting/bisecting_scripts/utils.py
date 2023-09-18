@@ -64,7 +64,11 @@ def execute_query_helper(
 
 def execute_command(command_line: str, cwd=None, timeout=100000, input_contents="", failed_message="", output_file=None
 ):
-    return execute_query_helper(command_line=command_line, cwd=cwd, timeout=timeout, input_contents=input_contents, failed_message=failed_message, output_file=output_file)
+    output, error_msg, return_code = execute_query_helper(command_line=command_line, cwd=cwd, timeout=timeout, input_contents=input_contents, failed_message=failed_message, output_file=output_file)
+    if "./client/mariadb" in command_line and "-u root" in command_line and ("Access denied for user" in output or "Access denied for user" in error_msg):
+        command_line = command_line.replace("-u root", "-u mysql")
+        return execute_query_helper(command_line=command_line, cwd=cwd, timeout=timeout, input_contents=input_contents, failed_message=failed_message, output_file=output_file)
+    return output, error_msg, return_code
 
 
 def remove_file(file: Path):

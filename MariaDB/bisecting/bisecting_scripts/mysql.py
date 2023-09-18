@@ -138,7 +138,7 @@ def execute_queries(query: str, hexsha: str):
     
     cur_mysql_root = os.path.join(constants.MYSQL_ROOT, hexsha)
 
-    mysql_client = "./client/mariadb -u root -N --socket=%s" % (constants.MYSQL_SERVER_SOCKET)
+    mysql_client = "./client/mariadb -u root -N -f --socket=%s" % (constants.MYSQL_SERVER_SOCKET)
 
     # clean_database_query = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; "
     clean_database_query = "DROP DATABASE IF EXISTS test123; CREATE DATABASE IF NOT EXISTS test123; "
