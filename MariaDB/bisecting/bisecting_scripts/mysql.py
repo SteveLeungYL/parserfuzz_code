@@ -46,7 +46,7 @@ def check_mysql_server_alive() -> bool:
         return False
 
 def stop_mysqld_server():
-    p = subprocess.run("pkill mysqld",
+    p = subprocess.run("pkill mariadbd",
                         shell=True,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
@@ -55,7 +55,7 @@ def stop_mysqld_server():
     
     while (check_mysql_server_alive()):
         time.sleep(2)
-        p = subprocess.run("pkill -9 mysqld",
+        p = subprocess.run("pkill -9 mariadbd",
                         shell=True,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
@@ -85,7 +85,7 @@ def start_mysqld_server(hexsha: str):
 
     cur_mysql_data_dir = os.path.join(cur_mysql_root, "data_all/data_0")
 
-    logger.debug("Starting mysqld server with hash: %s" % (hexsha))
+    logger.debug("Starting mariadbd server with hash: %s" % (hexsha))
 
     # And then, call MySQL server process. 
     mysql_command = [

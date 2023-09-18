@@ -47,7 +47,8 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::env;
+use std::{env, fs};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -1023,12 +1024,23 @@ fn main_wrapper() -> i32 {
                             let report_filename = format!("{}.{}", filename, report.extension);
 
                             if let Err(e) =
-                                std::fs::write(output_dir.join(report_filename), report.data)
+                                std::fs::write(output_dir.join(&report_filename), report.data)
                             {
                                 // TODO: notify / exit early
                                 let failed_to_write = format!("Failed to write report: {}", e);
                                 write_message(failed_to_write, Some(path));
                             }
+                            // bug-deduplication for RSG bisecting.
+                            // Append the original crashing query at the end.
+                            let mut res_out_file = std::fs::OpenOptions::new()
+                                .append(true)
+                                .open(output_dir.join(report_filename))
+                                .expect("cannot open file");
+                            res_out_file.write(b"\n\nOriginal crashing Query:\n");
+                            let query_path = testcase.path.to_str().unwrap();
+                            let query_str = fs::read_to_string(query_path).expect("Could not read crashing query file. ");
+                            res_out_file.write(query_str.as_bytes());
+                            drop(res_out_file)
                         }
                     }
                 } else {

@@ -21,14 +21,14 @@ def compile_mysql_source(hexsha: str):
     run_make = "make install -j$(nproc)"
     utils.execute_command(run_make, cwd=BLD_PATH)
 
-    if os.path.exists(os.path.join(BLD_PATH, "sql/mysqld")) and not os.path.exists(os.path.join(BLD_PATH, "sql/mariadb")):
+    if os.path.exists(os.path.join(BLD_PATH, "sql/mysqld")) and not os.path.exists(os.path.join(BLD_PATH, "sql/mariadbd")):
         # in some early version, mariadb server does not have mariadb binary, but instead named mysql. 
-        shutil.copy2(os.path.join(BLD_PATH, "sql/mysqld"), os.path.join(BLD_PATH, "sql/mariadb"))
+        shutil.copy2(os.path.join(BLD_PATH, "sql/mysqld"), os.path.join(BLD_PATH, "sql/mariadbd"))
     if os.path.exists(os.path.join(BLD_PATH, "client/mysql")) and not os.path.exists(os.path.join(BLD_PATH, "client/mariadb")):
         # in some early version, mariadb server does not have mariadb binary, but instead named mysql. 
         shutil.copy2(os.path.join(BLD_PATH, "client/mysql"), os.path.join(BLD_PATH, "client/mariadb"))
 
-    compiled_program_path = os.path.join(BLD_PATH, "sql/mariadb")
+    compiled_program_path = os.path.join(BLD_PATH, "sql/mariadbd")
     if os.path.isfile(compiled_program_path):
         is_success = True
     else:
@@ -105,6 +105,7 @@ def copy_binaries (hexsha: str):
         return False
 
     strip_all_binary(cur_output_dir)
+    return True
 
 def generate_mysql_data_dir():
     cur_dir = os.path.join(constants.MYSQL_SRC, "bld")
