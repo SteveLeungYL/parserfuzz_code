@@ -15,6 +15,8 @@ def read_queries_from_files():
 
         contents = re.sub(r"[^\x00-\x7F]+", " ", contents)
         contents = contents.replace("\ufffd", " ")
+        if "Original crashing Query:" in contents:
+            contents = contents.split("Original crashing Query:")[1]
         return contents
 
     def debug_print_queries(queries):
