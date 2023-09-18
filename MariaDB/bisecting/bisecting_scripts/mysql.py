@@ -144,13 +144,13 @@ def execute_queries(query: str, hexsha: str):
     clean_database_query = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; "
 
     utils.execute_command(
-        mysql_client, input_contents=clean_database_query, cwd=cur_mysql_root, timeout=1  # 3 seconds timeout. 
+        mysql_client, input_contents=clean_database_query, cwd=cur_mysql_root, timeout=3  # 3 seconds timeout. 
     )
 
     # safe_query = "USE test_sqlright1; " + query
     safe_query = "USE test_sqlright1; " + query
 
-    output, error_msg, status = utils.execute_query_helper(
+    output, error_msg, status = utils.execute_command(
         mysql_client, input_contents=safe_query, cwd=cur_mysql_root, timeout=5  # 5 seconds timeout. 
     )
 
