@@ -141,14 +141,14 @@ def execute_queries(query: str, hexsha: str):
     mysql_client = "./client/mariadb -u root -N -f --socket=%s" % (constants.MYSQL_SERVER_SOCKET)
 
     # clean_database_query = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; "
-    clean_database_query = "DROP DATABASE IF EXISTS test123; CREATE DATABASE IF NOT EXISTS test123; "
+    clean_database_query = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; "
 
     utils.execute_command(
         mysql_client, input_contents=clean_database_query, cwd=cur_mysql_root, timeout=1  # 3 seconds timeout. 
     )
 
     # safe_query = "USE test_sqlright1; " + query
-    safe_query = "USE test123; " + query
+    safe_query = "USE test_sqlright1; " + query
 
     output, error_msg, status = utils.execute_query_helper(
         mysql_client, input_contents=safe_query, cwd=cur_mysql_root, timeout=5  # 5 seconds timeout. 
