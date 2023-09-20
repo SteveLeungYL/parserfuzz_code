@@ -61,8 +61,8 @@ USER cockroach
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
 # Download the original Go library. Set it up. 
-RUN wget https://go.dev/dl/go1.19.linux-arm64.tar.gz
-RUN tar -xf go1.19.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.19.linux-amd64.tar.gz
+RUN tar -xf go1.19.linux-amd64.tar.gz
 USER root
 RUN cp -r go /usr/local/
 USER cockroach
@@ -113,7 +113,7 @@ RUN make buildshort; exit 0
 
 # Fix a proj problem that could crash our build process. 
 USER cockroach
-WORKDIR /home/cockroach/go_projects/native/aarch64-linux-gnu/proj/
+WORKDIR /home/cockroach/go_projects/native/x86_64-linux-gnu/proj/
 # Enable -fPIC
 RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN make clean && make -j $(nproc)
@@ -138,8 +138,8 @@ RUN mv ./cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
 # Replace the original GoLang runtime to an older version
 #USER cockroach
 #WORKDIR /home/cockroach
-#RUN wget https://go.dev/dl/go1.18.5.linux-arm64.tar.gz
-#RUN tar -xf go1.18.5.linux-arm64.tar.gz
+#RUN wget https://go.dev/dl/go1.18.5.linux-amd64.tar.gz
+#RUN tar -xf go1.18.5.linux-amd64.tar.gz
 #USER root
 #RUN cp -r go /usr/local/
 
@@ -218,7 +218,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov /home/cockroach/go_projects/src/git
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-RUN go mod tidy && go test -c -mod=mod -tags ' gss make aarch64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=aarch64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
+RUN go mod tidy && go test -c -mod=mod -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 
