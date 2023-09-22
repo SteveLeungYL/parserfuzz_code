@@ -85,7 +85,7 @@ USER tidb
 RUN mkdir -p /home/tidb/go_projects/src/github.com/tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 RUN git clone https://github.com/pingcap/tidb.git
-RUN cd tidb && git checkout v6.1.7
+RUN cd tidb && git checkout master
 RUN cp -r tidb tidb_ori
 RUN echo 'export GOPATH="/home/tidb/go_projects"' >> ~/.bashrc
 ENV GOPATH="/home/tidb/go_projects"
@@ -115,7 +115,7 @@ USER tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 RUN rm -rf tidb && cp -r tidb_ori tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb
-RUN rm -rf ./parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./parser && cd ./parser && make; make; make; make; exit 0;
+RUN git checkout v6.1.7 && rm -rf ./parser && cp -r /home/tidb/tidb_pkg_plugin/parser ./parser && cd ./parser && make; make; make; make; exit 0;
 RUN cd ./parser/parser_helper && bash build.sh && cp ./parser_helper.* /home/tidb/tidb_pkg_plugin/
 
 

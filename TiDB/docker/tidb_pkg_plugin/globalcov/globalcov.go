@@ -16,8 +16,8 @@ type GlobalCovInfo struct {
 
 func LogGlobalCov(curLoc uint32) {
 
-	// offset := getXorOffset(curLoc)
-	offset := curLoc
+	offset := getXorOffset(curLoc)
+	// offset := curLoc
 
 	////Debugging purpose
 	//if offset < 66000 && offset > 65000 {

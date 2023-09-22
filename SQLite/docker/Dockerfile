@@ -69,7 +69,7 @@ RUN cp -r sqlite sqlite_ori
 ## Build instrumented SQLite3
 WORKDIR /home/sqlite/sqlite
 #RUN git checkout version-3.40.0
-RUN git checkout master
+RUN git checkout version-3.41.0
 RUN python3 /home/sqlite/scripts/modify_sqlite_shell.py
 ENV CXX=/home/sqlite/AFL/afl-clang-fast++
 ENV CC=/home/sqlite/AFL/afl-clang-fast
@@ -78,8 +78,8 @@ RUN make -j$(nproc)
 
 ## Build uninstrumented SQLite3
 WORKDIR /home/sqlite/sqlite_ori
-#RUN git checkout version-3.40.0
-RUN git checkout master
+RUN git checkout version-3.41.0
+#RUN git checkout master
 ENV CXX=g++-9
 ENV CC=gcc-9
 RUN ./configure --enable-debug --enable-all
