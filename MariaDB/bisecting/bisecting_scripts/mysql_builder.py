@@ -21,7 +21,7 @@ def check_whether_buggy_commit_found():
 def get_current_bisecting_commit():
     check_cmd = "git log -1"
     res_out, _, _ = utils.execute_command(check_cmd, cwd=constants.MYSQL_SRC)
-    res_out = res_out.split(" ")[1]
+    res_out = res_out.split(" ")[1].split("\n")[0]
     return res_out
 
 def clean_mysql_repo():
