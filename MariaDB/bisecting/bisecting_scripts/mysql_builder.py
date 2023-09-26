@@ -5,6 +5,54 @@ import os
 import shutil
 import subprocess
 
+def check_whether_buggy_commit_found():
+    check_cmd = "git bisect log"
+    res_out, _, _ = utils.execute_command(check_cmd, cwd=constants.MYSQL_SRC)
+    if "first bad commit: [" in res_out:
+        last_corr_commit = ""
+        if "git bisect good " in res_out:
+            last_corr_commit = res_out.split("git bisect good ")[-1].split("\n")[0]
+        res_out = res_out.split("first bad commit: [")[1]
+        res_out = res_out.split("]")[0]
+        return res_out, last_corr_commit
+    else:
+        return "", "" 
+
+def get_current_bisecting_commit():
+    check_cmd = "git log -1"
+    res_out, _, _ = utils.execute_command(check_cmd, cwd=constants.MYSQL_SRC)
+    res_out = res_out.split(" ")[1]
+    return res_out
+
+def clean_mysql_repo():
+    clean_cmd = f"git clean -xdf && git clean -xffd && git submodule foreach --recursive git clean -xffd"
+    utils.execute_command(clean_cmd, cwd=constants.MYSQL_SRC)
+
+    logger.debug(f"Clean MySQL repo completed. ")
+
+def init_bisecting_repo(buggy_commit: str, correct_commit: str):
+    init_cmd = f"git clean -xdff && git bisect reset && git bisect start {buggy_commit} {correct_commit}"
+    utils.execute_command(init_cmd, cwd=constants.MYSQL_SRC)
+
+    logger.debug(f"Init bisecting MySQL repo completed. ")
+
+def bisect_good():
+    run_cmd = f"git bisect good"
+    utils.execute_command(run_cmd, cwd=constants.MYSQL_SRC)
+
+    logger.debug(f"Git Bisect good")
+
+def bisect_buggy():
+    run_cmd = f"git bisect bad"
+    utils.execute_command(run_cmd, cwd=constants.MYSQL_SRC)
+
+    logger.debug(f"Git Bisect bad")
+
+def bisect_skip():
+    run_cmd = f"git bisect skip"
+    utils.execute_command(run_cmd, cwd=constants.MYSQL_SRC)
+
+    logger.debug(f"Git Bisect skipped. ")
 
 def checkout_and_clean_mysql_repo(hexsha: str):
     checkout_cmd = f"git checkout {hexsha} --force && git clean -xdf && git clean -xffd && git submodule foreach --recursive git clean -xffd"
@@ -161,7 +209,8 @@ def setup_mysql_commit(hexsha: str):
 
 
     logger.debug("Checkout and clean up MariaDB root dir.")
-    checkout_and_clean_mysql_repo(hexsha)
+    # checkout_and_clean_mysql_repo(hexsha)
+    clean_mysql_repo()
     utils.execute_command("mkdir -p bld", cwd=constants.MYSQL_SRC)
 
     logger.debug("Compile MariaDB root dir.")

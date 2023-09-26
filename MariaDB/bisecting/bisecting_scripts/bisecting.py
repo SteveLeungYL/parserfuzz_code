@@ -3,6 +3,7 @@ import constants
 import utils
 from loguru import logger
 import stats_bugs
+import mysql_builder
 
 def start_bisect(file_name: str, queries: str, all_commits):
 
@@ -19,14 +20,20 @@ def start_bisect(file_name: str, queries: str, all_commits):
 def bisecting_commits(file_name: str, query: str, all_commits_str):
 
     # The buggy commit, which is the commit that introduce the bug.
-    newer_commit_index = 0
+    newer_buggy_commit = all_commits_str[0]
     # The correct commit, which is the commit right before the bug introducing one.
-    older_commit_index = len(all_commits_str)-1
+    older_correct_commit = all_commits_str[len(all_commits_str)-1]
+    # The bisecting result, the first buggy commit:
+    first_buggy_commit = ""
+    last_corr_commit = "" 
 
     # Initialize the new bisecting results struct.  
     rn_correctness = constants.RESULT.PASS
     current_bisecting_result = constants.BisectingResults()
     current_bisecting_result.src = file_name
+
+    # Initialize the git repo. 
+    mysql_builder.init_repo_bisecting(newer_buggy_commit, older_correct_commit)
 
     is_buggy_commit_found = False
 
@@ -34,56 +41,49 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
 
     while not is_buggy_commit_found:
 
-        if abs(newer_commit_index - older_commit_index) <= 1:
+        first_buggy_commit, last_corr_commit = mysql_builder.check_whether_buggy_commit_found()
+        if first_buggy_commit != "":
             # Found the bug introduced commit. 
             logger.debug(
-                f"found buggy_commit: {newer_commit_index} : {older_commit_index}"
+                f"found buggy_commit: {first_buggy_commit}"
             )
             is_buggy_commit_found = True
             break
 
-        # Approximate towards 0 (newer).
-        tmp_commit_index = int((newer_commit_index + older_commit_index) / 2)
+        cur_bisecting_commit = mysql_builder.get_current_bisecting_commit()
 
-        commit_ID = all_commits_str[tmp_commit_index]
-
-        rn_correctness = mysql.execute_queries(query, commit_ID)
+        rn_correctness = mysql.execute_queries(query, cur_bisecting_commit)
 
         if rn_correctness == constants.RESULT.PASS:  # The correct version.
             # Good commit.
-            older_commit_index = tmp_commit_index
-            logger.debug(f"For commit {commit_ID}. Bisecting Pass. \n")
+            logger.debug(f"For commit {cur_bisecting_commit}. Bisecting Pass. \n")
+            mysql_builder.bisect_good()
             continue
         elif rn_correctness == constants.RESULT.FAIL_TO_COMPILE:
-            logger.debug(f"For commit {commit_ID}. Bisecting FAIL_TO_COMPILE. \n")
-            utils.dump_failed_commit(commit_ID)
-            del all_commits_str[tmp_commit_index]
-            older_commit_index -= 1
+            logger.debug(f"For commit {cur_bisecting_commit}. Bisecting FAIL_TO_COMPILE. \n")
+            utils.dump_failed_commit(cur_bisecting_commit)
+            mysql_builder.bisect_skip()
             continue
         else:
             # SEG_FAULT
             # Buggy commit.
-            newer_commit_index = tmp_commit_index
             logger.debug(
-                f"For commit {commit_ID}, Bisecting Segmentation Fault. \n"
+                f"For commit {cur_bisecting_commit}, Bisecting Segmentation Fault. \n"
             )
+            mysql_builder.bisect_bad()
             continue
 
     logger.info(
         "Found the bug introduced commit: %s \n\n\n"
-        % (all_commits_str[newer_commit_index])
+        % (first_buggy_commit)
     )
-    logger.info(
-        f"Found the correct commit: {all_commits_str[older_commit_index]} \n\n\n"
-    )
+    # logger.info(
+    #     f"Found the correct commit: {all_commits_str[older_commit_index]} \n\n\n"
+    # )
 
     current_bisecting_result.query = query
-    current_bisecting_result.first_buggy_commit_id = all_commits_str[
-        newer_commit_index
-    ]
-    current_bisecting_result.first_corr_commit_id = all_commits_str[
-        older_commit_index
-    ]
+    current_bisecting_result.first_buggy_commit_id = first_buggy_commit
+    current_bisecting_result.first_corr_commit_id = last_corr_commit 
     current_bisecting_result.final_res_flag = rn_correctness
 
     return current_bisecting_result

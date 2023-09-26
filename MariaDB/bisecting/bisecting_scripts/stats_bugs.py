@@ -17,14 +17,21 @@ def filter_known_bugs(query: str, file_name: str):
         buggy_commit = cur_known_bug["first_buggy_commit_id"]
         corr_commit = cur_known_bug["first_corr_commit_id"]
 
-        if mysql.execute_queries(query, buggy_commit) == constants.RESULT.SEG_FAULT and \
-            mysql.execute_queries(query, corr_commit) == constants.RESULT.PASS:
-            # Match the bug introducing commit.
+        if mysql.execute_queries(query, buggy_commit) == constants.RESULT.SEG_FAULT:
+            if corr_commit == None or corr_commit == "":
+                # No previous correct commit found.
+                current_bisecting_result.first_buggy_commit_id = buggy_commit
+                current_bisecting_result.first_corr_commit_id = ""
+                current_bisecting_result.query = query
+                return current_bisecting_result
 
-            current_bisecting_result.first_buggy_commit_id = buggy_commit
-            current_bisecting_result.first_corr_commit_id = corr_commit
-            current_bisecting_result.query = query
+            if mysql.execute_queries(query, corr_commit) == constants.RESULT.PASS:
+                # Match the bug introducing commit.
 
-            return current_bisecting_result
+                current_bisecting_result.first_buggy_commit_id = buggy_commit
+                current_bisecting_result.first_corr_commit_id = corr_commit
+                current_bisecting_result.query = query
+
+                return current_bisecting_result
 
     return None
