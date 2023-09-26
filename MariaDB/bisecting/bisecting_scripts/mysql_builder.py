@@ -42,7 +42,7 @@ def bisect_good():
 
     logger.debug(f"Git Bisect good")
 
-def bisect_buggy():
+def bisect_bad():
     run_cmd = f"git bisect bad"
     utils.execute_command(run_cmd, cwd=constants.MYSQL_SRC)
 
