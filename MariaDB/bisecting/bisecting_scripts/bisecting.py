@@ -33,7 +33,7 @@ def bisecting_commits(file_name: str, query: str, all_commits_str):
     current_bisecting_result.src = file_name
 
     # Initialize the git repo. 
-    mysql_builder.init_repo_bisecting(newer_buggy_commit, older_correct_commit)
+    mysql_builder.init_bisecting_repo(newer_buggy_commit, older_correct_commit)
 
     is_buggy_commit_found = False
 
