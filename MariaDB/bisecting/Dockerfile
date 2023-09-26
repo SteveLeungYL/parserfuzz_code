@@ -83,5 +83,13 @@ RUN chown -R mysql:mysql /home/mysql/bisecting_scripts
 COPY scripts /home/mysql/scripts
 RUN chown -R mysql:mysql /home/mysql/scripts
 
+USER mysql
+WORKDIR /home/mysql/
+RUN mkdir -p depen && cd depen && wget https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.gz && tar -xf pcre2-10.42.tar.gz && \
+    cd pcre2-10.42 && ./configure --prefix=/usr --docdir=/usr/share/doc/pcre2-10.34 --enable-unicode --enable-pcre2test-libreadline --disable-static && make
+USER root
+WORKDIR /home/mysql/pcre2-10.42
+RUN make install
+
 USER root
 WORKDIR /home/mysql
