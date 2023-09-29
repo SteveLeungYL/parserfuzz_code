@@ -4287,7 +4287,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           total_mutate_all_failed, total_mutate_failed, total_mutatestmt_failed, total_append_failed,  g_mutator.get_valid_collection_size(), g_mutator.get_collection_size(),
           debug_good, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, total_mutate_num, total_mutatestmt_num, 
-          num_reparse, num_append, num_validate, get_total_grammar_edge_cov_size_num(), get_total_grammar_edge_cov_size_num()
+          num_reparse, num_append, num_validate, get_total_grammar_edge_cov_size_num(), get_total_grammar_path_cov_size_num()
           ); /* ignore errors */
 
   fflush(plot_file);
