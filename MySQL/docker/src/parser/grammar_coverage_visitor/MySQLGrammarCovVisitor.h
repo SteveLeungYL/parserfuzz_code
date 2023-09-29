@@ -22,10 +22,20 @@ using namespace parsers;
 // Only for debugging purpose.
 //#define LOGBLOCKCOV
 
+#define LOGPATHCOV
+
 class GramCovMap {
 
 private:
   std::mutex edge_map_mutex;
+  unsigned char *block_cov_map = nullptr;
+  unsigned char *block_virgin_map = nullptr;
+  unsigned char *edge_cov_map = nullptr;
+  unsigned char *edge_virgin_map = nullptr;
+  unsigned long long cur_path_hash = 0;
+  set<unsigned long long> path_hash_set;
+
+  unsigned int edge_prev_cov;
 
 public:
   GramCovMap() {
@@ -53,7 +63,25 @@ public:
     // Only for debugging purpose.
     has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, true, in);
 #endif
+#ifdef LOGPATHCOV
+    has_new_path_hash(is_debug, in);
+#endif
     return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug, in);
+  }
+
+  u8 has_new_path_hash(bool is_debug, const string in) {
+
+    u8 ret = 0;
+    edge_map_mutex.lock();
+    if (this->path_hash_set.find(this->cur_path_hash) != this->path_hash_set.end()) {
+      ret = 0;
+    } else {
+      path_hash_set.insert(this->cur_path_hash);
+      ret = 1;
+    }
+    cur_path_hash = 0;
+    edge_map_mutex.unlock();
+    return ret;
   }
   
   u8 has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
@@ -172,6 +200,9 @@ public:
       block_cov_map[cur_cov]++;
     }
 #endif
+#ifdef LOGPATHCOV
+    cur_path_hash = cur_path_hash ^ cur_cov;
+#endif
     edge_map_mutex.unlock();
     return;
   }
@@ -196,15 +227,16 @@ public:
     edge_map_mutex.unlock();
     return res;
   }
+  inline u32 get_total_gramma_path_size_num() {
+    edge_map_mutex.lock();
+    u32 res = this->path_hash_set.size();
+    edge_map_mutex.unlock();
+    return res;
+  }
 
   unsigned char *get_edge_cov_map() { return this->edge_cov_map; }
 
 private:
-  unsigned char *block_cov_map = nullptr;
-  unsigned char *block_virgin_map = nullptr;
-  unsigned char *edge_cov_map = nullptr;
-  unsigned char *edge_virgin_map = nullptr;
-  unsigned int edge_prev_cov;
 
   /* Count the number of non-255 bytes set in the bitmap. Used strictly for the
    status screen, several calls per second or so. */
