@@ -23,6 +23,7 @@ void rsg_initialize() {
 }
 
 void rsg_clear_chosen_expr() { RSGClearChosenExpr(); }
+void rsg_save_fav_node() { RSGSaveCov(); }
 
 void rsg_exec_succeed() { RSGExecSucceed(); }
 void rsg_exec_failed() { RSGExecFailed(); }

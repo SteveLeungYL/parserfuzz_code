@@ -11,5 +11,6 @@ string rsg_generate(const IRTYPE type = kUnknown);
 void rsg_clear_chosen_expr();
 void rsg_exec_succeed();
 void rsg_exec_failed();
+void rsg_save_fav_node();
 
 #endif

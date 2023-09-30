@@ -180,6 +180,9 @@ func (r *RSG) IncrementSucceed() {
 }
 
 func (r *RSG) IncrementFailed() {
+
+	isFavPath := false
+
 	for _, curPath := range r.curChosenPath {
 		prod := curPath.ExprProds
 		if prod == nil {
@@ -189,9 +192,41 @@ func (r *RSG) IncrementFailed() {
 		prod.RewardScore =
 			(float64(prod.HitCount-1)/float64(prod.HitCount))*prod.RewardScore + (1.0/float64(prod.HitCount))*0.0
 		//fmt.Printf("For expr: %q, hit_count: %d, score: %d\n", prod.Items, prod.HitCount, prod.RewardScore)
+		if curPath.IsFav == true {
+			isFavPath = true
+		}
+	}
+
+	if len(r.curChosenPath) != 0 && isFavPath == true {
+		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
+		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
+		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
 	}
 
 	r.ClearChosenExpr()
+}
+
+func (r *RSG) SaveFav() {
+
+	isFavPath := false
+
+	for _, curPath := range r.curChosenPath {
+		prod := curPath.ExprProds
+		if prod == nil {
+			continue
+		}
+		if curPath.IsFav == true {
+			isFavPath = true
+		}
+	}
+
+	if len(r.curChosenPath) != 0 && isFavPath == true {
+		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
+		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
+		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
+	}
+
+	// No need to clear path in this function.
 }
 
 func (r *RSG) isSqliteCompNode(_ string, nodeValue string) bool {
@@ -824,9 +859,68 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
 	var rootPathNode *PathNode
-	_, pathExisted := r.allSavedPath[root]
+	_, codeCovPathExisted := r.allSavedPath[root]
+	_, favPathExisted := r.allSavedFavPath[root]
 
-	if pathExisted &&
+	if !codeCovPathExisted && favPathExisted && r.Rnd.Intn(3) != 0 {
+		// whether choosing the FAV PATH ONLY for grammar edge exploration.
+		isUsingFav := false
+
+		// Favorite Node instead of random choosing saved path.
+		// Retrieve a deep copied from the existing seed.
+		var newPath []*PathNode
+		newPath = r.retrieveExistingFavPathNode(root)
+		isUsingFav = true
+
+		if len(newPath) == 0 {
+			// Fallback. Construct a new statement.
+			rootPathNode = &PathNode{
+				Id:        r.pathId,
+				Parent:    nil,
+				ExprProds: nil,
+				Children:  []*PathNode{},
+				IsFav:     false,
+			}
+			isUsingFav = false
+		} else {
+			// Chose fav node to mutate. 
+			var mutateNode *PathNode
+			// Choose Fav node.
+			var favPath []*PathNode
+			for _, curPath := range newPath {
+				if curPath.IsFav == true {
+					favPath = append(favPath, curPath)
+				}
+			}
+
+			if len(favPath) != 0 {
+				mutateNode = favPath[r.Rnd.Intn(len(favPath))]
+				//fmt.Printf("\nDebug: (not accurate log) Choosing FAV rule. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
+				// Remove the ExprProds and the Children,
+				// so the generate function would be required to
+				// randomly generate any nodes.
+				// This operation could free some not-used PathNode
+				// from the newPath.
+				//fmt.Printf("\n\n\nDebug: Choosing mutate node: %v\n\n\n", mutateNode.ExprProds)
+				mutateNode.ExprProds = nil
+				mutateNode.Children = []*PathNode{}
+
+				rootPathNode = newPath[0]
+			} else {
+				// Fallback. Construct a new statement.
+				rootPathNode = &PathNode{
+					Id:        r.pathId,
+					Parent:    nil,
+					ExprProds: nil,
+					Children:  []*PathNode{},
+					IsFav:     false,
+				}
+				isUsingFav = false
+			}
+			//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
+		}
+
+	} else if codeCovPathExisted &&
 		len(r.allSavedPath[root]) != 0 &&
 		r.Rnd.Intn(3) != 0 {
 		// 2/3 chances.
@@ -908,21 +1002,16 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 	if dbmsName == "sqlite" {
 		resStr = r.generateSqlite(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "sqlite_bison" {
-		// TODO: Implement replaying mode.
 		resStr = r.generateSqliteBison(root, depth, rootDepth)
 	} else if dbmsName == "postgres" {
-		// TODO: Implement replaying mode.
 		resStr = r.generatePostgres(root, depth, rootDepth)
 	} else if dbmsName == "cockroachdb" {
-		// TODO: Implement replaying mode.
 		resStr = r.generateCockroach(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "mysql" {
 		resStr = r.generateMySQL(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "mysqlSquirrel" {
-		// TODO: Implement replaying mode.
 		resStr = r.generateMySQLSquirrel(root, rootPathNode, 0, depth, rootDepth)
 	} else if dbmsName == "tidb" {
-		// TODO: Implement replaying mode.
 		resStr = r.generateTiDB(root, rootPathNode, 0, depth, rootDepth)
 	} else {
 		panic(fmt.Sprintf("unknown dbms name: %s", dbmsName))

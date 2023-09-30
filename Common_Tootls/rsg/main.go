@@ -93,6 +93,14 @@ func RSGExecSucceed() {
 
 }
 
+//export RSGExecSucceed
+func RSGSaveFav() {
+
+	r.SaveFav()
+	return
+
+}
+
 //export RSGExecFailed
 func RSGExecFailed() {
 
