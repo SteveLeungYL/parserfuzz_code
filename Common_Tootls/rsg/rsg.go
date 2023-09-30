@@ -864,13 +864,11 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 	if !codeCovPathExisted && favPathExisted && r.Rnd.Intn(3) != 0 {
 		// whether choosing the FAV PATH ONLY for grammar edge exploration.
-		isUsingFav := false
 
 		// Favorite Node instead of random choosing saved path.
 		// Retrieve a deep copied from the existing seed.
 		var newPath []*PathNode
 		newPath = r.retrieveExistingFavPathNode(root)
-		isUsingFav = true
 
 		if len(newPath) == 0 {
 			// Fallback. Construct a new statement.
@@ -881,7 +879,6 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 				Children:  []*PathNode{},
 				IsFav:     false,
 			}
-			isUsingFav = false
 		} else {
 			// Chose fav node to mutate. 
 			var mutateNode *PathNode
