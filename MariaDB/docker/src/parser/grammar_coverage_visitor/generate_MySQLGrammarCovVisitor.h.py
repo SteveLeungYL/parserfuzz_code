@@ -16,6 +16,7 @@ prefix_str = """\
 
 #include "../MySQLBaseCommon.h"
 #include "./grammar_cov_hash_header.h"
+#include "./grammar_cov_path_hash_header.h"
 #include "../grammar/MySQLParserBaseVisitor.h"
 
 using namespace std;
@@ -203,9 +204,16 @@ public:
       block_cov_map[cur_cov]++;
     }
 #endif
-#ifdef LOGPATHCOV
-    cur_path_hash = cur_path_hash ^ cur_cov;
-#endif
+//#ifdef LOGPATHCOV
+//    cur_path_hash = cur_path_hash ^ cur_cov;
+//#endif
+    edge_map_mutex.unlock();
+    return;
+  }
+
+  void log_path_cov_map(unsigned int cur_cov) {
+    edge_map_mutex.lock();
+    this->cur_path_hash = this->cur_path_hash ^ cur_cov;
     edge_map_mutex.unlock();
     return;
   }
@@ -315,6 +323,7 @@ class MySQLGrammarCovVisitor: public parsers::MySQLParserBaseVisitor {
 private:
   // A randomly generated beforehand but runtime fixed Hash Array.
   HASHARRAYDEFINE;
+  HASHPATHARRAYDEFINE;
   
   MySQLParser* p_parser;
 
@@ -329,11 +338,13 @@ public:
 visit_body_str = """\
     unsigned int cur_node_hash = hash_array[ctx->getRuleIndex()];
     unsigned int term_token_hash = 0;
+    unsigned int term_path_token_hash = 0; // larger maximum hash compared to term_token_hash.
     set <unsigned int> seen_token_set;
     for (antlr4::tree::ParseTree* cur_child: ctx->children) {
         if (antlr4::ParserRuleContext* tmp = dynamic_cast<antlr4::ParserRuleContext*>(cur_child)) {
            unsigned int child_rule_hash = hash_array[tmp->getRuleIndex()];
            this->gram_cov.log_edge_cov_map(cur_node_hash, child_rule_hash); 
+           this->gram_cov.log_path_cov_map(path_hash_array[tmp->getRuleIndex()]);
 #ifdef DEBUG
             if (this->gram_cov.has_new_grammar_bits() == 2) {
                 cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
@@ -363,12 +374,14 @@ visit_body_str = """\
             cur_token_idx += 1000; // Avoid collision with parser rule's index.
             if (cur_token_idx < 2000) {
                 term_token_hash = ((term_token_hash >> 1) ^ hash_array[cur_token_idx]);
+                term_path_token_hash = ((term_path_token_hash >> 1) ^ path_hash_array[cur_token_idx]);
             }
         }
     }
     
     if (term_token_hash != 0) {
         this->gram_cov.log_edge_cov_map(cur_node_hash, term_token_hash); 
+        this->gram_cov.log_path_cov_map(term_path_token_hash);
 #ifdef DEBUG
         if (this->gram_cov.has_new_grammar_bits() == 2) {
             cerr << "Current parent rule: " << p_parser->getRuleNames()[ctx->getRuleIndex()] << "\\n";
