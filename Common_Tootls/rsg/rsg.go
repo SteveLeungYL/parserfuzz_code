@@ -912,7 +912,6 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 					Children:  []*PathNode{},
 					IsFav:     false,
 				}
-				isUsingFav = false
 			}
 			//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
 		}
