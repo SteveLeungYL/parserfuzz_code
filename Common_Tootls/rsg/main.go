@@ -93,7 +93,7 @@ func RSGExecSucceed() {
 
 }
 
-//export RSGExecSucceed
+//export RSGSaveFav
 func RSGSaveFav() {
 
 	r.SaveFav()
