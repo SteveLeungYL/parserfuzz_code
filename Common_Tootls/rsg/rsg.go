@@ -860,63 +860,8 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 
 	var rootPathNode *PathNode
 	_, codeCovPathExisted := r.allSavedPath[root]
-	_, favPathExisted := r.allSavedFavPath[root]
 
-	if !codeCovPathExisted && favPathExisted && r.Rnd.Intn(3) != 0 {
-		// whether choosing the FAV PATH ONLY for grammar edge exploration.
-
-		// Favorite Node instead of random choosing saved path.
-		// Retrieve a deep copied from the existing seed.
-		var newPath []*PathNode
-		newPath = r.retrieveExistingFavPathNode(root)
-
-		if len(newPath) == 0 {
-			// Fallback. Construct a new statement.
-			rootPathNode = &PathNode{
-				Id:        r.pathId,
-				Parent:    nil,
-				ExprProds: nil,
-				Children:  []*PathNode{},
-				IsFav:     false,
-			}
-		} else {
-			// Chose fav node to mutate. 
-			var mutateNode *PathNode
-			// Choose Fav node.
-			var favPath []*PathNode
-			for _, curPath := range newPath {
-				if curPath.IsFav == true {
-					favPath = append(favPath, curPath)
-				}
-			}
-
-			if len(favPath) != 0 {
-				mutateNode = favPath[r.Rnd.Intn(len(favPath))]
-				//fmt.Printf("\nDebug: (not accurate log) Choosing FAV rule. Root: %s, Rule: %v\n", root, mutateNode.ExprProds.Items)
-				// Remove the ExprProds and the Children,
-				// so the generate function would be required to
-				// randomly generate any nodes.
-				// This operation could free some not-used PathNode
-				// from the newPath.
-				//fmt.Printf("\n\n\nDebug: Choosing mutate node: %v\n\n\n", mutateNode.ExprProds)
-				mutateNode.ExprProds = nil
-				mutateNode.Children = []*PathNode{}
-
-				rootPathNode = newPath[0]
-			} else {
-				// Fallback. Construct a new statement.
-				rootPathNode = &PathNode{
-					Id:        r.pathId,
-					Parent:    nil,
-					ExprProds: nil,
-					Children:  []*PathNode{},
-					IsFav:     false,
-				}
-			}
-			//fmt.Printf("For query: %s, fav node: %s, triggered node: %v\n", strings.Join(r.generateSqlite(root, newPath[0], 0, depth, rootDepth), " "), mutateNode.ParentStr, mutateNode.ExprProds.Items)
-		}
-
-	} else if codeCovPathExisted &&
+	if codeCovPathExisted &&
 		len(r.allSavedPath[root]) != 0 &&
 		r.Rnd.Intn(3) != 0 {
 		// 2/3 chances.

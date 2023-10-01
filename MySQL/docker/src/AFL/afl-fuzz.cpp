@@ -206,9 +206,6 @@ EXP_ST u8 disable_coverage_feedback = 0;
 EXP_ST u8 disable_rsg_coverage_feedback = 0; /* 0: not disabled,
                                               * 1: disabled.
                                               */
-EXP_ST u8 disable_fav_sibling_node = 0; /* 0: not disabled,
-                                              * 1: disabled.
-                                              */
 static bool is_using_non_deter = 0; /* Is using non-deterministic queries. Default No. */
 
 
@@ -3871,15 +3868,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
   if (disable_rsg_coverage_feedback != 0) {
     // Disable coverage feedback.
-    if (disable_fav_sibling_node == 0) {
-      // Only save the fav nodes.
-      // Do not save the rsg generated query to the rsg queue.
-      rsg_save_fav_node();
-      rsg_clear_chosen_expr();
-    } else {
-      // Do not save the rsg generated query to the rsg queue.
-      rsg_clear_chosen_expr();
-    }
+    // Do not save the rsg generated query to the rsg queue.
+    rsg_clear_chosen_expr();
   }
 
   if (is_str_empty(query_str))
@@ -7610,7 +7600,7 @@ int main(int argc, char *argv[])
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:wGg")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:wG")) > 0)
 
     switch (opt)
     {
@@ -7648,12 +7638,6 @@ int main(int argc, char *argv[])
     case 'G': { /* Disable RSG code coverage feedback. */
       cout << "\033[1;31m Warning: Disable RSG Code Coverage Feedback. \033[0m \n\n\n";
       disable_rsg_coverage_feedback = 1;
-    }
-      break;
-
-    case 'g': { /* Disable RSG fav sibling nodes. */
-      cout << "\033[1;31m Warning: Disable RSG Sibing node prioritization, must built upon 'disable_rsg_coverage_feedback'. \033[0m \n\n\n";
-      disable_fav_sibling_node = 1;
     }
       break;
 
