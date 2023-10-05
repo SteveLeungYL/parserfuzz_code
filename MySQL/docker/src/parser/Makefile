@@ -1,5 +1,6 @@
 SRCS = $(wildcard *.cpp)
-GRAMMAR_SRCS = $(wildcard grammar/*.cpp grammar_coverage_visitor/*.cpp)
+SRCS += grammar_coverage_visitor/md5.cpp
+GRAMMAR_SRCS = $(wildcard grammar/*.cpp)
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
