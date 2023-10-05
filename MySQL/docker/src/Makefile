@@ -1,6 +1,6 @@
 SUB_DIRS := oracle rsg src AFL
 
-PARSER_SRCS := parser/*.o parser/grammar/*.o parser/grammar_IR_constructor/*.o
+PARSER_SRCS := parser/*.o parser/grammar/*.o parser/grammar_IR_constructor/*.o parser/grammar_coverage_visitor/*.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS) $(wildcard rsg/*.cpp) $(wildcard rsg/*.so)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cpp
