@@ -13,11 +13,15 @@ prefix_str = """\
 #include <filesystem>
 #include <mutex>
 #include <set>
+#include <stdio.h>
+#include <time.h>
+#include <fcntl.h>
 
 #include "../MySQLBaseCommon.h"
 #include "./grammar_cov_hash_header.h"
 #include "./grammar_cov_path_hash_header.h"
 #include "../grammar/MySQLParserBaseVisitor.h"
+#include "md5.h"
 
 using namespace std;
 using namespace parsers;
@@ -36,7 +40,7 @@ private:
   unsigned char *block_virgin_map = nullptr;
   unsigned char *edge_cov_map = nullptr;
   unsigned char *edge_virgin_map = nullptr;
-  unsigned long long cur_path_hash = 0;
+  vector<unsigned long long> cur_path_hash_vec;
   set<unsigned long long> path_hash_set;
 
   unsigned int edge_prev_cov;
@@ -74,18 +78,50 @@ public:
   }
 
   u8 has_new_path_hash(bool is_debug, const string in) {
-    
+     
     u8 ret = 0;
     edge_map_mutex.lock();
-    if (this->path_hash_set.find(this->cur_path_hash) != this->path_hash_set.end()) {
+
+    size_t path_size = this->cur_path_hash_vec.size();
+    if (path_size > 5000) {
+        // Avoid huge number to splash stack space.
+        this->cur_path_hash_vec.clear();
+        edge_map_mutex.unlock();
+
+        if (is_debug) {
+            cerr << "ERROR: path_size exceeding size 5000. " << path_size << "\\n";
+        }
+
+        return ret;
+    }
+
+    unsigned long long path_size_array[path_size];
+    for (int i = 0; i < path_size; i++) {
+        path_size_array[i] = this->cur_path_hash_vec[i];
+    }
+
+    uint8_t result[16]; // on stack.
+    md5String((char*)path_size_array, result, 8 * path_size);
+    unsigned long long* hash_res = (unsigned long long*) result;
+
+    if (this->path_hash_set.find(*hash_res) != this->path_hash_set.end()) {
+      if (is_debug) {
+        cerr << "For query: " << in << "\\n, NOT getting new grammar path coverage. \\n\\n";
+      }
       ret = 0;
     } else {
-      path_hash_set.insert(this->cur_path_hash);
+      if (is_debug) {
+        cerr << "For query: " << in << "\\n, getting new grammar path coverage. \\n\\n";
+      }
+      path_hash_set.insert(*hash_res);
       ret = 1;
     }
-    this->cur_path_hash = 0;
+
+    this->cur_path_hash_vec.clear();
+
     edge_map_mutex.unlock();
     return ret;
+
   }
   
   u8 has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map,
@@ -204,16 +240,15 @@ public:
       block_cov_map[cur_cov]++;
     }
 #endif
-//#ifdef LOGPATHCOV
-//    cur_path_hash = cur_path_hash ^ cur_cov;
-//#endif
     edge_map_mutex.unlock();
     return;
   }
 
   void log_path_cov_map(unsigned int cur_cov) {
     edge_map_mutex.lock();
-    this->cur_path_hash = this->cur_path_hash ^ cur_cov;
+
+    this->cur_path_hash_vec.push_back(cur_cov);
+
     edge_map_mutex.unlock();
     return;
   }

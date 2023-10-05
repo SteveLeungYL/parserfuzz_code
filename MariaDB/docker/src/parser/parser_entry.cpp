@@ -30,6 +30,8 @@ int run_parser(string str_in, vector<IR*>& ir_vec, bool is_debug) {
   if (!is_debug) {
     parser.removeErrorListeners();
   }
+  parser.serverVersion = 80033;
+  parser.sqlMode = parsers::MySQLParser::NoMode; // no mode
   MySQLParser::QueryContext* tree = parser.query();
 
 #ifdef DEBUG
