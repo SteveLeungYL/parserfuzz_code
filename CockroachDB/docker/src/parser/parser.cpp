@@ -34,7 +34,7 @@ IR *raw_parser(const string input_str) {
   free(gores.r0);
 
   // std::cout << "Getting json string: \n" << res_json_str << "\n\n";
-  IR *ir_root = convert_json_to_IR(res_json_str);
+  IR *ir_root = convert_json_to_IR(res_json_str, input_str);
 
   return ir_root;
 }

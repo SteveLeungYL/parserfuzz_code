@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ctime>
 
+#include "../include/md5.h"
 #include "../include/utils.h"
 #include "../include/json.hpp"
 #include "../include/json_ir_convertor.h"
@@ -22,6 +23,9 @@ DATAFLAG get_data_flag_by_idx(int idx) { return static_cast<DATAFLAG>(idx); }
 
 static set<string> gram_cov_set;
 static ofstream cov_out("gram_cov_out.txt", ios::out);
+
+static ofstream cov_path_out("gram_path_cov_out.txt", ios::out);
+static set<unsigned long long> all_saved_grammar_path_hash;
 
 inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
 
@@ -177,7 +181,7 @@ IR *construct_stmtlist_ir(vector<IR *> v_stmtlist) {
   return rootIR;
 }
 
-IR *convert_json_to_IR(string all_json_str) {
+IR *convert_json_to_IR(string all_json_str, const string& input_query_str) {
 
   vector<string> json_str_lines = string_splitter(all_json_str, '\n');
 
@@ -188,6 +192,7 @@ IR *convert_json_to_IR(string all_json_str) {
     if (json_str.size() == 0 || json_str[0] != '{') {
       continue;
     }
+    string all_grammar_path_str;
     try {
       auto json_obj = json::parse(json_str);
       IR *tmp_stmt_IR = convert_json_to_IR_helper(json_obj, 0);
@@ -198,15 +203,45 @@ IR *convert_json_to_IR(string all_json_str) {
         for (string& cur_gram_str : cur_json_node) {
           if (gram_cov_set.count(cur_gram_str) == 0) {
 //            cerr << "Debug: trigger curGramStr: " << cur_gram_str << "\n";
-            cov_out << cur_gram_str << "," << time(nullptr) <<"\n";
+            cov_out << cur_gram_str << "," << time(nullptr) << "\n";
             cov_out.flush();
             gram_cov_set.insert(cur_gram_str);
+          }
+
+          if (findStringIn(cov_out, ",")) {
+            string cur_triggered_keyword = string_splitter(cov_out, ",")[1];
+            all_grammar_path_str += cur_triggered_keyword + ",";
           }
         }
       }
 
     } catch (json::parse_error &ex) {
       return NULL;
+    }
+
+    bool is_new_grammar_path = false;
+    if (!all_grammar_path_str.empty()) {
+      uint8_t result[16]; // on stack.
+      md5String((char*)all_grammar_path_str.c_str(), result, all_grammar_path_str.size());
+      unsigned long long* hash_res = (unsigned long long*) result;
+
+      if (all_saved_grammar_path_hash.find(*hash_res) != all_saved_grammar_path_hash.end()) {
+#ifdef DEBUG
+        cerr << "For query: " << input_query_str << "\n, NOT getting new grammar path coverage. \n\n";
+#endif
+        is_new_grammar_path = false;
+      } else {
+#ifdef DEBUG
+        cerr << "For query: " << input_query_str << "\n, getting new grammar path coverage. \n\n";
+#endif
+        all_saved_grammar_path_hash.insert(*hash_res)
+        is_new_grammar_path = true;
+      }
+    }
+
+    if (is_new_grammar_path) {
+      cov_path_out << time(NULL) << "," << all_saved_grammar_path_hash.size() << "\n";
+      cov_path_out.flush();
     }
   }
 
