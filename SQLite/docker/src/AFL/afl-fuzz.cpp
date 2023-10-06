@@ -6498,7 +6498,7 @@ EXP_ST void setup_dirs_fds(void) {
           "avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed,"
           "total_oracle_rand_valid_failed,avg_ir_set_size,"
           "total_gram_block_cov_size_num,total_gram_block_cov_size_percent,"
-          "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent"
+          "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent,"
           "total_gram_path_cov_size_num"
           "\n");
   /* ignore errors */
