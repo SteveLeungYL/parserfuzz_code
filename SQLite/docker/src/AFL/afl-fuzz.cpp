@@ -4134,7 +4134,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           g_mutator.get_gram_total_block_cov_size(),
           g_mutator.get_gram_total_edge_cov_size_num(),
           g_mutator.get_gram_total_edge_cov_size(),
-          g_mutator.get_gram_total_path_cov_size_num(),
+          g_mutator.get_gram_total_path_cov_size_num()
           ); /* ignore errors */
   fflush(plot_file);
 }
