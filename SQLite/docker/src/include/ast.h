@@ -3,6 +3,7 @@
 
 #include "../AFL/config.h"
 #include "define.h"
+#include "md5.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -135,11 +136,58 @@ public:
     delete[](this->edge_virgin_map);
   }
 
+  vector<unsigned long long> cur_path_hash_vec;
+  set<unsigned long long> path_hash_set;
+
   u8 has_new_grammar_bits(bool is_debug = false, const string in = "") {
 //    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug);
+    has_new_path_hash(is_debug, in);
     return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug, in);
   }
   u8 has_new_grammar_bits(u8 *, u8 *, bool is_debug = false, const string in = "");
+
+  u8 has_new_path_hash(bool is_debug, const string in) {
+         
+    u8 ret = 0;
+
+    size_t path_size = this->cur_path_hash_vec.size();
+    if (path_size > 5000) {
+        // Avoid huge number to splash stack space.
+        this->cur_path_hash_vec.clear();
+
+        if (is_debug) {
+            cerr << "ERROR: path_size exceeding size 5000. " << path_size << "\n";
+        }
+
+        return ret;
+    }
+
+    unsigned long long path_size_array[path_size];
+    for (int i = 0; i < path_size; i++) {
+        path_size_array[i] = this->cur_path_hash_vec[i];
+    }
+
+    uint8_t result[16]; // on stack.
+    md5String((char*)path_size_array, result, 8 * path_size);
+    unsigned long long* hash_res = (unsigned long long*) result;
+
+    if (this->path_hash_set.find(*hash_res) != this->path_hash_set.end()) {
+      if (is_debug) {
+        cerr << "For query: " << in << "\n, NOT getting new grammar path coverage. \n\n";
+      }
+      ret = 0;
+    } else {
+      if (is_debug) {
+        cerr << "For query: " << in << "\n, getting new grammar path coverage. \n\n";
+      }
+      path_hash_set.insert(*hash_res);
+      ret = 1;
+    }
+
+    this->cur_path_hash_vec.clear();
+
+    return ret;
+  }
 
   void reset_block_cov_map() { memset(this->block_cov_map, 0, MAP_SIZE); }
   void reset_block_virgin_map() { memset(this->block_virgin_map, 0, MAP_SIZE); }
@@ -170,7 +218,12 @@ public:
     if (edge_cov_map[offset] < 0xff) {
       edge_cov_map[offset]++;
     }
+    this->log_grammar_path(cur_cov);
     return;
+  }
+
+  inline void log_grammar_path(unsigned int cur_cov) {
+    this->cur_path_hash_vec.push_back(cur_cov);
   }
 
   inline double get_total_block_cov_size() {
@@ -187,6 +240,9 @@ public:
   }
   inline u32 get_total_edge_cov_size_num() {
     return this->count_non_255_bytes(this->edge_virgin_map);
+  }
+  inline u64 get_total_path_cov_size_num() {
+    return this->path_hash_set.size();
   }
 
   unsigned char *get_edge_cov_map() { return this->edge_cov_map; }

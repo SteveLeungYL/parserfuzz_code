@@ -4112,7 +4112,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, "
           "%u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
           "%0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
-          "%u, %0.02f%%, %u, %0.02f%%\n",
+          "%u, %0.02f%%, %u, %0.02f%%, %llu\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, total_input_failed,
@@ -4133,7 +4133,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           g_mutator.get_gram_total_block_cov_size_num(),
           g_mutator.get_gram_total_block_cov_size(),
           g_mutator.get_gram_total_edge_cov_size_num(),
-          g_mutator.get_gram_total_edge_cov_size()); /* ignore errors */
+          g_mutator.get_gram_total_edge_cov_size(),
+          g_mutator.get_gram_total_path_cov_size_num(),
+          ); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -6497,6 +6499,7 @@ EXP_ST void setup_dirs_fds(void) {
           "total_oracle_rand_valid_failed,avg_ir_set_size,"
           "total_gram_block_cov_size_num,total_gram_block_cov_size_percent,"
           "total_gram_edge_cov_size_num,total_gram_edge_cov_size_percent"
+          "total_gram_path_cov_size_num"
           "\n");
   /* ignore errors */
 }

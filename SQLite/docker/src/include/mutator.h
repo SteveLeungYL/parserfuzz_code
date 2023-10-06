@@ -203,6 +203,9 @@ public:
   inline u32 get_gram_total_edge_cov_size_num() {
     return this->gram_cov_map.get_total_edge_cov_size_num();
   }
+  inline u64 get_gram_total_path_cov_size_num() {
+    return this->gram_cov_map.get_total_path_cov_size_num();
+  }
 
 private:
   void add_to_valid_lib(IR *, string &);
