@@ -208,8 +208,8 @@ IR *convert_json_to_IR(string all_json_str, const string& input_query_str) {
             gram_cov_set.insert(cur_gram_str);
           }
 
-          if (findStringIn(cov_out, ",")) {
-            string cur_triggered_keyword = string_splitter(cov_out, ",")[1];
+          if (findStringIn(cur_gram_str, ",")) {
+            string cur_triggered_keyword = string_splitter(cur_gram_str, ",")[1];
             all_grammar_path_str += cur_triggered_keyword + ",";
           }
         }
@@ -234,7 +234,7 @@ IR *convert_json_to_IR(string all_json_str, const string& input_query_str) {
 #ifdef DEBUG
         cerr << "For query: " << input_query_str << "\n, getting new grammar path coverage. \n\n";
 #endif
-        all_saved_grammar_path_hash.insert(*hash_res)
+        all_saved_grammar_path_hash.insert(*hash_res);
         is_new_grammar_path = true;
       }
     }
