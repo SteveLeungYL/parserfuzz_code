@@ -1,4 +1,4 @@
-SRCS = parser.cpp json_ir_convertor.cpp log_gram_cov.cpp
+SRCS = parser.cpp json_ir_convertor.cpp log_gram_cov.cpp md5.cpp
 
 all: $(SRCS:%.cpp=%.o)
 

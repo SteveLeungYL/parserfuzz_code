@@ -2,7 +2,7 @@
 #include "data_affinity.h"
 #include <string>
 
-IR *convert_json_to_IR(string json_str);
+IR *convert_json_to_IR(string json_str, const string& input_query_str);
 void constr_sql_func_lib(string func_types_str, vector<string>& v_all_func_str,
                          map<DATAAFFINITYTYPE, vector<string>>& func_type_lib,
                          map<string, vector<vector<DataAffinity>>>& func_str_to_type_map);

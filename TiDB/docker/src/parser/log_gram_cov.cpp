@@ -45,7 +45,7 @@ void log_grammar_coverage(IR* root) {
 
   gram_cov_map.reset_edge_cov_map();
 
-  log_grammar_coverage_helper(root, 0, TypeRoot);
+  // log_grammar_coverage_helper(root, 0, TypeRoot);
 
   gram_cov_map.has_new_grammar_bits(false, root->to_string());
 
