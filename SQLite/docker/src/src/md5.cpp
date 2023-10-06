@@ -3,7 +3,7 @@
  * and modified slightly to be functionally identical but condensed into control structures.
  */
 
-#include "md5.h"
+#include "../include/md5.h"
 
 /*
  * Constants defined by the MD5 algorithm
