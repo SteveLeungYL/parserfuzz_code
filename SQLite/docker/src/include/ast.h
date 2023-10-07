@@ -223,7 +223,9 @@ public:
   }
 
   inline void log_grammar_path(unsigned int cur_cov) {
-    this->cur_path_hash_vec.push_back(cur_cov);
+    if (cur_path_hash_vec.find(cur_cov) == cur_path_hash_vec.end()) {
+      this->cur_path_hash_vec.push_back(cur_cov);
+    }
   }
 
   inline double get_total_block_cov_size() {
