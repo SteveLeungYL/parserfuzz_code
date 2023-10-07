@@ -223,7 +223,7 @@ public:
   }
 
   inline void log_grammar_path(unsigned int cur_cov) {
-    if(std::find(this->cur_path_hash_vec.begin(), cur_path_hash_vec.end(), cur_cov) == cur_path_hash_vec.end())
+    if(std::find(this->cur_path_hash_vec.begin(), cur_path_hash_vec.end(), cur_cov) == cur_path_hash_vec.end()) {
       this->cur_path_hash_vec.push_back(cur_cov);
     }
   }
