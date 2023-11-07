@@ -1,6 +1,7 @@
 import json
 import os.path
 from typing import List
+import re
 
 import click
 from loguru import logger
@@ -95,6 +96,181 @@ def camel_to_snake(word):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 
+grammar_suffix = """
+#line 1 "third_party/libpg_query/grammar/grammar.cpp"
+/*
+ * The signature of this function is required by bison.  However, we
+ * ignore the passed yylloc and instead use the last token position
+ * available from the scanner.
+ */
+static void
+base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, const char *msg)
+{
+	parser_yyerror(msg);
+}
+
+std::string to_string(char *str) {
+   std::string res(str, strlen(str));
+   return res;
+}
+
+/* parser_init()
+ * Initialize to parse one query string
+ */
+void
+parser_init(base_yy_extra_type *yyext)
+{
+	yyext->parsetree = NIL;		/* in case grammar forgets to set it */
+}
+
+#undef yyparse
+#undef yylex
+#undef yyerror
+#undef yylval
+#undef yychar
+#undef yydebug
+#undef yynerrs
+#undef yylloc
+
+} // namespace duckdb_libpgquery
+
+"""
+
+grammar_prefix = """
+%{
+#line 1 "third_party/libpg_query/grammar/grammar.hpp"
+
+#include "pg_functions.hpp"
+#include <string.h>
+#include <string>
+
+#include <ctype.h>
+#include <limits.h>
+
+#include "nodes/makefuncs.hpp"
+#include "nodes/nodeFuncs.hpp"
+#include "parser/gramparse.hpp"
+#include "parser/parser.hpp"
+#include "utils/datetime.hpp"
+
+namespace duckdb_libpgquery {
+#define DEFAULT_SCHEMA "main"
+
+#define YYLLOC_DEFAULT(Current, Rhs, N) \\
+	do { \\
+		if ((N) > 0) \\
+			(Current) = (Rhs)[1]; \\
+		else \\
+			(Current) = (-1); \\
+	} while (0)
+	
+#define YYMALLOC palloc
+#define YYFREE   pfree
+#define YYINITDEPTH 1000
+
+#define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
+#define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
+
+static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
+						 const char *msg);
+%}
+#line 5 "third_party/libpg_query/grammar/grammar.y"
+%pure-parser
+%expect 0
+%name-prefix="base_yy"
+%locations
+
+%parse-param {core_yyscan_t yyscanner}
+%lex-param   {core_yyscan_t yyscanner}
+
+%union
+{
+    /* ParserFuzz Inject */
+    IR* ir;
+    /* ParserFuzz Inject END */
+	core_YYSTYPE		core_yystype;
+	/* these fields must match core_YYSTYPE: */
+	int					ival;
+	char				*str;
+	const char			*keyword;
+	const char          *conststr;
+
+	char				chr;
+	bool				boolean;
+	PGJoinType			jtype;
+	PGDropBehavior		dbehavior;
+	PGOnCommitAction		oncommit;
+	PGOnCreateConflict		oncreateconflict;
+	PGList				*list;
+	PGNode				*node;
+	PGValue				*value;
+	PGObjectType			objtype;
+	PGTypeName			*typnam;
+	PGObjectWithArgs		*objwithargs;
+	PGDefElem				*defelt;
+	PGSortBy				*sortby;
+	PGWindowDef			*windef;
+	PGJoinExpr			*jexpr;
+	PGIndexElem			*ielem;
+	PGAlias				*alias;
+	PGRangeVar			*range;
+	PGIntoClause			*into;
+	PGCTEMaterialize			ctematerialize;
+	PGWithClause			*with;
+	PGInferClause			*infer;
+	PGOnConflictClause	*onconflict;
+	PGOnConflictActionAlias onconflictshorthand;
+	PGAIndices			*aind;
+	PGResTarget			*target;
+	PGInsertStmt			*istmt;
+	PGVariableSetStmt		*vsetstmt;
+	PGOverridingKind       override;
+	PGSortByDir            sortorder;
+	PGSortByNulls          nullorder;
+	PGConstrType           constr;
+	PGLockClauseStrength lockstrength;
+	PGLockWaitPolicy lockwaitpolicy;
+	PGSubLinkType subquerytype;
+	PGViewCheckOption viewcheckoption;
+	PGInsertColumnOrder bynameorposition;
+}
+
+"""
+
+def modify_prefix(grammar_prefix: str) -> str:
+    res_str = ""
+    stop_reading = True
+    for cur_line in grammar_prefix.splitlines():
+        if "%type <" in cur_line:
+            stop_reading = False
+
+        if stop_reading:
+            # skip line
+            continue
+
+        # Skip ignored keyword in the declaration
+        for cur_ignored_keyword in ignored_token_rules:
+            tmp_ignored_keyword = " " + cur_ignored_keyword
+            if tmp_ignored_keyword in cur_line:
+                cur_line = cur_line.replace(tmp_ignored_keyword, " ")
+
+        # rewrite type names
+        if re.match("%type <.*%type <", cur_line) != None:
+            cur_line = cur_line.replace("%type", "\n%type")
+        if "%type <" in cur_line:
+            cur_line = re.sub("%type <.*>", "%type <ir>", cur_line)
+
+        if "%type <" in cur_line and (len(cur_line.split(">")) <= 1 or cur_line.split(">")[1].strip() == ""):
+            continue
+
+        cur_line = cur_line.strip()
+        if cur_line == "":
+            continue
+
+        res_str += cur_line + "\n"
+
+    return res_str
+
 def tokenize(line: List[str]) -> List[Token]:
 
     words = [word for word in line if word and word != "empty" and word != "/*EMPTY*/"]
@@ -180,6 +356,8 @@ def is_identifier(cur_token):
         return "kStringLiteral"
     elif cur_token.word in ("FCONST"):
         return "kFloatLiteral"
+    elif cur_token.word in ("ICONST", "PARAM"):
+        return "kIntegerLiteral"
     elif cur_token.word in ("BCONST", "XCONST"):
         return "kBinLiteral"
     elif cur_token.word in ("FALSE_P", "TRUE_P"):
@@ -438,98 +616,15 @@ def translate(parent_element: str, child_rules: [str]):
                 saved_ir_type.append(f"{ir_type_str}_{idx+1}")
                 f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
 
+        for custom_name in ("kIdentifier", "kStringLiteral",
+                            "kFloatLiteral", "kIntegerLiteral",
+                            "kBinLiteral", "kBoolLiteral",
+                            "kUnknown"
+                            ):
+            f.write(f"V({custom_name})   \\\n")
+
     logger.info(translation)
     return translation
-
-
-def get_gram_keywords():
-    global total_tokens
-
-    tokens_file = "assets/keywords.y"
-    with open(tokens_file) as f:
-        token_data = f.read()
-
-    token_data = remove_comments_if_necessary(token_data, True)
-
-    token_data = token_data.splitlines()
-    token_data = [line.strip() for line in token_data]
-    token_data = [line for line in token_data if line]
-
-    gram_tokens = set()
-    for line in token_data:
-        line = line.replace("\t", " ")
-        line = line.replace(";", "")
-        if line.endswith(">"):
-            continue
-
-        if line.startswith("%type"):
-            line = line.split(" ", 2)[-1:]
-            line = " ".join(line)
-
-        line = line.strip()
-        gram_tokens |= set(line.split())
-
-    for token in gram_tokens:
-        if token.startswith("<"):
-            logger.info(token)
-
-    unwanted = [
-        "",
-        " ",
-        "IDENT",
-        "IDENT_QUOTED",
-        "TEXT_STRING",
-        "DECIMAL_NUM",
-        "FLOAT_NUM",
-        "NUM",
-        "LONG_NUM",
-        "HEX_NUM",
-        "LEX_HOSTNAME",
-        "ULONGLONG_NUM",
-    ]
-    for elem in unwanted:
-        if elem in gram_tokens:
-            gram_tokens.remove(elem)
-
-
-def get_gram_tokens():
-    global total_keywords
-
-    keywords_file = "assets/tokens.y"
-    with open(keywords_file) as f:
-        keyword_data = f.read()
-
-    keyword_data = remove_comments_if_necessary(keyword_data, True)
-
-    keyword_data = keyword_data.splitlines()
-    keyword_data = [line.strip() for line in keyword_data if line.strip()]
-    keyword_data = [
-        line
-        for line in keyword_data
-        if not (line.startswith("*") or line.startswith("/"))
-    ]
-
-    gram_keywords = set()
-    for line in keyword_data:
-        line = line.replace("\t", " ")
-
-        if line.startswith("%token") and " <" in line and "> " in line:
-            line = line.split(" ", 2)[-1]
-        elif line.startswith("%"):
-            line = line.split(" ", 1)[-1]
-
-        line = line.strip()
-        words = [word for word in line.split() if not word.isdigit()]
-        gram_keywords |= set(words)
-
-    unwanted = ["", " "]
-    for elem in unwanted:
-        if elem in gram_keywords:
-            gram_keywords.remove(elem)
-
-    total_keywords |= gram_keywords
-    with open("assets/keywords.json", "w") as f:
-        json.dump(list(total_keywords), f, indent=2, sort_keys=True)
 
 
 def join_comments_into_oneline(text):
@@ -675,15 +770,24 @@ def mark_statement_location(data):
 @click.option("-o", "--output", default="grammar_modi.y")
 @click.option("--remove-comments", is_flag=True, default=False)
 def run(output, remove_comments):
+    global grammar_prefix
+    global grammar_suffix
+
     # Remove all_ir_type.txt, if exist
     if os.path.exists("./all_ir_types.txt"):
         os.remove("./all_ir_types.txt")
 
-    data = open("assets/grammar_rule_only.y").read()
+    data = open("assets/grammar.y.ori").read()
 
-    data = remove_comments_if_necessary(data, remove_comments)
+    data_split = data.split("%%")
 
-    marked_lines, extract_tokens = mark_statement_location(data)
+    grammar_prefix += modify_prefix(data_split[0])
+
+    grammar_rule_str = data_split[1]
+    print(grammar_rule_str)
+    grammar_rule_str = remove_comments_if_necessary(grammar_rule_str, remove_comments)
+
+    marked_lines, extract_tokens = mark_statement_location(grammar_rule_str)
 
     # for idx, kind in extract_tokens.items():
     #     logger.debug(idx)
@@ -699,8 +803,11 @@ def run(output, remove_comments):
         )
 
     with open(output, "w") as f:
+        f.write(grammar_prefix)
+        f.write("\n%%\n")
         f.write(marked_lines)
+        f.write("\n%%\n")
+        f.write(grammar_suffix)
 
 if __name__ == "__main__":
-    get_gram_keywords()
     run()
