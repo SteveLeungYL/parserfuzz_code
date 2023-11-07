@@ -1,7 +1,5 @@
 import json
 import os.path
-import re
-import sys
 from typing import List
 
 import click
@@ -12,6 +10,26 @@ ONESPACE = " "
 default_ir_type = "kUnknown"
 
 saved_ir_type = []
+
+custom_keyword_mapping = {
+    "TYPECAST": "::",
+    "Op": "+",
+    "INTEGER_DIVISION": "//",
+    "POWER_OF": "**",
+    "LESS_EQUALS": "<=",
+    "GREATER_EQUALS": ">=",
+    "NOT_EQUALS": "<>",
+}
+
+ignored_token_rules = [
+    "unreserved_keyword",
+    "col_name_keyword",
+    "func_name_keyword",
+    "type_name_keyword",
+    "other_keyword",
+    "type_func_name_keyword",
+    "reserved_keyword"
+]
 
 class Token:
     def __init__(self, word, index):
@@ -25,6 +43,14 @@ class Token:
             return self._is_terminating_keyword
 
         if "'" in self.word:
+            self._is_terminating_keyword = True
+            return self._is_terminating_keyword
+
+        if is_identifier(self) is not None:
+            self._is_terminating_keyword = False
+            return self._is_terminating_keyword
+
+        if not self.word[0].isalpha():
             self._is_terminating_keyword = True
             return self._is_terminating_keyword
 
@@ -72,6 +98,8 @@ def camel_to_snake(word):
 def tokenize(line: List[str]) -> List[Token]:
 
     words = [word for word in line if word and word != "empty" and word != "/*EMPTY*/"]
+
+    words = [custom_keyword_mapping[word] if word in custom_keyword_mapping else word for word in words]
 
     token_sequence = []
     for idx, word in enumerate(words):
@@ -147,28 +175,22 @@ def ir_type_str_rewrite(cur_types) -> str:
 
 def is_identifier(cur_token):
     if cur_token.word in ("IDENT"):
-        return True
-    else:
-        return False
-
-def is_literal(cur_token):
-    if cur_token.word in ("TEXT_STRING_literal", "TEXT_STRING"):
+        return "kIdentifier"
+    elif cur_token.word in ("SCONST"):
         return "kStringLiteral"
-    elif cur_token.word in ("HEX_NUM"):
-        return "kHexLiteral"
-    elif cur_token.word in ("BIN_NUM"):
+    elif cur_token.word in ("FCONST"):
+        return "kFloatLiteral"
+    elif cur_token.word in ("BCONST", "XCONST"):
         return "kBinLiteral"
-    elif cur_token.word in ("FALSE_SYM", "TRUE_SYM"):
+    elif cur_token.word in ("FALSE_P", "TRUE_P"):
         return "kBoolLiteral"
-    elif cur_token.word in ("int64_literal", "DECIMAL_NUM", "FLOAT_NUM"):
-        return "kNUMLiteral"
     else:
         return None
 
 def get_tmp_ir_body(cur_token: Token, tmp_num: int) -> str:
     body = ""
-    if is_identifier(cur_token):
-        body += f"auto tmp{tmp_num} = new IR(kIdentifier, to_string(${cur_token.index + 1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
+    if (type_name := is_identifier(cur_token)) != None:
+        body += f"auto tmp{tmp_num} = new IR({type_name}, to_string(${cur_token.index + 1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
         body += f"ir_vec.push_back(tmp{tmp_num});\n"
     else:
         body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
@@ -351,42 +373,6 @@ def translate_preprocessing(data):
     """Remove original actions here. """
     all_new_data = remove_original_actions(data)
 
-    # all_new_data = ""  # not necessary. But it works now, no need to change. :-o
-    # new_data = ""
-    # cur_data = ""
-    # all_lines = data.split("\n")
-    # idx = -1
-    # for cur_line in all_lines:
-    #     idx += 1
-    #     if ":" in cur_line and cur_data != "":
-    #         new_data += cur_data + "\n"
-    #         cur_data = " " + cur_line
-    #         all_new_data += new_data
-    #         new_data = ""
-    #     elif "|" in cur_line:
-    #         new_data += cur_data + "\n"
-    #         cur_data = " " + cur_line
-    #     elif cur_line == all_lines[-1]:
-    #         cur_data += " " + cur_line
-    #         new_data += cur_data + "\n"
-    #         all_new_data += new_data
-    #         new_data = ""
-    #     else:
-    #         cur_data += " " + cur_line
-
-    # """Remove all semicolon in the statement? """
-    # all_new_data_l = list(all_new_data)
-    # semi_loc = all_new_data.rfind(";", 1)
-    # if semi_loc != -1:
-    #     all_new_data_l[semi_loc] = "\n"
-    # all_new_data = "".join(all_new_data_l)
-
-    # all_new_data += ";"
-    #
-    # with open("draft.txt", "a") as f:
-    #     f.write('----------------\n')
-    #     f.write(all_new_data)
-
     """Join comments from multiple lines into one line."""
     all_new_data = join_comments_into_oneline(all_new_data)
 
@@ -401,6 +387,9 @@ def remove_comments_inside_statement(text):
 
 
 def translate(parent_element: str, child_rules: [str]):
+
+    if parent_element.endswith("_2"):
+        parent_element = parent_element[:-2]
 
     if len(child_rules) == 0:
         logger.error(f"Error: Found empty rule from {parent_element}")
@@ -623,7 +612,9 @@ def mark_statement_location(data):
     for cur_line in data.splitlines():
 
         # Remove comments.
-        if cur_line.strip().startswith("#") or cur_line.strip().startswith("/*") or cur_line.strip().startswith(" *"):
+        if (cur_line.strip().startswith("#") or
+                (cur_line.strip().startswith("/*") and not cur_line.strip().startswith("/*EMPTY*/")) or
+                cur_line.strip().startswith(" *")):
             continue
 
         # if "%prec" in cur_line:
@@ -639,34 +630,45 @@ def mark_statement_location(data):
             continue
 
         for cur_token in token_seq:
-            if cur_token.endswith(":"):
-                if cur_parent != "" and cur_parent not in extract_tokens.keys():
-                    extract_tokens[cur_parent] = [cur_token_seq]
-                elif cur_parent != "":
-                    extract_tokens[cur_parent].append(cur_token_seq)
+            if cur_token in ignored_token_rules:
+                continue
+            elif cur_token.endswith(":"):
+                if len(cur_token_seq) > 0 and cur_parent not in ignored_token_rules:
+                    if cur_parent != "" and cur_parent not in extract_tokens.keys():
+                        extract_tokens[cur_parent] = [cur_token_seq]
+                    elif cur_parent != "":
+                        extract_tokens[cur_parent].append(cur_token_seq)
+
+                if cur_parent not in ignored_token_rules and cur_parent != "":
+                    marked_str += f"=== {cur_parent.strip()} ===\n"
 
                 cur_token_seq = []
                 cur_parent = cur_token[:-1]
+                if cur_parent in extract_tokens.keys():
+                    # Special handling for indirection_el:
+                    cur_parent += "_2"
 
-                marked_str += f"=== {cur_parent.strip()} ===\n"
 
             elif cur_token == "|":
-                if cur_parent not in extract_tokens.keys():
-                    extract_tokens[cur_parent] = [cur_token_seq]
-                else:
-                    extract_tokens[cur_parent].append(cur_token_seq)
+                if len(cur_token_seq) > 0 and cur_parent not in ignored_token_rules:
+                    if cur_parent != "" and cur_parent not in extract_tokens.keys():
+                        extract_tokens[cur_parent] = [cur_token_seq]
+                    elif cur_parent != "":
+                        extract_tokens[cur_parent].append(cur_token_seq)
 
                 cur_token_seq = []
 
             else:
                 cur_token_seq.append(cur_token)
 
-    if cur_parent not in extract_tokens.keys():
-        extract_tokens[cur_parent] = [cur_token_seq]
-    else:
-        extract_tokens[cur_parent].append(cur_token_seq)
+    if len(cur_token_seq) > 0 and cur_parent not in ignored_token_rules:
+        if cur_parent not in extract_tokens.keys():
+            extract_tokens[cur_parent] = [cur_token_seq]
+        else:
+            extract_tokens[cur_parent].append(cur_token_seq)
 
-
+    # Custom patch:
+    extract_tokens["opt_enum_val_list"].append(["/*EMPTY*/"])
     return marked_str, extract_tokens
 
 @click.command()
@@ -680,17 +682,15 @@ def run(output, remove_comments):
     data = open("assets/grammar_rule_only.y").read()
 
     data = remove_comments_if_necessary(data, remove_comments)
-    # data = select_translate_region(data)
 
     marked_lines, extract_tokens = mark_statement_location(data)
 
-    logger.debug(marked_lines)
-    for idx, kind in extract_tokens.items():
-        logger.debug(idx)
-        for cur_kind in kind:
-            logger.debug(cur_kind)
-        logger.debug("")
-
+    # for idx, kind in extract_tokens.items():
+    #     logger.debug(idx)
+    #     for cur_kind in kind:
+    #         logger.debug(cur_kind)
+    #     logger.debug("")
+    #
     for parent_element, extract_token in extract_tokens.items():
         translation = translate(parent_element, extract_token)
 
@@ -699,7 +699,6 @@ def run(output, remove_comments):
         )
 
     with open(output, "w") as f:
-        f.write("/*\n")
         f.write(marked_lines)
 
 if __name__ == "__main__":
