@@ -146,9 +146,7 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 def is_identifier(cur_token):
-    if cur_token.word in ("ident", "TEXT_STRING_sys_nonewline", "TEXT_STRING_sys", "TEXT_STRING_validated", "TEXT_STRING_password",
-                          "TEXT_STRING_hash", "IDENT_sys", "ident_or_text", "label_ident", "role_ident", "lvalue_ident",
-                          "role_ident_or_text", "schema"):
+    if cur_token.word in ("IDENT"):
         return True
     else:
         return False
@@ -166,6 +164,16 @@ def is_literal(cur_token):
         return "kNUMLiteral"
     else:
         return None
+
+def get_tmp_ir_body(cur_token: Token, tmp_num: int) -> str:
+    body = ""
+    if is_identifier(cur_token):
+        body += f"auto tmp{tmp_num} = new IR(kIdentifier, to_string(${cur_token.index + 1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
+        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+    else:
+        body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
+
+    return body
 
 def translate_single_line(token_sequence, parent):
     token_sequence = tokenize(token_sequence)
@@ -207,11 +215,7 @@ def translate_single_line(token_sequence, parent):
 
         if need_more_ir:
 
-            if is_identifier(left_token):
-                body += f"auto tmp{tmp_num} = new IR(kIdentifier, to_string(${left_token.index+1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
-                body += f"ir_vec.push_back(tmp{tmp_num});\n"
-            else:
-                body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
+            body += get_tmp_ir_body(left_token, tmp_num)
             body += (
                 f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
                 + "\n"
@@ -220,11 +224,7 @@ def translate_single_line(token_sequence, parent):
             tmp_num += 1
 
             if right_token and not right_token.is_terminating_keyword:
-                if is_identifier(right_token):
-                    body += f"auto tmp{tmp_num} = new IR(kIdentifier, to_string(${right_token.index+1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
-                    body += f"ir_vec.push_back(tmp{tmp_num});\n"
-                else:
-                    body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
+                body += get_tmp_ir_body(right_token, tmp_num)
                 body += (
                     f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
                     + "\n"
@@ -233,16 +233,8 @@ def translate_single_line(token_sequence, parent):
                 tmp_num += 1
 
         elif right_token and right_token.is_terminating_keyword == False:
-            if is_identifier(left_token):
-                body += f"auto tmp{tmp_num} = new IR(kIdentifier, to_string(${left_token.index+1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
-                body += f"ir_vec.push_back(tmp{tmp_num});\n"
-            else:
-                body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
-            if is_identifier(right_token):
-                body += f"auto tmp{tmp_num+1} = new IR(kIdentifier, to_string(${right_token.index+1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
-                body += f"ir_vec.push_back(tmp{tmp_num+1});\n"
-            else:
-                body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
+            body += get_tmp_ir_body(left_token, tmp_num)
+            body += get_tmp_ir_body(right_token, tmp_num+1)
             body += (
                 f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
                 + "\n"
@@ -270,7 +262,7 @@ def translate_single_line(token_sequence, parent):
                 )
                 body += "ir_vec.push_back(res); \n"
                 break
-            body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
+            body += get_tmp_ir_body(left_token, tmp_num)
             body += (
                 f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
                 + "\n"
@@ -634,8 +626,8 @@ def mark_statement_location(data):
         if cur_line.strip().startswith("#") or cur_line.strip().startswith("/*") or cur_line.strip().startswith(" *"):
             continue
 
-        if "%prec" in cur_line:
-            cur_line = cur_line.split("%prec")[0]
+        # if "%prec" in cur_line:
+        #     cur_line = cur_line.split("%prec")[0]
 
         cur_line = cur_line.strip()
         if len(cur_line) == 0:
@@ -645,28 +637,29 @@ def mark_statement_location(data):
 
         if len(token_seq) == 0:
             continue
-        if token_seq[0].endswith(":"):
-            if cur_parent != "" and cur_parent not in extract_tokens.keys():
-                extract_tokens[cur_parent] = [cur_token_seq]
-            elif cur_parent != "":
-                extract_tokens[cur_parent].append(cur_token_seq)
 
-            cur_token_seq = []
-            cur_parent = token_seq[0][:-1]
-            token_seq = token_seq[1:]
+        for cur_token in token_seq:
+            if cur_token.endswith(":"):
+                if cur_parent != "" and cur_parent not in extract_tokens.keys():
+                    extract_tokens[cur_parent] = [cur_token_seq]
+                elif cur_parent != "":
+                    extract_tokens[cur_parent].append(cur_token_seq)
 
-            marked_str += f"=== {cur_parent.strip()} ===\n"
+                cur_token_seq = []
+                cur_parent = cur_token[:-1]
 
-        elif token_seq[0].endswith("|"):
-            if cur_parent not in extract_tokens.keys():
-                extract_tokens[cur_parent] = [cur_token_seq]
+                marked_str += f"=== {cur_parent.strip()} ===\n"
+
+            elif cur_token == "|":
+                if cur_parent not in extract_tokens.keys():
+                    extract_tokens[cur_parent] = [cur_token_seq]
+                else:
+                    extract_tokens[cur_parent].append(cur_token_seq)
+
+                cur_token_seq = []
+
             else:
-                extract_tokens[cur_parent].append(cur_token_seq)
-
-            cur_token_seq = []
-            token_seq = token_seq[1:]
-
-        cur_token_seq.extend(token_seq)
+                cur_token_seq.append(cur_token)
 
     if cur_parent not in extract_tokens.keys():
         extract_tokens[cur_parent] = [cur_token_seq]
