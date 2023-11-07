@@ -69,14 +69,9 @@ def camel_to_snake(word):
     return "".join(["_" + i.lower() if i.isupper() else i for i in word]).lstrip("_")
 
 
-def tokenize(line) -> List[Token]:
-    line = line.strip()
-    if line.startswith("/*") and line.endswith("*/"):
-        # HACK for empty grammar eg. /* EMPTY */
-        return [Token(line, 0)]
+def tokenize(line: List[str]) -> List[Token]:
 
-    words = [word.strip() for word in line.split()]
-    words = [word for word in words if word and word != "empty"]
+    words = [word for word in line if word and word != "empty" and word != "/*EMPTY*/"]
 
     token_sequence = []
     for idx, word in enumerate(words):
@@ -89,8 +84,8 @@ def tokenize(line) -> List[Token]:
 
 
 def replace_special_keyword_with_token(line):
-    words = [word.strip() for word in line.split()]
-    words = [word for word in words if word]
+    words = [word.strip() for word in line]
+    # words = [word for word in words if word]
 
     seq = []
     for word in words:
@@ -172,8 +167,8 @@ def is_literal(cur_token):
     else:
         return None
 
-def translate_single_line(line, parent):
-    token_sequence = tokenize(line)
+def translate_single_line(token_sequence, parent):
+    token_sequence = tokenize(token_sequence)
 
     i = 0
     tmp_num = 1
@@ -413,23 +408,15 @@ def remove_comments_inside_statement(text):
     return text
 
 
-def translate(data):
-    """WIP"""
+def translate(parent_element: str, child_rules: [str]):
 
-    # data = translate_preprocessing(data=data)
-    data = data.strip() + "\n"
+    if len(child_rules) == 0:
+        logger.error(f"Error: Found empty rule from {parent_element}")
+        exit(1)
 
-    parent_element = data[: data.find(":")]
-    logger.debug(f"Parent element: '{parent_element}'")
+    first_child_body = translate_single_line(child_rules[0], parent_element)
 
-    first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
-    first_child_element = data[
-        first_alpha_after_colon : data.find("\n", first_alpha_after_colon)
-    ]
-    first_child_element = remove_comments_inside_statement(first_child_element)
-    first_child_body = translate_single_line(first_child_element, parent_element)
-
-    mapped_first_child_element = replace_special_keyword_with_token(first_child_element)
+    mapped_first_child_element = replace_special_keyword_with_token(child_rules[0])
     logger.debug(f"First child element: '{mapped_first_child_element}'")
     translation = f"""
 {parent_element}:
@@ -439,12 +426,7 @@ def translate(data):
 {ONETAB}}}
 """
 
-    rest_children_elements = [line.strip() for line in data.splitlines() if "|" in line]
-    rest_children_elements = [
-        line[1:].strip() for line in rest_children_elements if line.startswith("|")
-    ]
-    for child_element in rest_children_elements:
-        child_element = remove_comments_inside_statement(child_element)
+    for child_element in child_rules[1:]:
         child_body = translate_single_line(child_element, parent_element)
 
         mapped_child_element = replace_special_keyword_with_token(child_element)
@@ -455,7 +437,7 @@ def translate(data):
 {ONETAB}}}
 """
 
-    translation += "\n;"
+    translation += "\n;\n"
 
     # fix the IR type to kUnknown
     with open("all_ir_types.txt", "a") as f:
@@ -652,6 +634,9 @@ def mark_statement_location(data):
         if cur_line.strip().startswith("#") or cur_line.strip().startswith("/*") or cur_line.strip().startswith(" *"):
             continue
 
+        if "%prec" in cur_line:
+            cur_line = cur_line.split("%prec")[0]
+
         cur_line = cur_line.strip()
         if len(cur_line) == 0:
             continue
@@ -713,11 +698,11 @@ def run(output, remove_comments):
             logger.debug(cur_kind)
         logger.debug("")
 
-    for token_name, extract_token in extract_tokens.items():
-        translation = translate(extract_token)
+    for parent_element, extract_token in extract_tokens.items():
+        translation = translate(parent_element, extract_token)
 
         marked_lines = marked_lines.replace(
-            f"=== {token_name.strip()} ===", translation, 1
+            f"=== {parent_element.strip()} ===", translation, 1
         )
 
     with open(output, "w") as f:
