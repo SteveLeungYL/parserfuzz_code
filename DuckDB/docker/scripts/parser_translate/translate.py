@@ -1,4 +1,3 @@
-import json
 import os.path
 from typing import List
 import re
@@ -10,7 +9,12 @@ ONETAB = " " * 4
 ONESPACE = " "
 default_ir_type = "kUnknown"
 
+entry_parser_token = "stmtblock"
+
 saved_ir_type = []
+
+parser_prefix_pre_claimed_types = dict()
+missing_prefix_declare = []
 
 custom_keyword_mapping = {
     "TYPECAST": "::",
@@ -143,6 +147,7 @@ grammar_prefix = """
 #include "pg_functions.hpp"
 #include <string.h>
 #include <string>
+#include <vector>
 
 #include <ctype.h>
 #include <limits.h>
@@ -155,6 +160,8 @@ grammar_prefix = """
 
 namespace duckdb_libpgquery {
 #define DEFAULT_SCHEMA "main"
+
+std::vector<IR*> ir_vec;
 
 #define YYLLOC_DEFAULT(Current, Rhs, N) \\
 	do { \\
@@ -266,6 +273,9 @@ def modify_prefix(grammar_prefix: str) -> str:
         cur_line = cur_line.strip()
         if cur_line == "":
             continue
+
+        for cur_claimed_token in cur_line.split():
+            parser_prefix_pre_claimed_types[cur_claimed_token] = 0
 
         res_str += cur_line + "\n"
 
@@ -488,6 +498,9 @@ def translate_single_line(token_sequence, parent):
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
         body += "$$ = res;"
 
+    if parent == entry_parser_token:
+        body += "\npg_yyget_extra(yyscanner)->ir_vec = ir_vec; \nir_vec.clear(); \n"
+
     logger.debug(f"Result: \n{body}")
     return body
 
@@ -520,25 +533,6 @@ def remove_original_actions(data):
                 clean_data[:left_index] + " " * length + clean_data[right_index:]
             )
 
-            # if not left_bracket_stack:
-            #     # keep the outer most bracket for middle action
-            #     left_data = clean_data[:left_index]
-            #     right_data = clean_data[right_index + 1 :]
-            #     is_middle_action = (
-            #         right_data.strip()
-            #         and right_data.strip()[0]
-            #         not in [
-            #             ";",
-            #             "|",
-            #         ]
-            #         and not right_data.strip().startswith("/*")
-            #         and len(right_data.strip()) > 0
-            #     )
-            #
-            #     if is_middle_action:
-            #         clean_data = left_data + "{}" + right_data
-
-    # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
     clean_data = remove_single_line_comment(clean_data)
     return clean_data
 
@@ -598,8 +592,13 @@ def translate(parent_element: str, child_rules: [str]):
 
     translation += "\n;\n"
 
-    # fix the IR type to kUnknown
-    with open("all_ir_types.txt", "a") as f:
+    with open("all_ir_types.txt", "a") as f, open("missing_parser_class.txt", "a") as missing_f:
+
+        if parent_element not in parser_prefix_pre_claimed_types:
+            missing_f.write(f"{parent_element} \n")
+            parser_prefix_pre_claimed_types[parent_element] = 0
+            missing_prefix_declare.append(parent_element)
+
         ir_type_str = ir_type_str_rewrite(parent_element)
 
         if ir_type_str not in saved_ir_type:
@@ -615,13 +614,6 @@ def translate(parent_element: str, child_rules: [str]):
             if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
                 saved_ir_type.append(f"{ir_type_str}_{idx+1}")
                 f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
-
-        for custom_name in ("kIdentifier", "kStringLiteral",
-                            "kFloatLiteral", "kIntegerLiteral",
-                            "kBinLiteral", "kBoolLiteral",
-                            "kUnknown"
-                            ):
-            f.write(f"V({custom_name})   \\\n")
 
     logger.info(translation)
     return translation
@@ -645,7 +637,15 @@ def join_comments_into_oneline(text):
 
         index += 1
 
-    return clean_text.strip()
+    clean_text = clean_text.strip()
+
+    new_res = ""
+    for cur_line in clean_text.splitlines():
+        if "/*" in cur_line and "*/" in cur_line and "/*EMPTY*/" not in cur_line:
+            cur_line = cur_line.replace("/*", "\n/*")
+        new_res += cur_line + "\n"
+
+    return new_res
 
 
 def remove_comments_if_necessary(text, need_remove):
@@ -676,9 +676,6 @@ def remove_comments_if_necessary(text, need_remove):
     """Remove single line comment"""
     clean_text = remove_single_line_comment(clean_text)
     return clean_text
-    # pattern = r"/\*.*?\*/"
-    # return re.sub(pattern, "", text, flags=re.S)
-
 
 def remove_single_line_comment(text):
     clean_text = text
@@ -711,9 +708,6 @@ def mark_statement_location(data):
                 (cur_line.strip().startswith("/*") and not cur_line.strip().startswith("/*EMPTY*/")) or
                 cur_line.strip().startswith(" *")):
             continue
-
-        # if "%prec" in cur_line:
-        #     cur_line = cur_line.split("%prec")[0]
 
         cur_line = cur_line.strip()
         if len(cur_line) == 0:
@@ -776,12 +770,16 @@ def run(output, remove_comments):
     # Remove all_ir_type.txt, if exist
     if os.path.exists("./all_ir_types.txt"):
         os.remove("./all_ir_types.txt")
+    if os.path.exists("./missing_parser_class.txt"):
+        os.remove("./missing_parser_class.txt")
+    if os.path.exists("./tmp_marked_lines.txt"):
+        os.remove("./tmp_marked_lines.txt")
 
     data = open("assets/grammar.y.ori").read()
 
     data_split = data.split("%%")
 
-    grammar_prefix += modify_prefix(data_split[0])
+    grammar_prefix_add_on = modify_prefix(data_split[0])
 
     grammar_rule_str = data_split[1]
     print(grammar_rule_str)
@@ -789,12 +787,9 @@ def run(output, remove_comments):
 
     marked_lines, extract_tokens = mark_statement_location(grammar_rule_str)
 
-    # for idx, kind in extract_tokens.items():
-    #     logger.debug(idx)
-    #     for cur_kind in kind:
-    #         logger.debug(cur_kind)
-    #     logger.debug("")
-    #
+    with open("tmp_marked_lines.txt", "w") as f:
+        f.write(marked_lines)
+
     for parent_element, extract_token in extract_tokens.items():
         translation = translate(parent_element, extract_token)
 
@@ -802,12 +797,28 @@ def run(output, remove_comments):
             f"=== {parent_element.strip()} ===", translation, 1
         )
 
+    # Adding the missing non-terminating symbol declare.
+    for cur_missing_symbol in missing_prefix_declare:
+        grammar_prefix += f"%type <ir> {cur_missing_symbol} \n"
+    grammar_prefix += grammar_prefix_add_on
+
+
     with open(output, "w") as f:
         f.write(grammar_prefix)
         f.write("\n%%\n")
         f.write(marked_lines)
         f.write("\n%%\n")
         f.write(grammar_suffix)
+
+    with open("all_ir_types.txt", "a") as f:
+        for custom_name in ("kIdentifier", "kStringLiteral",
+                            "kFloatLiteral", "kIntegerLiteral",
+                            "kBinLiteral", "kBoolLiteral",
+                            "kUnknown"
+                            ):
+            if custom_name not in saved_ir_type:
+                saved_ir_type.append(custom_name)
+                f.write(f"V({custom_name})   \\\n")
 
 if __name__ == "__main__":
     run()
