@@ -33,7 +33,7 @@ namespace duckdb_libpgquery {
  */
 typedef struct base_yy_extra_type {
 	/* ParserFuzz injected code */
-	vector<IR*> ir_vec;
+	std::vector<IR*> ir_vec;
 
 	/*
 	 * Fields used by the core scanner.

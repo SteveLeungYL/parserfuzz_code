@@ -5,6 +5,8 @@
 
 #include <string>
 
+namespace duckdb_libpgquery {
+
 /* Yu: Implement the IR structure from ParserFuzz here.
 ** ParserFuzz injected code.
 */
@@ -986,7 +988,7 @@ public:
 			right_->parent_ = this;
 	}
 
-	IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
+	IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
 	      type_(type), op_(NULL), left_(NULL), right_(NULL), str_val_(str_val), data_type_(data_type), data_flag_(flag){
 		if (left_)
 			left_->parent_ = this;
@@ -995,7 +997,7 @@ public:
 	}
 
 	IR(IRTYPE type, bool b_val):
-	      type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(flag){
+	      type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
 		if (left_)
 			left_->parent_ = this;
 		if (right_)
@@ -1003,7 +1005,7 @@ public:
 	}
 
 	IR(IRTYPE type, unsigned long long_val):
-	      type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(flag){
+	      type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
 		if (left_)
 			left_->parent_ = this;
 		if (right_)
@@ -1011,7 +1013,7 @@ public:
 	}
 
 	IR(IRTYPE type, int int_val):
-	      type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(flag){
+	      type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
 		if (left_)
 			left_->parent_ = this;
 		if (right_)
@@ -1019,14 +1021,14 @@ public:
 	}
 
 	IR(IRTYPE type, double f_val):
-	      type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(flag){
+	      type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
 		if (left_)
 			left_->parent_ = this;
 		if (right_)
 			right_->parent_ = this;
 	}
 
-	IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, unsigned int mutated_times, int scope, DATAFLAG flag):
+	IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, unsigned int mutated_times, DATAFLAG flag):
 	      type_(type), float_val_(f_val), op_(op), left_(left), right_(right), str_val_(str_val),
 	      data_type_(kDataWhatever), data_flag_(flag), mutated_times_(mutated_times) {
 		if (left_)
@@ -1337,7 +1339,7 @@ public:
 			op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
 		copy_res = new IR(this->type_, op, left, right, this->float_val_,
-		                  this->str_val_, this->name_, this->mutated_times_, 0, kFlagUnknown);
+		                  this->str_val_, this->mutated_times_, kFlagUnknown);
 		copy_res->data_type_ = this->data_type_;
 		copy_res->data_flag_ = this->data_flag_;
 
@@ -1357,5 +1359,7 @@ public:
 /*
 ** End ParserFuzz injected code.
 */
+
+} // namespace duckdb_libpgquery
 
 #endif
