@@ -32,9 +32,6 @@ namespace duckdb_libpgquery {
  * state needed for raw parsing/lexing goes here.
  */
 typedef struct base_yy_extra_type {
-	/* ParserFuzz injected code */
-	std::vector<IR*> ir_vec;
-
 	/*
 	 * Fields used by the core scanner.
 	 */
@@ -54,6 +51,9 @@ typedef struct base_yy_extra_type {
 	 * State variables that belong to the grammar.
 	 */
 	PGList *parsetree; /* final parse result is delivered here */
+
+	/* ParserFuzz injected code */
+	std::vector<IR*> ir_vec;
 } base_yy_extra_type;
 
 /*
@@ -63,6 +63,7 @@ typedef struct base_yy_extra_type {
  * cheating a bit to use an inline macro.
  */
 #define pg_yyget_extra(yyscanner) (*((base_yy_extra_type **)(yyscanner)))
+//#define pg_yyget_extra(yyscanner)  (yyget_extra(yyscanner))
 
 /* from parser.c */
 int base_yylex(YYSTYPE *lvalp, YYLTYPE *llocp, core_yyscan_t yyscanner);
