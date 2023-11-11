@@ -113,7 +113,7 @@ base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, const char *msg)
 	parser_yyerror(msg);
 }
 
-std::string to_string(char *str) {
+std::string cstr_to_string(char *str) {
    std::string res(str, strlen(str));
    return res;
 }
@@ -180,6 +180,9 @@ std::vector<IR*> ir_vec;
 
 static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 						 const char *msg);
+						 
+std::string cstr_to_string(char *str);
+						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"
 %pure-parser
@@ -360,25 +363,35 @@ def ir_type_str_rewrite(cur_types) -> str:
     return cur_types
 
 def is_identifier(cur_token):
-    if cur_token.word in ("IDENT"):
+    if cur_token.word == "IDENT":
         return "kIdentifier"
-    elif cur_token.word in ("SCONST"):
+    elif cur_token.word == "SCONST":
         return "kStringLiteral"
-    elif cur_token.word in ("FCONST"):
+    elif cur_token.word == "FCONST":
         return "kFloatLiteral"
-    elif cur_token.word in ("ICONST", "PARAM"):
+    elif cur_token.word == "ICONST" or cur_token.word == "PARAM":
         return "kIntegerLiteral"
-    elif cur_token.word in ("BCONST", "XCONST"):
+    elif cur_token.word == "BCONST" or cur_token.word == "XCONST":
         return "kBinLiteral"
-    elif cur_token.word in ("FALSE_P", "TRUE_P"):
+    elif cur_token.word == "FALSE_P" or cur_token.word == "TRUE_P":
         return "kBoolLiteral"
     else:
         return None
 
 def get_tmp_ir_body(cur_token: Token, tmp_num: int) -> str:
     body = ""
-    if (type_name := is_identifier(cur_token)) != None:
-        body += f"auto tmp{tmp_num} = new IR({type_name}, to_string(${cur_token.index + 1}), kDataFixLater, 0, kFlagUnknown);" + "\n"
+    type_name = is_identifier(cur_token)
+    if type_name == "kIdentifier" or type_name ==  "kStringLiteral" or type_name == "kFloatLiteral" or type_name == "kBinLiteral":
+        body += f"auto tmp{tmp_num} = new IR({type_name}, cstr_to_string(${cur_token.index + 1}), kDataFixLater, kFlagUnknown);" + "\n"
+        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+    elif type_name != None and type_name == "kIntegerLiteral":
+        body += f"auto tmp{tmp_num} = new IR({type_name}, ${cur_token.index + 1});" + "\n"
+        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+    elif type_name != None and type_name == "kBoolLiteral":
+        if cur_token.word == "TRUE_P":
+            body += f"auto tmp{tmp_num} = new IR({type_name}, std::string(\"TRUE\"));" + "\n"
+        else:
+            body += f"auto tmp{tmp_num} = new IR({type_name}, std::string(\"FALSE\"));" + "\n"
         body += f"ir_vec.push_back(tmp{tmp_num});\n"
     else:
         body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
@@ -392,6 +405,8 @@ def translate_single_line(token_sequence, parent):
     tmp_num = 1
     body = ""
     need_more_ir = False
+
+    body += "IR* res; \n"
 
     if len(token_sequence) == 0:
         # For empty rules.
@@ -458,7 +473,7 @@ def translate_single_line(token_sequence, parent):
             if (
                 not body
                 and left_token.index == len(token_sequence) - 1
-                and token_sequence[left_token.index].is_terminating_keyword
+                and not left_token.is_terminating_keyword
             ):
                 # the only one keywords is a comment
                 if left_keywords_str.startswith("/*") and left_keywords_str.endswith(
@@ -472,12 +487,19 @@ def translate_single_line(token_sequence, parent):
                 )
                 body += "ir_vec.push_back(res); \n"
                 break
-            body += get_tmp_ir_body(left_token, tmp_num)
-            body += (
-                f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
-                + "\n"
-            )
-            body += "ir_vec.push_back(res); \n"
+            if not left_token.is_terminating_keyword:
+                body += get_tmp_ir_body(left_token, tmp_num)
+                body += (
+                    f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
+                    + "\n"
+                )
+                body += "ir_vec.push_back(res); \n"
+            else:
+                body += (
+                        f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""));"""
+                        + "\n"
+                )
+                body += "ir_vec.push_back(res); \n"
 
             tmp_num += 1
             need_more_ir = True
