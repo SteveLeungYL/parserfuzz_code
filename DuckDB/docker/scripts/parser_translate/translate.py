@@ -1,6 +1,7 @@
 import os.path
 from typing import List
 import re
+from translate_instantiation_semantic import setup_identifier_semantics
 
 import click
 from loguru import logger
@@ -118,6 +119,48 @@ std::string cstr_to_string(char *str) {
    return res;
 }
 
+std::vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_IR, IRTYPE ir_type) {
+
+    // Iterate IR binary tree, left depth prioritized.
+    bool is_finished_search = false;
+    std::vector<IR*> ir_vec_iter;
+    std::vector<IR*> ir_vec_matching_type;
+    // Begin iterating.
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->type_ == ir_type) {
+            ir_vec_matching_type.push_back(cur_IR);
+        }
+
+        if (cur_IR->left_ != nullptr){
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes.
+            cur_IR = nullptr;
+            while (cur_IR == nullptr){
+                if (ir_vec_iter.size() == 0){
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+
+    return ir_vec_matching_type;
+}
+
+void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
 /* parser_init()
  * Initialize to parse one query string
  */
@@ -182,6 +225,8 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 						 const char *msg);
 						 
 std::string cstr_to_string(char *str);
+std::vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_IR, IRTYPE ir_type);
+void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"
@@ -378,7 +423,7 @@ def is_identifier(cur_token):
     else:
         return None
 
-def get_tmp_ir_body(cur_token: Token, tmp_num: int) -> str:
+def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: List[Token], tmp_num: int) -> str:
     body = ""
     type_name = is_identifier(cur_token)
     if type_name == "kIdentifier" or type_name ==  "kStringLiteral" or type_name == "kFloatLiteral" or type_name == "kBinLiteral":
@@ -395,6 +440,9 @@ def get_tmp_ir_body(cur_token: Token, tmp_num: int) -> str:
         body += f"ir_vec.push_back(tmp{tmp_num});\n"
     else:
         body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
+
+    token_sequence = [w.word for w in token_sequence]
+    body += setup_identifier_semantics(cur_token=cur_token.word, parent=parent, token_sequence = token_sequence, ir_ref = f"tmp{tmp_num}")
 
     return body
 
@@ -440,7 +488,7 @@ def translate_single_line(token_sequence, parent):
 
         if need_more_ir:
 
-            body += get_tmp_ir_body(left_token, tmp_num)
+            body += get_special_handling_ir_body(left_token, parent, token_sequence, tmp_num)
             body += (
                 f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
                 + "\n"
@@ -449,7 +497,7 @@ def translate_single_line(token_sequence, parent):
             tmp_num += 1
 
             if right_token and not right_token.is_terminating_keyword:
-                body += get_tmp_ir_body(right_token, tmp_num)
+                body += get_special_handling_ir_body(right_token, parent, token_sequence, tmp_num)
                 body += (
                     f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
                     + "\n"
@@ -458,8 +506,8 @@ def translate_single_line(token_sequence, parent):
                 tmp_num += 1
 
         elif right_token and right_token.is_terminating_keyword == False:
-            body += get_tmp_ir_body(left_token, tmp_num)
-            body += get_tmp_ir_body(right_token, tmp_num+1)
+            body += get_special_handling_ir_body(left_token, parent, token_sequence, tmp_num)
+            body += get_special_handling_ir_body(right_token, parent, token_sequence, tmp_num + 1)
             body += (
                 f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
                 + "\n"
@@ -488,7 +536,7 @@ def translate_single_line(token_sequence, parent):
                 body += "ir_vec.push_back(res); \n"
                 break
             if not left_token.is_terminating_keyword:
-                body += get_tmp_ir_body(left_token, tmp_num)
+                body += get_special_handling_ir_body(left_token, parent, token_sequence, tmp_num)
                 body += (
                     f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
                     + "\n"
