@@ -217,6 +217,40 @@ void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
     return;
 }
 
+void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    
+    if (v_col_id_or_string.size()) {
+        // The ColIdOrString case
+        for (IR* cur_col_id: v_col_id_or_string) {
+            setup_col_id_or_string(cur_col_id, data_type, data_flag);
+        }
+        return
+    }
+    
+    // The ColId indirection case
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    
+    if (v_iden.size() == 1) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+    } elif (v_iden.size() == 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden.front()->set_data_type(data_type_par);
+        v_iden.front()->set_data_flag(kUse);
+    } elif (v_iden.size() > 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden[1]->set_data_type(data_type_par);
+        v_iden[1]->set_data_flag(kUse);
+        v_iden.front()->set_data_type(data_type_par_par);
+        v_iden.front()->set_data_flag(kUse);
+    }
+    
+    return;
+}
+
 /* parser_init()
  * Initialize to parse one query string
  */
@@ -291,6 +325,7 @@ void setup_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"

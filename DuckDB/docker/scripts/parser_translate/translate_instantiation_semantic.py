@@ -187,7 +187,149 @@ def handle_opt_name_list(cur_token: Token, parent: str, token_sequence: List[str
 
     return f"setup_opt_name_list({ir_ref}, {data_type}, {data_flag}); \n"
 
-def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = ""
+    data_type_par = "kDataWhatever"
+    data_type_par_par = "kDataWhatever"
+    data_flag = ""
+
+    if parent == "AlterTableStmt" and token_sequence.count("ALTER") and token_sequence.count("INDEX"):
+        data_type = "kDataIndexName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "AlterTableStmt" and token_sequence.count("ALTER") and token_sequence.count("SEQUENCE"):
+        data_type = "kDataSequenceName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "AlterTableStmt" and token_sequence.count("ALTER") and token_sequence.count("VIEW"):
+        data_type = "kDataViewName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUsed"
+    elif parent == "RenameStmt" and token_sequence.count("ALTER") and token_sequence.count("INDEX"):
+        data_type = "kDataIndexName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUndefine"
+    elif parent == "RenameStmt" and token_sequence.count("ALTER") and token_sequence.count("SEQUENCE"):
+        data_type = "kDataSequenceName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUndefine"
+    elif parent == "RenameStmt" and token_sequence.count("ALTER") and token_sequence.count("VIEW"):
+        data_type = "kDataViewName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUndefine"
+    elif parent == "insert_target":
+        data_type = "kDataColumnName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "CreateTypeStmt":
+        data_type = "kDataTypeName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "CreateSeqStmt":
+        data_type = "kDataSequenceName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "AlterSeqStmt":
+        data_type = "kDataSequenceName"
+        data_type_par = "kDataTableName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "UseStmt":
+        data_type = "kDataSchemaName"
+        data_type_par = "kDataDatabase"
+        # data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "CreateStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "ColConstraintElem" or parent == "ConstraintElem":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "TableLikeClause":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "CreateFunctionStmt":
+        data_type = "kDataFunctionName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "CopyStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "OptTempTableName":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "relation_expr":
+        # handled by relation_expr
+        return ""
+    elif parent == "qualified_name_list":
+        # handled by qualified_name_list
+        return ""
+    elif parent == "CreateSchemaStmt":
+        data_type = "kDataSchemaName"
+        data_type_par = "kDataDatabase"
+        # data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "IndexStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "AlterObjectSchemaStmt" and token_sequence.count("ALTER") and token_sequence.count("SEQUENCE"):
+        data_type = "kDataSequenceName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "AlterObjectSchemaStmt" and token_sequence.count("ALTER") and token_sequence.count("VIEW"):
+        data_type = "kDataViewName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "VacuumStmt" or parent == "AnalyzeStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "ViewStmt":
+        data_type = "kDataViewName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    elif parent == "create_as_target":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_qualified_name({ir_ref}, {data_type}, {data_flag}, {data_type_par}, {data_type_par_par}); \n"
+    else:
+        return ""
+
+def handle_qualified_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
@@ -195,7 +337,19 @@ def handle_index_name(cur_token: Token, parent: str, token_sequence: List[str], 
     # TODO:: WIP
     return "", ""
 
+def handle_relation_expr(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    # TODO:: WIP
+    return "", ""
+
 def handle_opt_index_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    # TODO:: WIP
+    return "", ""
+
+def handle_col_label(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    # TODO:: WIP
+    return "", ""
+
+def handle_attr_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
@@ -266,7 +420,7 @@ def handle_col_id(cur_token: Token, parent: str, token_sequence: List[str], ir_r
         # ColIdOrString, leave it to the ColIdOrString handler
         return "", ""
     elif parent == "insert_target" and token_sequence.count("AS") and token_sequence.count("qualified_name"):
-        return "kDataTableName", "kUse"
+        return "kDataAliasName", "kCreate"
     elif parent == "insert_column_item":
         return "kDataColumnName", "kUse"
     elif parent == "index_elem":
@@ -379,9 +533,7 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
         res += handle_drop_stmt(cur_token, parent, token_sequence, ir_ref)
 
     elif cur_token.word == "qualified_name":
-        # TODO:: WIP
-        data_type, data_flag = handle_qualified_name(cur_token, parent, token_sequence, ir_ref)
-        res += f"setup_qualified_name({ir_ref}, {data_type}, {data_flag}); \n"
+        res += handle_qualified_name(cur_token, parent, token_sequence, ir_ref)
 
 
     return res
