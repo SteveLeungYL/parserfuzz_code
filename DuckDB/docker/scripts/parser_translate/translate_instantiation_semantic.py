@@ -94,15 +94,100 @@ def handle_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref
         # print("\n\n")
         return "", ""
 
+
+def handle_drop_stmt(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    return f"setup_drop_stmt({ir_ref}); \n"
+
+def handle_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    if parent == "DropStmt" and token_sequence.count("drop_type_name"):
+        # handled by DropStmt
+        # TODO: Not implemented yet.
+        return ""
+    elif parent == "name_list":
+        # handled by itself.
+        return ""
+    elif parent == "name_list_opt_comma":
+        # handled by name_list_opt_comma.
+        return ""
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+        return ""
+
+def handle_name_list_opt_comma(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = "kDataWhatever"
+    data_flag = "kFlagUnknown"
+
+    if parent == "opt_pivot_group_by":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "unpivot_header":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "alias_clause":
+        # handled by alias_clause
+        return ""
+    elif parent == "join_qual":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "except_list":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "name_list_opt_comma_opt_bracket":
+        # handled by name_list_opt_comma_opt_bracket
+        return ""
+    elif parent == "opt_name_list":
+        # handled by opt_name_list
+        return ""
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+        return ""
+
+    return f"setup_name_list_opt_comma({ir_ref}, {data_type}, {data_flag}); \n"
+
+def handle_name_list_opt_comma_opt_bracket(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    data_type = ""
+    data_flag = ""
+
+    if parent == "simple_select":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+        return ""
+
+    if data_type != "" or data_flag != "":
+        return f"setup_name_list_opt_comma_opt_bracket({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
+
+def handle_opt_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    if parent == "common_table_expr":
+        data_type = "kDataAliasName"
+        data_flag = "kCreate"
+    elif parent == "VacuumStmt":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "AnalyzeStmt":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    else:
+        # print(parent)
+        # print(token_sequence)
+        # print("\n\n")
+        return ""
+
+    return f"setup_opt_name_list({ir_ref}, {data_type}, {data_flag}); \n"
+
 def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
-
-def handle_drop_stmt(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
-
-def handle_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
@@ -277,6 +362,21 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
     elif cur_token.word == "name":
         data_type, data_flag = handle_name(cur_token, parent, token_sequence, ir_ref)
         res += f"setup_name({ir_ref}, {data_type}, {data_flag}); \n"
+
+    elif cur_token.word == "name_list":
+        res += handle_name_list(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "name_list_opt_comma":
+        res += handle_name_list_opt_comma(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "name_list_opt_comma_opt_bracket":
+        res += handle_name_list_opt_comma_opt_bracket(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "opt_name_list":
+        res += handle_opt_name_list(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "DropStmt":
+        res += handle_drop_stmt(cur_token, parent, token_sequence, ir_ref)
 
     elif cur_token.word == "qualified_name":
         # TODO:: WIP

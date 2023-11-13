@@ -137,6 +137,86 @@ void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
     return;
 }
 
+void setup_drop_stmt(IR* cur_ir) {
+    
+    std::string drop_stmt_str = cur_ir->to_string();
+    DATATYPE data_type = kDataWhatever;
+    
+    if (drop_stmt_str.find("DROP TABLE") != std::string::npos) {
+        data_type = kDataTableName;
+    }
+    else if (drop_stmt_str.find("DROP SEQUENCE") != std::string::npos) {
+        data_type = kDataSequenceName;
+    }
+    else if (drop_stmt_str.find("DROP FUNCTION") != std::string::npos) {
+        data_type = kDataFunctionName;
+    }
+    else if (drop_stmt_str.find("DROP VIEW") != std::string::npos) {
+        data_type = kDataViewName;
+    }
+    else if (drop_stmt_str.find("DROP MATERIALIZED VIEW") != std::string::npos) {
+        data_type = kDataViewName;
+    }
+    else if (drop_stmt_str.find("DROP INDEX") != std::string::npos) {
+        data_type = kDataIndexName;
+    }
+    else if (drop_stmt_str.find("DROP FOREIGN TABLE") != std::string::npos) {
+        // Not accurate. Should be kUse instead of kUndefine.
+        data_type = kDataTableName;
+    }
+    else if (drop_stmt_str.find("DROP COLLATION") != std::string::npos) {
+        data_type = kDataCollate;
+    }
+    else if (drop_stmt_str.find("DROP SCHEMA") != std::string::npos) {
+        data_type = kDataDatabase;
+    }
+    else if (drop_stmt_str.find("DROP TRIGGER") != std::string::npos) {
+        data_type = kDataTriggerName;
+    }
+    else if (drop_stmt_str.find("DROP TYPE") != std::string::npos) {
+        data_type = kDataTypeName;
+    }
+
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kName);
+    if (v_name.size()) {
+        IR* cur_name = v_name.front();
+        setup_name(cur_name, data_type, kUndefine);
+    }
+    return;
+}
+
+void setup_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kName);
+    for (IR* cur_name: v_name) {
+        setup_name(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameList);
+    for (IR* cur_name: v_name) {
+        setup_name_list(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    for (IR* cur_name: v_name) {
+        setup_name_list_opt_comma(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    for (IR* cur_name: v_name) {
+        setup_name_list_opt_comma(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
 /* parser_init()
  * Initialize to parse one query string
  */
@@ -206,6 +286,11 @@ void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_col_id_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_drop_stmt(IR* cur_ir);
+void setup_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"
