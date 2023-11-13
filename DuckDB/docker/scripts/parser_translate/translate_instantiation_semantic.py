@@ -2,11 +2,107 @@ import os
 from typing import List
 from translate_utils import Token
 
+def handle_col_id_and_string(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    if parent == "qualified_name":
+        # Handled by qualified_name
+        return "", ""
+    elif parent == "single_pivot_value" or parent == "pivot_value" or parent == "unpivot_header":
+        return "kDataColumnName", "kUse"
+    elif parent == "alias_clause" or parent == "func_alias_clause":
+        # Handled by alias_clause and func_alias_clause
+        return "", ""
+    elif parent == "TableFuncElement":
+        return "kDataColumnName", "kUse"
+    elif parent == "dict_arg":
+        return "kDataDictArg", "kCreate"
+    elif parent == "name":
+        # handled by name
+        return "", ""
+    else:
+        # print(parent)
+        # print(token_sequence)
+        # print("\n\n")
+        return "", ""
+
+def handle_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    if parent == "alter_table_cmd" and token_sequence.count("ALTER")  and token_sequence.count("CONSTRAINT"):
+        return "kDataConstraintName", "kUse"
+    elif parent == "alter_table_cmd" and token_sequence.count("VALIDATE") and token_sequence.count("CONSTRAINT"):
+        return "kDataConstraintName", "kUse"
+    elif parent == "alter_table_cmd" and token_sequence.count("DROP") and token_sequence.count("CONSTRAINT"):
+        return "kDataConstraintName", "kUndefine"
+    elif parent == "DeallocateStmt":
+        return "kDataPrepareName", "kUndefine"
+    elif parent == "RenameStmt":
+        data_type = ""
+        if token_sequence.count("SCHEMA"):
+            data_type = "kDataDatabase"
+        elif token_sequence.count("TABLE") and not token_sequence.count("opt_column") and not token_sequence.count("CONSTRAINT"):
+            data_type = "kDataTableName"
+        elif token_sequence.count("SEQUENCE"):
+            data_type = "kDataSequenceName"
+        elif token_sequence.count("VIEW"):
+            data_type = "kDataViewName"
+        elif token_sequence.count("INDEX"):
+            data_type = "kDataIndexName"
+        elif token_sequence.count("INDEX"):
+            data_type = "kDataIndexName"
+        elif token_sequence.count("TABLE") and token_sequence.count("opt_column"):
+            data_type = "kDataColumnName"
+        elif token_sequence.count("TABLE") and token_sequence.count("CONSTRAINT"):
+            data_type = "kDataConstraintName"
+        else:
+            print("ERROR")
+            exit(1)
+
+        data_flag = ""
+        if cur_token.index != (len(token_sequence) - 1):
+            data_flag = "kUndefine"
+        else:
+            data_flag = "kDefine"
+
+        return data_type, data_flag
+
+    elif parent == "opt_conf_expr":
+        return "kDataConstraintName", "kUse"
+    elif parent == "ExecuteStmt":
+        return "kDataPrepareName", "kUse"
+    elif parent == "ColConstraint":
+        return "kDataConstraintName", "kUse"
+    elif parent == "ColConstraintElem":
+        return "kDataCompressionName", "kUse"
+    elif parent == "TableConstraint":
+        return "kDataConstraintName", "kUse"
+    elif parent == "DropStmt":
+        # handled by DropStmt
+        return "", ""
+    elif parent == "simple_select":
+        return "kDataTableName", "kCreate"
+    elif parent == "common_table_expr":
+        return "kDataAliasTableName", "kCreate"
+    elif parent == "name_list":
+        # handled by name_list
+        return "", ""
+    elif parent == "PrepareStmt":
+        return "kDataPrepareName", "kCreate"
+    elif parent == "AlterObjectSchemaStmt":
+        return "kDataDatabase", "kUse"
+
+    else:
+        # print(parent)
+        # print(token_sequence)
+        # print("\n\n")
+        return "", ""
+
 def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
-def handle_col_id_and_string(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+def handle_drop_stmt(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    # TODO:: WIP
+    return "", ""
+
+def handle_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
@@ -36,6 +132,10 @@ def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str]
     return "", ""
 
 def handle_opt_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    # TODO:: WIP
+    return "", ""
+
+def handle_func_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
     return "", ""
 
@@ -170,14 +270,18 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
     elif cur_token.word == "table_id":
         res += handle_table_id(cur_token, parent, token_sequence, ir_ref)
 
+    elif cur_token.word == "ColIdOrString":
+        data_type, data_flag = handle_col_id_and_string(cur_token, parent, token_sequence, ir_ref)
+        res += f"setup_col_id_or_string({ir_ref}, {data_type}, {data_flag}); \n"
+
+    elif cur_token.word == "name":
+        data_type, data_flag = handle_name(cur_token, parent, token_sequence, ir_ref)
+        res += f"setup_name({ir_ref}, {data_type}, {data_flag}); \n"
+
     elif cur_token.word == "qualified_name":
         # TODO:: WIP
         data_type, data_flag = handle_qualified_name(cur_token, parent, token_sequence, ir_ref)
         res += f"setup_qualified_name({ir_ref}, {data_type}, {data_flag}); \n"
 
-    elif cur_token.word == "ColIdOrString":
-        # TODO:: WIP
-        data_type, data_flag = handle_col_id_and_string(cur_token, parent, token_sequence, ir_ref)
-        res += f"setup_col_id_or_string({ir_ref}, {data_type}, {data_flag}); \n"
 
     return res

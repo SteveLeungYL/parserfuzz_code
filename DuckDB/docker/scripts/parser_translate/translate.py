@@ -110,6 +110,24 @@ void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
     return;
 }
 
+void setup_col_id_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
+void setup_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
 void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
     for (IR* cur_iden: v_iden) {
@@ -185,6 +203,8 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 std::string cstr_to_string(char *str);
 std::vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_IR, IRTYPE ir_type);
 void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_col_id_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 						 
 %}
