@@ -1,10 +1,15 @@
 import os.path
+import sys
 from typing import List
 import re
 from translate_instantiation_semantic import setup_identifier_semantics
+from translate_utils import *
 
 import click
 from loguru import logger
+
+logger.remove()
+logger.add(sys.stderr, level="ERROR")
 
 ONETAB = " " * 4
 ONESPACE = " "
@@ -36,62 +41,6 @@ ignored_token_rules = [
     "type_func_name_keyword",
     "reserved_keyword"
 ]
-
-class Token:
-    def __init__(self, word, index):
-        self.word = word
-        self.index = index
-        self._is_terminating_keyword = None
-
-    @property
-    def is_terminating_keyword(self):
-        if self._is_terminating_keyword is not None:
-            return self._is_terminating_keyword
-
-        if "'" in self.word:
-            self._is_terminating_keyword = True
-            return self._is_terminating_keyword
-
-        if is_identifier(self) is not None:
-            self._is_terminating_keyword = False
-            return self._is_terminating_keyword
-
-        if not self.word[0].isalpha():
-            self._is_terminating_keyword = True
-            return self._is_terminating_keyword
-
-        is_term = True
-        for c in self.word:
-            if c.isupper() or c == "_":
-                continue
-            else:
-                # lower case
-                is_term = False
-        self._is_terminating_keyword = is_term
-        return self._is_terminating_keyword
-
-    def __str__(self) -> str:
-        if self.is_terminating_keyword:
-            if self.word.startswith("'") and self.word.endswith("'"):
-                return self.word.strip("'")
-            self.word = self.word.replace("_P", "")
-            self.word = self.word.replace("_LA", "")
-            return self.word
-
-        return self.word
-
-    def __repr__(self) -> str:
-        return '{prefix}("{word}")'.format(
-            prefix="Keyword" if self.is_terminating_keyword else "Token", word=self.word
-        )
-
-    def __gt__(self, other):
-        other_index = -1
-        if isinstance(other, Token):
-            other_index = other.index
-
-        return self.index > other_index
-
 
 def snake_to_camel(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
@@ -407,21 +356,7 @@ def ir_type_str_rewrite(cur_types) -> str:
     cur_types = "".join(cur_types_l)
     return cur_types
 
-def is_identifier(cur_token):
-    if cur_token.word == "IDENT":
-        return "kIdentifier"
-    elif cur_token.word == "SCONST":
-        return "kStringLiteral"
-    elif cur_token.word == "FCONST":
-        return "kFloatLiteral"
-    elif cur_token.word == "ICONST" or cur_token.word == "PARAM":
-        return "kIntegerLiteral"
-    elif cur_token.word == "BCONST" or cur_token.word == "XCONST":
-        return "kBinLiteral"
-    elif cur_token.word == "FALSE_P" or cur_token.word == "TRUE_P":
-        return "kBoolLiteral"
-    else:
-        return None
+
 
 def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: List[Token], tmp_num: int) -> str:
     body = ""
@@ -442,7 +377,7 @@ def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: 
         body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
 
     token_sequence = [w.word for w in token_sequence]
-    body += setup_identifier_semantics(cur_token=cur_token.word, parent=parent, token_sequence = token_sequence, ir_ref = f"tmp{tmp_num}")
+    body += setup_identifier_semantics(cur_token=cur_token, parent=parent, token_sequence = token_sequence, ir_ref = f"tmp{tmp_num}")
 
     return body
 
@@ -852,7 +787,6 @@ def run(output, remove_comments):
     grammar_prefix_add_on = modify_prefix(data_split[0])
 
     grammar_rule_str = data_split[1]
-    print(grammar_rule_str)
     grammar_rule_str = remove_comments_if_necessary(grammar_rule_str, remove_comments)
 
     marked_lines, extract_tokens = mark_statement_location(grammar_rule_str)
