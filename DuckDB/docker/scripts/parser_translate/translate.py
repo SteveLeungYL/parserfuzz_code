@@ -271,11 +271,62 @@ void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
     return;
 }
 
-void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
 
     std::vector<IR*> v_qualified_name = get_ir_node_in_stmt_with_type(cur_ir, kQualifiedName);
     for (IR* cur_name: v_qualified_name) {
         setup_qualified_name(cur_name, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
+void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_ident: v_ident) {
+        cur_ident->->set_data_type(data_type);
+        cur_ident->->set_data_flag(data_flag);
+    }
+    
+    return;
+}
+
+void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColLabel);
+    for (IR* cur_ident: v_ident) {
+        setup_col_label(cur_ident, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    for (IR* cur_ident: v_ident) {
+        setup_col_Id(cur_ident, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColumnList);
+    for (IR* cur_ident: v_ident) {
+        setup_column_list(cur_ident, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColumnList);
+    for (IR* cur_ident: v_ident) {
+        setup_column_list(cur_ident, data_type, data_flag);
     }
     
     return;
@@ -358,7 +409,11 @@ void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 void setup_qualified_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
-void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"

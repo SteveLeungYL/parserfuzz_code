@@ -429,29 +429,144 @@ def handle_relation_expr(cur_token: Token, parent: str, token_sequence: List[str
         return ""
 
 def handle_col_label(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    data_type = ""
+    data_flag = ""
 
-def handle_attr_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
+    if parent == "attr_name":
+        # TODO: Ignore for now
+        return ""
+    elif parent == "generic_option_name":
+        # Handled by alter_generic_option_elem
+        return ""
+    elif parent == "def_elem":
+        # Not accurate
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "reloption_elem":
+        # Not accurate
+        data_type = "kDataReloptionName"
+        data_flag = "kUse"
+    elif parent == "copy_generic_opt_elem":
+        # Not accurate
+        data_type = "kDataReloptionName"
+        data_flag = "kUse"
+    elif parent == "d_expr":
+        # Not accurate
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "ColLabelOrString":
+        # handled by col_label_or_string
+        return ""
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_col_label({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
+
+def handle_alter_generic_option_elem(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
     # TODO:: WIP
-    return "", ""
+    return ""
+
+def handle_attr_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    # TODO:: WIP
+    return ""
+
+def handle_opt_indirection(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    # TODO:: WIP
+    return ""
+
+def handle_col_label_or_string(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = ""
+    data_flag = ""
+    if parent == "target_el":
+        data_type = "kDataAliasName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_col_label_or_string({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
+
 
 def handle_opt_column_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+
+    data_type = ""
+    data_flag = ""
+    if parent == "ColConstraintElem" or parent == "ConstraintElem" or parent == "CopyStmt":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "ViewStmt":
+        data_type = "kDataColumnName"
+        data_flag = "kCreate"
+    elif parent == "create_as_target":
+        data_type = "kDataColumnName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_opt_column_list({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
 
 def handle_column_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    data_type = ""
+    data_flag = ""
+    if parent == "opt_column_list":
+        # handled by opt_column_list
+        return ""
+    elif parent == "columnList":
+        # handled by itself
+        return ""
+    elif parent == "columnList_opt_comma":
+        # used in PRIMARY KEY, UNIQUE etc constraint definition
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "copy_opt_item":
+        data_type = "kDataColumnName"
+        data_flag = "kUse"
+    elif parent == "ViewStmt":
+        data_type = "kDataColumnName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
 
+    if data_type != "" or data_flag != "":
+        return f"setup_column_list({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
 
-def handle_column_list_opt_comma(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
 
 def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    # TODO: WIP
+
+    data_type = ""
+    data_flag = ""
+
+    if parent == "":
+        data_type = "kDataColumnName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_alias_clause({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
 
 def handle_opt_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
@@ -586,7 +701,7 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
     res = ""
     if cur_token.word == "ColId":
         data_type, data_flag = handle_col_id(cur_token, parent, token_sequence, ir_ref)
-        if data_type != "" and data_flag != "":
+        if data_type != "" or data_flag != "":
             res += f"setup_col_id({ir_ref}, {data_type}, {data_flag}); \n"
 
     elif cur_token.word == "table_id":
@@ -594,11 +709,13 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
 
     elif cur_token.word == "ColIdOrString":
         data_type, data_flag = handle_col_id_and_string(cur_token, parent, token_sequence, ir_ref)
-        res += f"setup_col_id_or_string({ir_ref}, {data_type}, {data_flag}); \n"
+        if data_type != "" or data_flag != "":
+            res += f"setup_col_id_or_string({ir_ref}, {data_type}, {data_flag}); \n"
 
     elif cur_token.word == "name":
         data_type, data_flag = handle_name(cur_token, parent, token_sequence, ir_ref)
-        res += f"setup_name({ir_ref}, {data_type}, {data_flag}); \n"
+        if data_type != "" or data_flag != "":
+            res += f"setup_name({ir_ref}, {data_type}, {data_flag}); \n"
 
     elif cur_token.word == "name_list":
         res += handle_name_list(cur_token, parent, token_sequence, ir_ref)
@@ -626,6 +743,21 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
 
     elif cur_token.word == "relation_expr":
         res += handle_relation_expr(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "ColLabel":
+        res += handle_col_label(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "ColLabelOrString":
+        res += handle_col_label_or_string(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "opt_column_list":
+        res += handle_opt_column_list(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "columnList":
+        res += handle_column_list(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "alias_clause":
+        res += handle_alias_clause(cur_token, parent, token_sequence, ir_ref)
 
 
     return res
