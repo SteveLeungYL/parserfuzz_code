@@ -329,21 +329,104 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
     else:
         return ""
 
-def handle_qualified_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+def handle_qualified_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = ""
+    data_flag = ""
+    data_type_par = ""
+    data_type_par_par = ""
 
-def handle_index_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    if parent == "qualified_name_list":
+        #Handled by itself
+        return ""
+    elif parent == "locked_rels_list":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    else:
+        # print(parent)
+        # print(token_sequence)
+        # print("\n\n")
+        pass
 
-def handle_relation_expr(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    if data_type != "" or data_flag != "":
+        return f"setup_qualified_name_list({ir_ref}, {data_type}, {data_flag}, {data_type_par}, {data_type_par_par}); \n"
+    else:
+        return ""
 
-def handle_opt_index_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+def handle_index_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = ""
+    data_flag = ""
+
+    if parent == "ExistingIndex":
+        data_type = "kDataIndexName"
+        data_flag = "kUse"
+    elif parent == "IndexStmt" or parent == "opt_index_name":
+        data_type = "kDataIndexName"
+        data_flag = "kCreate"
+    else:
+        # print(parent)
+        # print(token_sequence)
+        # print("\n\n")
+        pass
+
+    if data_type != "" or data_flag != "":
+        return f"setup_index_name({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
+
+def handle_relation_expr(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    data_type = ""
+    data_flag = ""
+    data_type_par = "kDataWhatever"
+    data_type_par_par = "kDataWhatever"
+
+    if parent == "AlterTableStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+
+    elif parent == "RenameStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        if token_sequence.count("opt_column"):
+            data_flag = "kUse"
+        elif token_sequence.count("CONSTRAINT"):
+            data_flag = "kUse"
+        else:
+            data_flag = "kUndefine"
+    elif parent == "simple_select":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "table_ref":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "AlterObjectSchemaStmt":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    elif parent == "relation_expr_opt_alias":
+        data_type = "kDataTableName"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+        data_flag = "kUse"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_relation_expr({ir_ref}, {data_type}, {data_flag}, {data_type_par}, {data_type_par_par}); \n"
+    else:
+        return ""
 
 def handle_col_label(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
@@ -534,6 +617,15 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
 
     elif cur_token.word == "qualified_name":
         res += handle_qualified_name(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "qualified_name_list":
+        res += handle_qualified_name_list(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "index_name":
+        res += handle_index_name(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "relation_expr":
+        res += handle_relation_expr(cur_token, parent, token_sequence, ir_ref)
 
 
     return res

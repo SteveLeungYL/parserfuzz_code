@@ -251,6 +251,36 @@ void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DA
     return;
 }
 
+void setup_qualified_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_qualified_name = get_ir_node_in_stmt_with_type(cur_ir, kQualifiedName);
+    for (IR* cur_qualified_name: v_qualified_name) {
+        setup_qualified_name(cur_qualified_name, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
+void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    for (IR* cur_col_id: v_col_id) {
+        setup_col_id(cur_col_id, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_qualified_name = get_ir_node_in_stmt_with_type(cur_ir, kQualifiedName);
+    for (IR* cur_name: v_qualified_name) {
+        setup_qualified_name(cur_name, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
 /* parser_init()
  * Initialize to parse one query string
  */
@@ -326,6 +356,9 @@ void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_fla
 void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_qualified_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"
