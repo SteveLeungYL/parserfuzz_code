@@ -182,6 +182,11 @@ void setup_drop_stmt(IR* cur_ir) {
         IR* cur_name = v_name.front();
         setup_name(cur_name, data_type, kUndefine);
     }
+    
+    std::vector<IR*> v_any_name_list = get_ir_node_in_stmt_with_type(cur_ir, kAnyNameList);
+    for (IR* cur_name_list : v_any_name_list) {
+        setup_any_name_list(cur_name, data_type, kUndefine);
+    }
     return;
 }
 
@@ -398,6 +403,43 @@ void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag)
     return;
 }
 
+
+void setup_any_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    
+    if (v_iden.size() == 1) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+    } elif (v_iden.size() == 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden.front()->set_data_type(data_type_par);
+        v_iden.front()->set_data_flag(kUse);
+    } elif (v_iden.size() > 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden[1]->set_data_type(data_type_par);
+        v_iden[1]->set_data_flag(kUse);
+        v_iden.front()->set_data_type(data_type_par_par);
+        v_iden.front()->set_data_flag(kUse);
+    }
+    
+    return;
+}
+
+void setup_any_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kAnyName);
+    
+    for (IR* cur_ident: v_iden) {
+        setup_any_name(cur_ident, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
+
 /* parser_init()
  * Initialize to parse one query string
  */
@@ -483,6 +525,8 @@ void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_opt_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_any_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_any_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"

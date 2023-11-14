@@ -608,9 +608,74 @@ def handle_func_alias_clause(cur_token: Token, parent: str, token_sequence: List
     else:
         return ""
 
-def handle_any_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+def handle_any_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+    data_type = ""
+    data_flag = ""
+    data_type_par = ""
+    data_type_par_par = ""
+
+    if parent == "opt_collate" or parent == "ColConstraint" or parent == "opt_collate_clause" or "a_expr":
+        data_type = "kDataCollate"
+        data_flag = "kUse"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+    elif parent == "opt_class":
+        data_type = "kDataClassName"
+        data_flag = "kUse"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+    elif parent == "SeqOptElem" and token_sequence.count("OWNED"):
+        data_type = "kDataRoleName"
+        data_flag = "kUse"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+    elif parent == "SeqOptElem" and token_sequence.count("SEQUENCE"):
+        data_type = "kDataSequenceName"
+        data_flag = "kUse"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+    elif parent == "DropStmt":
+        # Drop RULE on table. Table can be reused.
+        data_type = "kDataTableName"
+        data_flag = "kUse"
+        data_type_par = "kDataSchemaName"
+        data_type_par_par = "kDataDatabase"
+    elif parent == "any_name_list":
+        # handled by any_name_list
+        return ""
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_any_name({ir_ref}, {data_type}, {data_flag}, {data_type_par}, {data_type_par_par}); \n"
+    else:
+        return ""
+
+def handle_any_name_list(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    data_type = ""
+    data_flag = ""
+    data_type_par = ""
+    data_type_par_par = ""
+
+    if parent == "any_name_list":
+        # handled by itself.
+        return ""
+    elif parent == "DropStmt":
+        # handled by DropStmt.
+        return ""
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    # NO USAGE.
+    if data_type != "" or data_flag != "":
+        return f"setup_any_name_list({ir_ref}, {data_type}, {data_flag}, {data_type_par}, {data_type_par_par}); \n"
+    else:
+        return ""
 
 def handle_table_id(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
     res = ""
@@ -796,5 +861,11 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
 
     elif cur_token.word == "func_alias_clause":
         res += handle_func_alias_clause(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "any_name":
+        res += handle_any_name(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "any_name_list":
+        res += handle_any_name_list(cur_token, parent, token_sequence, ir_ref)
 
     return res
