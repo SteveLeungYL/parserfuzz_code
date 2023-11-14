@@ -185,7 +185,7 @@ void setup_drop_stmt(IR* cur_ir) {
     
     std::vector<IR*> v_any_name_list = get_ir_node_in_stmt_with_type(cur_ir, kAnyNameList);
     for (IR* cur_name_list : v_any_name_list) {
-        setup_any_name_list(cur_name, data_type, kUndefine);
+        setup_any_name_list(cur_name_list, data_type, kUndefine);
     }
     return;
 }
@@ -239,12 +239,12 @@ void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DA
     if (v_iden.size() == 1) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
-    } elif (v_iden.size() == 2) {
+    } else if (v_iden.size() == 2) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
         v_iden.front()->set_data_type(data_type_par);
         v_iden.front()->set_data_flag(kUse);
-    } elif (v_iden.size() > 2) {
+    } else if (v_iden.size() > 2) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
         v_iden[1]->set_data_type(data_type_par);
@@ -289,9 +289,9 @@ void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DAT
 void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
-    for (IR* cur_ident: v_ident) {
-        cur_ident->->set_data_type(data_type);
-        cur_ident->->set_data_flag(data_flag);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->->set_data_type(data_type);
+        cur_iden->->set_data_flag(data_flag);
     }
     
     return;
@@ -300,8 +300,8 @@ void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColLabel);
-    for (IR* cur_ident: v_ident) {
-        setup_col_label(cur_ident, data_type, data_flag);
+    for (IR* cur_iden: v_iden) {
+        setup_col_label(cur_iden, data_type, data_flag);
     }
     
     return;
@@ -310,8 +310,8 @@ void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_fla
 void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColId);
-    for (IR* cur_ident: v_ident) {
-        setup_col_Id(cur_ident, data_type, data_flag);
+    for (IR* cur_iden: v_iden) {
+        setup_col_Id(cur_iden, data_type, data_flag);
     }
     
     return;
@@ -320,8 +320,8 @@ void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColumnList);
-    for (IR* cur_ident: v_ident) {
-        setup_column_list(cur_ident, data_type, data_flag);
+    for (IR* cur_iden: v_iden) {
+        setup_column_list(cur_iden, data_type, data_flag);
     }
     
     return;
@@ -411,12 +411,12 @@ void setup_any_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE
     if (v_iden.size() == 1) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
-    } elif (v_iden.size() == 2) {
+    } else if (v_iden.size() == 2) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
         v_iden.front()->set_data_type(data_type_par);
         v_iden.front()->set_data_flag(kUse);
-    } elif (v_iden.size() > 2) {
+    } else if (v_iden.size() > 2) {
         v_iden.back()->set_data_type(data_type);
         v_iden.back()->set_data_flag(data_flag);
         v_iden[1]->set_data_type(data_type_par);

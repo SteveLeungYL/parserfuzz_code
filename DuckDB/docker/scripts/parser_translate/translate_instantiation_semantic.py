@@ -12,9 +12,9 @@ def handle_col_id_and_string(cur_token: Token, parent: str, token_sequence: List
         # Handled by alias_clause and func_alias_clause
         return "", ""
     elif parent == "TableFuncElement":
-        return "kDataColumnName", "kCreate"
+        return "kDataColumnName", "kDefine"
     elif parent == "dict_arg":
-        return "kDataDictArg", "kCreate"
+        return "kDataDictArg", "kDefine"
     elif parent == "name":
         # handled by name
         return "", ""
@@ -77,14 +77,14 @@ def handle_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref
         # handled by DropStmt
         return "", ""
     elif parent == "simple_select":
-        return "kDataTableName", "kCreate"
+        return "kDataTableName", "kDefine"
     elif parent == "common_table_expr":
-        return "kDataAliasTableName", "kCreate"
+        return "kDataAliasTableName", "kDefine"
     elif parent == "name_list":
         # handled by name_list
         return "", ""
     elif parent == "PrepareStmt":
-        return "kDataPrepareName", "kCreate"
+        return "kDataPrepareName", "kDefine"
     elif parent == "AlterObjectSchemaStmt":
         return "kDataDatabase", "kUse"
 
@@ -172,7 +172,7 @@ def handle_opt_name_list(cur_token: Token, parent: str, token_sequence: List[str
 
     if parent == "common_table_expr":
         data_type = "kDataAliasName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "VacuumStmt":
         data_type = "kDataColumnName"
         data_flag = "kUse"
@@ -207,7 +207,7 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataViewName"
         data_type_par = "kDataTableName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kUsed"
+        data_flag = "kUse"
     elif parent == "RenameStmt" and token_sequence.count("ALTER") and token_sequence.count("INDEX"):
         data_type = "kDataIndexName"
         data_type_par = "kDataTableName"
@@ -232,12 +232,12 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataTypeName"
         data_type_par = "kDataTableName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "CreateSeqStmt":
         data_type = "kDataSequenceName"
         data_type_par = "kDataTableName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "AlterSeqStmt":
         data_type = "kDataSequenceName"
         data_type_par = "kDataTableName"
@@ -252,7 +252,7 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "ColConstraintElem" or parent == "ConstraintElem":
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
@@ -267,7 +267,7 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataFunctionName"
         data_type_par = "kDataSchemaName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "CopyStmt":
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
@@ -277,7 +277,7 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "relation_expr":
         # handled by relation_expr
         return ""
@@ -288,7 +288,7 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataSchemaName"
         data_type_par = "kDataDatabase"
         # data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "IndexStmt":
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
@@ -313,12 +313,12 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type = "kDataViewName"
         data_type_par = "kDataSchemaName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "create_as_target":
         data_type = "kDataTableName"
         data_type_par = "kDataSchemaName"
         data_type_par_par = "kDataDatabase"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -363,7 +363,7 @@ def handle_index_name(cur_token: Token, parent: str, token_sequence: List[str], 
         data_flag = "kUse"
     elif parent == "IndexStmt" or parent == "opt_index_name":
         data_type = "kDataIndexName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         # print(parent)
         # print(token_sequence)
@@ -484,7 +484,7 @@ def handle_col_label_or_string(cur_token: Token, parent: str, token_sequence: Li
     data_flag = ""
     if parent == "target_el":
         data_type = "kDataAliasName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -505,10 +505,10 @@ def handle_opt_column_list(cur_token: Token, parent: str, token_sequence: List[s
         data_flag = "kUse"
     elif parent == "ViewStmt":
         data_type = "kDataColumnName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "create_as_target":
         data_type = "kDataColumnName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -537,7 +537,7 @@ def handle_column_list(cur_token: Token, parent: str, token_sequence: List[str],
         data_flag = "kUse"
     elif parent == "ViewStmt":
         data_type = "kDataColumnName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -556,7 +556,7 @@ def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str]
 
     if parent == "table_ref":
         data_type = "kDataTableName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     elif parent == "opt_alias_clause":
         # handled by opt_alias_clause
         return ""
@@ -580,7 +580,7 @@ def handle_opt_alias_clause(cur_token: Token, parent: str, token_sequence: List[
 
     if parent == "table_ref":
         data_type = "kDataTableName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -597,7 +597,7 @@ def handle_func_alias_clause(cur_token: Token, parent: str, token_sequence: List
 
     if parent == "table_ref":
         data_type = "kDataTableName"
-        data_flag = "kCreate"
+        data_flag = "kDefine"
     else:
         print(parent)
         print(token_sequence)
@@ -715,7 +715,7 @@ def handle_col_id(cur_token: Token, parent: str, token_sequence: List[str], ir_r
         # ColIdOrString, leave it to the ColIdOrString handler
         return "", ""
     elif parent == "insert_target" and token_sequence.count("AS") and token_sequence.count("qualified_name"):
-        return "kDataAliasName", "kCreate"
+        return "kDataAliasName", "kDefine"
     elif parent == "insert_column_item":
         return "kDataColumnName", "kUse"
     elif parent == "index_elem":
@@ -778,9 +778,9 @@ def handle_col_id(cur_token: Token, parent: str, token_sequence: List[str], ir_r
     elif parent == "repo_path":
         return "kRepoPath", "kUse"
     elif parent == "relation_expr_opt_alias":
-        return "kDataAliasTableName", "kCreate"
+        return "kDataAliasTableName", "kDefine"
     elif parent == "opt_database_alias":
-        return "kDataDatabase", "kCreate"
+        return "kDataDatabase", "kDefine"
     elif parent == "var_name":
         # not accurate
         return "kDataPragmaKey", "kUse"
