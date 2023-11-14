@@ -324,10 +324,76 @@ void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
 void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
-    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColumnList);
-    for (IR* cur_ident: v_ident) {
-        setup_column_list(cur_ident, data_type, data_flag);
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    std::vector<IR*> v_name_list = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    
+    if (v_col_id_or_string.size() && v_name_list.size()) {
+        // Both table name and column name present, semantic fixed. 
+        for (IR* cur_ident: v_col_id_or_string) {
+            setup_col_id_or_string(cur_ident, kDataTableName, data_flag);
+        }
+        for (IR* cur_ident: v_name_list) {
+            setup_name_list(cur_ident, kDataColumnName, data_flag);
+        }
     }
+    else if (v_col_id.size() && v_name_list.size()) {
+        // Both table name and column name present, semantic fixed. 
+        for (IR* cur_ident: v_col_id) {
+            setup_col_id_or_string(cur_ident, kDataTableName, data_flag);
+        }
+        for (IR* cur_ident: v_name_list) {
+            setup_name_list(cur_ident, kDataColumnName, data_flag);
+        }
+    }
+    else if (v_col_id_or_string.size()) {
+        // only one alias variable present, use passed in data_type 
+        for (IR* cur_ident: v_col_id_or_string) {
+            setup_col_id_or_string(cur_ident, data_type, data_flag);
+        }
+    }
+    else if (v_col_id.size()) {
+        // only one alias variable present, use passed in data_type 
+        for (IR* cur_ident: v_col_id) {
+            setup_col_id_or_string(cur_ident, data_type, data_flag);
+        }
+    }
+    
+    return;
+}
+
+void setup_opt_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_alias_clause = get_ir_node_in_stmt_with_type(cur_ir, kAliasClause);
+    
+    for (IR* cur_alias_clause: v_alias_clause) {
+        setup_alias_clause(cur_alias_clause, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_alias_clause = get_ir_node_in_stmt_with_type(cur_ir, kAliasClause);
+    
+    for (IR* cur_alias_clause: v_alias_clause) {
+        setup_alias_clause(cur_alias_clause, data_type, data_flag);
+    }
+    
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    
+    for (IR* cur_ident: v_col_id_or_string) {
+        setup_col_id_or_string(cur_ident, data_type, data_flag);
+    }
+    
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    
+    for (IR* cur_ident: v_col_id) {
+        setup_col_id(cur_ident, data_type, data_flag);
+    }
+    
+    // No need to take care of TableFuncElementList, it is already handled in the ColIdOrString handling.
     
     return;
 }
@@ -414,6 +480,9 @@ void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"

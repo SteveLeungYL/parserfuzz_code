@@ -12,7 +12,7 @@ def handle_col_id_and_string(cur_token: Token, parent: str, token_sequence: List
         # Handled by alias_clause and func_alias_clause
         return "", ""
     elif parent == "TableFuncElement":
-        return "kDataColumnName", "kUse"
+        return "kDataColumnName", "kCreate"
     elif parent == "dict_arg":
         return "kDataDictArg", "kCreate"
     elif parent == "name":
@@ -549,15 +549,20 @@ def handle_column_list(cur_token: Token, parent: str, token_sequence: List[str],
         return ""
 
 
-def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO: WIP
+def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
 
     data_type = ""
     data_flag = ""
 
-    if parent == "":
-        data_type = "kDataColumnName"
+    if parent == "table_ref":
+        data_type = "kDataTableName"
         data_flag = "kCreate"
+    elif parent == "opt_alias_clause":
+        # handled by opt_alias_clause
+        return ""
+    elif parent == "func_alias_clause":
+        # handled by func_alias_clause
+        return ""
     else:
         print(parent)
         print(token_sequence)
@@ -568,13 +573,40 @@ def handle_alias_clause(cur_token: Token, parent: str, token_sequence: List[str]
     else:
         return ""
 
-def handle_opt_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+def handle_opt_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> str:
+
+    data_type = ""
+    data_flag = ""
+
+    if parent == "table_ref":
+        data_type = "kDataTableName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_opt_alias_clause({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
 
 def handle_func_alias_clause(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
-    # TODO:: WIP
-    return "", ""
+    data_type = ""
+    data_flag = ""
+
+    if parent == "table_ref":
+        data_type = "kDataTableName"
+        data_flag = "kCreate"
+    else:
+        print(parent)
+        print(token_sequence)
+        print("\n\n")
+
+    if data_type != "" or data_flag != "":
+        return f"setup_func_alias_clause({ir_ref}, {data_type}, {data_flag}); \n"
+    else:
+        return ""
 
 def handle_any_name(cur_token: Token, parent: str, token_sequence: List[str], ir_ref: str) -> (str, str):
     # TODO:: WIP
@@ -759,5 +791,10 @@ def setup_identifier_semantics(cur_token: Token, parent: str, token_sequence: Li
     elif cur_token.word == "alias_clause":
         res += handle_alias_clause(cur_token, parent, token_sequence, ir_ref)
 
+    elif cur_token.word == "opt_alias_clause":
+        res += handle_opt_alias_clause(cur_token, parent, token_sequence, ir_ref)
+
+    elif cur_token.word == "func_alias_clause":
+        res += handle_func_alias_clause(cur_token, parent, token_sequence, ir_ref)
 
     return res
