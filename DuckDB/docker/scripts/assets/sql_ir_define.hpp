@@ -814,7 +814,8 @@ namespace duckdb_libpgquery {
     V(DataSavePoint) \
     V(DataGroupName) \
     V(DataLogFileGroupName) \
-    V(DataFileSystem) \
+    V(DataFileName) \
+    V(DataRepoPath) \
     V(DataSystemVarName) \
     V(DataAliasTableName) \
     V(DataTableNameFollow) \
@@ -828,9 +829,34 @@ namespace duckdb_libpgquery {
     V(DataParserName) \
     V(DataForeignKey) \
     V(DataPartitionName) \
+    V(DataStorageName) \
+    V(DataSampleFunction) \
     V(DataDatabaseFollow) \
+    V(DataAccessMethod) \
+    V(DataCheckPointName) \
+    V(DataDictArg) \
+    V(DataPrepareName) \
+    V(DataCompressionName) \
+    V(DataTypeName) \
+    V(DataReloptionName) \
+    V(DataClassName) \
     V(DataLiteral)
 
+
+enum DATAFLAG {
+	kUse,
+	kMapToClosestOne,
+	kNoSplit,
+	kGlobal,
+	kReplace,
+	kUndefine,
+	kAlias,
+	kMapToAll,
+	kDefine,
+	kNoModi,
+	kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
+	kFlagUnknown
+};
 
 
 #define SWITCHSTART \
@@ -963,20 +989,6 @@ public:
 	std::string suffix_;
 };
 
-enum DATAFLAG {
-	kUse,
-	kMapToClosestOne,
-	kNoSplit,
-	kGlobal,
-	kReplace,
-	kUndefine,
-	kAlias,
-	kMapToAll,
-	kDefine,
-	kNoModi,
-	kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
-	kFlagUnknown
-};
 
 class IR{
 public:

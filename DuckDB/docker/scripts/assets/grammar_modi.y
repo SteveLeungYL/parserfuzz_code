@@ -40,6 +40,29 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 						 const char *msg);
 						 
 std::string cstr_to_string(char *str);
+std::vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_IR, IRTYPE ir_type);
+void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_col_id_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_drop_stmt(IR* cur_ir);
+void setup_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_qualified_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_opt_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag);
+void setup_any_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
+void setup_any_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par);
 						 
 %}
 #line 5 "third_party/libpg_query/grammar/grammar.y"
@@ -690,6 +713,7 @@ stmt:
     | DropStmt {
         IR* res; 
         auto tmp1 = $1;
+        setup_drop_stmt(tmp1); 
         res = new IR(kStmt, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -862,6 +886,7 @@ AlterTableStmt:
     ALTER TABLE relation_expr alter_table_cmds {
         IR* res; 
         auto tmp1 = $3;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -871,6 +896,7 @@ AlterTableStmt:
     | ALTER TABLE IF_P EXISTS relation_expr alter_table_cmds {
         IR* res; 
         auto tmp1 = $5;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -880,6 +906,7 @@ AlterTableStmt:
     | ALTER INDEX qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataIndexName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -889,6 +916,7 @@ AlterTableStmt:
     | ALTER INDEX IF_P EXISTS qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataIndexName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -898,6 +926,7 @@ AlterTableStmt:
     | ALTER SEQUENCE qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -907,6 +936,7 @@ AlterTableStmt:
     | ALTER SEQUENCE IF_P EXISTS qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -916,6 +946,7 @@ AlterTableStmt:
     | ALTER VIEW qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataViewName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -925,6 +956,7 @@ AlterTableStmt:
     | ALTER VIEW IF_P EXISTS qualified_name alter_table_cmds {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataViewName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -1073,6 +1105,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -1085,6 +1118,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP NOT NULL"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1094,6 +1128,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET NOT NULL"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1103,6 +1138,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_2, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -1115,6 +1151,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_3, OP3("ALTER", "", "SET"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
@@ -1127,6 +1164,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_4, OP3("ALTER", "", "RESET"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
@@ -1139,9 +1177,11 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_5, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
+        setup_col_id(tmp3, kDataStorageName, kUse); 
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1151,6 +1191,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_6, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -1166,6 +1207,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_8, OP3("ALTER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -1178,6 +1220,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1187,6 +1230,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY IF EXISTS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1196,6 +1240,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $5;
+        setup_col_id(tmp2, kDataColumnName, kUndefine); 
         res = new IR(kAlterTableCmd_9, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -1208,6 +1253,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUndefine); 
         res = new IR(kAlterTableCmd_10, OP3("DROP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -1220,6 +1266,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_11, OP3("ALTER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -1241,6 +1288,7 @@ alter_table_cmd:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kAlterTableCmd_15, OP3("ALTER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -1260,6 +1308,7 @@ alter_table_cmd:
     | ALTER CONSTRAINT name ConstraintAttributeSpec {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataConstraintName, kUse); 
         auto tmp2 = $4;
         res = new IR(kAlterTableCmd, OP3("ALTER CONSTRAINT", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -1269,6 +1318,7 @@ alter_table_cmd:
     | VALIDATE CONSTRAINT name {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataConstraintName, kUse); 
         res = new IR(kAlterTableCmd, OP3("VALIDATE CONSTRAINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1277,6 +1327,7 @@ alter_table_cmd:
     | DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior {
         IR* res; 
         auto tmp1 = $5;
+        setup_name(tmp1, kDataConstraintName, kUndefine); 
         auto tmp2 = $6;
         res = new IR(kAlterTableCmd, OP3("DROP CONSTRAINT IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -1286,6 +1337,7 @@ alter_table_cmd:
     | DROP CONSTRAINT name opt_drop_behavior {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataConstraintName, kUndefine); 
         auto tmp2 = $4;
         res = new IR(kAlterTableCmd, OP3("DROP CONSTRAINT", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -1456,6 +1508,7 @@ DeallocateStmt:
     DEALLOCATE name {
         IR* res; 
         auto tmp1 = $2;
+        setup_name(tmp1, kDataPrepareName, kUndefine); 
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1464,6 +1517,7 @@ DeallocateStmt:
     | DEALLOCATE PREPARE name {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataPrepareName, kUndefine); 
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE PREPARE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1625,7 +1679,9 @@ RenameStmt:
     ALTER SCHEMA name RENAME TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataDatabase, kUndefine); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataDatabase, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER SCHEMA", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1634,7 +1690,9 @@ RenameStmt:
     | ALTER TABLE relation_expr RENAME TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_relation_expr(tmp1, kDataTableName, kUndefine, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataTableName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1643,7 +1701,9 @@ RenameStmt:
     | ALTER TABLE IF_P EXISTS relation_expr RENAME TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_relation_expr(tmp1, kDataTableName, kUndefine, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataTableName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1652,7 +1712,9 @@ RenameStmt:
     | ALTER SEQUENCE qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataSequenceName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataSequenceName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1661,7 +1723,9 @@ RenameStmt:
     | ALTER SEQUENCE IF_P EXISTS qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataSequenceName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataSequenceName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1670,7 +1734,9 @@ RenameStmt:
     | ALTER VIEW qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataViewName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataViewName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER VIEW", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1679,7 +1745,9 @@ RenameStmt:
     | ALTER VIEW IF_P EXISTS qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataViewName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataViewName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER VIEW IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1688,7 +1756,9 @@ RenameStmt:
     | ALTER INDEX qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataIndexName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataIndexName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER INDEX", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1697,7 +1767,9 @@ RenameStmt:
     | ALTER INDEX IF_P EXISTS qualified_name RENAME TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataIndexName, kUndefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataIndexName, kDefine); 
         res = new IR(kRenameStmt, OP3("ALTER INDEX IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1706,13 +1778,16 @@ RenameStmt:
     | ALTER TABLE relation_expr RENAME opt_column name TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $5;
         res = new IR(kRenameStmt_1, OP3("ALTER TABLE", "RENAME", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
+        setup_name(tmp3, kDataColumnName, kUndefine); 
         res = new IR(kRenameStmt_2, OP3("", "", "TO"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
+        setup_name(tmp4, kDataColumnName, kDefine); 
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1721,13 +1796,16 @@ RenameStmt:
     | ALTER TABLE IF_P EXISTS relation_expr RENAME opt_column name TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $7;
         res = new IR(kRenameStmt_3, OP3("ALTER TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
+        setup_name(tmp3, kDataColumnName, kUndefine); 
         res = new IR(kRenameStmt_4, OP3("", "", "TO"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $10;
+        setup_name(tmp4, kDataColumnName, kDefine); 
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1736,10 +1814,13 @@ RenameStmt:
     | ALTER TABLE relation_expr RENAME CONSTRAINT name TO name {
         IR* res; 
         auto tmp1 = $3;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataConstraintName, kUndefine); 
         res = new IR(kRenameStmt_5, OP3("ALTER TABLE", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
+        setup_name(tmp3, kDataConstraintName, kDefine); 
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1748,10 +1829,13 @@ RenameStmt:
     | ALTER TABLE IF_P EXISTS relation_expr RENAME CONSTRAINT name TO name {
         IR* res; 
         auto tmp1 = $5;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataConstraintName, kUndefine); 
         res = new IR(kRenameStmt_6, OP3("ALTER TABLE IF EXISTS", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $10;
+        setup_name(tmp3, kDataConstraintName, kDefine); 
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1863,6 +1947,7 @@ insert_target:
     qualified_name {
         IR* res; 
         auto tmp1 = $1;
+        setup_qualified_name(tmp1, kDataColumnName, kUse, kDataTableName, kDataDatabase); 
         res = new IR(kInsertTarget, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1871,7 +1956,9 @@ insert_target:
     | qualified_name AS ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_qualified_name(tmp1, kDataColumnName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataAliasName, kDefine); 
         res = new IR(kInsertTarget, OP3("", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1920,6 +2007,7 @@ opt_conf_expr:
     | ON CONSTRAINT name {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataConstraintName, kUse); 
         res = new IR(kOptConfExpr, OP3("ON CONSTRAINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -1960,6 +2048,7 @@ insert_column_item:
     ColId opt_indirection {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $2;
         res = new IR(kInsertColumnItem, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2055,6 +2144,7 @@ index_elem:
     ColId opt_collate opt_class opt_asc_desc opt_nulls_order {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $2;
         res = new IR(kIndexElem_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2175,6 +2265,7 @@ opt_collate:
     COLLATE any_name {
         IR* res; 
         auto tmp1 = $2;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptCollate, OP3("COLLATE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2195,6 +2286,7 @@ opt_class:
     any_name {
         IR* res; 
         auto tmp1 = $1;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptClass, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2302,6 +2394,7 @@ set_target:
     ColId opt_indirection {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataPragmaKey, kUse); 
         auto tmp2 = $2;
         res = new IR(kSetTarget, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2316,6 +2409,7 @@ CreateTypeStmt:
     CREATE_P TYPE_P qualified_name AS ENUM_P select_with_parens {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataTypeName, kDefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kCreateTypeStmt, OP3("CREATE TYPE", "AS ENUM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2325,6 +2419,7 @@ CreateTypeStmt:
     | CREATE_P TYPE_P qualified_name AS ENUM_P '(' opt_enum_val_list ')' {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataTypeName, kDefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $7;
         res = new IR(kCreateTypeStmt, OP3("CREATE TYPE", "AS ENUM (", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2334,6 +2429,7 @@ CreateTypeStmt:
     | CREATE_P TYPE_P qualified_name AS Typename {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataTypeName, kDefine, kDataTableName, kDataDatabase); 
         auto tmp2 = $5;
         res = new IR(kCreateTypeStmt, OP3("CREATE TYPE", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2390,6 +2486,7 @@ PragmaStmt:
     PRAGMA_P ColId {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataPragmaKey, kUse); 
         res = new IR(kPragmaStmt, OP3("PRAGMA", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2398,6 +2495,7 @@ PragmaStmt:
     | PRAGMA_P ColId '=' var_list {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataPragmaKey, kUse); 
         auto tmp2 = $4;
         res = new IR(kPragmaStmt, OP3("PRAGMA", "=", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2407,6 +2505,7 @@ PragmaStmt:
     | PRAGMA_P ColId '(' func_arg_list ')' {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataPragmaKey, kUse); 
         auto tmp2 = $4;
         res = new IR(kPragmaStmt, OP3("PRAGMA", "(", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2422,6 +2521,7 @@ CreateSeqStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataSequenceName, kDefine, kDataTableName, kDataDatabase); 
         res = new IR(kCreateSeqStmt_1, OP3("CREATE", "SEQUENCE", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
@@ -2434,6 +2534,7 @@ CreateSeqStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $7;
+        setup_qualified_name(tmp2, kDataSequenceName, kDefine, kDataTableName, kDataDatabase); 
         res = new IR(kCreateSeqStmt_2, OP3("CREATE", "SEQUENCE IF NOT EXISTS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
@@ -2446,6 +2547,7 @@ CreateSeqStmt:
         IR* res; 
         auto tmp1 = $4;
         auto tmp2 = $6;
+        setup_qualified_name(tmp2, kDataSequenceName, kDefine, kDataTableName, kDataDatabase); 
         res = new IR(kCreateSeqStmt_3, OP3("CREATE OR REPLACE", "SEQUENCE", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
@@ -2482,6 +2584,7 @@ ExecuteStmt:
     EXECUTE name execute_param_clause {
         IR* res; 
         auto tmp1 = $2;
+        setup_name(tmp1, kDataPrepareName, kUse); 
         auto tmp2 = $3;
         res = new IR(kExecuteStmt, OP3("EXECUTE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2495,6 +2598,7 @@ ExecuteStmt:
         res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_name(tmp3, kDataPrepareName, kUse); 
         res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
@@ -2513,6 +2617,7 @@ ExecuteStmt:
         res = new IR(kExecuteStmt_4, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $10;
+        setup_name(tmp3, kDataPrepareName, kUse); 
         res = new IR(kExecuteStmt_5, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $11;
@@ -2596,6 +2701,7 @@ AlterSeqStmt:
     ALTER SEQUENCE qualified_name SeqOptList {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $4;
         res = new IR(kAlterSeqStmt, OP3("ALTER SEQUENCE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2605,6 +2711,7 @@ AlterSeqStmt:
     | ALTER SEQUENCE IF_P EXISTS qualified_name SeqOptList {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataTableName, kDataDatabase); 
         auto tmp2 = $6;
         res = new IR(kAlterSeqStmt, OP3("ALTER SEQUENCE IF EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -2776,6 +2883,7 @@ SeqOptElem:
     | OWNED BY any_name {
         IR* res; 
         auto tmp1 = $3;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kSeqOptElem, OP3("OWNED BY", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2784,6 +2892,7 @@ SeqOptElem:
     | SEQUENCE NAME_P any_name {
         IR* res; 
         auto tmp1 = $3;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kSeqOptElem, OP3("SEQUENCE NAME", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2949,6 +3058,7 @@ UseStmt:
     USE_P qualified_name {
         IR* res; 
         auto tmp1 = $2;
+        setup_qualified_name(tmp1, kDataSchemaName, kUse, kDataDatabase, kDataWhatever); 
         res = new IR(kUseStmt, OP3("USE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -2963,6 +3073,7 @@ CreateStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -2981,6 +3092,7 @@ CreateStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $7;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateStmt_4, OP3("CREATE", "TABLE IF NOT EXISTS", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $9;
@@ -2999,6 +3111,7 @@ CreateStmt:
         IR* res; 
         auto tmp1 = $4;
         auto tmp2 = $6;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateStmt_7, OP3("CREATE OR REPLACE", "TABLE", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
@@ -3159,6 +3272,7 @@ ColConstraint:
     CONSTRAINT name ColConstraintElem {
         IR* res; 
         auto tmp1 = $2;
+        setup_name(tmp1, kDataConstraintName, kUse); 
         auto tmp2 = $3;
         res = new IR(kColConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -3184,6 +3298,7 @@ ColConstraint:
     | COLLATE any_name {
         IR* res; 
         auto tmp1 = $2;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kColConstraint, OP3("COLLATE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -3236,6 +3351,7 @@ ColConstraintElem:
     | USING COMPRESSION name {
         IR* res; 
         auto tmp1 = $3;
+        setup_name(tmp1, kDataCompressionName, kUse); 
         res = new IR(kColConstraintElem, OP3("USING COMPRESSION", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -3252,7 +3368,9 @@ ColConstraintElem:
     | REFERENCES qualified_name opt_column_list key_match key_actions {
         IR* res; 
         auto tmp1 = $2;
+        setup_qualified_name(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $3;
+        setup_opt_column_list(tmp2, kDataColumnName, kUse); 
         res = new IR(kColConstraintElem_1, OP3("REFERENCES", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -3484,6 +3602,7 @@ TableConstraint:
     CONSTRAINT name ConstraintElem {
         IR* res; 
         auto tmp1 = $2;
+        setup_name(tmp1, kDataConstraintName, kUse); 
         auto tmp2 = $3;
         res = new IR(kTableConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -3589,6 +3708,7 @@ ExistingIndex:
     USING INDEX index_name {
         IR* res; 
         auto tmp1 = $3;
+        setup_index_name(tmp1, kDataIndexName, kUse); 
         res = new IR(kExistingIndex, OP3("USING INDEX", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -3772,6 +3892,7 @@ columnDef:
     ColId Typename ColQualList {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kDefine); 
         auto tmp2 = $2;
         res = new IR(kColumnDef_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -3784,6 +3905,7 @@ columnDef:
     | ColId opt_Typename GeneratedConstraintElem ColQualList {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kDefine); 
         auto tmp2 = $2;
         res = new IR(kColumnDef_2, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -3868,6 +3990,7 @@ def_elem:
     ColLabel '=' def_arg {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $3;
         res = new IR(kDefElem, OP3("", "=", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -3877,6 +4000,7 @@ def_elem:
     | ColLabel {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataColumnName, kUse); 
         res = new IR(kDefElem, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4005,6 +4129,7 @@ reloption_elem:
     ColLabel '=' def_arg {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataReloptionName, kUse); 
         auto tmp2 = $3;
         res = new IR(kReloptionElem, OP3("", "=", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -4014,6 +4139,7 @@ reloption_elem:
     | ColLabel {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataReloptionName, kUse); 
         res = new IR(kReloptionElem, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4022,7 +4148,9 @@ reloption_elem:
     | ColLabel '.' ColLabel '=' def_arg {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataReloptionName, kUse); 
         auto tmp2 = $3;
+        setup_col_label(tmp2, kDataReloptionName, kUse); 
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
@@ -4034,7 +4162,9 @@ reloption_elem:
     | ColLabel '.' ColLabel {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataReloptionName, kUse); 
         auto tmp2 = $3;
+        setup_col_label(tmp2, kDataReloptionName, kUse); 
         res = new IR(kReloptionElem, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4070,6 +4200,7 @@ columnList_opt_comma:
     columnList {
         IR* res; 
         auto tmp1 = $1;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kColumnListOptComma, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4078,6 +4209,7 @@ columnList_opt_comma:
     | columnList ',' {
         IR* res; 
         auto tmp1 = $1;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kColumnListOptComma, OP3("", ",", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4174,9 +4306,11 @@ ConstraintElem:
         IR* res; 
         auto tmp1 = $4;
         auto tmp2 = $7;
+        setup_qualified_name(tmp2, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kConstraintElem_3, OP3("FOREIGN KEY (", ") REFERENCES", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
+        setup_opt_column_list(tmp3, kDataColumnName, kUse); 
         res = new IR(kConstraintElem_4, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $9;
@@ -4254,6 +4388,7 @@ TableLikeClause:
     LIKE qualified_name TableLikeOptionList {
         IR* res; 
         auto tmp1 = $2;
+        setup_qualified_name(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $3;
         res = new IR(kTableLikeClause, OP3("LIKE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -4400,6 +4535,7 @@ DropStmt:
         res = new IR(kDropStmt_5, OP3("DROP", "", "ON"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
+        setup_any_name(tmp3, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kDropStmt_6, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $6;
@@ -4415,6 +4551,7 @@ DropStmt:
         res = new IR(kDropStmt_7, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_any_name(tmp3, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kDropStmt_8, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
@@ -4620,6 +4757,7 @@ any_name_list:
     any_name {
         IR* res; 
         auto tmp1 = $1;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kAnyNameList, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4629,6 +4767,7 @@ any_name_list:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_any_name(tmp2, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kAnyNameList, OP3("", ",", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -4720,6 +4859,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_2, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $5;
@@ -4738,6 +4878,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_4, OP3("CREATE", "", "IF NOT EXISTS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_5, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
@@ -4756,6 +4897,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_7, OP3("CREATE OR REPLACE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_8, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
@@ -4774,6 +4916,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_10, OP3("CREATE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_11, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $5;
@@ -4792,6 +4935,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_13, OP3("CREATE", "", "IF NOT EXISTS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_14, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
@@ -4810,6 +4954,7 @@ CreateFunctionStmt:
         res = new IR(kCreateFunctionStmt_16, OP3("CREATE OR REPLACE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
+        setup_qualified_name(tmp3, kDataFunctionName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kCreateFunctionStmt_17, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
@@ -4895,9 +5040,11 @@ CopyStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_qualified_name(tmp2, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kCopyStmt_1, OP3("COPY", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
+        setup_opt_column_list(tmp3, kDataColumnName, kUse); 
         res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $5;
@@ -5141,6 +5288,7 @@ copy_generic_opt_elem:
     ColLabel copy_generic_opt_arg {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_label(tmp1, kDataReloptionName, kUse); 
         auto tmp2 = $2;
         res = new IR(kCopyGenericOptElem, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -5285,6 +5433,7 @@ copy_opt_item:
     | FORCE QUOTE columnList {
         IR* res; 
         auto tmp1 = $3;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kCopyOptItem, OP3("FORCE QUOTE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5300,6 +5449,7 @@ copy_opt_item:
     | PARTITION BY columnList {
         IR* res; 
         auto tmp1 = $3;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kCopyOptItem, OP3("PARTITION BY", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5315,6 +5465,7 @@ copy_opt_item:
     | FORCE NOT NULL_P columnList {
         IR* res; 
         auto tmp1 = $4;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kCopyOptItem, OP3("FORCE NOT NULL", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5323,6 +5474,7 @@ copy_opt_item:
     | FORCE NULL_P columnList {
         IR* res; 
         auto tmp1 = $3;
+        setup_column_list(tmp1, kDataColumnName, kUse); 
         res = new IR(kCopyOptItem, OP3("FORCE NULL", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5736,6 +5888,7 @@ simple_select:
     | TABLE relation_expr {
         IR* res; 
         auto tmp1 = $2;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kSimpleSelect, OP3("TABLE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5814,6 +5967,7 @@ simple_select:
         res = new IR(kSimpleSelect_39, OP3("", "", "GROUP BY"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
+        setup_name_list_opt_comma_opt_bracket(tmp4, kDataColumnName, kUse); 
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5826,6 +5980,7 @@ simple_select:
         res = new IR(kSimpleSelect_40, OP3("", "", "GROUP BY"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
+        setup_name_list_opt_comma_opt_bracket(tmp3, kDataColumnName, kUse); 
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5853,6 +6008,7 @@ simple_select:
         res = new IR(kSimpleSelect_43, OP3("", "", "GROUP BY"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
+        setup_name_list_opt_comma_opt_bracket(tmp4, kDataColumnName, kUse); 
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5886,6 +6042,7 @@ simple_select:
         res = new IR(kSimpleSelect_48, OP3("", "", "GROUP BY"), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $9;
+        setup_name_list_opt_comma_opt_bracket(tmp5, kDataColumnName, kUse); 
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5901,12 +6058,14 @@ simple_select:
         res = new IR(kSimpleSelect_50, OP3("", "", "INTO NAME"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
+        setup_name(tmp4, kDataTableName, kDefine); 
         res = new IR(kSimpleSelect_51, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $8;
         res = new IR(kSimpleSelect_52, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         auto tmp6 = $9;
+        setup_name_list_opt_comma_opt_bracket(tmp6, kDataColumnName, kUse); 
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6113,7 +6272,9 @@ common_table_expr:
     name opt_name_list AS opt_materialized '(' PreparableStmt ')' {
         IR* res; 
         auto tmp1 = $1;
+        setup_name(tmp1, kDataAliasTableName, kDefine); 
         auto tmp2 = $2;
+        setup_opt_name_list(tmp2, kDataAliasName, kDefine); 
         res = new IR(kCommonTableExpr_1, OP3("", "", "AS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -6180,6 +6341,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("TEMPORARY", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6189,6 +6351,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("TEMP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6198,6 +6361,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $3;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6207,6 +6371,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $3;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6216,6 +6381,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $3;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("GLOBAL TEMPORARY", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6225,6 +6391,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $3;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("GLOBAL TEMP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6234,6 +6401,7 @@ OptTempTableName:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_qualified_name(tmp2, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("UNLOGGED", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6242,6 +6410,7 @@ OptTempTableName:
     | TABLE qualified_name {
         IR* res; 
         auto tmp1 = $2;
+        setup_qualified_name(tmp1, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("TABLE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6250,6 +6419,7 @@ OptTempTableName:
     | qualified_name {
         IR* res; 
         auto tmp1 = $1;
+        setup_qualified_name(tmp1, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptTempTableName, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6733,6 +6903,7 @@ opt_sample_func:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataSampleFunction, kUse); 
         res = new IR(kOptSampleFunc, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6774,6 +6945,7 @@ tablesample_entry:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataSampleFunction, kUse); 
         res = new IR(kTablesampleEntry, OP3("", "(", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6783,6 +6955,7 @@ tablesample_entry:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataSampleFunction, kUse); 
         res = new IR(kTablesampleEntry_2, OP3("", "(", ","), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = new IR(kIntegerLiteral, $5);
@@ -7339,6 +7512,7 @@ locked_rels_list:
     OF qualified_name_list {
         IR* res; 
         auto tmp1 = $2;
+        setup_qualified_name_list(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kLockedRelsList, OP3("OF", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7491,7 +7665,9 @@ table_ref:
     relation_expr opt_alias_clause opt_tablesample_clause {
         IR* res; 
         auto tmp1 = $1;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $2;
+        setup_opt_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
@@ -7504,6 +7680,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $2;
+        setup_func_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef_2, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
@@ -7516,6 +7693,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $2;
+        setup_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef_3, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
@@ -7528,6 +7706,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_func_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef, OP3("LATERAL", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7537,6 +7716,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $2;
+        setup_opt_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef_4, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
@@ -7549,6 +7729,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $3;
+        setup_opt_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef, OP3("LATERAL", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7566,6 +7747,7 @@ table_ref:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_alias_clause(tmp2, kDataTableName, kDefine); 
         res = new IR(kTableRef, OP3("(", ")", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7584,6 +7766,7 @@ table_ref:
         res = new IR(kTableRef_7, OP3("", "", ")"), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $9;
+        setup_opt_alias_clause(tmp5, kDataTableName, kDefine); 
         res = new IR(kTableRef, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7602,6 +7785,7 @@ table_ref:
         res = new IR(kTableRef_10, OP3("", "", ")"), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $9;
+        setup_opt_alias_clause(tmp5, kDataTableName, kDefine); 
         res = new IR(kTableRef, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7615,6 +7799,7 @@ opt_pivot_group_by:
     GROUP_P BY name_list_opt_comma {
         IR* res; 
         auto tmp1 = $3;
+        setup_name_list_opt_comma(tmp1, kDataColumnName, kUse); 
         res = new IR(kOptPivotGroupBy, OP3("GROUP BY", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7671,6 +7856,7 @@ single_pivot_value:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id_or_string(tmp2, kDataColumnName, kUse); 
         res = new IR(kSinglePivotValue, OP3("", "IN", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7715,6 +7901,7 @@ pivot_value:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id_or_string(tmp2, kDataColumnName, kUse); 
         res = new IR(kPivotValue, OP3("", "IN", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7750,6 +7937,7 @@ unpivot_header:
     ColIdOrString {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id_or_string(tmp1, kDataColumnName, kUse); 
         res = new IR(kUnpivotHeader, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -7758,6 +7946,7 @@ unpivot_header:
     | '(' name_list_opt_comma ')' {
         IR* res; 
         auto tmp1 = $2;
+        setup_name_list_opt_comma(tmp1, kDataColumnName, kUse); 
         res = new IR(kUnpivotHeader, OP3("(", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -8111,6 +8300,7 @@ join_qual:
     USING '(' name_list_opt_comma ')' {
         IR* res; 
         auto tmp1 = $3;
+        setup_name_list_opt_comma(tmp1, kDataColumnName, kUse); 
         res = new IR(kJoinQual, OP3("USING (", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -8309,6 +8499,7 @@ TableFuncElement:
     ColIdOrString Typename opt_collate_clause {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id_or_string(tmp1, kDataColumnName, kDefine); 
         auto tmp2 = $2;
         res = new IR(kTableFuncElement_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -8326,6 +8517,7 @@ opt_collate_clause:
     COLLATE any_name {
         IR* res; 
         auto tmp1 = $2;
+        setup_any_name(tmp1, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kOptCollateClause, OP3("COLLATE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -8346,6 +8538,7 @@ colid_type_list:
     ColId Typename {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $2;
         res = new IR(kColidTypeList, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -8356,6 +8549,7 @@ colid_type_list:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataColumnName, kUse); 
         res = new IR(kColidTypeList_1, OP3("", ",", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $4;
@@ -9362,6 +9556,7 @@ a_expr:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_any_name(tmp2, kDataCollate, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kAExpr, OP3("", "COLLATE", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -10005,6 +10200,7 @@ a_expr:
     | ColId '.' '*' opt_except_list opt_replace_list {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataTableName, kUse); 
         auto tmp2 = $4;
         res = new IR(kAExpr_18, OP3("", ". *", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -10307,6 +10503,7 @@ d_expr:
     | '$' ColLabel {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_label(tmp1, kDataColumnName, kUse); 
         res = new IR(kDExpr, OP3("$", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -10725,6 +10922,7 @@ list_comprehension:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_col_id(tmp2, kDataAliasName, kDefine); 
         res = new IR(kListComprehension_1, OP3("[", "FOR", "IN"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -10737,6 +10935,7 @@ list_comprehension:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_col_id(tmp2, kDataAliasName, kDefine); 
         res = new IR(kListComprehension_2, OP3("[", "FOR", "IN"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
@@ -10862,6 +11061,7 @@ window_definition:
     ColId AS window_specification {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataWindowName, kDefine); 
         auto tmp2 = $3;
         res = new IR(kWindowDefinition, OP3("", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -10884,6 +11084,7 @@ over_clause:
     | OVER ColId {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataWindowName, kUse); 
         res = new IR(kOverClause, OP3("OVER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -10924,6 +11125,7 @@ opt_existing_window_name:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataWindowName, kUse); 
         res = new IR(kOptExistingWindowName, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -11098,6 +11300,7 @@ dict_arg:
     ColIdOrString ':' a_expr {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id_or_string(tmp1, kDataDictArg, kDefine); 
         auto tmp2 = $3;
         res = new IR(kDictArg, OP3("", ":", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -11493,6 +11696,7 @@ any_operator:
     | ColId '.' any_operator {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $3;
         res = new IR(kAnyOperator, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -12093,6 +12297,7 @@ columnref:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         res = new IR(kColumnref, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12101,6 +12306,7 @@ columnref:
     | ColId indirection {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         auto tmp2 = $2;
         res = new IR(kColumnref, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -12404,6 +12610,7 @@ target_el:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_label_or_string(tmp2, kDataAliasName, kDefine); 
         res = new IR(kTargetEl, OP3("", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12435,6 +12642,7 @@ except_list:
     EXCLUDE '(' name_list_opt_comma ')' {
         IR* res; 
         auto tmp1 = $3;
+        setup_name_list_opt_comma(tmp1, kDataColumnName, kUse); 
         res = new IR(kExceptList, OP3("EXCLUDE (", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12443,6 +12651,7 @@ except_list:
     | EXCLUDE ColId {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataColumnName, kUse); 
         res = new IR(kExceptList, OP3("EXCLUDE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12477,6 +12686,7 @@ replace_list_el:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataAliasName, kDefine); 
         res = new IR(kReplaceListEl, OP3("", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12668,6 +12878,7 @@ func_name:
     | ColId indirection {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataFunctionName, kUse); 
         auto tmp2 = $2;
         res = new IR(kFuncName, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -12983,6 +13194,7 @@ PrepareStmt:
     PREPARE name prep_type_clause AS PreparableStmt {
         IR* res; 
         auto tmp1 = $2;
+        setup_name(tmp1, kDataPrepareName, kDefine); 
         auto tmp2 = $3;
         res = new IR(kPrepareStmt_1, OP3("PREPARE", "", "AS"), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -13065,6 +13277,7 @@ CreateSchemaStmt:
     CREATE_P SCHEMA qualified_name OptSchemaEltList {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataSchemaName, kDefine, kDataDatabase, kDataWhatever); 
         auto tmp2 = $4;
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -13074,6 +13287,7 @@ CreateSchemaStmt:
     | CREATE_P SCHEMA IF_P NOT EXISTS qualified_name OptSchemaEltList {
         IR* res; 
         auto tmp1 = $6;
+        setup_qualified_name(tmp1, kDataSchemaName, kDefine, kDataDatabase, kDataWhatever); 
         auto tmp2 = $7;
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -13083,6 +13297,7 @@ CreateSchemaStmt:
     | CREATE_P OR REPLACE SCHEMA qualified_name OptSchemaEltList {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataSchemaName, kDefine, kDataDatabase, kDataWhatever); 
         auto tmp2 = $6;
         res = new IR(kCreateSchemaStmt, OP3("CREATE OR REPLACE SCHEMA", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -13162,6 +13377,7 @@ IndexStmt:
         res = new IR(kIndexStmt_2, OP3("", "", "ON"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $7;
+        setup_qualified_name(tmp4, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kIndexStmt_3, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $8;
@@ -13186,9 +13402,11 @@ IndexStmt:
         res = new IR(kIndexStmt_7, OP3("CREATE", "INDEX", "IF NOT EXISTS"), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
+        setup_index_name(tmp3, kDataIndexName, kDefine); 
         res = new IR(kIndexStmt_8, OP3("", "", "ON"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $10;
+        setup_qualified_name(tmp4, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kIndexStmt_9, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $11;
@@ -13214,6 +13432,7 @@ access_method:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataAccessMethod, kUse); 
         res = new IR(kAccessMethod, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13266,6 +13485,7 @@ opt_index_name:
     index_name {
         IR* res; 
         auto tmp1 = $1;
+        setup_index_name(tmp1, kDataIndexName, kDefine); 
         res = new IR(kOptIndexName, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13325,7 +13545,9 @@ AlterObjectSchemaStmt:
     ALTER TABLE relation_expr SET SCHEMA name {
         IR* res; 
         auto tmp1 = $3;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13334,7 +13556,9 @@ AlterObjectSchemaStmt:
     | ALTER TABLE IF_P EXISTS relation_expr SET SCHEMA name {
         IR* res; 
         auto tmp1 = $5;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13343,7 +13567,9 @@ AlterObjectSchemaStmt:
     | ALTER SEQUENCE qualified_name SET SCHEMA name {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13352,7 +13578,9 @@ AlterObjectSchemaStmt:
     | ALTER SEQUENCE IF_P EXISTS qualified_name SET SCHEMA name {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataSequenceName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13361,7 +13589,9 @@ AlterObjectSchemaStmt:
     | ALTER VIEW qualified_name SET SCHEMA name {
         IR* res; 
         auto tmp1 = $3;
+        setup_qualified_name(tmp1, kDataViewName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $6;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13370,7 +13600,9 @@ AlterObjectSchemaStmt:
     | ALTER VIEW IF_P EXISTS qualified_name SET SCHEMA name {
         IR* res; 
         auto tmp1 = $5;
+        setup_qualified_name(tmp1, kDataViewName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $8;
+        setup_name(tmp2, kDataDatabase, kUse); 
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13405,6 +13637,7 @@ opt_col_id:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataCheckPointName, kUse); 
         res = new IR(kOptColId, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13434,6 +13667,7 @@ ExportStmt:
     | EXPORT_P DATABASE ColId TO Sconst copy_options {
         IR* res; 
         auto tmp1 = $3;
+        setup_col_id(tmp1, kDataDatabase, kUse); 
         auto tmp2 = $5;
         res = new IR(kExportStmt_1, OP3("EXPORT DATABASE", "TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -13665,6 +13899,7 @@ ExplainableStmt:
     | DropStmt {
         IR* res; 
         auto tmp1 = $1;
+        setup_drop_stmt(tmp1); 
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14226,6 +14461,7 @@ file_name:
     | ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataFileName, kUse); 
         res = new IR(kFileName, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14247,6 +14483,7 @@ repo_path:
     | ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataRepoPath, kUse); 
         res = new IR(kRepoPath, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14279,9 +14516,11 @@ VacuumStmt:
         res = new IR(kVacuumStmt_3, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $5;
+        setup_qualified_name(tmp4, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kVacuumStmt_4, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         auto tmp5 = $6;
+        setup_opt_name_list(tmp5, kDataColumnName, kUse); 
         res = new IR(kVacuumStmt, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14314,9 +14553,11 @@ VacuumStmt:
         IR* res; 
         auto tmp1 = $3;
         auto tmp2 = $5;
+        setup_qualified_name(tmp2, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kVacuumStmt_7, OP3("VACUUM (", ")", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $6;
+        setup_opt_name_list(tmp3, kDataColumnName, kUse); 
         res = new IR(kVacuumStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14465,6 +14706,7 @@ relation_expr_opt_alias:
     relation_expr %prec UMINUS {
         IR* res; 
         auto tmp1 = $1;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14473,7 +14715,9 @@ relation_expr_opt_alias:
     | relation_expr ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $2;
+        setup_col_id(tmp2, kDataAliasTableName, kDefine); 
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14482,7 +14726,9 @@ relation_expr_opt_alias:
     | relation_expr AS ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_relation_expr(tmp1, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataAliasTableName, kDefine); 
         res = new IR(kRelationExprOptAlias, OP3("", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14549,9 +14795,11 @@ AnalyzeStmt:
         res = new IR(kAnalyzeStmt_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
+        setup_qualified_name(tmp3, kDataTableName, kUse, kDataSchemaName, kDataDatabase); 
         res = new IR(kAnalyzeStmt_2, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $4;
+        setup_opt_name_list(tmp4, kDataColumnName, kUse); 
         res = new IR(kAnalyzeStmt, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14628,6 +14876,7 @@ opt_database_alias:
     AS ColId {
         IR* res; 
         auto tmp1 = $2;
+        setup_col_id(tmp1, kDataDatabase, kDefine); 
         res = new IR(kOptDatabaseAlias, OP3("AS", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14878,6 +15127,7 @@ var_name:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataPragmaKey, kUse); 
         res = new IR(kVarName, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14887,6 +15137,7 @@ var_name:
         IR* res; 
         auto tmp1 = $1;
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataPragmaKey, kUse); 
         res = new IR(kVarName, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14900,6 +15151,7 @@ table_id:
     ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_col_id(tmp1, kDataTableName, kUse); 
         res = new IR(kTableId, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14908,7 +15160,9 @@ table_id:
     | table_id '.' ColId {
         IR* res; 
         auto tmp1 = $1;
+        setup_table_id(tmp1, kDataDatabase, kUse); 
         auto tmp2 = $3;
+        setup_col_id(tmp2, kDataTableName, kUse); 
         res = new IR(kTableId, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14936,9 +15190,11 @@ ViewStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $4;
+        setup_qualified_name(tmp2, kDataViewName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kViewStmt_1, OP3("CREATE", "VIEW", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $5;
+        setup_opt_column_list(tmp3, kDataColumnName, kDefine); 
         res = new IR(kViewStmt_2, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $6;
@@ -14957,9 +15213,11 @@ ViewStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $7;
+        setup_qualified_name(tmp2, kDataViewName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kViewStmt_5, OP3("CREATE", "VIEW IF NOT EXISTS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $8;
+        setup_opt_column_list(tmp3, kDataColumnName, kDefine); 
         res = new IR(kViewStmt_6, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $9;
@@ -14978,9 +15236,11 @@ ViewStmt:
         IR* res; 
         auto tmp1 = $4;
         auto tmp2 = $6;
+        setup_qualified_name(tmp2, kDataViewName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kViewStmt_9, OP3("CREATE OR REPLACE", "VIEW", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_opt_column_list(tmp3, kDataColumnName, kDefine); 
         res = new IR(kViewStmt_10, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $8;
@@ -14999,9 +15259,11 @@ ViewStmt:
         IR* res; 
         auto tmp1 = $2;
         auto tmp2 = $5;
+        setup_qualified_name(tmp2, kDataViewName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kViewStmt_13, OP3("CREATE", "RECURSIVE VIEW", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $7;
+        setup_column_list(tmp3, kDataColumnName, kDefine); 
         res = new IR(kViewStmt_14, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $9;
@@ -15020,9 +15282,11 @@ ViewStmt:
         IR* res; 
         auto tmp1 = $4;
         auto tmp2 = $7;
+        setup_qualified_name(tmp2, kDataViewName, kDefine, kDataSchemaName, kDataDatabase); 
         res = new IR(kViewStmt_17, OP3("CREATE OR REPLACE", "RECURSIVE VIEW", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $9;
+        setup_column_list(tmp3, kDataColumnName, kDefine); 
         res = new IR(kViewStmt_18, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         auto tmp4 = $11;
@@ -15154,7 +15418,9 @@ create_as_target:
     qualified_name opt_column_list OptWith OnCommitOption {
         IR* res; 
         auto tmp1 = $1;
+        setup_qualified_name(tmp1, kDataTableName, kDefine, kDataSchemaName, kDataDatabase); 
         auto tmp2 = $2;
+        setup_opt_column_list(tmp2, kDataColumnName, kDefine); 
         res = new IR(kCreateAsTarget_1, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         auto tmp3 = $3;
@@ -15187,6 +15453,378 @@ std::string cstr_to_string(char *str) {
    std::string res(str, strlen(str));
    return res;
 }
+
+std::vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_IR, IRTYPE ir_type) {
+
+    // Iterate IR binary tree, left depth prioritized.
+    bool is_finished_search = false;
+    std::vector<IR*> ir_vec_iter;
+    std::vector<IR*> ir_vec_matching_type;
+    // Begin iterating.
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->type_ == ir_type) {
+            ir_vec_matching_type.push_back(cur_IR);
+        }
+
+        if (cur_IR->left_ != nullptr){
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes.
+            cur_IR = nullptr;
+            while (cur_IR == nullptr){
+                if (ir_vec_iter.size() == 0){
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+
+    return ir_vec_matching_type;
+}
+
+void setup_col_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
+void setup_col_id_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
+void setup_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
+void setup_table_id(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    return;
+}
+
+void setup_drop_stmt(IR* cur_ir) {
+    
+    std::string drop_stmt_str = cur_ir->to_string();
+    DATATYPE data_type = kDataWhatever;
+    
+    if (drop_stmt_str.find("DROP TABLE") != std::string::npos) {
+        data_type = kDataTableName;
+    }
+    else if (drop_stmt_str.find("DROP SEQUENCE") != std::string::npos) {
+        data_type = kDataSequenceName;
+    }
+    else if (drop_stmt_str.find("DROP FUNCTION") != std::string::npos) {
+        data_type = kDataFunctionName;
+    }
+    else if (drop_stmt_str.find("DROP VIEW") != std::string::npos) {
+        data_type = kDataViewName;
+    }
+    else if (drop_stmt_str.find("DROP MATERIALIZED VIEW") != std::string::npos) {
+        data_type = kDataViewName;
+    }
+    else if (drop_stmt_str.find("DROP INDEX") != std::string::npos) {
+        data_type = kDataIndexName;
+    }
+    else if (drop_stmt_str.find("DROP FOREIGN TABLE") != std::string::npos) {
+        // Not accurate. Should be kUse instead of kUndefine.
+        data_type = kDataTableName;
+    }
+    else if (drop_stmt_str.find("DROP COLLATION") != std::string::npos) {
+        data_type = kDataCollate;
+    }
+    else if (drop_stmt_str.find("DROP SCHEMA") != std::string::npos) {
+        data_type = kDataDatabase;
+    }
+    else if (drop_stmt_str.find("DROP TRIGGER") != std::string::npos) {
+        data_type = kDataTriggerName;
+    }
+    else if (drop_stmt_str.find("DROP TYPE") != std::string::npos) {
+        data_type = kDataTypeName;
+    }
+
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kName);
+    if (v_name.size()) {
+        IR* cur_name = v_name.front();
+        setup_name(cur_name, data_type, kUndefine);
+    }
+    
+    std::vector<IR*> v_any_name_list = get_ir_node_in_stmt_with_type(cur_ir, kAnyNameList);
+    for (IR* cur_name_list : v_any_name_list) {
+        setup_any_name_list(cur_name_list, data_type, kUndefine, kDataSchemaName, kDataDatabase);
+    }
+    return;
+}
+
+void setup_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kName);
+    for (IR* cur_name: v_name) {
+        setup_name(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_name_list_opt_comma(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameList);
+    for (IR* cur_name: v_name) {
+        setup_name_list(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_name_list_opt_comma_opt_bracket(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    for (IR* cur_name: v_name) {
+        setup_name_list_opt_comma(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_opt_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+    std::vector<IR*> v_name = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    for (IR* cur_name: v_name) {
+        setup_name_list_opt_comma(cur_name, data_type, data_flag);
+    }
+    return;
+}
+
+void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    
+    if (v_col_id_or_string.size()) {
+        // The ColIdOrString case
+        for (IR* cur_col_id: v_col_id_or_string) {
+            setup_col_id_or_string(cur_col_id, data_type, data_flag);
+        }
+        return;
+    }
+    
+    // The ColId indirection case
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    
+    if (v_iden.size() == 1) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+    } else if (v_iden.size() == 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden.front()->set_data_type(data_type_par);
+        v_iden.front()->set_data_flag(kUse);
+    } else if (v_iden.size() > 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden[1]->set_data_type(data_type_par);
+        v_iden[1]->set_data_flag(kUse);
+        v_iden.front()->set_data_type(data_type_par_par);
+        v_iden.front()->set_data_flag(kUse);
+    }
+    
+    return;
+}
+
+void setup_qualified_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_qualified_name = get_ir_node_in_stmt_with_type(cur_ir, kQualifiedName);
+    for (IR* cur_qualified_name: v_qualified_name) {
+        setup_qualified_name(cur_qualified_name, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
+void setup_index_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    for (IR* cur_col_id: v_col_id) {
+        setup_col_id(cur_col_id, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_relation_expr(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_qualified_name = get_ir_node_in_stmt_with_type(cur_ir, kQualifiedName);
+    for (IR* cur_name: v_qualified_name) {
+        setup_qualified_name(cur_name, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
+void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    for (IR* cur_iden: v_iden) {
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
+    }
+    
+    return;
+}
+
+void setup_col_label_or_string(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColLabel);
+    for (IR* cur_iden: v_iden) {
+        setup_col_label(cur_iden, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    for (IR* cur_iden: v_iden) {
+        setup_col_id(cur_iden, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_opt_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColumnList);
+    for (IR* cur_iden: v_iden) {
+        setup_column_list(cur_iden, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    std::vector<IR*> v_name_list = get_ir_node_in_stmt_with_type(cur_ir, kNameListOptComma);
+    
+    if (v_col_id_or_string.size() && v_name_list.size()) {
+        // Both table name and column name present, semantic fixed. 
+        for (IR* cur_ident: v_col_id_or_string) {
+            setup_col_id_or_string(cur_ident, kDataTableName, data_flag);
+        }
+        for (IR* cur_ident: v_name_list) {
+            setup_name_list(cur_ident, kDataColumnName, data_flag);
+        }
+    }
+    else if (v_col_id.size() && v_name_list.size()) {
+        // Both table name and column name present, semantic fixed. 
+        for (IR* cur_ident: v_col_id) {
+            setup_col_id_or_string(cur_ident, kDataTableName, data_flag);
+        }
+        for (IR* cur_ident: v_name_list) {
+            setup_name_list(cur_ident, kDataColumnName, data_flag);
+        }
+    }
+    else if (v_col_id_or_string.size()) {
+        // only one alias variable present, use passed in data_type 
+        for (IR* cur_ident: v_col_id_or_string) {
+            setup_col_id_or_string(cur_ident, data_type, data_flag);
+        }
+    }
+    else if (v_col_id.size()) {
+        // only one alias variable present, use passed in data_type 
+        for (IR* cur_ident: v_col_id) {
+            setup_col_id_or_string(cur_ident, data_type, data_flag);
+        }
+    }
+    
+    return;
+}
+
+void setup_opt_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_alias_clause = get_ir_node_in_stmt_with_type(cur_ir, kAliasClause);
+    
+    for (IR* cur_alias_clause: v_alias_clause) {
+        setup_alias_clause(cur_alias_clause, data_type, data_flag);
+    }
+    
+    return;
+}
+
+void setup_func_alias_clause(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+
+    std::vector<IR*> v_alias_clause = get_ir_node_in_stmt_with_type(cur_ir, kAliasClause);
+    
+    for (IR* cur_alias_clause: v_alias_clause) {
+        setup_alias_clause(cur_alias_clause, data_type, data_flag);
+    }
+    
+    std::vector<IR*> v_col_id_or_string = get_ir_node_in_stmt_with_type(cur_ir, kColIdOrString);
+    
+    for (IR* cur_ident: v_col_id_or_string) {
+        setup_col_id_or_string(cur_ident, data_type, data_flag);
+    }
+    
+    std::vector<IR*> v_col_id = get_ir_node_in_stmt_with_type(cur_ir, kColId);
+    
+    for (IR* cur_ident: v_col_id) {
+        setup_col_id(cur_ident, data_type, data_flag);
+    }
+    
+    // No need to take care of TableFuncElementList, it is already handled in the ColIdOrString handling.
+    
+    return;
+}
+
+
+void setup_any_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
+    
+    if (v_iden.size() == 1) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+    } else if (v_iden.size() == 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden.front()->set_data_type(data_type_par);
+        v_iden.front()->set_data_flag(kUse);
+    } else if (v_iden.size() > 2) {
+        v_iden.back()->set_data_type(data_type);
+        v_iden.back()->set_data_flag(data_flag);
+        v_iden[1]->set_data_type(data_type_par);
+        v_iden[1]->set_data_flag(kUse);
+        v_iden.front()->set_data_type(data_type_par_par);
+        v_iden.front()->set_data_flag(kUse);
+    }
+    
+    return;
+}
+
+void setup_any_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DATATYPE data_type_par, DATATYPE data_type_par_par) {
+
+    std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kAnyName);
+    
+    for (IR* cur_ident: v_iden) {
+        setup_any_name(cur_ident, data_type, data_flag, data_type_par, data_type_par_par);
+    }
+    
+    return;
+}
+
 
 /* parser_init()
  * Initialize to parse one query string
