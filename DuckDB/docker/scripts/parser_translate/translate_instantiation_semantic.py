@@ -774,9 +774,9 @@ def handle_col_id(cur_token: Token, parent: str, token_sequence: List[str], ir_r
     elif parent == "ExportStmt":
         return "kDataDatabase", "kUse"
     elif parent == "file_name":
-        return "kFileName", "kUse"
+        return "kDataFileName", "kUse"
     elif parent == "repo_path":
-        return "kRepoPath", "kUse"
+        return "kDataRepoPath", "kUse"
     elif parent == "relation_expr_opt_alias":
         return "kDataAliasTableName", "kDefine"
     elif parent == "opt_database_alias":

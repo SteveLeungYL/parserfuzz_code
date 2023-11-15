@@ -185,7 +185,7 @@ void setup_drop_stmt(IR* cur_ir) {
     
     std::vector<IR*> v_any_name_list = get_ir_node_in_stmt_with_type(cur_ir, kAnyNameList);
     for (IR* cur_name_list : v_any_name_list) {
-        setup_any_name_list(cur_name_list, data_type, kUndefine);
+        setup_any_name_list(cur_name_list, data_type, kUndefine, kDataSchemaName, kDataDatabase);
     }
     return;
 }
@@ -230,7 +230,7 @@ void setup_qualified_name(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DA
         for (IR* cur_col_id: v_col_id_or_string) {
             setup_col_id_or_string(cur_col_id, data_type, data_flag);
         }
-        return
+        return;
     }
     
     // The ColId indirection case
@@ -290,8 +290,8 @@ void setup_col_label(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kIdentifier);
     for (IR* cur_iden: v_iden) {
-        cur_iden->->set_data_type(data_type);
-        cur_iden->->set_data_flag(data_flag);
+        cur_iden->set_data_type(data_type);
+        cur_iden->set_data_flag(data_flag);
     }
     
     return;
@@ -311,7 +311,7 @@ void setup_column_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
 
     std::vector<IR*> v_iden = get_ir_node_in_stmt_with_type(cur_ir, kColId);
     for (IR* cur_iden: v_iden) {
-        setup_col_Id(cur_iden, data_type, data_flag);
+        setup_col_id(cur_iden, data_type, data_flag);
     }
     
     return;
