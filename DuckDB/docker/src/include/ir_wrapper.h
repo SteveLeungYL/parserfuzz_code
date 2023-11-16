@@ -38,6 +38,36 @@ string get_string_by_data_type(DATATYPE type) {
     return "";
 }
 
+string get_string_by_data_flag(DATAFLAG type) {
+    switch (type) {
+        case kUse:
+            return "kUse";
+        case kMapToClosestOne:
+            return "kMapToClosestOne";
+        case kNoSplit:
+            return "kNoSplit";
+        case kGlobal:
+            return "kGlobal";
+        case kReplace:
+            return "kReplace";
+        case kUndefine:
+            return "kUndefine";
+        case kAlias:
+            return "kAlias";
+        case kMapToAll:
+            return "kMapToAll";
+        case kDefine:
+            return "kDefine";
+        case kNoModi:
+            return "kNoModi";
+        case kUseDefine:
+            return "kUseDefine";
+        case kFlagUnknown:
+            return "kFlagUnknown";
+    }
+    return "";
+}
+
 //string get_string_by_data_flag(DATAFLAG type) {
 //#define DECLARE_CASE(classname)                                                \
 //  if (type == k##classname)                                                       \
