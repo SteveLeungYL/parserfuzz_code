@@ -7,7 +7,7 @@ export AFL_SKIP_CPUFREQ=1
 
 cd /home/duckdb/fuzzing/fuzz_root/outputs/outputs_$1/
 
-gdb -ex=r --args ./afl-fuzz -i ./inputs -o /home/duckdb/fuzzing/fuzz_root/outputs/outputs_$1 -c $1 --  /home/duckdb/duckdb/build/release/duckdb
+gdb -ex=r --args ./afl-fuzz -i ./inputs -o /home/duckdb/fuzzing/fuzz_root/outputs/outputs_$1 -c $1 -O OPT -t 2000 -m none --  /home/duckdb/duckdb/build/release/duckdb
 
 EOF
 )
