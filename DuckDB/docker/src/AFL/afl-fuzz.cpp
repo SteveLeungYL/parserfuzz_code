@@ -5677,7 +5677,8 @@ static u8 fuzz_one(char **argv) {
       // Should be only one statement.
       for (IR *cur_stmt : v_stmt) {
         /* Fill in concret values to the SQL. Instantiation step. */
-        if (!g_mutator.validate(cur_stmt->left_, false)) {
+        if (!g_mutator.validate(cur_stmt, false)) {
+          cur_root->deep_drop();
           continue;
         }
         cur_input += cur_stmt->to_string() + "; \n";

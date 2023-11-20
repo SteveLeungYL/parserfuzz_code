@@ -320,6 +320,8 @@ bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
     reset_data_library_single_stmt();
     backup_data_library();
 
+    if (cur_stmt == NULL) {return false;}
+
     bool res = true;
     if (cur_stmt->type_ == kStmtblock) {
         vector<IR*> cur_stmt_vec = IRWrapper::get_stmt_ir_vec(cur_stmt);
@@ -328,9 +330,6 @@ bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
         }
         return res;
     }
-
-    if (cur_stmt == NULL)
-    {return false;}
 
     /* All the fixing steps happens here. */
     if (is_debug_info) {
