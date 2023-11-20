@@ -70,7 +70,7 @@ string rsg_generate(const IRTYPE type) {
   if (type == kSelectStmt) {
     input_str = "SelectStmt";
   } else {
-    input_str = "Stmt";
+    input_str = "stmt";
   }
 
   return rsg_generate(input_str);

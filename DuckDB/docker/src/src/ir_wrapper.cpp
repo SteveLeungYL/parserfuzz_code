@@ -771,9 +771,7 @@ IR* IRWrapper::get_stmt_ir_from_stmtlist(IR* cur_stmtlist){
         cur_stmt_ir = cur_stmtlist->get_left();
     }
 
-    assert(cur_stmt_ir->get_ir_type() == kStmt &&
-           cur_stmt_ir->get_left()
-    );
+    assert(cur_stmt_ir->get_ir_type() == kStmt);
 
     return cur_stmt_ir->get_left(); // Return the actual stmt type, not kStmt.
 }

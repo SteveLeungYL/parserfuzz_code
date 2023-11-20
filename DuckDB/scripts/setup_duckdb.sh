@@ -2,10 +2,10 @@
 cd "$(dirname "$0")"/../docker
 
 rm -rf ./rsg &> /dev/null
-rm ./src/duckdb_parser_rule_only.y &> /dev/null
+rm ./src/duckdb_grammar.y &> /dev/null
 
 cp -r ../../Common_Tootls/rsg ./
-cp ./rsg/duckdb_parse_rule_only.y src/duckdb_parse_rule_only.y
+cp ./rsg/duckdb_grammar.y src/duckdb_grammar.y
 
 ## Release code. Remove all intermediate steps to save hard drive space.
 sudo docker build --rm=true -f ./Dockerfile -t parserfuzz_duckdb .

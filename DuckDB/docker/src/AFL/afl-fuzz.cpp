@@ -5587,30 +5587,28 @@ string rsg_gen_sql_seq (int idx = 0) {
   if (idx < 1) {
     res_str = "CREATE TABLE v0 (v1 INT, v2 STRING, v3 FLOAT); \n";
   } else if (idx < 4) {
-    res_str = rsg_gen_stmt("cmdCreateTable") + "\n";
+    res_str = rsg_gen_stmt("CreateStmt") + "\n";
   } else if (idx < 7) {
-    res_str = rsg_gen_stmt("cmdInsert") + "\n";
+    res_str = rsg_gen_stmt("InsertStmt") + "\n";
   } else if (idx < 10) {
-    res_str = rsg_gen_stmt("cmdCreateIndex") + "\n";
-  } else if (idx < 11) {
-    res_str = rsg_gen_stmt("cmdCreateVTable") + "\n";
+    res_str = rsg_gen_stmt("IndexStmt") + "\n";
   } else if (idx < 18) {
     switch (get_rand_int(4)) {
     case 0:
-      res_str = rsg_gen_stmt("cmdUpdate") + "\n";
+      res_str = rsg_gen_stmt("UpdateStmt") + "\n";
       break;
     case 1:
-      res_str = rsg_gen_stmt("cmdAlter") + "\n";
+      res_str = rsg_gen_stmt("AlterTableStmt") + "\n";
       break;
     case 2:
-      res_str = rsg_gen_stmt("cmdCreateView") + "\n";
+      res_str = rsg_gen_stmt("ViewStmt") + "\n";
       break;
     case 3:
-      res_str = rsg_gen_stmt("cmd") + "\n";
+      res_str = rsg_gen_stmt("stmt") + "\n";
       break;
     }
   } else {
-    res_str = rsg_gen_stmt("select") + "\n";
+    res_str = rsg_gen_stmt("SelectStmt") + "\n";
   }
 
 #ifdef DEBUG
@@ -6925,6 +6923,8 @@ static void load_map_id() {
 int main(int argc, char **argv) {
 
   p_oracle = nullptr;
+
+  rsg_initialize();
 
   disable_dyn_instan = false;
   disable_rsg_generator = false;

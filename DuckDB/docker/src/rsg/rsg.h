@@ -8,7 +8,7 @@ using namespace std;
 using namespace duckdb_libpgquery;
 
 void rsg_initialize();
-string rsg_generate(const string type = "Stmt");
+string rsg_generate(const string type = "stmt");
 string rsg_generate(const IRTYPE type = kStmt);
 
 // Coverage feedback for the RSG module.
