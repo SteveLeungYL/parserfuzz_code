@@ -285,6 +285,19 @@ func (r *RSG) isTiDBCompNode(_ string, nodeValue string) bool {
 	return false
 }
 
+func (r *RSG) isDuckDBCompNode(_ string, nodeValue string) bool {
+
+	if nodeValue == "SelectStmt" || nodeValue == "expr" || nodeValue == "joined_table:" ||
+		nodeValue == "PreparableStmt" || nodeValue == "table_ref" {
+		return true
+	}
+	if strings.Contains(nodeValue, "select") || strings.Contains(nodeValue, "expr") ||
+		strings.Contains(nodeValue, "_list") {
+		return true
+	}
+	return false
+}
+
 // The PathNode is the data structure that used to save
 // the whole chosen query path for the RSG generated query.
 // The goal of this structure is to be memory efficient and
@@ -492,6 +505,8 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		isCompNode = r.isCockroachDBCompNode
 	} else if dbmsName == "tidb" {
 		isCompNode = r.isTiDBCompNode
+	} else if dbmsName == "duckdb" {
+		isCompNode = r.isDuckDBCompNode
 	} else {
 		// Default placeholder.
 		isCompNode = func(_ string, in string) bool {
@@ -3904,7 +3919,37 @@ func (r *RSG) generateDuckDB(root string, rootPathNode *PathNode, parentHash uin
 			tokenStr := item.Value
 
 			if depth < 0 {
-				// TODO:: Custom terminating keyword handling.
+				if tokenStr == "SelectStmt" || tokenStr == "select_no_parens" || tokenStr == "simple_select" {
+					ret = append(ret, " SELECT 'abc' ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "a_expr" || tokenStr == "b_expr" || tokenStr == "c_expr" || tokenStr == "d_expr" {
+					ret = append(ret, " True ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "select_clause" || tokenStr == "select_with_parens" {
+					ret = append(ret, " ( SELECT TRUE ) ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "returning_clause" {
+					ret = append(ret, " ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "table_ref" {
+					ret = append(ret, " v0 ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				} else if tokenStr == "PreparableStmt" {
+					ret = append(ret, " SELECT 'abc' ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
+				}
 			}
 
 			switch tokenStr {

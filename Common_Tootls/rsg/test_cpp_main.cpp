@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
   RSGInitialize(fileName, dbmsName, 0.3);
 
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 5000; i++) {
 
     auto gores = RSGQueryGenerate(genTypeInput, dbmsName);
 
