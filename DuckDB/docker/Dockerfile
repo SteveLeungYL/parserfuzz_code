@@ -127,7 +127,7 @@ WORKDIR /home/duckdb/fuzzing
 COPY fuzz_root /home/duckdb/fuzzing/fuzz_root
 WORKDIR /home/duckdb/fuzzing/fuzz_root
 RUN cp /home/duckdb/src/duckdb_grammar.y /home/duckdb/fuzzing/fuzz_root/
-RUN mkdir -p rsg && cp /home/duckdb/rsg/rsg_helper.so ./rsg && cp /home/duckdb/src/afl-fuzz ./afl-fuzz
+RUN mkdir -p rsg && cp /home/duckdb/rsg/rsg_helper.so ./rsg && cp /home/duckdb/src/afl-fuzz ./afl-fuzz && mkdir -p outputs
 RUN chown -R duckdb:duckdb /home/duckdb/fuzzing/
 
 USER duckdb
