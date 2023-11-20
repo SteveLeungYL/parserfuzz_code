@@ -993,7 +993,7 @@ new IROperator("", a, "")
     class IR{
     public:
         IR(IRTYPE type,  IROperator* op, IR* left=NULL, IR* right=NULL):
-                type_(type), op_(op), left_(left), right_(right), data_type_(kDataWhatever){
+                type_(type), op_(op), left_(left), right_(right), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
             if (left_)
                 left_->parent_ = this;
             if (right_)

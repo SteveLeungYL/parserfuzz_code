@@ -9,64 +9,10 @@
 using namespace duckdb_libpgquery;
 using namespace std;
 
-DATATYPE get_datatype_by_string(string s){
-#define DECLARE_CASE(datatypename) \
-    if(s == #datatypename) return k##datatypename;
-
-    ALLDATATYPE(DECLARE_CASE);
-
-#undef DECLARE_CASE
-    return kDataWhatever;
-}
-
-string get_string_by_ir_type(IRTYPE type) {
-#define DECLARE_CASE(classname)                                                \
-  if (type == classname)                                                       \
-    return #classname;
-    ALLTYPE(DECLARE_CASE);
-#undef DECLARE_CASE
-    return "";
-}
-
-
-string get_string_by_data_type(DATATYPE type) {
-#define DECLARE_CASE(classname)                                                \
-  if (type == k##classname)                                                       \
-    return #classname;
-    ALLDATATYPE(DECLARE_CASE);
-#undef DECLARE_CASE
-    return "";
-}
-
-string get_string_by_data_flag(DATAFLAG type) {
-    switch (type) {
-        case kUse:
-            return "kUse";
-        case kMapToClosestOne:
-            return "kMapToClosestOne";
-        case kNoSplit:
-            return "kNoSplit";
-        case kGlobal:
-            return "kGlobal";
-        case kReplace:
-            return "kReplace";
-        case kUndefine:
-            return "kUndefine";
-        case kAlias:
-            return "kAlias";
-        case kMapToAll:
-            return "kMapToAll";
-        case kDefine:
-            return "kDefine";
-        case kNoModi:
-            return "kNoModi";
-        case kUseDefine:
-            return "kUseDefine";
-        case kFlagUnknown:
-            return "kFlagUnknown";
-    }
-    return "";
-}
+DATATYPE get_datatype_by_string(string s);
+string get_string_by_ir_type(IRTYPE type);
+string get_string_by_data_type(DATATYPE type);
+string get_string_by_data_flag(DATAFLAG type);
 
 //string get_string_by_data_flag(DATAFLAG type) {
 //#define DECLARE_CASE(classname)                                                \
@@ -157,7 +103,7 @@ namespace IRWrapper {
     bool is_exist_limit_clause(IR*);
 
     vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
-    int get_num_select_items_in_select_stmt(IR* cur_stmt);
+//    int get_num_select_items_in_select_stmt(IR* cur_stmt);
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);

@@ -4,7 +4,10 @@
 #include "sql_ir_define.hpp"
 #include "utils.h"
 #include "../include/ir_wrapper.h"
+#include "../include/gram_cov.hpp"
+#include "../parser/parser_helper.h"
 #include "../oracle/duckdb_oracle.h"
+#include "../rsg/rsg.h"
 
 #include <set>
 #include <map>
@@ -57,6 +60,8 @@ public:
     Mutator(){
         srand(time(nullptr));
     }
+
+    GramCovMap gram_cov_map;
 
     unsigned long hash(IR* );
     unsigned long hash(string &);
@@ -131,6 +136,48 @@ public:
 
 //    bool add_missing_create_table_stmt(IR* ir_root);
 //    bool correct_insert_stmt(IR* ir_root);
+
+    vector<IR *> parse_query_str_get_ir_set(const string &query_str) {
+        vector<IR *> ir_set = parser_helper(query_str, &(this->gram_cov_map));
+        return ir_set;
+    }
+
+    inline double get_gram_total_block_cov_size() {
+        return this->gram_cov_map.get_total_block_cov_size();
+    }
+    inline u32 get_gram_total_block_cov_size_num() {
+        return this->gram_cov_map.get_total_block_cov_size_num();
+    }
+    inline double get_gram_total_edge_cov_size() {
+        return this->gram_cov_map.get_total_edge_cov_size();
+    }
+    inline u32 get_gram_total_edge_cov_size_num() {
+        return this->gram_cov_map.get_total_edge_cov_size_num();
+    }
+    inline u64 get_gram_total_path_cov_size_num() {
+        return this->gram_cov_map.get_total_path_cov_size_num();
+    }
+
+    /* RSG Generator */
+    string rsg_generate_valid(const string type);
+
+    void rsg_exec_succeed_helper() {
+//        if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
+            rsg_exec_succeed();
+//        } else {
+//            rsg_exec_clear_chosen_expr();
+//        }
+    }
+    void rsg_exec_failed_helper() {
+//        if (!disable_rsg_cov_feedback && !disable_rsg_generator) {
+            rsg_exec_failed();
+//        } else {
+//            rsg_exec_clear_chosen_expr();
+//        }
+    }
+    void rsg_exec_clear_chosen_expr() {
+        rsg_clear_chosen_expr();
+    }
 
     /* Info used by validate function. */
 

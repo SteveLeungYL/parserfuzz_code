@@ -844,18 +844,18 @@ namespace duckdb_libpgquery {
 
 
 enum DATAFLAG {
-	kUse,
-	kMapToClosestOne,
-	kNoSplit,
-	kGlobal,
-	kReplace,
-	kUndefine,
-	kAlias,
-	kMapToAll,
-	kDefine,
-	kNoModi,
-	kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
-	kFlagUnknown
+    kUse,
+    kMapToClosestOne,
+    kNoSplit,
+    kGlobal,
+    kReplace,
+    kUndefine,
+    kAlias,
+    kMapToAll,
+    kDefine,
+    kNoModi,
+    kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
+    kFlagUnknown
 };
 
 
@@ -965,408 +965,408 @@ new IROperator("", a, "")
 
 
 
-enum IRTYPE{
+    enum IRTYPE{
 #define DECLARE_TYPE(v)  \
     v,
-	ALLTYPE(DECLARE_TYPE)
+        ALLTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
-};
+    };
 
-enum DATATYPE{
+    enum DATATYPE{
 #define DECLARE_TYPE(v)  \
     k##v,
-	ALLDATATYPE(DECLARE_TYPE)
+        ALLDATATYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
-};
-
-class IROperator{
-public:
-	IROperator(std::string prefix="", std::string middle="", std::string suffix=""):
-	      prefix_(prefix), middle_(middle), suffix_(suffix) {}
-
-	std::string prefix_;
-	std::string middle_;
-	std::string suffix_;
-};
-
-
-class IR{
-public:
-	IR(IRTYPE type,  IROperator* op, IR* left=NULL, IR* right=NULL):
-	      type_(type), op_(op), left_(left), right_(right), data_type_(kDataWhatever){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
-	      type_(type), op_(NULL), left_(NULL), right_(NULL), str_val_(str_val), data_type_(data_type), data_flag_(flag){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, bool b_val):
-	      type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, unsigned long long_val):
-	      type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, int int_val):
-	      type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, double f_val):
-	      type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, unsigned int mutated_times, DATAFLAG flag):
-	      type_(type), float_val_(f_val), op_(op), left_(left), right_(right), str_val_(str_val),
-	      data_type_(kDataWhatever), data_flag_(flag), mutated_times_(mutated_times) {
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-	}
-
-	IR(const IR* ir, IR* left, IR* right){
-		this->type_ = ir->type_;
-		if(ir->op_ != NULL)
-			this->op_ = OP3(ir->op_->prefix_, ir->op_->middle_, ir->op_->suffix_);
-		else{
-			this->op_ = OP0();
-		}
-		this->left_ = left;
-		this->right_ = right;
-		this->str_val_ = ir->str_val_;
-		this->long_val_ = ir->long_val_;
-		this->data_type_ = ir->data_type_;
-		this->data_flag_ = ir->data_flag_;
-		this->mutated_times_ = ir->mutated_times_;
-
-		if (left_)
-			left_->parent_ = this;
-		if (right_)
-			right_->parent_ = this;
-
-	}
-
-	/* Data Structures */
-	IRTYPE type_;
-	union{
-		int int_val_;
-		unsigned long long_val_;
-		double float_val_;
-		bool bool_val_;
-	};
-
-	IROperator* op_ = NULL;
-	IR* left_ = NULL;
-	IR* right_ = NULL;
-	IR* parent_ = NULL;
-
-	std::string str_val_;
-
-	DATAFLAG data_flag_;
-	DATATYPE data_type_;
-
-	int uniq_id_in_tree_ = -1;
-
-	unsigned int mutated_times_ = 0;
-
-	bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
-	bool is_mutating = false;
-
-	/* Helper functions */
-
-	void drop() {
-		if (this->op_)
-			delete this->op_;
-		delete this;
-	};
-	void deep_drop(){
-		if (this->left_)
-			this->left_->deep_drop();
-
-		if (this->right_)
-			this->right_->deep_drop();
-
-		this->drop();
-	};
-
-	IR* get_left() {
-		if (left_ == NULL) return NULL;
-		else return left_;
-	};
-	IR* get_right() {
-		if (right_ == NULL) return NULL;
-		else return right_;
-	};
-
-	std::string get_prefix() {
-		if (!op_) return NULL;
-		return op_->prefix_;
-	};
-	std::string get_middle() {
-		if (!op_) return NULL;
-		return op_->middle_;
-	};
-	std::string get_suffix() {
-		if (!op_) return NULL;
-		return op_->suffix_;
-	};
-	IR* get_parent() {
-		if (!parent_) return NULL;
-		else return parent_;
-	};
-
-	bool update_left(IR* new_left) {
-		this->left_ = new_left;
-		if (new_left)
-			new_left->parent_ = this;
-
-		return true;
-	};
-
-	bool update_right(IR* new_right) {
-		this->right_ = new_right;
-		if (new_right)
-			new_right->parent_ = this;
-
-		return true;
-	};
-
-	bool swap_node(IR* old_node, IR* new_node) {
-		if (old_node == NULL) {
-			// printf("swap_node failed because old_node == NULL \n\n\n");
-			return false;
-		}
-
-		IR *parent = this->locate_parent(old_node);
-
-		if (parent == NULL) {
-			// printf("swap_node failed because locate_parent failed. \n\n\n");
-			return false;
-		}
-		else if (parent->left_ == old_node)
-			parent->update_left(new_node);
-		else if (parent->right_ == old_node)
-			parent->update_right(new_node);
-		else {
-			// printf("swap_node failed because parent is not connected to new_node. \n\n\n");
-			return false;
-		}
-
-		old_node->parent_ = NULL;
-
-		return true;
-	};
-
-	bool detatch_node(IR* node) {
-		return swap_node(node, NULL);
-	};
-
-	bool is_empty() {
-		if (op_) {
-			if (op_->prefix_ != "" || op_->middle_ != "" || op_->suffix_ != "" ) {
-				return false;
-			}
-		}
-		if (str_val_ != "") {
-			return false;
-		}
-		if (left_ || right_) {
-			return false;
-		}
-		return true;
-	};
-
-	IR* locate_parent(IR* child) {
-		for (IR *p = child; p; p = p->parent_)
-			if (p->parent_ == this)
-				return child->parent_;
-
-		return NULL;
-	}
-	IR* get_root() {
-		IR *node = this;
-
-		while (node->parent_ != NULL)
-			node = node->parent_;
-
-		return node;
-	};
-
-	std::string to_string() {
-		auto res = to_string_core();
-		this->trim_string(res);
-		return res;
-	}
-	std::string to_string_core() {
-
-		std::string res;
-
-		if( op_!= NULL && op_->prefix_ != "" ){
-			res += op_->prefix_ + " ";
-		}
-
-		if(left_ != NULL) {
-			res += left_->to_string_core() + " ";
-		}
-
-
-		if( op_!= NULL && op_->middle_ != "") {
-			res += op_->middle_ + " ";
-		}
-		if (
-		    get_ir_type() == kStringLiteral
-		) {
-			res += " '" + str_val_ + "' ";
-		}
-		else if (str_val_ != "") {
-			res += " " + str_val_ + " ";
-		}
-
-
-		if(right_ != NULL) {
-			res += right_->to_string_core() + " ";
-		}
-
-
-		if(op_!= NULL && op_->suffix_ != "") {
-			res += op_->suffix_ + " ";
-		}
-
-		return res;
-	};
-
-	DATATYPE get_data_type() {
-		return data_type_;
-	};
-
-	void set_data_type(DATATYPE data_type) {
-		this->data_type_ = data_type;
-	};
-
-	DATAFLAG get_data_flag() {
-		return data_flag_;
-	};
-
-	void set_data_flag(DATAFLAG data_flag) {
-		this->data_flag_ = data_flag;
-	};
-
-	std::string get_str_val() {
-		return this->str_val_;
-	};
-
-	void set_str_val(std::string in) {
-		this->str_val_ = in;
-		return;
-	}
-
-	IRTYPE get_ir_type() {
-		return type_;
-	};
-
-	static void trim_string(std::string &res) {
-
-		int effect_idx = 0, idx = 0;
-		bool prev_is_space = false;
-		int sz = res.size();
-
-		// skip leading spaces
-		for (; idx < sz && res[idx] == ' '; idx++)
-			;
-
-		// now idx points to the first non-space character
-		for (; idx < sz; idx++) {
-
-			char &c = res[idx];
-
-			if (c == ' ') {
-
-				if (prev_is_space)
-					continue;
-
-				prev_is_space = true;
-				res[effect_idx++] = c;
-
-			} else if (c == ';' || c == ',') {
-
-				if (prev_is_space)
-					res[effect_idx - 1] = c;
-				else
-					res[effect_idx++] = c;
-
-				prev_is_space = false;
-
-			} else if (c == '@') {
-				// Skip following spaces.
-				res[effect_idx++] = c;
-			}
-			else {
-
-				prev_is_space = false;
-				res[effect_idx++] = c;
-			}
-		}
-
-		if (effect_idx > 0 && res[effect_idx - 1] == ' ')
-			effect_idx--;
-
-		res.resize(effect_idx);
-	}
-
-	IR* deep_copy() {
-		IR *left = NULL, *right = NULL, *copy_res;
-		IROperator *op = NULL;
-
-		if (this->left_)
-			left = this->left_->deep_copy();
-		if (this->right_)
-			right = this->right_->deep_copy();
-
-		if (this->op_)
-			op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
-
-		copy_res = new IR(this->type_, op, left, right, this->float_val_,
-		                  this->str_val_, this->mutated_times_, kFlagUnknown);
-		copy_res->data_type_ = this->data_type_;
-		copy_res->data_flag_ = this->data_flag_;
-
-		if (this->parent_) {
-			copy_res->parent_ = this->parent_;
-		} else {
-			copy_res->parent_ = NULL;
-		}
-
-		copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
-		copy_res->is_mutating = this->is_mutating;
-
-		return copy_res;
-	}
-};
+    };
+
+    class IROperator{
+    public:
+        IROperator(std::string prefix="", std::string middle="", std::string suffix=""):
+                prefix_(prefix), middle_(middle), suffix_(suffix) {}
+
+        std::string prefix_;
+        std::string middle_;
+        std::string suffix_;
+    };
+
+
+    class IR{
+    public:
+        IR(IRTYPE type,  IROperator* op, IR* left=NULL, IR* right=NULL):
+                type_(type), op_(op), left_(left), right_(right), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+                type_(type), op_(NULL), left_(NULL), right_(NULL), str_val_(str_val), data_type_(data_type), data_flag_(flag){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, bool b_val):
+                type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, unsigned long long_val):
+                type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, int int_val):
+                type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, double f_val):
+                type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), data_type_(kDataWhatever), data_flag_(kFlagUnknown){
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, unsigned int mutated_times, DATAFLAG flag):
+                type_(type), float_val_(f_val), op_(op), left_(left), right_(right), str_val_(str_val),
+                data_type_(kDataWhatever), data_flag_(flag), mutated_times_(mutated_times) {
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+        }
+
+        IR(const IR* ir, IR* left, IR* right){
+            this->type_ = ir->type_;
+            if(ir->op_ != NULL)
+                this->op_ = OP3(ir->op_->prefix_, ir->op_->middle_, ir->op_->suffix_);
+            else{
+                this->op_ = OP0();
+            }
+            this->left_ = left;
+            this->right_ = right;
+            this->str_val_ = ir->str_val_;
+            this->long_val_ = ir->long_val_;
+            this->data_type_ = ir->data_type_;
+            this->data_flag_ = ir->data_flag_;
+            this->mutated_times_ = ir->mutated_times_;
+
+            if (left_)
+                left_->parent_ = this;
+            if (right_)
+                right_->parent_ = this;
+
+        }
+
+        /* Data Structures */
+        IRTYPE type_;
+        union{
+            int int_val_;
+            unsigned long long_val_;
+            double float_val_;
+            bool bool_val_;
+        };
+
+        IROperator* op_ = NULL;
+        IR* left_ = NULL;
+        IR* right_ = NULL;
+        IR* parent_ = NULL;
+
+        std::string str_val_;
+
+        DATAFLAG data_flag_;
+        DATATYPE data_type_;
+
+        int uniq_id_in_tree_ = -1;
+
+        unsigned int mutated_times_ = 0;
+
+        bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
+        bool is_mutating = false;
+
+        /* Helper functions */
+
+        void drop() {
+            if (this->op_)
+                delete this->op_;
+            delete this;
+        };
+        void deep_drop(){
+            if (this->left_)
+                this->left_->deep_drop();
+
+            if (this->right_)
+                this->right_->deep_drop();
+
+            this->drop();
+        };
+
+        IR* get_left() {
+            if (left_ == NULL) return NULL;
+            else return left_;
+        };
+        IR* get_right() {
+            if (right_ == NULL) return NULL;
+            else return right_;
+        };
+
+        std::string get_prefix() {
+            if (!op_) return NULL;
+            return op_->prefix_;
+        };
+        std::string get_middle() {
+            if (!op_) return NULL;
+            return op_->middle_;
+        };
+        std::string get_suffix() {
+            if (!op_) return NULL;
+            return op_->suffix_;
+        };
+        IR* get_parent() {
+            if (!parent_) return NULL;
+            else return parent_;
+        };
+
+        bool update_left(IR* new_left) {
+            this->left_ = new_left;
+            if (new_left)
+                new_left->parent_ = this;
+
+            return true;
+        };
+
+        bool update_right(IR* new_right) {
+            this->right_ = new_right;
+            if (new_right)
+                new_right->parent_ = this;
+
+            return true;
+        };
+
+        bool swap_node(IR* old_node, IR* new_node) {
+            if (old_node == NULL) {
+                // printf("swap_node failed because old_node == NULL \n\n\n");
+                return false;
+            }
+
+            IR *parent = this->locate_parent(old_node);
+
+            if (parent == NULL) {
+                // printf("swap_node failed because locate_parent failed. \n\n\n");
+                return false;
+            }
+            else if (parent->left_ == old_node)
+                parent->update_left(new_node);
+            else if (parent->right_ == old_node)
+                parent->update_right(new_node);
+            else {
+                // printf("swap_node failed because parent is not connected to new_node. \n\n\n");
+                return false;
+            }
+
+            old_node->parent_ = NULL;
+
+            return true;
+        };
+
+        bool detatch_node(IR* node) {
+            return swap_node(node, NULL);
+        };
+
+        bool is_empty() {
+            if (op_) {
+                if (op_->prefix_ != "" || op_->middle_ != "" || op_->suffix_ != "" ) {
+                    return false;
+                }
+            }
+            if (str_val_ != "") {
+                return false;
+            }
+            if (left_ || right_) {
+                return false;
+            }
+            return true;
+        };
+
+        IR* locate_parent(IR* child) {
+            for (IR *p = child; p; p = p->parent_)
+                if (p->parent_ == this)
+                    return child->parent_;
+
+            return NULL;
+        }
+        IR* get_root() {
+            IR *node = this;
+
+            while (node->parent_ != NULL)
+                node = node->parent_;
+
+            return node;
+        };
+
+        std::string to_string() {
+            auto res = to_string_core();
+            this->trim_string(res);
+            return res;
+        }
+        std::string to_string_core() {
+
+            std::string res;
+
+            if( op_!= NULL && op_->prefix_ != "" ){
+                res += op_->prefix_ + " ";
+            }
+
+            if(left_ != NULL) {
+                res += left_->to_string_core() + " ";
+            }
+
+
+            if( op_!= NULL && op_->middle_ != "") {
+                res += op_->middle_ + " ";
+            }
+            if (
+                    get_ir_type() == kStringLiteral
+                    ) {
+                res += " '" + str_val_ + "' ";
+            }
+            else if (str_val_ != "") {
+                res += " " + str_val_ + " ";
+            }
+
+
+            if(right_ != NULL) {
+                res += right_->to_string_core() + " ";
+            }
+
+
+            if(op_!= NULL && op_->suffix_ != "") {
+                res += op_->suffix_ + " ";
+            }
+
+            return res;
+        };
+
+        DATATYPE get_data_type() {
+            return data_type_;
+        };
+
+        void set_data_type(DATATYPE data_type) {
+            this->data_type_ = data_type;
+        };
+
+        DATAFLAG get_data_flag() {
+            return data_flag_;
+        };
+
+        void set_data_flag(DATAFLAG data_flag) {
+            this->data_flag_ = data_flag;
+        };
+
+        std::string get_str_val() {
+            return this->str_val_;
+        };
+
+        void set_str_val(std::string in) {
+            this->str_val_ = in;
+            return;
+        }
+
+        IRTYPE get_ir_type() {
+            return type_;
+        };
+
+        static void trim_string(std::string &res) {
+
+            int effect_idx = 0, idx = 0;
+            bool prev_is_space = false;
+            int sz = res.size();
+
+            // skip leading spaces
+            for (; idx < sz && res[idx] == ' '; idx++)
+                ;
+
+            // now idx points to the first non-space character
+            for (; idx < sz; idx++) {
+
+                char &c = res[idx];
+
+                if (c == ' ') {
+
+                    if (prev_is_space)
+                        continue;
+
+                    prev_is_space = true;
+                    res[effect_idx++] = c;
+
+                } else if (c == ';' || c == ',') {
+
+                    if (prev_is_space)
+                        res[effect_idx - 1] = c;
+                    else
+                        res[effect_idx++] = c;
+
+                    prev_is_space = false;
+
+                } else if (c == '@') {
+                    // Skip following spaces.
+                    res[effect_idx++] = c;
+                }
+                else {
+
+                    prev_is_space = false;
+                    res[effect_idx++] = c;
+                }
+            }
+
+            if (effect_idx > 0 && res[effect_idx - 1] == ' ')
+                effect_idx--;
+
+            res.resize(effect_idx);
+        }
+
+        IR* deep_copy() {
+            IR *left = NULL, *right = NULL, *copy_res;
+            IROperator *op = NULL;
+
+            if (this->left_)
+                left = this->left_->deep_copy();
+            if (this->right_)
+                right = this->right_->deep_copy();
+
+            if (this->op_)
+                op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
+
+            copy_res = new IR(this->type_, op, left, right, this->float_val_,
+                              this->str_val_, this->mutated_times_, kFlagUnknown);
+            copy_res->data_type_ = this->data_type_;
+            copy_res->data_flag_ = this->data_flag_;
+
+            if (this->parent_) {
+                copy_res->parent_ = this->parent_;
+            } else {
+                copy_res->parent_ = NULL;
+            }
+
+            copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
+            copy_res->is_mutating = this->is_mutating;
+
+            return copy_res;
+        }
+    };
 
 /*
 ** End ParserFuzz injected code.
@@ -1375,3 +1375,4 @@ public:
 } // namespace duckdb_libpgquery
 
 #endif
+

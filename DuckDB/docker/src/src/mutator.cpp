@@ -1030,7 +1030,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 /* Next, we save the column type to the mapping */
                 if (ir_to_fix->data_flag_ == kDefine) {
                     /* For normal tables, we need to save its column type. */
-                    if ( ir_to_fix->get_ir_type() == kDataTypeName) {
+                    if ( ir_to_fix->get_data_type() == kDataTypeName) {
 
                         // IR* typename_ir = ir_to_fix ->get_parent() ->get_right();
                         // COLTYPE column_type = typename_ir->typename_ir_get_type();
@@ -2531,6 +2531,35 @@ void Mutator::_extract_struct(IR *root) {
     // }
 }
 
+string Mutator::rsg_generate_valid(const string type) {
+
+    for (int i = 0; i < 100; i++) {
+        string tmp_query_str = rsg_generate(type) + ";";
+#ifdef DEBUG
+        cerr << "\n\n\n" << type << ", Getting tmp_query_str: " << tmp_query_str << "\n\n\n";
+#endif
+        vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
+        if (ir_vec.size() == 0) {
+#ifdef DEBUG
+            cerr << "\n\n\n" << type << ", getting tmp_query_str: " << tmp_query_str << "\n";
+      cerr << "Rejected. \n\n\n";
+#endif
+//      cerr << "\n\n\nrsg_generate_valid empty. \n\n\n";
+            this->rsg_exec_clear_chosen_expr();
+            continue;
+        }
+//        fix_common_rsg_errors(ir_vec.back());
+        tmp_query_str = ir_vec.back()->to_string();
+        ir_vec.back()->deep_drop();
+
+#ifdef DEBUG
+        cerr << "\n\n\n" << type << ", returned tmp-query-str: " << tmp_query_str << "\n\n\n";
+#endif
+        return tmp_query_str;
+    }
+
+    return "";
+}
 
 //bool Mutator::add_missing_create_table_stmt(IR* ir_root) {
 //    /* Only accept ir_root as inputs. */

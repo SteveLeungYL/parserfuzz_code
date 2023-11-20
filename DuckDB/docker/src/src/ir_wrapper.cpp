@@ -1,10 +1,70 @@
 #include "../include/ir_wrapper.h"
 #include "../include/utils.h"
+#include "../parser/parser_helper.h"
 #include <chrono>
 #include <cassert>
 
 using namespace IRWrapper;
 using namespace duckdb_libpgquery;
+
+DATATYPE get_datatype_by_string(string s){
+#define DECLARE_CASE(datatypename) \
+    if(s == #datatypename) return k##datatypename;
+
+    ALLDATATYPE(DECLARE_CASE);
+
+#undef DECLARE_CASE
+    return kDataWhatever;
+}
+
+string get_string_by_ir_type(IRTYPE type) {
+#define DECLARE_CASE(classname)                                                \
+  if (type == classname)                                                       \
+    return #classname;
+    ALLTYPE(DECLARE_CASE);
+#undef DECLARE_CASE
+    return "";
+}
+
+
+string get_string_by_data_type(DATATYPE type) {
+#define DECLARE_CASE(classname)                                                \
+  if (type == k##classname)                                                       \
+    return #classname;
+    ALLDATATYPE(DECLARE_CASE);
+#undef DECLARE_CASE
+    return "";
+}
+
+string get_string_by_data_flag(DATAFLAG type) {
+    switch (type) {
+        case kUse:
+            return "kUse";
+        case kMapToClosestOne:
+            return "kMapToClosestOne";
+        case kNoSplit:
+            return "kNoSplit";
+        case kGlobal:
+            return "kGlobal";
+        case kReplace:
+            return "kReplace";
+        case kUndefine:
+            return "kUndefine";
+        case kAlias:
+            return "kAlias";
+        case kMapToAll:
+            return "kMapToAll";
+        case kDefine:
+            return "kDefine";
+        case kNoModi:
+            return "kNoModi";
+        case kUseDefine:
+            return "kUseDefine";
+        case kFlagUnknown:
+            return "kFlagUnknown";
+    }
+    return "";
+}
 
 
 void IRWrapper::set_ir_root (IR* in) {ir_root = in;}
@@ -14,7 +74,7 @@ vector<IR*> IRWrapper::get_stmt_ir_vec(IR* root) {IRWrapper::set_ir_root(root); 
 
 vector<IR*> IRWrapper::get_stmtlist_IR_vec(IR* root) {IRWrapper::set_ir_root(root); return IRWrapper::get_stmtlist_IR_vec();}
 
-int IRWrapper::get_num_select_items_in_select_stmt(IR* cur_stmt) { return IRWrapper::(cur_stmt).size(); }
+//int IRWrapper::get_num_select_items_in_select_stmt(IR* cur_stmt) { return IRWrapper::(cur_stmt).size(); }
 
 IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
     if (stmt_vec.size() == 0) {
@@ -323,8 +383,8 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx){
     // Parse and get the new statement.
     vector<IR*> ir_vec;
     IR* app_ir_root = nullptr;
-    int ret = run_parser_multi_stmt(app_str, ir_vec);
-    if (ret == 0 && ir_vec.size() > 0) {
+    ir_vec = parser_helper(app_str, nullptr);
+    if (ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
         return false;
@@ -352,8 +412,8 @@ bool IRWrapper::append_stmt_at_end(string app_str) {
     // Parse and get the new statement.
     vector<IR*> ir_vec;
     IR* app_ir_root = nullptr;
-    int ret = run_parser_multi_stmt(app_str, ir_vec);
-    if (ret == 0 && ir_vec.size() > 0) {
+    ir_vec = parser_helper(app_str, nullptr);
+    if (ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
         return false;
