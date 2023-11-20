@@ -8,7 +8,7 @@ session = server.new_session(session_name="fuzzing_gdb_debug", kill_session=True
 for i in range(16):
     cur_window = session.new_window(attach=True, window_name="fuzzing_test_"+str(i))
     cur_pane = cur_window.attached_pane
-    cur_pane.send_keys('sudo docker exec -it sqlright_testing /bin/bash /home/duckdb/scripts/envoke_gdb_debug_helper.sh %d'%(i))
+    cur_pane.send_keys('sudo docker exec -it duckdb_testing /bin/bash /home/duckdb/scripts/envoke_gdb_debug_helper.sh %d'%(i))
 
 server.attach_session(target_session="fuzzing_gdb_debug")
 
