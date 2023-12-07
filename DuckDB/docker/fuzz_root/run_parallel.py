@@ -11,7 +11,7 @@ oracle_str = ""
 
 
 duckdb_root_dir = "/home/duckdb/duckdb"
-duckdb_bin = os.path.join(duckdb_root_dir, "./build/release/duckdb")
+duckdb_bin = os.path.join(duckdb_root_dir, "./build/reldebug/duckdb")
 current_workdir = os.getcwd()
 
 starting_core_id = 0
@@ -29,8 +29,8 @@ is_disable_rsg = False
 is_disable_rsg_cov = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:T:ERr", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "timeout=", "non-deter", \
-        "disable-rsg", "disable-rsg-cov"])
+    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:T:ERr", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "timeout=", "non-deter",
+                                                                 "disable-rsg", "disable-rsg-cov"])
 except getopt.GetoptError:
     print("Arguments parsing error")
     exit(1)
@@ -75,7 +75,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     print("###############\nSetting up core_id: " + str(cur_inst_id))
 
     # Set up SQLRight output folder
-    cur_output_dir_str = os.path.join(output_dir_str, "outputs_" + str(cur_inst_id - starting_core_id))
+    cur_output_dir_str = os.path.join(
+        output_dir_str, "outputs_" + str(cur_inst_id - starting_core_id))
     if not os.path.isdir(cur_output_dir_str):
         os.mkdir(cur_output_dir_str)
 
@@ -83,7 +84,6 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     cur_output_file = open(cur_output_file, "w")
 
     fuzzing_command = []
-
 
     fuzzing_command = [
         "./afl-fuzz",
@@ -120,14 +120,14 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # modi_env["AFL_SKIP_CPUFREQ"] = "1"
 
     p = subprocess.Popen(
-                        fuzzing_command,
-                        cwd=os.getcwd(),
-                        shell=True,
-                        stderr=subprocess.DEVNULL,
-                        stdout=subprocess.DEVNULL,
-                        stdin=subprocess.DEVNULL,
-                        env=modi_env
-                        )
+        fuzzing_command,
+        cwd=os.getcwd(),
+        shell=True,
+        stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        env=modi_env
+    )
 
 print("#############\nFinished launching the fuzzing. \n\n\n")
 

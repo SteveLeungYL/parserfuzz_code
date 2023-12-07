@@ -490,6 +490,39 @@ func (r *RSG) RemoveTiDBUnimplementedRule(inputProds map[string][]*yacc.Expressi
 	return
 }
 
+func (r *RSG) RemoveDuckDBKeywordPlaceholder(inputProds map[string][]*yacc.ExpressionNode) {
+	// map in GoLang is passed by reference. Any changes inside the function will affect the original values.
+	var trimmedInputProds = make(map[string][]*yacc.ExpressionNode)
+	for rootStr, rules := range inputProds {
+		var trimmedRules []*yacc.ExpressionNode
+		for _, curRule := range rules {
+			isErrorRule := false
+			for _, curTerm := range curRule.Items {
+				if strings.Contains(curTerm.Value, "unreserved_keyword") ||
+					strings.Contains(curTerm.Value, "col_name_keyword") ||
+					strings.Contains(curTerm.Value, "func_name_keyword") ||
+					strings.Contains(curTerm.Value, "type_name_keyword") ||
+					strings.Contains(curTerm.Value, "other_keyword") ||
+					strings.Contains(curTerm.Value, "type_func_name_keyword") ||
+					strings.Contains(curTerm.Value, "reserved_keyword") {
+					isErrorRule = true
+					break
+				}
+			}
+			if !isErrorRule {
+				trimmedRules = append(trimmedRules, curRule)
+			}
+		}
+		trimmedInputProds[rootStr] = trimmedRules
+	}
+
+	for rootStr, trimmedRules := range trimmedInputProds {
+		inputProds[rootStr] = trimmedRules
+	}
+
+	return
+}
+
 func (r *RSG) ClassifyEdges(dbmsName string) {
 	// Construct the terminating or nested Productions (Grammar Edges)
 
@@ -666,6 +699,13 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		r.RemoveTiDBUnimplementedRule(r.allCompProds)
 		r.RemoveTiDBUnimplementedRule(r.allCompNonRecursiveProds)
 		r.RemoveTiDBUnimplementedRule(r.allCompRecursiveProds)
+	} else if dbmsName == "duckdb" {
+		r.RemoveDuckDBKeywordPlaceholder(r.allProds)
+		r.RemoveDuckDBKeywordPlaceholder(r.allTermProds)
+		r.RemoveDuckDBKeywordPlaceholder(r.allNormProds)
+		r.RemoveDuckDBKeywordPlaceholder(r.allCompProds)
+		r.RemoveDuckDBKeywordPlaceholder(r.allCompNonRecursiveProds)
+		r.RemoveDuckDBKeywordPlaceholder(r.allCompRecursiveProds)
 	}
 
 }
