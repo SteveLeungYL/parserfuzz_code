@@ -22,6 +22,8 @@ saved_ir_type = []
 parser_prefix_pre_claimed_types = dict()
 missing_prefix_declare = []
 
+total_rule_num = 0
+
 custom_keyword_mapping = {
     "TYPECAST": "::",
     "Op": "+",
@@ -733,6 +735,9 @@ def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: 
     return body
 
 def translate_single_line(token_sequence, parent):
+    global total_rule_num
+
+    total_rule_num += 1
     token_sequence = tokenize(token_sequence)
 
     i = 0
@@ -1122,6 +1127,7 @@ def mark_statement_location(data):
 def run(output, remove_comments):
     global grammar_prefix
     global grammar_suffix
+    global total_rule_num
 
     # Remove all_ir_type.txt, if exist
     if os.path.exists("./all_ir_types.txt"):
@@ -1157,6 +1163,7 @@ def run(output, remove_comments):
         grammar_prefix += f"%type <ir> {cur_missing_symbol} \n"
     grammar_prefix += grammar_prefix_add_on
 
+    print(f"Total_rule_num: {total_rule_num}\n")
 
     with open(output, "w") as f:
         f.write(grammar_prefix)
