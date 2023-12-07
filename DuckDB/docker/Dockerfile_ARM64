@@ -31,6 +31,7 @@ apt -y install llvm && \
 apt -y install clang && \
 apt install -y g++-10 && \
 apt install -y gcc-10 && \
+apt install -y curl && \
 pip3 install gitpython
 
 RUN useradd -ms /bin/bash duckdb
@@ -39,6 +40,9 @@ USER duckdb
 RUN pip3 install libtmux
 
 WORKDIR /home/duckdb
+
+# Install the Rust tool-chain using duckdb user privilege.
+curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 
 USER duckdb
@@ -65,7 +69,7 @@ WORKDIR /home/duckdb/duckdb
 RUN git checkout v0.9.1
 ENV CXX=/home/duckdb/AFL/afl-clang-fast++
 ENV CC=/home/duckdb/AFL/afl-clang-fast
-RUN make -j$(nproc)
+RUN make reldebug -j$(nproc)
 
 # Setup the Docker helper scripts
 USER root
