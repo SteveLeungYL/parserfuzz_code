@@ -42,7 +42,7 @@ RUN pip3 install libtmux
 WORKDIR /home/duckdb
 
 # Install the Rust tool-chain using duckdb user privilege.
-curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 
 USER duckdb
