@@ -86,8 +86,9 @@ IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
 
     IR* cur_root = new IR(kStmtblock, OP0(), nullptr, nullptr);
     IR* first_simple_stmt = new IR(kStmt, OP0(), stmt_vec[0]->deep_copy());
-    IR* first_stmtlist = new IR(kStmtmulti, OP3("", ";", ""), first_simple_stmt);
-    cur_root->update_left(first_stmtlist);
+    IR* first_stmtlist = new IR(kStmtmulti, OP3("", "", ""), first_simple_stmt);
+    IR* top_stmtlist = new IR(kStmtmulti, OP3("", ";", ""), first_stmtlist);
+    cur_root->update_left(top_stmtlist);
 
     set_ir_root(cur_root);
 
@@ -276,8 +277,9 @@ IR* IRWrapper::get_first_stmtlist_from_root() {
         cerr << "Error: In ir_wrapper::get_stmtmulti_IR_vec, receiving empty IR root. \n";
         return nullptr;
     }
-    if (ir_root->get_left()->get_ir_type() == kStmtmulti) {  // This is the rewritten and reconstruct IR tree.
-        return ir_root->get_left();
+    // This isreconstruct IR tree that match with the original data parser structure.
+    if (ir_root->get_left()->get_ir_type() == kStmtmulti && ir_root->get_left()->get_left()->get_ir_type() == kStmtmulti) {
+        return ir_root->get_left()->get_left();
     }
 
     /* This is not a reconstructed IR tree. Do not have any kStmtList. */
@@ -348,7 +350,7 @@ IR* IRWrapper::get_last_stmt_from_root() {
 
 vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
 
-    IR* stmt_IR_p = get_first_stmtlist_from_root();
+    IR* stmt_IR_p = IRWrapper::get_first_stmtlist_from_root();
 
     vector<IR*> stmt_list_v;
     vector<IR*> res_stmt_list_v;
@@ -553,6 +555,9 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
         next_stmt_list->update_right(nullptr);
         next_stmt_list->update_left(next_stmt);
+		if (next_stmt_list->op_ != nullptr) {
+			next_stmt_list->op_->middle_ = "";
+        }
 
         rov_stmt->update_right(nullptr);
         rov_stmt->deep_drop();
