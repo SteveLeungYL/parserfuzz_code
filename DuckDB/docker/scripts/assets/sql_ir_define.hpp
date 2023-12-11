@@ -1246,6 +1246,10 @@ new IROperator("", a, "")
             else if (str_val_ != "") {
                 res += " " + str_val_ + " ";
             }
+            else if (get_ir_type() == kIntegerLiteral) {
+              // str_val_ == "" && ir_type == kIntegerLiteral
+              res += std::to_string(int_val_);
+            }
 
 
             if(right_ != NULL) {
