@@ -92,7 +92,7 @@ bool try_validate(IR *cur_root) {
   // vector<IR*> all_stmt_vec = mutator.pre_fix_transform(cur_root, dump_vec);
 
   for (IR *cur_trans_stmt : all_stmt_vec) {
-    if (!mutator.validate(cur_trans_stmt->left_, true)) { // is_debug_info == true;
+    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
       cerr << "Error: g_mutator.validate returns errors. \n";
     }
   }
@@ -110,6 +110,9 @@ bool try_validate(IR *cur_root) {
   vector<string> validity_vec = string_splitter(validity, ";");
   cout << "\n\n\nValidate string: \n";
   for (string &cur_validity : validity_vec) {
+	if (cur_validity == "\n" || cur_validity.size() == 0) {
+		continue;
+    }
     cout << cur_validity << ";\n";
   }
   cout << "\n\n\n";
