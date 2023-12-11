@@ -25,6 +25,8 @@ vector<IR*> parser_helper(const string in_str, GramCovMap* p_gram) {
 
     duckdb_libpgquery::pg_parser_parse_ret_ir(in_str.c_str(), ir_vec);
 
+    duckdb_libpgquery::pg_parser_cleanup();
+
     int unique_id_for_node = 0;
     for (auto ir: ir_vec) {
         ir->uniq_id_in_tree_ = unique_id_for_node++;

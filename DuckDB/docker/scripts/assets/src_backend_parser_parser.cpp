@@ -57,6 +57,9 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 	scanner_finish(yyscanner);
 
 	if (yyresult) /* error */ {
+    for (IR* cur_tmp_ir : yyextra.ir_vec) {
+			cur_tmp_ir->drop();
+		}
 		std::vector<IR *> tmp;
 		return tmp;
 	}

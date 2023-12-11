@@ -78,6 +78,7 @@ COPY scripts /home/duckdb/scripts
 RUN chown -R duckdb:duckdb /home/duckdb/scripts
 
 ## Build IR modified duckdb3
+USER duckdb
 WORKDIR /home/duckdb
 RUN cp -r duckdb_ori duckdb_ir
 WORKDIR /home/duckdb/duckdb_ir
@@ -88,6 +89,7 @@ RUN pip3 install loguru && python3 /home/duckdb/scripts/setup_duckdb_ir.py /home
 RUN make -j$(nproc)
 
 # Setup the Golang compilation
+USER duckdb
 WORKDIR /home/duckdb/
 RUN wget https://go.dev/dl/go1.21.4.linux-arm64.tar.gz && \
     tar -xf go1.21.4.linux-arm64.tar.gz
