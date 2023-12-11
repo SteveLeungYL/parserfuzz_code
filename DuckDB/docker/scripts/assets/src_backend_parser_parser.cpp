@@ -41,20 +41,30 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 	base_yy_extra_type yyextra;
 	int yyresult;
 
-	/* initialize the flex scanner */
-	yyscanner = scanner_init(str, &yyextra.core_yy_extra, ScanKeywords, NumScanKeywords);
+  try {
+		/* initialize the flex scanner */
+		yyscanner = scanner_init(str, &yyextra.core_yy_extra, ScanKeywords, NumScanKeywords);
 
-	/* base_yylex() only needs this much initialization */
-	yyextra.have_lookahead = false;
+		/* base_yylex() only needs this much initialization */
+		yyextra.have_lookahead = false;
 
-	/* initialize the bison parser */
-	parser_init(&yyextra);
+		/* initialize the bison parser */
+		parser_init(&yyextra);
 
-	/* Parse! */
-	yyresult = base_yyparse(yyscanner);
+		/* Parse! */
+		yyresult = base_yyparse(yyscanner);
 
-	/* Clean up (release memory) */
-	scanner_finish(yyscanner);
+		/* Clean up (release memory) */
+		scanner_finish(yyscanner);
+	} catch (std::exception &ex) {
+		for (IR* cur_tmp_ir : yyextra.ir_vec) {
+			cur_tmp_ir->drop();
+		}
+		std::vector<IR *> tmp;
+		return tmp;
+	}
+
+
 
 	if (yyresult) /* error */ {
     for (IR* cur_tmp_ir : yyextra.ir_vec) {
