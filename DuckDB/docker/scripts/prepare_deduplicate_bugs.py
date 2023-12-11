@@ -33,6 +33,6 @@ Copy finished. Now executing the following script:
 
 ```bash
 cd /home/duckdb/AFLTriage/target/debug
-./afltriage -i ./crash -o outputs -t 60000 --stdin --debug /home/duckdb/duckdb/build/release/duckdb
+./afltriage -i ./crash -o outputs -t 60000 --stdin --debug /home/duckdb/duckdb/build/reldebug/duckdb
 ```
 """)
