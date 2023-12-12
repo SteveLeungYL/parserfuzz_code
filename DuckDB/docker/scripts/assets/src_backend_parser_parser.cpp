@@ -32,6 +32,7 @@
 #include "parser/gramparse.hpp"
 #include "parser/parser.hpp"
 #include "parser/kwlist.hpp"
+#include <memory>
 
 namespace duckdb_libpgquery {
 
@@ -57,9 +58,10 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 		/* Clean up (release memory) */
 		scanner_finish(yyscanner);
 	} catch (std::exception &ex) {
-		for (IR* cur_tmp_ir : yyextra.ir_vec) {
-			cur_tmp_ir->drop();
-		}
+		//for (IR* cur_tmp_ir : yyextra.ir_vec) {
+			//cur_tmp_ir->drop();
+		//}
+    yyextra.ir_vec.clear();
 		std::vector<IR *> tmp;
 		return tmp;
 	}
@@ -67,14 +69,22 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 
 
 	if (yyresult) /* error */ {
-    for (IR* cur_tmp_ir : yyextra.ir_vec) {
-			cur_tmp_ir->drop();
-		}
+    //for (IR* cur_tmp_ir : yyextra.ir_vec) {
+			//cur_tmp_ir->drop();
+		//}
+    yyextra.ir_vec.clear();
 		std::vector<IR *> tmp;
 		return tmp;
 	}
 
-	return yyextra.ir_vec;
+  // Copy the necessary result out. Free the original ir_vec.
+  std::vector<IR*> res_ir_vec;
+  IR* res_root = yyextra.ir_vec.back()->deep_copy();
+  res_ir_vec.push_back(res_root);
+  yyextra.ir_vec.clear();
+
+  return res_ir_vec;
+
 }
 
 /*

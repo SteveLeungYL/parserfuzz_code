@@ -472,6 +472,7 @@ grammar_prefix = """
 #include <string.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <ctype.h>
 #include <limits.h>
@@ -485,7 +486,7 @@ grammar_prefix = """
 namespace duckdb_libpgquery {
 #define DEFAULT_SCHEMA "main"
 
-std::vector<IR*> ir_vec;
+std::vector< std::shared_ptr<IR> > ir_vec;
 
 #define YYLLOC_DEFAULT(Current, Rhs, N) \\
 	do { \\
@@ -716,16 +717,19 @@ def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: 
     type_name = is_identifier(cur_token)
     if type_name == "kIdentifier" or type_name ==  "kStringLiteral" or type_name == "kFloatLiteral" or type_name == "kBinLiteral":
         body += f"auto tmp{tmp_num} = new IR({type_name}, cstr_to_string(${cur_token.index + 1}), kDataFixLater, kFlagUnknown);" + "\n"
-        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+        body += f"std::shared_ptr<IR> p_tmp{tmp_num}(tmp{tmp_num}, [](IR *p) {{p->drop();}}); \n"
+        body += f"ir_vec.push_back(p_tmp{tmp_num});\n"
     elif type_name != None and type_name == "kIntegerLiteral":
         body += f"auto tmp{tmp_num} = new IR({type_name}, ${cur_token.index + 1});" + "\n"
-        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+        body += f"std::shared_ptr<IR> p_tmp{tmp_num}(tmp{tmp_num}, [](IR *p) {{p->drop();}}); \n"
+        body += f"ir_vec.push_back(p_tmp{tmp_num});\n"
     elif type_name != None and type_name == "kBoolLiteral":
         if cur_token.word == "TRUE_P":
             body += f"auto tmp{tmp_num} = new IR({type_name}, std::string(\"TRUE\"));" + "\n"
         else:
             body += f"auto tmp{tmp_num} = new IR({type_name}, std::string(\"FALSE\"));" + "\n"
-        body += f"ir_vec.push_back(tmp{tmp_num});\n"
+        body += f"std::shared_ptr<IR> p_tmp{tmp_num}(tmp{tmp_num}, [](IR *p) {{p->drop();}}); \n"
+        body += f"ir_vec.push_back(p_tmp{tmp_num});\n"
     else:
         body += f"auto tmp{tmp_num} = ${cur_token.index + 1};" + "\n"
 
@@ -745,14 +749,15 @@ def translate_single_line(token_sequence, parent):
     body = ""
     need_more_ir = False
 
-    body += "IR* res; \n"
+    body += "IR* res; \nstd::shared_ptr<IR> p_res; \n"
 
     if len(token_sequence) == 0:
         # For empty rules.
         body += (
                 f"""res = new IR({default_ir_type}, OP3("", "", ""));""" + "\n"
             )
-        body += "ir_vec.push_back(res); \n"
+        body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+        body += "ir_vec.push_back(p_res); \n"
     
     while i < len(token_sequence):
         left_token, left_keywords = search_next_keyword(token_sequence, i)
@@ -784,7 +789,8 @@ def translate_single_line(token_sequence, parent):
                 f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
                 + "\n"
             )
-            body += "ir_vec.push_back(res); \n"
+            body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+            body += "ir_vec.push_back(p_res); \n"
             tmp_num += 1
 
             if right_token and not right_token.is_terminating_keyword:
@@ -793,7 +799,8 @@ def translate_single_line(token_sequence, parent):
                     f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
                     + "\n"
                 )
-                body += "ir_vec.push_back(res); \n"
+                body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+                body += "ir_vec.push_back(p_res); \n"
                 tmp_num += 1
 
         elif right_token and right_token.is_terminating_keyword == False:
@@ -803,7 +810,8 @@ def translate_single_line(token_sequence, parent):
                 f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});"""
                 + "\n"
             )
-            body += "ir_vec.push_back(res); \n"
+            body += f"p_res = std::shared_ptr<IR> (res, [](IR *p) {{p->drop();}}); \n"
+            body += "ir_vec.push_back(p_res); \n"
 
             tmp_num += 2
             need_more_ir = True
@@ -824,7 +832,8 @@ def translate_single_line(token_sequence, parent):
                     f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));"""
                     + "\n"
                 )
-                body += "ir_vec.push_back(res); \n"
+                body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+                body += "ir_vec.push_back(p_res); \n"
                 break
             if not left_token.is_terminating_keyword:
                 body += get_special_handling_ir_body(left_token, parent, token_sequence, tmp_num)
@@ -832,13 +841,15 @@ def translate_single_line(token_sequence, parent):
                     f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});"""
                     + "\n"
                 )
-                body += "ir_vec.push_back(res); \n"
+                body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+                body += "ir_vec.push_back(p_res); \n"
             else:
                 body += (
                         f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""));"""
                         + "\n"
                 )
-                body += "ir_vec.push_back(res); \n"
+                body += f"p_res = std::shared_ptr<IR>(res, [](IR *p) {{p->drop();}}); \n"
+                body += "ir_vec.push_back(p_res); \n"
 
             tmp_num += 1
             need_more_ir = True

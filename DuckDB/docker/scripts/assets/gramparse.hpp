@@ -23,6 +23,7 @@
 #include "sql_ir_define.hpp"
 
 #include <vector>
+#include <memory>
 
 namespace duckdb_libpgquery {
 #include "parser/gram.hpp"
@@ -53,7 +54,7 @@ typedef struct base_yy_extra_type {
 	PGList *parsetree; /* final parse result is delivered here */
 
 	/* ParserFuzz injected code */
-	std::vector<IR*> ir_vec;
+	std::vector< std::shared_ptr<IR> > ir_vec;
 } base_yy_extra_type;
 
 /*
