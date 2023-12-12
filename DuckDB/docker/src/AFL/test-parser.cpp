@@ -83,6 +83,10 @@ bool try_validate(IR *cur_root) {
   pre_transform, post_transform and validate()
   */
 
+  if (cur_root == NULL) {
+	return false;
+  }
+
   mutator.pre_validate(); // Reset global variables for query sequence.
 
   // cur_root = cur_root->deep_copy();
@@ -169,7 +173,9 @@ int main(int argc, char *argv[]) {
 
   try_validate(root);
 
-  root->deep_drop();
+  if (root != NULL) {
+      root->deep_drop();
+  }
 
   return 0;
 }
