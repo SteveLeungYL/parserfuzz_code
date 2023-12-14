@@ -60,22 +60,24 @@ RUN make
 FROM fundamental AS duckdb3_build
 
 # Build duckdb3
+USER duckdb
 WORKDIR /home/duckdb
 RUN git clone https://github.com/duckdb/duckdb.git
 RUN cp -r duckdb duckdb_ori
-
-## Build instrumented duckdb3
-WORKDIR /home/duckdb/duckdb
-RUN git checkout v0.9.1
-ENV CXX=/home/duckdb/AFL/afl-clang-fast++
-ENV CC=/home/duckdb/AFL/afl-clang-fast
-RUN make reldebug -j$(nproc)
 
 # Setup the Docker helper scripts
 USER root
 WORKDIR /home/duckdb
 COPY scripts /home/duckdb/scripts
 RUN chown -R duckdb:duckdb /home/duckdb/scripts
+
+## Build instrumented duckdb3
+USER duckdb
+WORKDIR /home/duckdb/duckdb
+RUN git checkout v0.9.1
+ENV CXX=/home/duckdb/AFL/afl-clang-fast++
+ENV CC=/home/duckdb/AFL/afl-clang-fast
+RUN python3 /home/duckdb/scripts/modify_duckdb_shell.py && make reldebug -j$(nproc)
 
 ## Build IR modified duckdb3
 USER duckdb
