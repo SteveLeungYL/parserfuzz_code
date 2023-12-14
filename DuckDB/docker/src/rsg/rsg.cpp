@@ -68,7 +68,7 @@ string rsg_generate(const IRTYPE type) {
   // Only supporting TypeSelect and TypeStmt.
   string input_str = "";
   if (type == kSelectStmt) {
-    input_str = "SelectStmt";
+    input_str = "select_no_parens";
   } else {
     input_str = "stmt";
   }

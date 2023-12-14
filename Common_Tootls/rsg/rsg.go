@@ -292,7 +292,9 @@ func (r *RSG) isDuckDBCompNode(_ string, nodeValue string) bool {
 		return true
 	}
 	if strings.Contains(nodeValue, "select") || strings.Contains(nodeValue, "expr") ||
-		strings.Contains(nodeValue, "_list") {
+		strings.Contains(nodeValue, "_list") ||
+		strings.Contains(nodeValue, "opt_") ||
+		strings.Contains(nodeValue, "table_ref") {
 		return true
 	}
 	return false
@@ -707,6 +709,9 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		r.RemoveDuckDBKeywordPlaceholder(r.allCompNonRecursiveProds)
 		r.RemoveDuckDBKeywordPlaceholder(r.allCompRecursiveProds)
 	}
+
+	//fmt.Print("All terminating prods: ")
+	//fmt.Print(r.allCompProds)
 
 }
 
@@ -3958,7 +3963,7 @@ func (r *RSG) generateDuckDB(root string, rootPathNode *PathNode, parentHash uin
 			var v []string
 			tokenStr := item.Value
 
-			if depth < 0 {
+			if depth <= 0 {
 				if tokenStr == "SelectStmt" || tokenStr == "select_no_parens" || tokenStr == "simple_select" {
 					ret = append(ret, " SELECT 'abc' ")
 					rootPathNode.ExprProds = nil
@@ -3984,6 +3989,11 @@ func (r *RSG) generateDuckDB(root string, rootPathNode *PathNode, parentHash uin
 					rootPathNode.ExprProds = nil
 					rootPathNode.Children = []*PathNode{}
 					continue
+				} else if tokenStr == "joined_table" {
+					ret = append(ret, " v0 ")
+					rootPathNode.ExprProds = nil
+					rootPathNode.Children = []*PathNode{}
+					continue
 				} else if tokenStr == "PreparableStmt" {
 					ret = append(ret, " SELECT 'abc' ")
 					rootPathNode.ExprProds = nil
@@ -3995,6 +4005,16 @@ func (r *RSG) generateDuckDB(root string, rootPathNode *PathNode, parentHash uin
 			switch tokenStr {
 			case "IDENT":
 				v = []string{"v0"}
+			case "SCONST":
+				v = []string{`'string'`}
+			case "ICONST":
+				v = []string{`100`}
+			case "FCONST":
+				v = []string{`100.0`}
+			case "BCONST":
+				v = []string{`'101010'::BIT`}
+			case "XCONST":
+				v = []string{`'101010'::BIT`}
 			case "TYPECAST":
 				v = []string{"::"}
 			case "COLON_EQUALS":
@@ -4067,6 +4087,7 @@ func (r *RSG) generateDuckDB(root string, rootPathNode *PathNode, parentHash uin
 					}
 					newChildPathNode = rootPathNode.Children[replayExprIdx]
 					replayExprIdx += 1
+					//fmt.Print("(debug) using replaying mode. \n\n\n")
 					// We won't decrease depth number in replaying mode.
 					v = r.generateDuckDB(item.Value, newChildPathNode, rootHash, depth, rootDepth)
 				}

@@ -5589,7 +5589,7 @@ string rsg_gen_sql_seq (int idx = 0) {
       break;
     }
   } else {
-    res_str = rsg_gen_stmt("SelectStmt") + "\n";
+    res_str = rsg_gen_stmt("select_no_parens") + "\n";
   }
 
 #ifdef DEBUG
