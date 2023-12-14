@@ -14,7 +14,7 @@ for i in range(len(all_lines)):
 
         all_modified_lines += """
     // stdin is not interactive.
-    while (__AFL_LOOP(1000)) {
+    while (__AFL_LOOP(10000)) {
       fseek(stdin, 0, SEEK_SET);
       fseek(stdout, 0, SEEK_SET);
       data.in = stdin;

@@ -253,6 +253,7 @@ static s32 shm_id; /* ID of the SHM region             */
 
 static volatile u8 stop_soon, /* Ctrl-C pressed?                  */
     clear_screen = 1,         /* Window resized?                  */
+    child_has_stop = 0,
     child_timed_out = 0;          /* Traced process timed out?        */
 
 EXP_ST u32 queued_paths, /* Total number of queued testcases */
@@ -2402,7 +2403,7 @@ static string read_sqlite_output_and_reset_output_file() {
   program_output_str.reserve(100);
   char output_buf[1024 + 1];
 
-  if (child_timed_out) {
+  if (child_has_stop || child_timed_out) {
     program_output_str.clear();
     return program_output_str;
   }
@@ -2430,7 +2431,7 @@ static string read_sqlite_output_and_reset_output_file() {
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(char **argv, u32 timeout) {
+static u8 run_target(char **argv, u32 timeout, bool is_restart = false) {
   static struct itimerval it;
   static u32 prev_timed_out = 0;
   static u64 exec_ms = 0;
@@ -2439,6 +2440,7 @@ static u8 run_target(char **argv, u32 timeout) {
   u32 tb4;
 
   child_timed_out = 0;
+  child_has_stop = 0;
 
   /* After this memset, trace_bits[] are effectively volatile, so we
      must prevent any earlier operations from venturing into that
@@ -2565,6 +2567,13 @@ static u8 run_target(char **argv, u32 timeout) {
 
   setitimer(ITIMER_REAL, &it, NULL);
 
+  if (is_restart) {
+    kill(child_pid, SIGKILL);
+    prev_timed_out = 1;
+    child_has_stop = 1;
+    child_timed_out = 1;
+  }
+
   /* The SIGALRM handler simply kills the child_pid and sets child_timed_out. */
 
   if (dumb_mode == 1 || no_forkserver) {
@@ -2586,6 +2595,7 @@ static u8 run_target(char **argv, u32 timeout) {
 
   if (!WIFSTOPPED(status)) {
     child_pid = 0;
+    child_has_stop = 1;
   }
 
   getitimer(ITIMER_REAL, &it);
@@ -2618,10 +2628,11 @@ static u8 run_target(char **argv, u32 timeout) {
   if (WIFSIGNALED(status) && !stop_soon) {
     kill_signal = WTERMSIG(status);
 
-    if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
-
-    return FAULT_CRASH;
-
+    if (!is_restart) {
+      if (child_timed_out && kill_signal == SIGKILL)
+       return FAULT_TMOUT;
+      return FAULT_CRASH;
+    }
   }
 
   // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
@@ -2781,7 +2792,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
 
 u8 execute_cmd_string(vector<string> &cmd_string_vec,
                       ALL_COMP_RES &all_comp_res, char **argv,
-                      u32 tmout = exec_tmout) {
+                      u32 tmout = exec_tmout, bool is_restart = false) {
 
   all_comp_res.final_res = FAULT_NONE;
 
@@ -2793,7 +2804,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
   /* The trace_bits[] are effectively volatile after calling run_target */
   write_to_testcase(cmd_string.c_str(), cmd_string.size());
-  fault = run_target(argv, tmout);
+  fault = run_target(argv, tmout, is_restart);
 
   if (skip_requested) {
     skip_requested = 0;
@@ -3598,15 +3609,11 @@ static u8 save_if_interesting(char **argv, string query_str,
     stage_name = "add_to_library";
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
-    if (ir_tree.size() > 0) {
-//      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree.back()),
-//                                   all_comp_res);
-//      p_oracle->remove_all_select_stmt_from_ir(ir_tree.back());
-//      stripped_query_string = ir_tree.back()->to_string();
+    if (!ir_tree.empty()) {
+      // No need to add to library.
       ir_tree.back()->deep_drop();
       g_mutator.rsg_exec_succeed_helper();
     } else {
-      // cerr << "query_str parse failed: " << query_str << endl;
       return keeping; // keep = 0, meaning nothing added to the queue.
     }
 
@@ -3690,22 +3697,8 @@ static u8 save_if_interesting(char **argv, string query_str,
        is already generous). */
 
     if (exec_tmout < hang_tmout) {
-
-//      u8 new_fault;
-//      write_to_testcase(query_str.c_str(), query_str.size());
-//      new_fault = run_target(argv, hang_tmout);
-//      read_sqlite_output_and_reset_output_file();
-//
-//      /* A corner case that one user reported bumping into: increasing the
-//         timeout actually uncovers a crash. Make sure we don't discard it if
-//         so. */
-//
-//      if (!stop_soon && new_fault == FAULT_CRASH)
-//        goto keep_as_crash;
-//
-//      if (stop_soon || new_fault != FAULT_TMOUT) {
+        // Disable timeout logging.
         return keeping;
-//      }
     }
 
 #ifndef SIMPLE_FILES
@@ -5209,14 +5202,14 @@ static u32 next_p2(u32 val) {
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str) {
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &v_query_str, bool is_restart = false) {
 
   u8 fault;
 
   ALL_COMP_RES all_res;
 
   all_res.v_cmd_str.push_back(v_query_str.back());
-  fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout);
+  fault = execute_cmd_string(v_query_str, all_res, argv, exec_tmout, is_restart);
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR) {
@@ -5606,23 +5599,26 @@ string rsg_gen_sql_seq (int idx = 0) {
   return res_str;
 }
 
+void restart_duckdb(char **argv) {
+  // This is not a valid exit statement.
+  // The actual exit is handled by forced kill from run_target.
+  vector<string> tmp_vec = {".print EOF"};
+  common_fuzz_stuff(argv, tmp_vec, true);
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
 
 static u8 fuzz_one(char **argv) {
 
-  s32 len, fd;
-  u8 *in_buf, *out_buf, *orig_in;
-  u64 new_hit_cnt;
   u8 ret_val = 1;
 
   vector<IR *> ir_set;
   vector<string *> mutated_tree;
   vector<IR *> app_new_select_stmts;
-  char *tmp_name = stage_name;
   int skip_count;
-  string all_inputs;
+  string all_inputs, all_valid_inputs;
 
   //[modify] add
   stage_name = "mutate";
@@ -5632,6 +5628,8 @@ static u8 fuzz_one(char **argv) {
   g_mutator.pre_validate();
 
   show_stats();
+
+  restart_duckdb(argv);
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
     string cur_input = rsg_gen_sql_seq(stmt_idx);
@@ -5654,7 +5652,6 @@ static u8 fuzz_one(char **argv) {
     for (IR *cur_stmt : v_stmt) {
       /* Fill in concret values to the SQL. Instantiation step. */
       if (!g_mutator.validate(cur_stmt, false)) {
-        cur_root->deep_drop();
         continue;
       }
       cur_input += cur_stmt->to_string() + "; \n";
@@ -5666,40 +5663,51 @@ static u8 fuzz_one(char **argv) {
       return 0;
     }
 
-    cur_root->deep_drop();
+    vector<string> query_str_vec;
 
     if (is_str_empty(cur_input)) {
       total_append_failed++;
       skip_count++;
-		continue;
+      continue; // stmt_idx loop
     } else {
+      if (child_has_stop || child_timed_out) {
+        query_str_vec.push_back(all_valid_inputs + "\n" + cur_input);
+      } else {
+        query_str_vec.push_back(cur_input);
+      }
       all_inputs += cur_input + "\n";
+
+      // Save the all inputs for logging purpose.
+      query_str_vec.push_back(all_inputs);
+
+      show_stats();
+      stage_name = "fuzz";
+      num_common_fuzz++;
+      common_fuzz_stuff(argv, query_str_vec, false);
+      stage_cur++;
+      show_stats();
+
+//        cerr << "From stmt: " << all_valid_inputs + "\n" + cur_input << "\n";
+//        cerr << "Getting res: " << program_output_res << "\n\n\n";
+      if (findStringIn(program_output_res, "error")) {
+        g_mutator.rollback_data_library();
+        g_mutator.rsg_exec_failed_helper();
+        debug_error++;
+      } else if (child_has_stop || child_timed_out) {
+        g_mutator.rollback_data_library();
+        g_mutator.rsg_exec_clear_chosen_expr();
+        debug_error++;
+      } else {
+        // No errors. We can save the query and then continue to the next one.
+        g_mutator.rsg_exec_clear_chosen_expr();
+        debug_good++;
+      }
     }
-  }
 
-  vector<string> query_str_vec;
-  query_str_vec.push_back(all_inputs);
+    cur_root->deep_drop();
+    ret_val = 0;
+  } // stmt_idx
 
-  show_stats();
-  stage_name = "fuzz";
-  num_common_fuzz++;
-  common_fuzz_stuff(argv, query_str_vec);
-  stage_cur++;
-  show_stats();
-
-//  cerr << "From stmt: " << all_inputs << "\n";
-//  cerr << "Getting res: " << program_output_res << "\n\n\n";
-  if (findStringIn(program_output_res, "Error")) {
-	debug_error++;
-  } else if (child_timed_out) {
-	debug_error++;
-  } else {
-    // No errors. We can save the query and then continue to the next one.
-	debug_good++;
-  }
-
-  g_mutator.rsg_exec_clear_chosen_expr();
-  ret_val = 0;
   total_execs++;
   total_execute++;
 
