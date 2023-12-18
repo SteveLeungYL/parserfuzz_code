@@ -18,6 +18,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -170,9 +171,11 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
+		r.mu.Lock()
 		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
 		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
 		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
+		r.mu.Unlock()
 	}
 
 	r.ClearChosenExpr()
@@ -198,9 +201,11 @@ func (r *RSG) IncrementFailed() {
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
+		r.mu.Lock()
 		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
 		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
 		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
+		r.mu.Unlock()
 	}
 
 	r.ClearChosenExpr()
@@ -221,9 +226,11 @@ func (r *RSG) SaveFav() {
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
+		r.mu.Lock()
 		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
 		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
 		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
+		r.mu.Unlock()
 	}
 
 	// No need to clear path in this function.
@@ -368,7 +375,9 @@ func (r *RSG) retrieveExistingFavPathNode(root string) []*PathNode {
 
 	// Retrieve the FIRST element from the FAV, and then remove the current chosen FAV.
 	srcPath := srcSavedFavPath[0]
+	r.mu.Lock()
 	r.allSavedFavPath[root] = srcSavedFavPath[1:]
+	r.mu.Unlock()
 
 	if len(srcPath) == 0 {
 		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
@@ -420,6 +429,7 @@ func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 // RSG is a random syntax generator.
 type RSG struct {
 	Rnd *rand.Rand
+	mu  sync.Mutex
 
 	allProds                 map[string][]*yacc.ExpressionNode
 	allTermProds             map[string][]*yacc.ExpressionNode // allProds that lead to token termination
