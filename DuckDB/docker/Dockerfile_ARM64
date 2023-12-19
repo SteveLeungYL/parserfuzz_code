@@ -74,7 +74,7 @@ RUN chown -R duckdb:duckdb /home/duckdb/scripts
 ## Build instrumented duckdb3
 USER duckdb
 WORKDIR /home/duckdb/duckdb
-RUN git checkout v0.9.1
+RUN git checkout v0.9.2
 ENV CXX=/home/duckdb/AFL/afl-clang-fast++
 ENV CC=/home/duckdb/AFL/afl-clang-fast
 RUN python3 /home/duckdb/scripts/modify_duckdb_shell.py && make reldebug -j$(nproc)
@@ -84,7 +84,7 @@ USER duckdb
 WORKDIR /home/duckdb
 RUN cp -r duckdb_ori duckdb_ir
 WORKDIR /home/duckdb/duckdb_ir
-RUN git checkout v0.9.1
+RUN git checkout v0.9.2
 ENV CXX=g++-10
 ENV CC=gcc-10
 RUN pip3 install loguru && python3 /home/duckdb/scripts/setup_duckdb_ir.py /home/duckdb/scripts/assets /home/duckdb/duckdb_ir
