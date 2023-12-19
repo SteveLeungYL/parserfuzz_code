@@ -224,9 +224,9 @@ def handle_qualified_name(cur_token: Token, parent: str, token_sequence: List[st
         data_type_par_par = "kDataDatabase"
         data_flag = "kUndefine"
     elif parent == "insert_target":
-        data_type = "kDataColumnName"
-        data_type_par = "kDataTableName"
-        data_type_par_par = "kDataDatabase"
+        data_type = "kDataTableName"
+        data_type_par = "kDataDatabase"
+        # data_type_par_par = "kDataDatabase"
         data_flag = "kUse"
     elif parent == "CreateTypeStmt":
         data_type = "kDataTypeName"
@@ -715,7 +715,7 @@ def handle_col_id(cur_token: Token, parent: str, token_sequence: List[str], ir_r
         # ColIdOrString, leave it to the ColIdOrString handler
         return "", ""
     elif parent == "insert_target" and token_sequence.count("AS") and token_sequence.count("qualified_name"):
-        return "kDataAliasName", "kDefine"
+        return "kDataTableAliasName", "kDefine"
     elif parent == "insert_column_item":
         return "kDataColumnName", "kUse"
     elif parent == "index_elem":
