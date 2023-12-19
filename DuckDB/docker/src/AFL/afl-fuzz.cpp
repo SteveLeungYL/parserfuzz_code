@@ -5565,7 +5565,7 @@ string rsg_gen_sql_seq (int idx = 0) {
 //  if (idx < 3) {
 //    res_str = g_mutator.construct_rand_pragma_stmt() + "\n";
 //  } else if (idx < 4) {
-  if (idx < 1) {
+  if (idx == 0) {
     res_str = "CREATE TABLE v0 (v1 INT, v2 STRING, v3 FLOAT); \n";
   } else if (idx < 4) {
     res_str = rsg_gen_stmt("CreateStmt") + "\n";
@@ -5630,6 +5630,9 @@ static u8 fuzz_one(char **argv) {
   show_stats();
 
   restart_duckdb(argv);
+
+  vector<string> dump_first_stmt = {"CREATE TABLE v1099 (c1100 INT);"};
+  common_fuzz_stuff(argv, dump_first_stmt, false);
 
   for (int stmt_idx = 0; stmt_idx < 30; stmt_idx++) {
     string cur_input = rsg_gen_sql_seq(stmt_idx);
