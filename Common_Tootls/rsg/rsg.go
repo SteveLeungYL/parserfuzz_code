@@ -576,9 +576,10 @@ func (r *RSG) FindTuningDuckDBRules(inputProds map[string][]*yacc.ExpressionNode
 	for rootStr, rules := range inputProds {
 		var trimmedRules []*yacc.ExpressionNode
 
-		// Case of ColIdOrStr. Remove the SCONST case. Always use Identifier.
 		for _, curRule := range rules {
 			isRemove := false
+
+			// Case of ColIdOrStr. Remove the SCONST case. Always use Identifier.
 			if rootStr == "ColIdOrString" {
 				for _, curTerm := range curRule.Items {
 					if strings.Contains(curTerm.Value, "SCONST") {
@@ -587,6 +588,25 @@ func (r *RSG) FindTuningDuckDBRules(inputProds map[string][]*yacc.ExpressionNode
 					}
 				}
 			}
+
+			// Case of key_match, not implemented
+			if rootStr == "key_match" {
+				for _, curTerm := range curRule.Items {
+					if strings.Contains(curTerm.Value, "PARTIAL") {
+						isRemove = true
+						break
+					}
+				}
+			}
+
+			// Avoid using indirection
+			for _, curTerm := range curRule.Items {
+				if strings.Contains(curTerm.Value, "indirection") {
+					isRemove = true
+					break
+				}
+			}
+
 			if !isRemove {
 				trimmedRules = append(trimmedRules, curRule)
 			}
