@@ -570,6 +570,39 @@ func (r *RSG) RemoveDuckDBKeywordPlaceholder(inputProds map[string][]*yacc.Expre
 	return
 }
 
+func (r *RSG) FindTuningDuckDBRules(inputProds map[string][]*yacc.ExpressionNode) {
+	// map in GoLang is passed by reference. Any changes inside the function will affect the original values.
+	var trimmedInputProds = make(map[string][]*yacc.ExpressionNode)
+	for rootStr, rules := range inputProds {
+		var trimmedRules []*yacc.ExpressionNode
+
+		// Case of ColIdOrStr. Remove the SCONST case. Always use Identifier.
+		for _, curRule := range rules {
+			isRemove := false
+			if rootStr == "ColIdOrString" {
+				for _, curTerm := range curRule.Items {
+					if strings.Contains(curTerm.Value, "SCONST") {
+						isRemove = true
+						break
+					}
+				}
+			}
+			if !isRemove {
+				trimmedRules = append(trimmedRules, curRule)
+			}
+		}
+
+		// End of the modifications
+		trimmedInputProds[rootStr] = trimmedRules
+	}
+
+	for rootStr, trimmedRules := range trimmedInputProds {
+		inputProds[rootStr] = trimmedRules
+	}
+
+	return
+}
+
 func (r *RSG) ClassifyEdges(dbmsName string) {
 	// Construct the terminating or nested Productions (Grammar Edges)
 
@@ -753,6 +786,13 @@ func (r *RSG) ClassifyEdges(dbmsName string) {
 		r.RemoveDuckDBKeywordPlaceholder(r.allCompProds)
 		r.RemoveDuckDBKeywordPlaceholder(r.allCompNonRecursiveProds)
 		r.RemoveDuckDBKeywordPlaceholder(r.allCompRecursiveProds)
+
+		r.FindTuningDuckDBRules(r.allProds)
+		r.FindTuningDuckDBRules(r.allTermProds)
+		r.FindTuningDuckDBRules(r.allNormProds)
+		r.FindTuningDuckDBRules(r.allCompProds)
+		r.FindTuningDuckDBRules(r.allCompNonRecursiveProds)
+		r.FindTuningDuckDBRules(r.allCompRecursiveProds)
 	}
 
 	//fmt.Print("All terminating prods: ")
