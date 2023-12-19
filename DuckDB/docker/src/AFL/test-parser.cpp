@@ -84,16 +84,12 @@ bool try_validate(IR *cur_root) {
   */
 
   if (cur_root == NULL) {
-	return false;
+    return false;
   }
 
   mutator.pre_validate(); // Reset global variables for query sequence.
 
-  // cur_root = cur_root->deep_copy();
-
-  vector<IR *> all_stmt_vec = IRWrapper::get_stmt_ir_vec();
-  // vector<STMT_TYPE> dump_vec;
-  // vector<IR*> all_stmt_vec = mutator.pre_fix_transform(cur_root, dump_vec);
+  vector<IR *> all_stmt_vec = IRWrapper::get_stmt_ir_vec(cur_root);
 
   for (IR *cur_trans_stmt : all_stmt_vec) {
     if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
