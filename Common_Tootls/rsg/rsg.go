@@ -166,16 +166,32 @@ func (r *RSG) IncrementSucceed() {
 	// Save the new nodes to the seed.
 	if len(r.curChosenPath) != 0 {
 		//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
-		r.allSavedPath[r.curMutatingType] = append(r.allSavedPath[r.curMutatingType], r.curChosenPath)
-		//fmt.Printf("\nallSavedPath size: %d\n", len(r.allSavedPath[r.curMutatingType]))
+		var tmpAllSavedPath [][]*PathNode
+		tmpAnyAllSavedPath, _ := r.allSavedPath.Load(r.curMutatingType)
+		if tmpAnyAllSavedPath != nil {
+			tmpAllSavedPath = tmpAnyAllSavedPath.([][]*PathNode)
+		} else {
+			tmpAllSavedPath = [][]*PathNode{}
+		}
+
+		tmpAllSavedPath = append(tmpAllSavedPath, r.curChosenPath)
+
+		r.allSavedPath.Store(r.curMutatingType, tmpAllSavedPath)
+		//fmt.Printf("\nallSavedPath size: %d\n", len(tmpAllSavedPath))
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
-		r.mu.Lock()
-		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
-		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
-		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
-		r.mu.Unlock()
+		var tmpAllSavedFavPath [][]*PathNode
+		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
+		if tmpAnyAllSavedFavPath != nil {
+			tmpAllSavedFavPath = tmpAnyAllSavedFavPath.([][]*PathNode)
+		} else {
+			tmpAllSavedFavPath = [][]*PathNode{}
+		}
+
+		tmpAllSavedFavPath = append(tmpAllSavedFavPath, r.curChosenPath)
+
+		r.allSavedFavPath.Store(r.curMutatingType, tmpAllSavedFavPath)
 	}
 
 	r.ClearChosenExpr()
@@ -201,11 +217,17 @@ func (r *RSG) IncrementFailed() {
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
-		r.mu.Lock()
-		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
-		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
-		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
-		r.mu.Unlock()
+		var tmpAllSavedFavPath [][]*PathNode
+		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
+		if tmpAnyAllSavedFavPath != nil {
+			tmpAllSavedFavPath = tmpAnyAllSavedFavPath.([][]*PathNode)
+		} else {
+			tmpAllSavedFavPath = [][]*PathNode{}
+		}
+
+		tmpAllSavedFavPath = append(tmpAllSavedFavPath, r.curChosenPath)
+
+		r.allSavedFavPath.Store(r.curMutatingType, tmpAllSavedFavPath)
 	}
 
 	r.ClearChosenExpr()
@@ -226,11 +248,17 @@ func (r *RSG) SaveFav() {
 	}
 
 	if len(r.curChosenPath) != 0 && isFavPath == true {
-		r.mu.Lock()
-		//fmt.Printf("\n\n\nSaving FAV with type: %s\n", r.curMutatingType)
-		r.allSavedFavPath[r.curMutatingType] = append(r.allSavedFavPath[r.curMutatingType], r.curChosenPath)
-		//fmt.Printf("all FAV SavedPath size: %d\n", len(r.allSavedFavPath[r.curMutatingType]))
-		r.mu.Unlock()
+		var tmpAllSavedFavPath [][]*PathNode
+		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
+		if tmpAnyAllSavedFavPath != nil {
+			tmpAllSavedFavPath = tmpAnyAllSavedFavPath.([][]*PathNode)
+		} else {
+			tmpAllSavedFavPath = [][]*PathNode{}
+		}
+
+		tmpAllSavedFavPath = append(tmpAllSavedFavPath, r.curChosenPath)
+
+		r.allSavedFavPath.Store(r.curMutatingType, tmpAllSavedFavPath)
 	}
 
 	// No need to clear path in this function.
@@ -367,17 +395,23 @@ func (r *RSG) deepCopyPathNode(srcNode *PathNode, destParentNode *PathNode) *Pat
 func (r *RSG) retrieveExistingFavPathNode(root string) []*PathNode {
 
 	var targetPath []*PathNode
-	srcSavedFavPath, pathExisted := r.allSavedFavPath[root]
-	if !pathExisted || len(srcSavedFavPath) == 0 {
+
+	srcAnySavedFavPath, pathExisted := r.allSavedFavPath.Load(root)
+	if srcAnySavedFavPath == nil {
+		return targetPath
+	}
+	srcSavedFavPath := srcAnySavedFavPath.([][]*PathNode)
+
+	if !pathExisted || srcSavedFavPath == nil || len(srcSavedFavPath) == 0 {
 		// Return empty targetPath.
 		return targetPath
 	}
 
 	// Retrieve the FIRST element from the FAV, and then remove the current chosen FAV.
 	srcPath := srcSavedFavPath[0]
-	r.mu.Lock()
-	r.allSavedFavPath[root] = srcSavedFavPath[1:]
-	r.mu.Unlock()
+
+	srcSavedFavPath = srcSavedFavPath[1:]
+	r.allSavedFavPath.Store(root, srcSavedFavPath)
 
 	if len(srcPath) == 0 {
 		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
@@ -400,13 +434,14 @@ func (r *RSG) retrieveExistingFavPathNode(root string) []*PathNode {
 
 func (r *RSG) retrieveExistingPathNode(root string) []*PathNode {
 
-	_, pathExisted := r.allSavedPath[root]
-	if !pathExisted {
+	tmpAnySavedPath, pathExisted := r.allSavedPath.Load(root)
+	if !pathExisted || tmpAnySavedPath == nil {
 		fmt.Printf("Fatal Error. Cannot find the PathNode with %s\n\n\n", root)
 		os.Exit(1)
 	}
 
-	srcPath := r.allSavedPath[root][r.Rnd.Intn(len(r.allSavedPath[root]))]
+	tmpSavedPath := tmpAnySavedPath.([][]*PathNode)
+	srcPath := tmpSavedPath[r.Rnd.Intn(len(tmpSavedPath))]
 	if len(srcPath) == 0 {
 		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
 			"Root: %s"+
@@ -439,8 +474,8 @@ type RSG struct {
 	allCompNonRecursiveProds map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
 
 	curChosenPath   []*PathNode
-	allSavedPath    map[string][][]*PathNode
-	allSavedFavPath map[string][][]*PathNode
+	allSavedPath    sync.Map
+	allSavedFavPath sync.Map
 	curMutatingType string
 	epsilon         float64
 	pathId          int
@@ -762,10 +797,10 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 		allCompRecursiveProds:    make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
 		allCompNonRecursiveProds: make(map[string][]*yacc.ExpressionNode), // Used to save only the known complex edges
 		curChosenPath:            []*PathNode{},
-		allSavedPath:             make(map[string][][]*PathNode),
-		allSavedFavPath:          make(map[string][][]*PathNode),
-		epsilon:                  epsilon,
-		allTriggerEdges:          make([]uint8, 65536),
+		//allSavedPath:             sync.Map, // no need to init
+		//allSavedFavPath:          sync.Map, // no need to init
+		epsilon:         epsilon,
+		allTriggerEdges: make([]uint8, 65536),
 	}
 
 	// Construct all the possible Productions (Grammar Edges)
@@ -929,10 +964,11 @@ func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) []string {
 
 	var rootPathNode *PathNode
-	_, codeCovPathExisted := r.allSavedPath[root]
+	tmpSavedPath, codeCovPathExisted := r.allSavedPath.Load(root)
 
 	if codeCovPathExisted &&
-		len(r.allSavedPath[root]) != 0 &&
+		tmpSavedPath != nil &&
+		len(tmpSavedPath.([][]*PathNode)) > 0 &&
 		r.Rnd.Intn(3) != 0 {
 		// 2/3 chances.
 		// Replaying mode.
