@@ -37,10 +37,12 @@
 namespace duckdb_libpgquery {
 
 /* ParserFuzz Injected parser function */
-std::vector<IR*> raw_parser_ret_ir(const char *str) {
+std::vector<IR*> raw_parser_ret_ir(const char *str, GramCovMap* gram_cov) {
 	core_yyscan_t yyscanner;
 	base_yy_extra_type yyextra;
 	int yyresult;
+
+	gram_cov->reset_edge_cov_map();
 
   try {
 		/* initialize the flex scanner */
@@ -53,7 +55,7 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 		parser_init(&yyextra);
 
 		/* Parse! */
-		yyresult = base_yyparse(yyscanner);
+		yyresult = base_yyparse(yyscanner, gram_cov);
 
 		/* Clean up (release memory) */
 		scanner_finish(yyscanner);
@@ -61,7 +63,7 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 		//for (IR* cur_tmp_ir : yyextra.ir_vec) {
 			//cur_tmp_ir->drop();
 		//}
-    yyextra.ir_vec.clear();
+		yyextra.ir_vec.clear();
 		std::vector<IR *> tmp;
 		return tmp;
 	}
@@ -69,10 +71,10 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
 
 
 	if (yyresult) /* error */ {
-    //for (IR* cur_tmp_ir : yyextra.ir_vec) {
+		//for (IR* cur_tmp_ir : yyextra.ir_vec) {
 			//cur_tmp_ir->drop();
 		//}
-    yyextra.ir_vec.clear();
+		yyextra.ir_vec.clear();
 		std::vector<IR *> tmp;
 		return tmp;
 	}
@@ -82,6 +84,8 @@ std::vector<IR*> raw_parser_ret_ir(const char *str) {
   IR* res_root = yyextra.ir_vec.back()->deep_copy();
   res_ir_vec.push_back(res_root);
   yyextra.ir_vec.clear();
+
+  gram_cov->has_new_grammar_bits();
 
   return res_ir_vec;
 
@@ -109,7 +113,7 @@ PGList *raw_parser(const char *str) {
 	parser_init(&yyextra);
 
 	/* Parse! */
-	yyresult = base_yyparse(yyscanner);
+	yyresult = base_yyparse(yyscanner, nullptr);
 
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);

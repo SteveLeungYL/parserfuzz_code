@@ -61,8 +61,6 @@ public:
         srand(time(nullptr));
     }
 
-    GramCovMap gram_cov_map;
-
     unsigned long hash(IR* );
     unsigned long hash(string &);
 
@@ -138,24 +136,8 @@ public:
 //    bool correct_insert_stmt(IR* ir_root);
 
     vector<IR *> parse_query_str_get_ir_set(const string &query_str) {
-        vector<IR *> ir_set = parser_helper(query_str, &(this->gram_cov_map));
+        vector<IR *> ir_set = parser_helper(query_str);
         return ir_set;
-    }
-
-    inline double get_gram_total_block_cov_size() {
-        return this->gram_cov_map.get_total_block_cov_size();
-    }
-    inline u32 get_gram_total_block_cov_size_num() {
-        return this->gram_cov_map.get_total_block_cov_size_num();
-    }
-    inline double get_gram_total_edge_cov_size() {
-        return this->gram_cov_map.get_total_edge_cov_size();
-    }
-    inline u32 get_gram_total_edge_cov_size_num() {
-        return this->gram_cov_map.get_total_edge_cov_size_num();
-    }
-    inline u64 get_gram_total_path_cov_size_num() {
-        return this->gram_cov_map.get_total_path_cov_size_num();
     }
 
     /* RSG Generator */

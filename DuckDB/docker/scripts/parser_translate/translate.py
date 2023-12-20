@@ -3,7 +3,7 @@ import sys
 from typing import List
 import re
 from translate_instantiation_semantic import setup_identifier_semantics
-from grammar_coverage_logging import insert_grammar_cov_logging, init_random
+from grammar_coverage_logging import insert_grammar_cov_logging, init_random, get_total_injected_grammar_edge_num
 from translate_utils import *
 
 import click
@@ -61,7 +61,7 @@ grammar_suffix = """
  * available from the scanner.
  */
 static void
-base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, const char *msg)
+base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, GramCovMap* gram_cov, const char *msg)
 {
 	parser_yyerror(msg);
 }
@@ -504,7 +504,7 @@ std::vector< std::shared_ptr<IR> > ir_vec;
 #define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
 #define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
 
-static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
+static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, GramCovMap* gram_cov,
 						 const char *msg);
 						 
 std::string cstr_to_string(char *str);
@@ -540,6 +540,7 @@ void setup_any_name_list(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag, DAT
 %locations
 
 %parse-param {core_yyscan_t yyscanner}
+%parse-param {GramCovMap* gram_cov}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -1145,6 +1146,8 @@ def run(output, remove_comments):
     global grammar_suffix
     global total_rule_num
 
+    init_random()
+
     # Remove all_ir_type.txt, if exist
     if os.path.exists("./all_ir_types.txt"):
         os.remove("./all_ir_types.txt")
@@ -1198,6 +1201,7 @@ def run(output, remove_comments):
                 saved_ir_type.append(custom_name)
                 f.write(f"V({custom_name})   \\\n")
 
+    print(f"Getting total number of injected edge coverage: {get_total_injected_grammar_edge_num()}")
+
 if __name__ == "__main__":
-    init_random()
     run()

@@ -8,6 +8,10 @@
 #include <mutex>
 #include <cstring>
 
+#include <iostream>
+
+#include "parser/sql_ir_define.hpp"
+
 #ifdef __MVS__
 #include <zos-tls.h>
 #endif
@@ -109,15 +113,27 @@ void pg_parser_parse(const char *query, parse_result *res) {
 	res->error_location = pg_parser_state.pg_err_pos;
 }
 
+/* ParserFuzz Injection code. */
+
+static GramCovMap gram_cov;
+
+uint32_t pg_parser_get_grammar_edge_cov_num() {
+	return gram_cov.get_total_edge_cov_size_num();
+}
+
 void pg_parser_parse_ret_ir(const char *query, std::vector<IR*>& res) {
+	// std::cerr << "Calling pg_parser_parse_ret_ir()\n\n\n";
+
 	res.clear();
 	try {
-		res = duckdb_libpgquery::raw_parser_ret_ir(query);
+		res = duckdb_libpgquery::raw_parser_ret_ir(query, &gram_cov);
 	} catch (std::exception &ex) {
 		res.clear();
 	}
 	// Ignore error messages etc.
 }
+
+/* End ParserFuzz Injection code. */
 
 void pg_parser_cleanup() {
 	for (size_t ptr_idx = 0; ptr_idx < pg_parser_state.malloc_ptr_idx; ptr_idx++) {

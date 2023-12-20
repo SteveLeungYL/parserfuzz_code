@@ -4,6 +4,27 @@
 #define __sql_ir_define
 
 #include <string>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+
+#ifndef __has_include
+  static_assert(false, "__has_include not supported");
+#else
+#  if __cplusplus >= 201703L && __has_include(<filesystem>)
+#    include <filesystem>
+namespace fs = std::filesystem;
+#  elif __has_include(<experimental/filesystem>)
+#    include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#  elif __has_include(<boost/filesystem.hpp>)
+#    include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#  endif
+#endif
 
 namespace duckdb_libpgquery {
 
@@ -843,20 +864,20 @@ namespace duckdb_libpgquery {
     V(DataLiteral)
 
 
-enum DATAFLAG {
-    kUse,
-    kMapToClosestOne,
-    kNoSplit,
-    kGlobal,
-    kReplace,
-    kUndefine,
-    kAlias,
-    kMapToAll,
-    kDefine,
-    kNoModi,
-    kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
-    kFlagUnknown
-};
+    enum DATAFLAG {
+        kUse,
+        kMapToClosestOne,
+        kNoSplit,
+        kGlobal,
+        kReplace,
+        kUndefine,
+        kAlias,
+        kMapToAll,
+        kDefine,
+        kNoModi,
+        kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
+        kFlagUnknown
+    };
 
 
 #define SWITCHSTART \
@@ -1226,7 +1247,7 @@ new IROperator("", a, "")
 
             std::string res;
 
-            if( op_!= NULL && op_->prefix_ != "" ){
+            if( op_ != NULL && op_->prefix_ != "" ){
                 res += op_->prefix_ + " ";
             }
 
@@ -1246,10 +1267,10 @@ new IROperator("", a, "")
             else if (str_val_ != "") {
                 res += " " + str_val_ + " ";
             }
-            else if (get_ir_type() == kIntegerLiteral) {
-              // str_val_ == "" && ir_type == kIntegerLiteral
-              res += std::to_string(int_val_);
-            }
+			else if (get_ir_type() == kIntegerLiteral) {
+				// str_val_ == "" && ir_type == kIntegerLiteral
+				res += std::to_string(int_val_);
+			}
 
 
             if(right_ != NULL) {
@@ -1371,6 +1392,263 @@ new IROperator("", a, "")
             return copy_res;
         }
     };
+
+	#define s8 int8_t
+	#define s16 int16_t
+	#define s32 int32_t
+	#define s64 int64_t
+	#define u8 uint8_t
+	#define u16 uint16_t
+	#define u32 uint32_t
+	#define u64 uint64_t
+	#define likely(_x) __builtin_expect(!!(_x), 1)
+	#define unlikely(_x) __builtin_expect(!!(_x), 0)
+	#define MAP_SIZE (1 << 18)
+
+	class GramCovMap {
+	public:
+	  GramCovMap() {
+		this->block_cov_map = new unsigned char[MAP_SIZE]();
+		memset(this->block_cov_map, 0, MAP_SIZE);
+		this->block_virgin_map = new unsigned char[MAP_SIZE]();
+		memset(this->block_virgin_map, 0xff, MAP_SIZE);
+
+		this->edge_cov_map = new unsigned char[MAP_SIZE]();
+		memset(this->edge_cov_map, 0, MAP_SIZE);
+		this->edge_virgin_map = new unsigned char[MAP_SIZE]();
+		memset(this->edge_virgin_map, 0xff, MAP_SIZE);
+		edge_prev_cov = 0;
+	  }
+	  ~GramCovMap() {
+		delete[](this->block_cov_map);
+		delete[](this->block_virgin_map);
+		delete[](this->edge_cov_map);
+		delete[](this->edge_virgin_map);
+	  }
+
+	  std::vector<unsigned long long> cur_path_hash_vec;
+
+	  u8 has_new_grammar_bits(bool is_debug = false, const std::string in = "") {
+	//    has_new_grammar_bits(this->block_cov_map, this->block_virgin_map, is_debug); // disabled block coverage
+		return has_new_grammar_bits(this->edge_cov_map, this->edge_virgin_map, is_debug, in);
+	  }
+	  u8 has_new_grammar_bits(u8 *cur_cov_map, u8 *cur_virgin_map, bool is_debug = false, const std::string in = "") {
+
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
+
+	  	u64 *current = (u64 *)cur_cov_map;
+	  	u64 *virgin = (u64 *)cur_virgin_map;
+
+	  	u32 i = (MAP_SIZE >> 3);
+
+#else
+
+	  	u32 *current = (u32 *)this->cov_map;
+	  	u32 *virgin = (u32 *)this->virgin_map;
+
+	  	u32 i = (MAP_SIZE >> 2);
+
+#endif /* ^__x86_64__ __arm64__ __aarch64__ */
+
+	  	u8 ret = 0;
+
+	  	while (i--) {
+
+	  		/* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
+				 that have not been already cleared from the virgin map - since this will
+				 almost always be the case. */
+
+	  		if (unlikely(*current) && unlikely(*current & *virgin)) {
+
+	  			if (likely(ret < 2) || unlikely(is_debug)) {
+
+	  				u8 *cur = (u8 *)current;
+	  				u8 *vir = (u8 *)virgin;
+
+	  				/* Looks like we have not found any new bytes yet; see if any non-zero
+						 bytes in current[] are pristine in virgin[]. */
+
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
+
+	  				if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
+						  (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
+						  (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
+						  (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
+	  					ret = 2;
+	  					if (unlikely(is_debug)) {
+	  						std::vector<u8> byte = get_cur_new_byte(cur, vir);
+	  						for (const u8 &cur_byte : byte) {
+	  							this->gram_log_map_id(i, cur_byte, in);
+	  						}
+	  					}
+						  } else if (unlikely(ret != 2))
+						  	ret = 1;
+
+#else
+
+	  				if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
+						  (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff))
+	  					ret = 2;
+	  				else if (unlikely(ret != 2))
+	  					ret = 1;
+
+#endif /* ^__x86_64__ __arm64__ __aarch64__ */
+	  			}
+	  			*virgin &= ~*current;
+	  		}
+
+	  		current++;
+	  		virgin++;
+	  	}
+
+	  	return ret;
+		}
+
+	  void reset_block_cov_map() { memset(this->block_cov_map, 0, MAP_SIZE); }
+	  void reset_block_virgin_map() { memset(this->block_virgin_map, 0, MAP_SIZE); }
+
+	  void reset_edge_cov_map() {
+		memset(this->edge_cov_map, 0, MAP_SIZE);
+		edge_prev_cov = 0;
+	  }
+	  void reset_edge_virgin_map() {
+		memset(this->edge_virgin_map, 0, MAP_SIZE);
+		edge_prev_cov = 0;
+	  }
+
+	  void log_cov_map(unsigned int cur_cov) {
+		unsigned int offset = (edge_prev_cov ^ cur_cov);
+		if (edge_cov_map[offset] < 0xff) {
+		  edge_cov_map[offset]++;
+		}
+		edge_prev_cov = (cur_cov >> 1);
+
+		if (block_cov_map[cur_cov] < 0xff) {
+		  block_cov_map[cur_cov]++;
+		}
+	  }
+
+	  void log_edge_cov_map(unsigned int prev_cov, unsigned int cur_cov) {
+		unsigned int offset = ((prev_cov >> 1) ^ cur_cov);
+		if (edge_cov_map[offset] < 0xff) {
+		  edge_cov_map[offset]++;
+		}
+		this->log_grammar_path(cur_cov);
+		return;
+	  }
+
+	  inline void log_grammar_path(unsigned int cur_cov) {
+		if(std::find(this->cur_path_hash_vec.begin(), cur_path_hash_vec.end(), cur_cov) == cur_path_hash_vec.end()) {
+		  this->cur_path_hash_vec.push_back(cur_cov);
+		}
+	  }
+
+	  inline double get_total_block_cov_percentage() {
+		u32 t_bytes = this->count_non_255_bytes(this->block_virgin_map);
+		return ((double)t_bytes * 100.0) / MAP_SIZE;
+	  }
+	  inline u32 get_total_block_cov_size_num() {
+		return this->count_non_255_bytes(this->block_virgin_map);
+	  }
+
+	  inline double get_total_edge_cov_percentage() {
+		u32 t_bytes = this->count_non_255_bytes(this->edge_virgin_map);
+		return ((double)t_bytes * 100.0) / MAP_SIZE;
+	  }
+	  inline u32 get_total_edge_cov_size_num() {
+		return this->count_non_255_bytes(this->edge_virgin_map);
+	  }
+
+	  unsigned char *get_edge_cov_map() { return this->edge_cov_map; }
+
+	private:
+	  unsigned char *block_cov_map = nullptr;
+	  unsigned char *block_virgin_map = nullptr;
+	  unsigned char *edge_cov_map = nullptr;
+	  unsigned char *edge_virgin_map = nullptr;
+	  unsigned int edge_prev_cov = 0;
+
+	  /* count the number of non-255 bytes set in the bitmap. used strictly for the
+	   status screen, several calls per second or so. */
+	  // copy from afl-fuzz.
+	  u32 count_non_255_bytes(u8 *mem) {
+	  #define FF(_b) (0xff << ((_b) << 3))
+	  		u32 *ptr = (u32 *)mem;
+	  		u32 i = (MAP_SIZE >> 2);
+	  		u32 ret = 0;
+
+	  		while (i--) {
+
+	  			u32 v = *(ptr++);
+
+	  			/* This is called on the virgin bitmap, so optimize for the most likely
+	  				 case. */
+
+	  			if (v == 0xffffffff)
+	  				continue;
+	  			if ((v & FF(0)) != FF(0))
+	  				ret++;
+	  			if ((v & FF(1)) != FF(1))
+	  				ret++;
+	  			if ((v & FF(2)) != FF(2))
+	  				ret++;
+	  			if ((v & FF(3)) != FF(3))
+	  				ret++;
+	  		}
+
+	  		return ret;
+	  #undef FF
+	  }
+
+	  inline std::vector<u8> get_cur_new_byte(u8 *cur, u8 *vir) {
+		std::vector<u8> new_byte_v;
+		for (u8 i = 0; i < 8; i++) {
+		  if (cur[i] && vir[i] == 0xff)
+			new_byte_v.push_back(i);
+		}
+		return new_byte_v;
+	  }
+
+	  inline void gram_log_map_id (u32 i, u8 byte, const std::string in = "") {
+		std::fstream gram_id_out;
+		i = (MAP_SIZE >> 3) - i - 1 ;
+		u32 actual_idx = i * 8 + byte;
+
+		if (!fs::exists("./gram_cov.txt")) {
+		  gram_id_out.open("./gram_cov.txt", std::fstream::out |
+		  std::fstream::trunc);
+		} else {
+		  gram_id_out.open("./gram_cov.txt", std::fstream::out |
+		  std::fstream::app);
+		}
+		gram_id_out << actual_idx << std::endl;
+		gram_id_out.flush();
+		gram_id_out.close();
+
+		if (!fs::exists("./new_gram_file/")) {
+		  fs::create_directory("./new_gram_file/");
+		}
+		std::fstream map_id_seed_output;
+		map_id_seed_output.open(
+			"./new_gram_file/" + std::to_string(actual_idx) + ".txt",
+			std::fstream::out | std::fstream::trunc);
+		map_id_seed_output << in;
+		map_id_seed_output.close();
+
+	  }
+	};
+
+	#undef s8
+	#undef s16
+	#undef s32
+	#undef s64
+	#undef u8
+	#undef u16
+	#undef u32
+	#undef u64
+	#undef likely
+	#undef unlikely
+	#undef MAP_SIZE
 
 /*
 ** End ParserFuzz injected code.

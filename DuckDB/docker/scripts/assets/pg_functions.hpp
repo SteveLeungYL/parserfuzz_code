@@ -26,6 +26,7 @@ struct parse_result_str {
 void pg_parser_init();
 void pg_parser_parse(const char *query, parse_result *res);
 void pg_parser_parse_ret_ir(const char *query, std::vector<IR*>& res);
+uint32_t pg_parser_get_grammar_edge_cov_num();
 void pg_parser_cleanup();
 
 // error handling

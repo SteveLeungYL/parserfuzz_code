@@ -20,6 +20,8 @@
 
 namespace duckdb_libpgquery {
 
+class GramCovMap;
+
 typedef enum PGBackslashQuoteType {
 	PG_BACKSLASH_QUOTE_OFF,
 	PG_BACKSLASH_QUOTE_ON,
@@ -30,7 +32,7 @@ typedef enum PGBackslashQuoteType {
 PGList *raw_parser(const char *str);
 /* ParserFuzz Injected function */
 class IR;
-std::vector<IR*> raw_parser_ret_ir(const char *str);
+std::vector<IR*> raw_parser_ret_ir(const char *str, GramCovMap* gram_cov);
 /* End ParserFuzz Injected function */
 
 bool is_keyword(const char *str);

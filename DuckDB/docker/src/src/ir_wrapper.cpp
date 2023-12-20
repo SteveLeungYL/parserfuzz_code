@@ -385,7 +385,7 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx){
     // Parse and get the new statement.
     vector<IR*> ir_vec;
     IR* app_ir_root = nullptr;
-    ir_vec = parser_helper(app_str, nullptr);
+    ir_vec = parser_helper(app_str);
     if (ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
@@ -414,7 +414,7 @@ bool IRWrapper::append_stmt_at_end(string app_str) {
     // Parse and get the new statement.
     vector<IR*> ir_vec;
     IR* app_ir_root = nullptr;
-    ir_vec = parser_helper(app_str, nullptr);
+    ir_vec = parser_helper(app_str);
     if (ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
