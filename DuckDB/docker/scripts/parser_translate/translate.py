@@ -3,6 +3,7 @@ import sys
 from typing import List
 import re
 from translate_instantiation_semantic import setup_identifier_semantics
+from grammar_coverage_logging import insert_grammar_cov_logging, init_random
 from translate_utils import *
 
 import click
@@ -738,6 +739,8 @@ def get_special_handling_ir_body(cur_token: Token, parent: str, token_sequence: 
 
     return body
 
+
+
 def translate_single_line(token_sequence, parent):
     global total_rule_num
 
@@ -748,6 +751,8 @@ def translate_single_line(token_sequence, parent):
     tmp_num = 1
     body = ""
     need_more_ir = False
+
+    body += insert_grammar_cov_logging(token_sequence=token_sequence, parent=parent)
 
     body += "IR* res; \nstd::shared_ptr<IR> p_res; \n"
 
@@ -1194,4 +1199,5 @@ def run(output, remove_comments):
                 f.write(f"V({custom_name})   \\\n")
 
 if __name__ == "__main__":
+    init_random()
     run()
