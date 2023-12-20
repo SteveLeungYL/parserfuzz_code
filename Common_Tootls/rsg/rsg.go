@@ -601,7 +601,7 @@ func (r *RSG) FindTuningDuckDBRules(inputProds map[string][]*yacc.ExpressionNode
 
 			// Avoid using indirection
 			for _, curTerm := range curRule.Items {
-				if strings.Contains(curTerm.Value, "indirection") {
+				if strings.Contains(curTerm.Value, "indirection") && !strings.Contains(curTerm.Value, "opt_indirection") {
 					isRemove = true
 					break
 				}
