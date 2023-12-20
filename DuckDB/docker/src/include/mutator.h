@@ -4,7 +4,6 @@
 #include "sql_ir_define.hpp"
 #include "utils.h"
 #include "../include/ir_wrapper.h"
-#include "../include/gram_cov.hpp"
 #include "../parser/parser_helper.h"
 #include "../oracle/duckdb_oracle.h"
 #include "../rsg/rsg.h"
