@@ -168,3 +168,127 @@ func (r *RSG) IsInCompProds(root string, curChosenRule *yacc.ExpressionNode) boo
 func (r *RSG) GetMappedKeywords() map[string]interface{} {
 	return r.mapped_keywords
 }
+
+func (r *RSG) deepCopyPathNode(srcNode *rsgGenerator.PathNode, destParentNode *rsgGenerator.PathNode) *rsgGenerator.PathNode {
+
+	// Recursive function. May not be optimal
+	if srcNode == nil {
+		// Return empty
+		fmt.Printf("\n\n\nError: In deepCopyPathNode, getting srcNode is nil. \n\n\n")
+		os.Exit(1)
+	}
+
+	newDestPathNode := &rsgGenerator.PathNode{
+		Id:        srcNode.Id,
+		Parent:    destParentNode,
+		ExprProds: srcNode.ExprProds,
+		Children:  []*rsgGenerator.PathNode{},
+		IsFav:     srcNode.IsFav,
+		//ParentStr: srcNode.ParentStr,
+	}
+
+	for _, curChild := range srcNode.Children {
+		newDestChild := r.deepCopyPathNode(curChild, newDestPathNode)
+		newDestPathNode.Children = append(newDestPathNode.Children, newDestChild)
+	}
+
+	return newDestPathNode
+}
+
+func (r *RSG) retrieveExistingFavPathNode(root string) []*rsgGenerator.PathNode {
+
+	var targetPath []*rsgGenerator.PathNode
+
+	srcAnySavedFavPath, pathExisted := r.allSavedFavPath.Load(root)
+	if srcAnySavedFavPath == nil {
+		return targetPath
+	}
+	srcSavedFavPath := srcAnySavedFavPath.([][]*rsgGenerator.PathNode)
+
+	if !pathExisted || srcSavedFavPath == nil || len(srcSavedFavPath) == 0 {
+		// Return empty targetPath.
+		return targetPath
+	}
+
+	// Retrieve the FIRST element from the FAV, and then remove the current chosen FAV.
+	srcPath := srcSavedFavPath[0]
+
+	srcSavedFavPath = srcSavedFavPath[1:]
+	r.allSavedFavPath.Store(root, srcSavedFavPath)
+
+	if len(srcPath) == 0 {
+		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
+			"Root: %s"+
+			"\n\n\n", root)
+	}
+
+	// Deep Copy the source path from root
+	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
+
+	targetPath = r.GatherAllPathNodes(targetPathRoot)
+
+	if len(targetPath) == 0 {
+		fmt.Printf("\n\n\n Error, getting targetPath len == 0 in the retrieveExistingPathNode. \n\n\n")
+		os.Exit(1)
+	}
+
+	return targetPath
+}
+
+func (r *RSG) retrieveExistingPathNode(root string) []*rsgGenerator.PathNode {
+
+	tmpAnySavedPath, pathExisted := r.allSavedPath.Load(root)
+	if !pathExisted || tmpAnySavedPath == nil {
+		fmt.Printf("Fatal Error. Cannot find the rsgGenerator.PathNode with %s\n\n\n", root)
+		os.Exit(1)
+	}
+
+	tmpSavedPath := tmpAnySavedPath.([][]*rsgGenerator.PathNode)
+	srcPath := tmpSavedPath[r.Rnd.Intn(len(tmpSavedPath))]
+	if len(srcPath) == 0 {
+		fmt.Printf("\n\n\nERROR: Saved an empty path nodes to the interesting seeds. "+
+			"Root: %s"+
+			"\n\n\n", root)
+	}
+
+	// Deep Copy the source path from root
+	targetPathRoot := r.deepCopyPathNode(srcPath[0], nil)
+
+	targetPath := r.GatherAllPathNodes(targetPathRoot)
+
+	if len(targetPath) == 0 {
+		fmt.Printf("\n\n\n Error, getting targetPath len == 0 in the retrieveExistingPathNode. \n\n\n")
+		os.Exit(1)
+	}
+
+	return targetPath
+}
+
+func (r *RSG) CheckEdgeCov(prevHash uint32, curHash uint32) bool {
+	if r.allTriggerEdges[(prevHash>>1)^curHash] != 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (r *RSG) MarkEdgeCov(prevHash uint32, curHash uint32) {
+	if r.allTriggerEdges[(prevHash>>1)^curHash] != 0xff {
+		r.allTriggerEdges[(prevHash>>1)^curHash] += 1
+	}
+}
+
+func (r *RSG) CheckIsFav(root string, parentHash uint32) bool {
+	rootProds := r.allProds[root]
+
+	for _, curRule := range rootProds {
+		if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
+			//fmt.Printf("\nDebug: Unseen Rule. Root: %s, Rule: %v\n", root, curRule.Items)
+			continue
+		}
+		// has unseen rule.
+		return true
+	}
+	// cannot find unseen rule.
+	return false
+}
