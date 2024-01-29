@@ -166,7 +166,7 @@ func (r *RSG) IsInCompProds(root string, curChosenRule *yacc.ExpressionNode) boo
 }
 
 func (r *RSG) GetMappedKeywords() map[string]interface{} {
-	return r.mapped_keywords
+	return r.mappedKeywords
 }
 
 func (r *RSG) deepCopyPathNode(srcNode *rsgGenerator.PathNode, destParentNode *rsgGenerator.PathNode) *rsgGenerator.PathNode {

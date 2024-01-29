@@ -31,7 +31,7 @@ type RSG struct {
 	allCompRecursiveProds    map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
 	allCompNonRecursiveProds map[string][]*yacc.ExpressionNode // allProds that doomed to lead to complex expressions.
 
-	mapped_keywords map[string]interface{}
+	mappedKeywords map[string]interface{}
 
 	curChosenPath   []*rsgGenerator.PathNode
 	allSavedPath    sync.Map
@@ -97,8 +97,8 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error
 func (r *RSG) Generate(root string, dbmsName string, depth int) string {
 	var s = ""
 	// Check whether there are keyword mapping initialization necessary.
-	if dbmsName == "tidb" && len(r.mapped_keywords) == 0 {
-		r.mapped_keywords = rsgGenerator.MapTidbKeywords()
+	if dbmsName == "tidb" && len(r.mappedKeywords) == 0 {
+		r.mappedKeywords = rsgGenerator.MapTidbKeywords()
 	}
 
 	// Mark the current mutating types
