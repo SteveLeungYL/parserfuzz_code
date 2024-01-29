@@ -169,7 +169,7 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 }
 
 func main() {
-	RSGInitialize("duckdb_grammar.y", "duckdb", 0.3)
+	RSGInitialize("./parser_def_files/duckdb_grammar.y", "duckdb", 0.3)
 	for idx := 0; idx < 100; idx++ {
 		RSGQueryGenerate("select_no_parens", "duckdb")
 		RSGQueryGenerate("select_no_parens", "duckdb")

@@ -106,7 +106,7 @@ RUN python3 include_cov_log_to_parser.py && python3 rewrite_parser_code_to_inclu
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/parser_translate/assets/cockroach_sql_inst_modi.y /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y
 
 
-# Compile the Cockroach befroe generating the parser shared library. 
+# Compile the Cockroach befroe generating the parser shared library.
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # WIll fail because of the instrumentation.
 RUN make buildshort; exit 0
@@ -126,12 +126,14 @@ RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 WORKDIR /home/cockroach/go_projects/src/github.com/
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg ./
 WORKDIR /home/cockroach/go_projects/src/github.com/rsg
-RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./cockroach_sql.y
+RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./parser_def_files/cockroach_sql.y
 RUN bash ./build.sh
+WORKDIR /home/cockroach/go_projects/src/github.com/rsg/parser_def_files
 RUN python3 ./cleanup_cockroachdb_rules.py
+WORKDIR /home/cockroach/go_projects/src/github.com/rsg
 RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
-RUN mv ./cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
+RUN mv ./parser_def_files/cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
 
 # -----------------------------------------------
 

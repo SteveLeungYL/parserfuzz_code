@@ -90,7 +90,7 @@ USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
 RUN git checkout 566348f48c7064014438e1d2c7f46624b4e2c4f1 # The version we build our parser on. 
 
-# Copy parser instrumentation code. 
+# Copy parser instrumentation code.
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/sem
 RUN rm -rf ./tree 
@@ -126,12 +126,14 @@ RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 WORKDIR /home/cockroach/go_projects/src/github.com/
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg ./
 WORKDIR /home/cockroach/go_projects/src/github.com/rsg
-RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./cockroach_sql.y
+RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./parser_def_files/cockroach_sql.y
 RUN bash ./build.sh
+WORKDIR /home/cockroach/go_projects/src/github.com/rsg/parser_def_files
 RUN python3 ./cleanup_cockroachdb_rules.py
+WORKDIR /home/cockroach/go_projects/src/github.com/rsg
 RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
-RUN mv ./cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
+RUN mv ./parser_def_files/cockroach_sql_modi.y /home/cockroach/CockroachDB_pkg_plugin
 
 # -----------------------------------------------
 
