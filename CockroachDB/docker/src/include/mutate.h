@@ -45,7 +45,7 @@ public:
     srand(time(nullptr));
   }
 
-  void rsg_initialize(const string fuzzing_mode_in = "normal") {
+  void mutator_rsg_initialize(const string fuzzing_mode_in = "normal") {
     this->fuzzing_mode = fuzzing_mode_in;
     rsg_initialize(this->fuzzing_mode);
   }
