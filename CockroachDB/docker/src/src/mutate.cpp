@@ -114,6 +114,8 @@ vector<int> Mutator::v_int_literals, Mutator::v_int_literals_snapshot;
 vector<double> Mutator::v_float_literals, Mutator::v_float_literals_snapshot;
 vector<string> Mutator::v_string_literals, Mutator::v_string_literals_snapshot;
 
+string Mutator::fuzzing_mode;
+
 //#define GRAPHLOG
 
 IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
