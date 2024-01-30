@@ -140,7 +140,7 @@ func (r *RSG) generate(root string, dbmsName string, depth int, rootDepth int) [
 		// 1/2 chances, use Favorite Node instead of random choosing saved path.
 		// Retrieve a deep copied from the existing seed.
 		var newPath []*rsgGenerator.PathNode
-		if r.Rnd.Intn(2) == 0 {
+		if r.fuzzingMode < fuzzingModeNoFav && r.Rnd.Intn(2) == 0 {
 			//fmt.Printf("\n\n\nDebug: Retrieve FAV PATH NODE from root: %s.\n\n\n", root)
 			newPath = r.retrieveExistingFavPathNode(root)
 			isUsingFav = true
