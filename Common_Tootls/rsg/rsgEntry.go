@@ -44,7 +44,7 @@ type RSG struct {
 
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
-func NewRSG(seed int64, y string, dbmsName string, epsilon float64) (*RSG, error) {
+func NewRSG(seed int64, y string, dbmsName string, epsilon float64, fuzzingMode FuzzingMode) (*RSG, error) {
 
 	// Default epsilon = 0.3
 	if epsilon == 0.0 {

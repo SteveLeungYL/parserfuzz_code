@@ -18,7 +18,10 @@ void rsg_initialize() {
   const string dbms_name = "duckdb";
   GoString dbms_name_gostr = {dbms_name.c_str(), long(dbms_name.size())};
 
-  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3);
+  const string fuzzing_mode = "normal";
+  GoString fuzzing_mode_gostr = {fuzzing_mode.c_str(), long(fuzzing_mode.size())};
+
+  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3, fuzzing_mode_gostr);
   return;
 }
 

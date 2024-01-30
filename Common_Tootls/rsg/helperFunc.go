@@ -11,7 +11,41 @@ import (
 	"strings"
 )
 
+// Constant Values
+type FuzzingMode int
+
+const (
+	normal               FuzzingMode = 0 // Enable all ParserFuzz features
+	noFav                FuzzingMode = 1 // Disable unseen rule prioritization
+	noFavNoMAB           FuzzingMode = 2 // Further disable MAB based rule prioritization
+	noFavNoMABNoCat      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
+	noFavNoMABNoCatNoAcc FuzzingMode = 4 // Further disable the accumulative mutations
+)
+
+var (
+	fuzzingModeMap = map[string]FuzzingMode{
+		"normal":               normal,
+		"noFav":                noFav,
+		"noFavNoMAB":           noFavNoMAB,
+		"noFavNoMABNoCat":      noFavNoMABNoCat,
+		"noFavNoMABNoCatNoAcc": noFavNoMABNoCatNoAcc,
+	}
+)
+
 // Helper functions
+func (r *RSG) identifyFuzzingMode(in string) FuzzingMode {
+
+	c, ok := fuzzingModeMap[in]
+
+	if !ok {
+		err := fmt.Errorf("Error: Provided with unknown fuzzingMode string: %s ", in)
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	return c
+}
+
 func (r *RSG) FormatTokenValue(in string) string {
 
 	if strings.HasSuffix(in, "_P") {

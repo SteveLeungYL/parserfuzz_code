@@ -26,9 +26,9 @@ type TestCase struct {
 	repetitions int
 }
 
-func getRSG(yaccExample []byte, dbmsName string, epsilon float64) *RSG {
+func getRSG(yaccExample []byte, dbmsName string, epsilon float64, fuzzingMode FuzzingMode) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
-	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, epsilon)
+	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), dbmsName, epsilon, fuzzingMode)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -59,15 +59,19 @@ func generateCockroachDBSelect() string {
 }
 
 //export RSGInitialize
-func RSGInitialize(fileName string, dbmsName string, epsilon float64) {
+func RSGInitialize(fileName string, dbmsName string, epsilon float64, fuzzingModeStr string) {
 
 	yaccExample, err := os.ReadFile(fileName)
 	if err != nil {
-		fmt.Printf("error reading grammar: %v", err)
+		fmt.Printf("error reading grammar: %v\n", err)
 		os.Exit(1)
 	}
 
-	r = getRSG(yaccExample, dbmsName, epsilon)
+	fuzzingMode := r.identifyFuzzingMode(fuzzingModeStr)
+
+	fmt.Printf("Initialize ParserFuzz RSG module with fuzzing mode: %s\n", fuzzingModeStr)
+
+	r = getRSG(yaccExample, dbmsName, epsilon, fuzzingMode)
 
 	return
 
@@ -169,7 +173,7 @@ func RSGQueryGenerate(genType string, dbmsName string) (*C.char, int) {
 }
 
 func main() {
-	RSGInitialize("./parser_def_files/duckdb_grammar.y", "duckdb", 0.3)
+	RSGInitialize("./parser_def_files/duckdb_grammar.y", "duckdb", 0.3, "normal")
 	for idx := 0; idx < 100; idx++ {
 		RSGQueryGenerate("select_no_parens", "duckdb")
 		RSGQueryGenerate("select_no_parens", "duckdb")
