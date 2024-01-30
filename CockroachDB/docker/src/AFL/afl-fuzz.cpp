@@ -7380,7 +7380,7 @@ int main(int argc, char **argv) {
 
     case 'A': {
       string arg = string(optarg);
-      g_mutator.rsg_initialize(arg);
+      g_mutator.mutator_rsg_initialize(arg);
       is_setup_rsg_init = true;
     } break;
 
@@ -7513,7 +7513,7 @@ int main(int argc, char **argv) {
   p_oracle->init_operator_supported_types();
 
   if (!is_setup_rsg_init) {
-    g_mutator.rsg_initialize();
+    g_mutator.mutator_rsg_initialize();
     is_setup_rsg_init = true;
   }
 
