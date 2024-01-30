@@ -15,20 +15,20 @@ import (
 type FuzzingMode int
 
 const (
-	normal               FuzzingMode = 0 // Enable all ParserFuzz features
-	noFav                FuzzingMode = 1 // Disable unseen rule prioritization
-	noFavNoMAB           FuzzingMode = 2 // Further disable MAB based rule prioritization
-	noFavNoMABNoCat      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
-	noFavNoMABNoCatNoAcc FuzzingMode = 4 // Further disable the accumulative mutations
+	fuzzingModeNormal               FuzzingMode = 0 // Enable all ParserFuzz features
+	fuzzingModeNoFav                FuzzingMode = 1 // Disable unseen rule prioritization
+	fuzzingModeNoFavNoMAB           FuzzingMode = 2 // Further disable MAB based rule prioritization
+	fuzzingModeNoFavNoMABNoCat      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
+	fuzzingModeNoFavNoMABNoCatNoAcc FuzzingMode = 4 // Further disable the accumulative mutations
 )
 
 var (
 	fuzzingModeMap = map[string]FuzzingMode{
-		"normal":               normal,
-		"noFav":                noFav,
-		"noFavNoMAB":           noFavNoMAB,
-		"noFavNoMABNoCat":      noFavNoMABNoCat,
-		"noFavNoMABNoCatNoAcc": noFavNoMABNoCatNoAcc,
+		"normal":               fuzzingModeNormal,
+		"noFav":                fuzzingModeNoFav,
+		"noFavNoMAB":           fuzzingModeNoFavNoMAB,
+		"noFavNoMABNoCat":      fuzzingModeNoFavNoMABNoCat,
+		"noFavNoMABNoCatNoAcc": fuzzingModeNoFavNoMABNoCatNoAcc,
 	}
 )
 

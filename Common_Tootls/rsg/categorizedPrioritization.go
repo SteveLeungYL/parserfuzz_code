@@ -6,7 +6,7 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 
 	rootAllRules := r.allProds[root]
 
-	if depth >= 0 && r.fuzzingMode == normal && r.Rnd.Intn(2) != 0 {
+	if depth >= 0 && r.fuzzingMode == fuzzingModeNormal && r.Rnd.Intn(2) != 0 {
 		// If the current root contains unseen rules, 50% chance, prioritize these unseen rule first.
 		// The prioritization is based on all rules possible if depth > 1. Regardless of rootCompProds or not.
 		trimRootProds := []*yacc.ExpressionNode{}
@@ -31,7 +31,7 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 	// See whether the depth reached, choose different rule respectively.
 	var resRules []*yacc.ExpressionNode
 	var ok bool
-	if depth <= 0 && r.fuzzingMode < noFavNoMABNoCat && r.Rnd.Intn(100) < 95 {
+	if depth <= 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoCat && r.Rnd.Intn(100) < 95 {
 		// Depth IS reached. Prefer simple/term rules than complex rules.
 		resRules, ok = r.allTermProds[root]
 		//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)
