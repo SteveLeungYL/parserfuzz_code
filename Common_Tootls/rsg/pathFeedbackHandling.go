@@ -33,7 +33,7 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	// Save the new nodes to the seed.
-	if len(r.curChosenPath) != 0 {
+	if len(r.curChosenPath) != 0 && r.fuzzingMode < noFavNoMABNoCatNoAcc {
 		//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
 		var tmpAllSavedPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedPath, _ := r.allSavedPath.Load(r.curMutatingType)
@@ -49,7 +49,7 @@ func (r *RSG) IncrementSucceed() {
 		//fmt.Printf("\nallSavedPath size: %d\n", len(tmpAllSavedPath))
 	}
 
-	if len(r.curChosenPath) != 0 && isFavPath == true {
+	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < noFav {
 		var tmpAllSavedFavPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
 		if tmpAnyAllSavedFavPath != nil {
@@ -85,7 +85,7 @@ func (r *RSG) IncrementFailed() {
 		}
 	}
 
-	if len(r.curChosenPath) != 0 && isFavPath == true {
+	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < noFav {
 		var tmpAllSavedFavPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
 		if tmpAnyAllSavedFavPath != nil {

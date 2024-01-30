@@ -6,30 +6,32 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 
 	rootAllRules := r.allProds[root]
 
-	// first priority.
-	// If the current root contains unseen rules, 50% chance, prioritize these unseen rule first.
-	// The prioritization is based on all rules possible if depth > 1. Regardless of rootCompProds or not.
-	trimRootProds := []*yacc.ExpressionNode{}
-	for _, curRule := range rootAllRules {
-		if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
-			// Seen rule.
-			//fmt.Printf("\n\n\nDebug: root: %s, find seen rule: %v\n\n\n", root, curRule.Items)
-		} else {
-			// Unseen rule.
-			//fmt.Printf("\n\n\nDebug: root: %s, find unseen rule: %v\n\n\n", root, curRule.Items)
-			trimRootProds = append(trimRootProds, curRule)
+	if depth >= 0 && r.fuzzingMode == normal && r.Rnd.Intn(2) != 0 {
+		// If the current root contains unseen rules, 50% chance, prioritize these unseen rule first.
+		// The prioritization is based on all rules possible if depth > 1. Regardless of rootCompProds or not.
+		trimRootProds := []*yacc.ExpressionNode{}
+		for _, curRule := range rootAllRules {
+			if r.CheckEdgeCov(parentHash, curRule.UniqueHash) {
+				// Seen rule.
+				//fmt.Printf("\n\n\nDebug: root: %s, find seen rule: %v\n\n\n", root, curRule.Items)
+			} else {
+				// Unseen rule.
+				//fmt.Printf("\n\n\nDebug: root: %s, find unseen rule: %v\n\n\n", root, curRule.Items)
+				trimRootProds = append(trimRootProds, curRule)
+			}
 		}
-	}
-	if len(trimRootProds) != 0 && depth > 0 && r.Rnd.Intn(2) != 0 {
+
 		// If depth > 0 and current root contains unseen rules, return unseen rule directly.
-		return trimRootProds
+		if len(trimRootProds) != 0 {
+			return trimRootProds
+		}
 	}
 
 	// Otherwise, we prioritize rules based on the complexity of the rules.
 	// See whether the depth reached, choose different rule respectively.
 	var resRules []*yacc.ExpressionNode
 	var ok bool
-	if depth <= 0 && r.Rnd.Intn(100) < 95 {
+	if depth <= 0 && r.fuzzingMode < noFavNoMABNoCat && r.Rnd.Intn(100) < 95 {
 		// Depth IS reached. Prefer simple/term rules than complex rules.
 		resRules, ok = r.allTermProds[root]
 		//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)

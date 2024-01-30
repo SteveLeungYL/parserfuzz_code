@@ -40,11 +40,12 @@ type RSG struct {
 	epsilon         float64
 	pathId          int
 	allTriggerEdges []uint8
+	fuzzingMode     FuzzingMode
 }
 
 // NewRSG creates a random syntax generator from the given random seed and
 // yacc file.
-func NewRSG(seed int64, y string, dbmsName string, epsilon float64, fuzzingMode FuzzingMode) (*RSG, error) {
+func NewRSG(seed int64, y string, dbmsName string, epsilon float64, fuzzingModeIn FuzzingMode) (*RSG, error) {
 
 	// Default epsilon = 0.3
 	if epsilon == 0.0 {
@@ -69,6 +70,7 @@ func NewRSG(seed int64, y string, dbmsName string, epsilon float64, fuzzingMode 
 		//allSavedFavPath:          sync.Map, // no need to init
 		epsilon:         epsilon,
 		allTriggerEdges: make([]uint8, 65536),
+		fuzzingMode:     fuzzingModeIn,
 	}
 
 	// Construct all the possible Productions (Grammar Edges)
