@@ -15,28 +15,36 @@ port_starting_num = 7000
 output_dir_str = ""
 oracle_str = "OPT"
 feedback_str = ""
+fuzzing_mode_str = "normal"
+timeout = 2000
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback="])
+    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:A:t:", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "fuzzingMode=", "timeout="])
 except getopt.GetoptError:
     print("Arguments parsing error")
     exit(1)
 for opt, arg in opts:
     if opt in ("-o", "--odir"):
         output_dir_str = arg
-        print("Using output dir: %s" % (output_dir_str))
+        print("Using output dir: %s\n" % (output_dir_str))
     elif opt in ("-c", "--start-core"):
         starting_core_id = int(arg)
-        print("Using starting_core_id: %d" % (starting_core_id))
+        print("Using starting_core_id: %d\n" % (starting_core_id))
     elif opt in ("-n", "--num-concurrent"):
         parallel_num = int(arg)
-        print("Using num-concurrent: %d" % (parallel_num))
+        print("Using num-concurrent: %d \n" % (parallel_num))
     elif opt in ("-O", "--oracle"):
         oracle_str = arg
-        print("Using oracle: %s " % (oracle_str))
+        print("Using oracle: %s \n" % (oracle_str))
     elif opt in ("-F", "--feedback"):
         feedback_str = arg
-        print("Using feedback: %s " % (feedback_str))
+        print("Using feedback: %s \n" % (feedback_str))
+    elif opt in ("-A", "--fuzzingMode"):
+        fuzzing_mode_str = arg
+        print("Using fuzzing mode: %s \n" % (fuzzing_mode_str))
+    elif opt in ("-t", "--timeout"):
+        timeout = int(arg)
+        print("Using timeout: %d \n" % (timeout))
     else:
         print("Error. Input arguments not supported. \n")
         exit(1)
@@ -78,12 +86,14 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     cur_port_num = port_starting_num + cur_inst_id - starting_core_id
 
     # Start running the SQLRight fuzzer. 
-    fuzzing_command = "./afl-fuzz -t 2000 -m 8000 " \
+    fuzzing_command = "./afl-fuzz -m 8000 " \
+                        + " -t " + str(timeout) \
                         + " -P " + str(cur_port_num) \
                         + " -i ./inputs " \
                         + " -o " + "./" \
                         + " -c " + str(cur_inst_id) \
-                        + " -O " + oracle_str
+                        + " -O " + oracle_str \
+                        + " -A " + fuzzing_mode_str
 
     if feedback_str != "":
         fuzzing_command += " -F " + feedback_str
