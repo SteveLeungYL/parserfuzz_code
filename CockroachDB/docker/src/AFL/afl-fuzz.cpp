@@ -7204,6 +7204,8 @@ int main(int argc, char **argv) {
   disable_dyn_instan = false;
   disable_rsg_generator = false;
 
+  bool is_setup_rsg_init = false;
+
   s32 opt;
   u64 prev_queued = 0;
   u32 sync_interval_cnt = 0, seek_to;
@@ -7223,7 +7225,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XRG")) >
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XRGA:")) >
          0)
 
     switch (opt) {
@@ -7376,6 +7378,12 @@ int main(int argc, char **argv) {
       }
     } break;
 
+    case 'A': {
+      string arg = string(optarg);
+      g_mutator.rsg_initialize(arg);
+      is_setup_rsg_init = true;
+    } break;
+
     case 'X': {
       disable_dyn_instan = true;
       cout << "\033[1;31m Warning: Disabling query dynamic instantiation based "
@@ -7503,6 +7511,11 @@ int main(int argc, char **argv) {
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   p_oracle->init_operator_supported_types();
+
+  if (!is_setup_rsg_init) {
+    g_mutator.rsg_initialize();
+    is_setup_rsg_init = true;
+  }
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);

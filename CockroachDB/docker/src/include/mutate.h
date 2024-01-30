@@ -43,8 +43,14 @@ class Mutator {
 public:
   Mutator() {
     srand(time(nullptr));
-    rsg_initialize();
   }
+
+  void rsg_initialize(const string fuzzing_mode_in = "normal") {
+    this->fuzzing_mode = fuzzing_mode_in;
+    rsg_initialize(this->fuzzing_mode);
+  }
+
+  string get_fuzzing_mode() {return this->fuzzing_mode; }
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
@@ -258,6 +264,8 @@ public:
   vector<string> all_saved_func_name;
   map<DATAAFFINITYTYPE, vector<string>> func_type_lib;
   map<string, vector<vector<DataAffinity>>> func_str_to_type_map;
+
+  static string fuzzing_mode;
 
   static vector<string> v_sys_column_name;
   static vector<string> v_sys_catalogs_name;
