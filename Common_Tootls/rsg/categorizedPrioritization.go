@@ -31,7 +31,7 @@ func (r *RSG) PrioritizeParserRules(root string, parentHash uint32, depth int) [
 	// See whether the depth reached, choose different rule respectively.
 	var resRules []*yacc.ExpressionNode
 	var ok bool
-	if depth <= 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoCat && r.Rnd.Intn(100) < 95 {
+	if depth <= 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoAccNoCat && r.Rnd.Intn(100) < 95 {
 		// Depth IS reached. Prefer simple/term rules than complex rules.
 		resRules, ok = r.allTermProds[root]
 		//fmt.Printf("\n\n\nUsing Term rules. \n\n\n", root)

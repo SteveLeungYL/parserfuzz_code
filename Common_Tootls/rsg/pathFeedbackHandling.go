@@ -33,7 +33,7 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	// Save the new nodes to the seed.
-	if len(r.curChosenPath) != 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoCatNoAcc {
+	if len(r.curChosenPath) != 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoAcc {
 		//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
 		var tmpAllSavedPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedPath, _ := r.allSavedPath.Load(r.curMutatingType)

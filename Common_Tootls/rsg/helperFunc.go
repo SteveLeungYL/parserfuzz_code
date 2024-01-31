@@ -18,8 +18,8 @@ const (
 	fuzzingModeNormal               FuzzingMode = 0 // Enable all ParserFuzz features
 	fuzzingModeNoFav                FuzzingMode = 1 // Disable unseen rule prioritization
 	fuzzingModeNoFavNoMAB           FuzzingMode = 2 // Further disable MAB based rule prioritization
-	fuzzingModeNoFavNoMABNoCat      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
-	fuzzingModeNoFavNoMABNoCatNoAcc FuzzingMode = 4 // Further disable the accumulative mutations
+	fuzzingModeNoFavNoMABNoAcc      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
+	fuzzingModeNoFavNoMABNoAccNoCat FuzzingMode = 4 // Further disable the accumulative mutations
 )
 
 var (
@@ -27,8 +27,8 @@ var (
 		"normal":               fuzzingModeNormal,
 		"noFav":                fuzzingModeNoFav,
 		"noFavNoMAB":           fuzzingModeNoFavNoMAB,
-		"noFavNoMABNoCat":      fuzzingModeNoFavNoMABNoCat,
-		"noFavNoMABNoCatNoAcc": fuzzingModeNoFavNoMABNoCatNoAcc,
+		"noFavNoMABNoAcc":      fuzzingModeNoFavNoMABNoAcc,
+		"noFavNoMABNoAccNoCat": fuzzingModeNoFavNoMABNoAccNoCat,
 	}
 )
 
