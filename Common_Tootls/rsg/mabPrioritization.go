@@ -1,13 +1,14 @@
 package main
 
 import "github.com/rsg/yacc"
+import . "github.com/rsg/constant_structs"
 
 func (r *RSG) MABChooseArm(prods []*yacc.ExpressionNode) *yacc.ExpressionNode {
 
 	resIdx := 0
 	//fmt.Printf("\n\n\nori_prods size: %d\n\n\n", len(ori_prods))
 
-	if r.fuzzingMode < fuzzingModeNoFavNoMAB && r.Rnd.Float64() > r.epsilon {
+	if r.fuzzingMode < FuzzingModeNoFavNoMAB && r.Rnd.Float64() > r.epsilon {
 		//fmt.Printf("\n\n\nUsing ArgMax. \n\n\n")
 		var rewards []float64
 		for _, prod := range prods {

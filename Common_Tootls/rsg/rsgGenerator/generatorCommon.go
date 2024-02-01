@@ -1,6 +1,7 @@
 package rsgGenerator
 
 import "github.com/rsg/yacc"
+import . "github.com/rsg/constant_structs"
 
 // The PathNode is the data structure that used to save
 // the whole chosen query path for the RSGInterface generated query.
@@ -31,4 +32,5 @@ type RSGInterface interface {
 
 	FormatTokenValue(in string) string
 	GetMappedKeywords() map[string]interface{}
+	GetCurFuzzingMode() FuzzingMode
 }

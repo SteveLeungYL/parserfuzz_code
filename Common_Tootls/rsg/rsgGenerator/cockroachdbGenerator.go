@@ -2,12 +2,19 @@ package rsgGenerator
 
 import (
 	"fmt"
+	. "github.com/rsg/constant_structs"
 	"github.com/rsg/yacc"
 	"strings"
 	"unicode"
 )
 
 func GenerateCockroach(r RSGInterface, root string, rootPathNode *PathNode, parentHash uint32, depth int, rootDepth int) []string {
+
+	if depth <= 0 && r.GetCurFuzzingMode() >= FuzzingModeNoFavNoMABNoAccNoCat {
+		// If the depth is deep. AND the fuzzing mode is not helping.
+		// Forced terminating the generation process to prevent crashing.
+		return make([]string, 0)
+	}
 
 	//fmt.Printf("\n\n\nLooking for root: %s\n\n\n", root)
 	replayingMode := false

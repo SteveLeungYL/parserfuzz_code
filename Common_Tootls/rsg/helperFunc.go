@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/rsg/constant_structs"
 	"github.com/rsg/rsgGenerator"
 	"github.com/rsg/yacc"
 	"math"
@@ -11,31 +12,10 @@ import (
 	"strings"
 )
 
-// Constant Values
-type FuzzingMode int
-
-const (
-	fuzzingModeNormal               FuzzingMode = 0 // Enable all ParserFuzz features
-	fuzzingModeNoFav                FuzzingMode = 1 // Disable unseen rule prioritization
-	fuzzingModeNoFavNoMAB           FuzzingMode = 2 // Further disable MAB based rule prioritization
-	fuzzingModeNoFavNoMABNoAcc      FuzzingMode = 3 // Further disable Categorization-based rule prioritization
-	fuzzingModeNoFavNoMABNoAccNoCat FuzzingMode = 4 // Further disable the accumulative mutations
-)
-
-var (
-	fuzzingModeMap = map[string]FuzzingMode{
-		"normal":               fuzzingModeNormal,
-		"noFav":                fuzzingModeNoFav,
-		"noFavNoMAB":           fuzzingModeNoFavNoMAB,
-		"noFavNoMABNoAcc":      fuzzingModeNoFavNoMABNoAcc,
-		"noFavNoMABNoAccNoCat": fuzzingModeNoFavNoMABNoAccNoCat,
-	}
-)
-
 // Helper functions
 func (r *RSG) identifyFuzzingMode(in string) FuzzingMode {
 
-	c, ok := fuzzingModeMap[in]
+	c, ok := FuzzingModeMap[in]
 
 	if !ok {
 		err := fmt.Errorf("Error: Provided with unknown fuzzingMode string: %s ", in)
@@ -44,6 +24,10 @@ func (r *RSG) identifyFuzzingMode(in string) FuzzingMode {
 	}
 
 	return c
+}
+
+func (r *RSG) GetCurFuzzingMode() FuzzingMode {
+	return r.fuzzingMode
 }
 
 func (r *RSG) FormatTokenValue(in string) string {

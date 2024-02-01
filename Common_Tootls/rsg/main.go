@@ -13,6 +13,7 @@ package main
 import "C"
 import (
 	"fmt"
+	. "github.com/rsg/constant_structs"
 	"os"
 	"strings"
 	"time"

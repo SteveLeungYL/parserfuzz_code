@@ -1,6 +1,7 @@
 package main
 
 import "github.com/rsg/rsgGenerator"
+import . "github.com/rsg/constant_structs"
 
 func (r *RSG) ClearChosenExpr() {
 	// clear the map
@@ -33,7 +34,7 @@ func (r *RSG) IncrementSucceed() {
 	}
 
 	// Save the new nodes to the seed.
-	if len(r.curChosenPath) != 0 && r.fuzzingMode < fuzzingModeNoFavNoMABNoAcc {
+	if len(r.curChosenPath) != 0 && r.fuzzingMode < FuzzingModeNoFavNoMABNoAcc {
 		//fmt.Printf("\n\n\nSaving with type: %s\n\n\n", r.curMutatingType)
 		var tmpAllSavedPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedPath, _ := r.allSavedPath.Load(r.curMutatingType)
@@ -49,7 +50,7 @@ func (r *RSG) IncrementSucceed() {
 		//fmt.Printf("\nallSavedPath size: %d\n", len(tmpAllSavedPath))
 	}
 
-	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < fuzzingModeNoFav {
+	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < FuzzingModeNoFav {
 		var tmpAllSavedFavPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
 		if tmpAnyAllSavedFavPath != nil {
@@ -85,7 +86,7 @@ func (r *RSG) IncrementFailed() {
 		}
 	}
 
-	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < fuzzingModeNoFav {
+	if len(r.curChosenPath) != 0 && isFavPath == true && r.fuzzingMode < FuzzingModeNoFav {
 		var tmpAllSavedFavPath [][]*rsgGenerator.PathNode
 		tmpAnyAllSavedFavPath, _ := r.allSavedFavPath.Load(r.curMutatingType)
 		if tmpAnyAllSavedFavPath != nil {
