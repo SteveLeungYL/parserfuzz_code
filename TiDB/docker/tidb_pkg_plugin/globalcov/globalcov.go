@@ -16,26 +16,16 @@ type GlobalCovInfo struct {
 
 func LogGlobalCov(curLoc uint32) {
 
-	offset := getXorOffset(curLoc)
-	// offset := curLoc
+	// offset := getXorOffset(curLoc)
+	offset := curLoc
 
-	////Debugging purpose
-	//if offset < 66000 && offset > 65000 {
-	//log.Printf("\n\n\nDEBUG: Triggered offset: %d, curLoc: %d, prevLoc: %d\n\n\n", offset, curLoc, logPrevLoc)
-	//}
-
-	//	if offset >= (1 << 18) {
-	//		log.Fatalf("Error: Getting oversized offset: %d. \n\n\n", offset)
-	//	}
-
+	/* With hit count. */
 	// Prevent overflow.
+	// if GCov.buf[offset] != 255 {
+	// 	GCov.buf[offset] = 1
+	// }
 
-	// With hit count.
-	//	if GCov.buf[offset] != 255 {
-	//		GCov.buf[offset] = 1
-	//	}
-
-	// Without hit count.
+	/* Without hit count. */
 	if GCov.buf[offset] == 0 {
 		GCov.buf[offset] = 1
 	}
