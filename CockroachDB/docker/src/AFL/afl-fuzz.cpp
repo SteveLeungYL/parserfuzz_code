@@ -28,6 +28,7 @@
 
 */
 
+#include <cstdlib>
 #define AFL_MAIN
 #define MESSAGES_TO_STDOUT
 
@@ -7204,7 +7205,8 @@ int main(int argc, char **argv) {
   disable_dyn_instan = false;
   disable_rsg_generator = false;
 
-  bool is_setup_rsg_init = false;
+  string fuzzing_mode = "normal";
+  double mab_epsilon = 0.3;
 
   s32 opt;
   u64 prev_queued = 0;
@@ -7225,7 +7227,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XRGA:")) >
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XRGA:E:")) >
          0)
 
     switch (opt) {
@@ -7379,9 +7381,15 @@ int main(int argc, char **argv) {
     } break;
 
     case 'A': {
-      string arg = string(optarg);
-      g_mutator.mutator_rsg_initialize(arg);
-      is_setup_rsg_init = true;
+      fuzzing_mode = string(optarg);
+      cout << "\033[1;31m Warning: Using custom fuzzing mode: " <<  fuzzing_mode \
+           << ". \033[0m \n\n\n";
+    } break;
+
+    case 'E': {
+      mab_epsilon = stod(optarg);
+      cout << "\033[1;31m Warning: Using custom MAB epsilon value: " << mab_epsilon \
+           << ". \033[0m \n\n\n";
     } break;
 
     case 'X': {
@@ -7512,10 +7520,7 @@ int main(int argc, char **argv) {
   g_mutator.set_p_oracle(p_oracle);
   p_oracle->init_operator_supported_types();
 
-  if (!is_setup_rsg_init) {
-    g_mutator.mutator_rsg_initialize();
-    is_setup_rsg_init = true;
-  }
+  g_mutator.mutator_rsg_initialize(fuzzing_mode, mab_epsilon);
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);

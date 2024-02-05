@@ -4,7 +4,7 @@
 #include "../include/ast.h"
 #include <string>
 
-void rsg_initialize(const string fuzzing_mode = "normal");
+void rsg_initialize(const string fuzzing_mode = "normal", const double mab_epsilon = 0.3);
 string rsg_generate(const string& type);
 string rsg_generate(const IRTYPE type = TypeUnknown);
 

@@ -11,7 +11,7 @@ using std::string;
  * Initialize the RSG structure.
  */
 
-void rsg_initialize(const string fuzzing_mode) {
+void rsg_initialize(const string fuzzing_mode, const double mab_epsilon) {
   const string parser_file_str = "./cockroach_sql_modi.y";
   GoString parser_file_gostr = {parser_file_str.c_str(),
                                 long(parser_file_str.size())};
@@ -21,7 +21,7 @@ void rsg_initialize(const string fuzzing_mode) {
 
   GoString fuzzing_mode_gostr = {fuzzing_mode.c_str(), long(fuzzing_mode.size())};
 
-  RSGInitialize(parser_file_gostr, dbms_name_gostr, 0.3, fuzzing_mode_gostr);
+  RSGInitialize(parser_file_gostr, dbms_name_gostr, mab_epsilon, fuzzing_mode_gostr);
   return;
 }
 
