@@ -102,7 +102,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     if feedback_str != "":
         fuzzing_command += " -F " + feedback_str
 
-    if epsilon != None:
+    if epsilon_str != None:
         fuzzing_command += " -E " + epsilon_str
 
     fuzzing_command +=  " aaa " + " & "  ### Anything following. Get dump aaa. 
