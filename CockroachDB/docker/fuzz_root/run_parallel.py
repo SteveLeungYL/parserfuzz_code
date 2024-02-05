@@ -17,9 +17,10 @@ oracle_str = "OPT"
 feedback_str = ""
 fuzzing_mode_str = "normal"
 timeout = 2000
+epsilon_str = None
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:A:t:", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "fuzzingMode=", "timeout="])
+    opts, args = getopt.getopt(sys.argv[1:], "o:c:n:O:F:A:t:E:", ["odir=", "start-core=", "num-concurrent=", "oracle=", "feedback=", "fuzzingMode=", "timeout=", "epsilon="])
 except getopt.GetoptError:
     print("Arguments parsing error")
     exit(1)
@@ -45,6 +46,9 @@ for opt, arg in opts:
     elif opt in ("-t", "--timeout"):
         timeout = int(arg)
         print("Using timeout: %d \n" % (timeout))
+    elif opt in ("-E", "--epsilon"):
+        epsilon_str = arg
+        print("Using MAB Epsilon: %s \n" % (epsilon_str))
     else:
         print("Error. Input arguments not supported. \n")
         exit(1)
@@ -97,6 +101,9 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     if feedback_str != "":
         fuzzing_command += " -F " + feedback_str
+
+    if epsilon != None:
+        fuzzing_command += " -E " + epsilon_str
 
     fuzzing_command +=  " aaa " + " & "  ### Anything following. Get dump aaa. 
 
