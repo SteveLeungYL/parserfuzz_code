@@ -70,7 +70,7 @@ func RSGInitialize(fileName string, dbmsName string, epsilon float64, fuzzingMod
 
 	fuzzingMode := r.identifyFuzzingMode(fuzzingModeStr)
 
-	fmt.Printf("Initialize ParserFuzz RSG module with fuzzing mode: %s\n", fuzzingModeStr)
+	fmt.Printf("Initialize ParserFuzz RSG module with fuzzing mode: %s and epsilon %f\n", fuzzingModeStr, epsilon)
 
 	r = getRSG(yaccExample, dbmsName, epsilon, fuzzingMode)
 
