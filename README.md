@@ -41,14 +41,16 @@ The Installation and Run instructions can be found in this [link](docs/install_n
 ```bib
 Detecting Logical Bugs of DBMS with Coverage-based Guidance
 
-@inproceedings {liang:sqlright,
-title = {Detecting Logical Bugs of {DBMS} with Coverage-based Guidance},
-booktitle = {31st USENIX Security Symposium (USENIX Security 22)},
-year = {2022},
-address = {Boston, MA},
-url = {https://www.usenix.org/conference/usenixsecurity22/presentation/liang},
-publisher = {USENIX Association},
-month = aug,
+@inproceedings {liang:parserfuzz,
+	title = {{Parser Knows Best: Testing DBMS with Coverage-Guided Grammar-Rule Traversal}},
+	copyright = {All rights reserved},
+	url = {http://arxiv.org/abs/2503.03893},
+	doi = {10.48550/arXiv.2503.03893},
+	language = {en},
+	publisher = {arXiv},
+	author = {Liang, Yu and Hu, Hong},
+	month = mar,
+	year = {2025},
 }
 ```
 
