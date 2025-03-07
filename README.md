@@ -39,8 +39,6 @@ The Installation and Run instructions can be found in this [link](docs/install_n
 ## Publications
 
 ```bib
-Detecting Logical Bugs of DBMS with Coverage-based Guidance
-
 @inproceedings {liang:parserfuzz,
 	title = {{Parser Knows Best: Testing DBMS with Coverage-Guided Grammar-Rule Traversal}},
 	copyright = {All rights reserved},
