@@ -17,6 +17,22 @@ bash setup_<DB_Name>.sh
 # SQLite
 cd SQLite/scripts
 bash setup_sqlite.sh
+
+# MySQL 
+cd MySQL/scripts
+bash setup_mysql.sh
+
+# MariaDB 
+cd MariaDB/scripts
+bash setup_mariadb.sh
+
+# CockroachDB 
+cd CockroachDB/scripts
+bash setup_cockroach.sh
+
+# TiDB
+cd TiDB/scripts
+bash setup_tidb.sh
 ```
 
 2. Launch the Docker container and run the fuzzing. 
@@ -51,8 +67,28 @@ python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
 
 - MariaDB 
 ```bash
-# Launch MySQL fuzzing container. 
+# Launch MariaDB fuzzing container. 
 sudo docker run -it --rm --name mariadb_parserfuzz_testing  parserfuzz_mariadb /bin/bash
 su mysql # Do not use root priviliege. We use mysql as account name instead of mariadb. 
+python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
+```
+
+---------------------------
+
+- CockroachDB
+```bash
+# Launch CockroachDB fuzzing container. 
+sudo docker run -it --rm --name cockroach_parserfuzz_testing  parserfuzz_cockroach /bin/bash
+su mysql # Do not use root priviliege.
+python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
+```
+
+---------------------------
+
+- TiDB
+```bash
+# Launch TiDB fuzzing container. 
+sudo docker run -it --rm --name tidb_parserfuzz_testing  parserfuzz_tidb /bin/bash
+su mysql # Do not use root priviliege.
 python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
 ```
