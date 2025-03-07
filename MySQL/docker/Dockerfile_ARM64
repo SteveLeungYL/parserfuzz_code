@@ -73,6 +73,7 @@ FROM sqlright_mysql_tools AS sqlright_mysql_source_build
 # build MySQL instrumented by afl-clang-fast
 USER mysql
 WORKDIR /home/mysql/
+RUN wget https://archives.boost.io/release/1.77.0/source/boost_1_77_0.tar.bz2 && tar -xf boost_1_77_0.tar.bz2
 RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.33.zip
 RUN unzip mysql-8.0.33.zip
 RUN mv mysql-server-mysql-8.0.33 mysql-server
@@ -83,7 +84,7 @@ RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_UNIT_TESTS=OFF -DUSE_LD_GOLD=1 -DWITH_DEBUG=1
+RUN cp -r ~/boost_1_77_0 ../boost && cmake ../ -DWITH_BOOST=../boost -DWITH_UNIT_TESTS=OFF -DUSE_LD_GOLD=1 -DWITH_DEBUG=1
 RUN make -j$(nproc)
 
 # Recover the original compiler. 
@@ -207,6 +208,8 @@ RUN mv data data_all/ori_data
 USER mysql
 WORKDIR /home/mysql/scripts
 RUN python3 setup_database.py
+WORKDIR /home/mysql/fuzzing/fuzz_root
+RUN mkdir -p outputs && cp ~/src/afl-fuzz ./
 
 USER root
 RUN echo "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf
