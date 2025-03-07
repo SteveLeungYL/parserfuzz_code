@@ -49,12 +49,12 @@ RUN chown -R sqlite:sqlite /home/sqlite/scripts
 
 USER sqlite
 
-# Build AFL. 
+# Build AFL.
 RUN git clone https://github.com/google/AFL.git
 
 WORKDIR /home/sqlite/AFL
 RUN sed -i  's/#define MAP_SIZE_POW2       16/#define MAP_SIZE_POW2       18/' config.h
-RUN AFL_NO_X86=1 make
+RUN make
 WORKDIR /home/sqlite/AFL/llvm_mode
 # ENV LLVM_CONFIG=llvm-config-6.0
 RUN make
@@ -136,7 +136,7 @@ USER sqlite
 WORKDIR /home/sqlite/fuzzing
 RUN mkdir -p Bug_Analysis
 
-# Setup the SQLite bisecting cached binaries. 
+# Setup the SQLite bisecting cached binaries.
 #USER root
 #COPY sqlite_bisecting_binary /home/sqlite/sqlite_bisecting_binary
 #RUN chown -R sqlite:sqlite /home/sqlite/sqlite_bisecting_binary
@@ -146,12 +146,16 @@ RUN mkdir -p Bug_Analysis
 #COPY bisecting /home/sqlite/bisecting
 #RUN chown -R sqlite:sqlite /home/sqlite/bisecting
 
-# Also, setup the bisecting sqlite folder. 
+# Also, setup the bisecting sqlite folder.
 #USER sqlite
 #WORKDIR /home/sqlite
 #RUN git clone https://github.com/sqlite/sqlite.git ./sqlite_bisecting_binary
 #WORKDIR /home/sqlite/sqlite_bisecting_binary
 #RUN mkdir -p bld
+
+USER sqlite
+WORKDIR /home/sqlite/fuzzing/fuzz_root
+RUN mkdir -p outputs && cp ~/src/afl-fuzz ./
 
 
 # Entry workdir.
