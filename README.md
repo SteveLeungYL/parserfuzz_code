@@ -1,37 +1,38 @@
-# SQLRight: a general platform to test DBMS logical bugs
+# Parser Knows Best: Testing DBMS with Coverage-Guided Grammar-Rule Traversal
 
 <a href="Paper/paper.pdf"><img src="Paper/paper.jpg" align="right" width="250"></a>
 
 Version: 1.0\
-Update: Jul 29, 2022\
-Paper: Detecting Logical Bugs of DBMS with Coverage-based Guidance
+Update: Mar 6th, 2025\
+Paper: Parser Knows Best: Testing DBMS with Coverage-Guided Grammar-Rule Traversal
 
 Currently supported DBMS:
 1. SQLite3
-2. PostgreSQL
-3. MySQL
+2. MySQL
+3. MariaDB
+4. CockroachDB
+5. TiDB
 
 <br/><br/>
-## SQLRight Overview
+## ParserFuzz Overview
 
-`SQLRight` combines the coverage-based guidance, validity-oriented mutations and oracles to detect logical bugs for DBMS systems. `SQLRight` first mutates existing queries cooperatively. It inserts a set of oracle-required statements, and applies our validity-oriented mutations to improve the validity rate. Then, it sends the query to the oracle to create functionally equivalent query counterparts. `SQLRight` feeds all generated queries to the DBMS, and collects the execution results and the coverage information. After that, `SQLRight` invokes the oracle to compare the results of different queries to identify logical bugs. At last, it inserts the coverage-improving queries into the queue for future mutations.
+`ParserFuzz` extracts the DBMSs built-in grammar definition and generates testing SQL queries based on the extracted grammar rules. It ensures diverse SQL query generation by thoroughly exploring the grammar space, while maintaining a high query correctness rate by strictly following the built-in grammar rules. 
 
-The overview of `SQLRight` is illustrated by the diagram below.
+The overview of `ParserFuzz` is illustrated by the diagram below.
 
 <p align="center">
-<img src="doc/sqlright-overview.jpg" width="90%" alt="The overview of SQLRight" border="1">
+<img src="docs/System-Overview-Graph.jpg" width="90%" alt="The overview of ParserFuzz" border="1">
 </p>
 
 <br/><br/>
 ## Installation & Run
 
-The Installation and Run instructions can be found in this [link](doc/install_n_run_steps.md).
+The Installation and Run instructions can be found in this [link](docs/install_n_run_steps.md).
 
 <br/><br/>
 ## Authors
 
 - Yu Liang yuliang@psu.edu
-- Song Liu svl6237@psu.edu
 - Hong Hu honghu@psu.edu
 
 <br/><br/>
