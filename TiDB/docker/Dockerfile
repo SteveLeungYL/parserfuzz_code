@@ -85,7 +85,7 @@ USER tidb
 RUN mkdir -p /home/tidb/go_projects/src/github.com/tidb
 WORKDIR /home/tidb/go_projects/src/github.com/tidb
 RUN git clone https://github.com/pingcap/tidb.git
-RUN cd tidb && git checkout master
+RUN cd tidb && git checkout v6.1.7
 RUN cp -r tidb tidb_ori
 RUN echo 'export GOPATH="/home/tidb/go_projects"' >> ~/.bashrc
 ENV GOPATH="/home/tidb/go_projects"
@@ -106,7 +106,8 @@ RUN python3 inst_script.py && python3 rewrite_tidb_code_for_cov_log.py
 WORKDIR /home/tidb/go_projects/src/github.com/tidb/tidb/
 RUN cp -r /home/tidb/tidb_pkg_plugin/globalcov ./globalcov
 RUN make
-RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov; cp ../bin/tidb-with-cov /home/tidb/tidb-with-cov && cp ../bin/tidb-server /home/tidb/tidb-server-ori
+RUN cd tidb-server; GO111MODULE=on go test -c .  -ldflags '-X "github.com/pingcap/tidb/parser/mysql.TiDBReleaseVersion=v7.3.0-alpha-202-g17cda10e97" -X "github.com/pingcap/tidb/util/versioninfo.TiDBBuildTS=2023-07-20 18:18:13" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitHash=17cda10e97093c61e35a0d08800a641799f2e89f" -X "github.com/pingcap/tidb/util/versioninfo.TiDBGitBranch=master" -X "github.com/pingcap/tidb/util/versioninfo.TiDBEdition=Community"  ' -o ../bin/tidb-with-cov
+RUN cp ./bin/tidb-with-cov /home/tidb/tidb-with-cov && cp ./bin/tidb-server /home/tidb/tidb-server-ori
 # Finished the building of the TiDB applicaton.
 
 

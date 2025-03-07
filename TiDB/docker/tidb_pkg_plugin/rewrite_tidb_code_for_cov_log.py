@@ -114,7 +114,7 @@ for cur_line in main_test_fd.read().splitlines():
         continue
     elif "goleak.Option" in cur_line:
         # ignore goleak and the options line.
-        skip_line = 5
+        skip_line = 4
         continue
     elif "isCoverageServer == \"1\"" in cur_line:
         res_str += "TestCov()\n"

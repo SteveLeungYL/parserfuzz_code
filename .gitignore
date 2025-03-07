@@ -46,4 +46,5 @@ MySQL/docker/AFLTriage/
 CockroachDB/docker/CockroachDB_pkg_plugin/rsg
 SQLite/docker/rsg
 MySQL/docker/rsg
+MariaDB/docker/rsg
 MySQL/docker/AFLTriage
