@@ -195,6 +195,8 @@ RUN mkdir -p ./data_all/ori_data && cp ./1/share/mariadb_test_db.sql scripts/ ||
 USER mysql
 WORKDIR /home/mysql/scripts
 RUN python3 setup_database.py
+WORKDIR /home/mysql/fuzzing/fuzz_root
+RUN mkdir -p outputs && cp ~/src/afl-fuzz ./
 
 USER root
 RUN echo "[mysqld]\nsql_mode = \"NO_ENGINE_SUBSTITUTION\"" > /etc/mysql/conf.d/mysql.cnf

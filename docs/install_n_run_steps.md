@@ -26,12 +26,33 @@ bash setup_sqlite.sh
     - `-n` indicates number of parallel ParserFuzz instances (independent with each other). The ParserFuzz process starts from `-c` CPU ID, and extends to CPU ID `<START_CPU_ID> + <INSTANCES_NUM> - 1`.
     - `python3 run_parallel.py -c 0 -n 8` runs 8 ParserFuzz instances, attached to core `0-7`. 
     
+---------------------------
 
--- SQLite
+- SQLite
 ```bash
-# Launch SQLite container. 
+# Launch SQLite fuzzing container. 
 sudo docker run -it --rm --name sqlite_parserfuzz_testing  parserfuzz_sqlite /bin/bash
 # inside container. 
 su sqlite # Do not use root priviliege. 
+python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
+```
+
+---------------------------
+
+- MySQL 
+```bash
+# Launch MySQL fuzzing container. 
+sudo docker run -it --rm --name mysql_parserfuzz_testing  parserfuzz_mysql /bin/bash
+su mysql # Do not use root priviliege. 
+python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
+```
+
+---------------------------
+
+- MariaDB 
+```bash
+# Launch MySQL fuzzing container. 
+sudo docker run -it --rm --name mariadb_parserfuzz_testing  parserfuzz_mariadb /bin/bash
+su mysql # Do not use root priviliege. We use mysql as account name instead of mariadb. 
 python3 run_parallel -c <attach_cpu_core_id> -n <num_of_concurrent_process>
 ```
